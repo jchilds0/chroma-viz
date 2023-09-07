@@ -17,4 +17,12 @@ typedef struct {
     int split;
 } PANE;
 
+typedef struct {
+    char      type[30];
+    int       pos_x;
+    int       pos_y;
+    int       width;
+    int       height;
+} render_object;
+
 #endif // !CHROMA_TYPEDEFS

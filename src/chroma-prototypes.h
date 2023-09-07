@@ -7,6 +7,9 @@
 
 #include <raylib.h>
 
+/* chroma-output.c */
+void open_socket_connection(void);
+
 /* editor.c */
 void draw_editor(int, int, int, int);
 

@@ -3,6 +3,8 @@
  */
 
 #include "chroma-viz.h" 
+#include "chroma-prototypes.h"
+#include <raylib.h>
 
 void left_pane(PANE *, int);
 void right_pane(PANE *, int);
@@ -15,27 +17,35 @@ int main(int argc, char **argv) {
     PANE left, right;
     int split_left = main.height / 2, split_right = main.height / 2 - 100;
 
+    // Navbar
+    main.pos_y = 20;
+    main.height = main.height - main.pos_y;
+
     InitWindow(screen_width, screen_height, "raylib [core] example - basic window");
-    SetTargetFPS(60);
+    SetTargetFPS(30);
+
+    open_socket_connection();
 
     while (!WindowShouldClose()) {
         BeginDrawing();
-
         ClearBackground(RAYWHITE);
 
+        // Navbar
+        DrawRectangle(0, 0, main.width, main.pos_y, YELLOW);
+
         left  = (PANE) {
-            main.pos_x, 
-            main.pos_y, 
-            main.split, 
-            main.height, 
+            main.pos_x + padding, 
+            main.pos_y + padding, 
+            main.split - padding - padding / 2, 
+            main.height - 2 * padding, 
             split_left
         };
 
         right = (PANE) {
-            main.pos_x + main.split, 
-            main.pos_y, 
-            main.width - main.split, 
-            main.height, 
+            main.pos_x + main.split + padding / 2, 
+            main.pos_y + padding, 
+            main.width - main.split - padding - padding / 2, 
+            main.height - 2 * padding, 
             split_right
         };
 
@@ -50,17 +60,11 @@ int main(int argc, char **argv) {
 }
 
 void left_pane(PANE *pane, int padding) {
-    int width = pane->width - 3 * padding / 2;
-    int height = pane->height - 2 * padding;
-
-    draw_templates(pane->pos_x + padding, pane->pos_y + padding, width, pane->split - padding);
-    draw_show(pane->pos_x + padding, pane->pos_y + pane->split + padding, width, height - pane->split - padding);
+    draw_templates(pane->pos_x, pane->pos_y, pane->width, pane->split - padding / 2);
+    draw_show(pane->pos_x, pane->pos_y + pane->split + padding / 2, pane->width, pane->height - pane->split - padding / 2);
 }
 
 void right_pane(PANE *pane, int padding) {
-    int width = pane->width - 3 * padding / 2;
-    int height = pane->height - 2 * padding;
-
-    draw_editor(pane->pos_x + padding, pane->pos_y + padding, width, pane->split - padding);
-    draw_preview(pane->pos_x + padding, pane->pos_y + pane->split + padding, width, height - pane->split - padding);
+    draw_editor(pane->pos_x, pane->pos_y, pane->width, pane->split - padding / 2);
+    draw_preview(pane->pos_x, pane->pos_y + pane->split + padding / 2, pane->width, pane->height - pane->split - padding / 2);
 }
