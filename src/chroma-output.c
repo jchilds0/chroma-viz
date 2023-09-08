@@ -2,6 +2,7 @@
  * chroma-output.c 
  */
 
+#include "chroma-prototypes.h"
 #include "chroma-viz.h"
 
 #include <stdio.h>
@@ -9,21 +10,16 @@
 #include <sys/socket.h>
 #include <arpa/inet.h>
 
-void open_socket_connection(void) {
+int connect_to_engine(char *addr, int port) {
     int socket_desc;
     struct sockaddr_in server_addr;
-    char server_message[2000], client_message[2000];
-
-    // clean buffers
-    memset(server_message, '\0', sizeof server_message );
-    memset(client_message, '\0', sizeof client_message );
 
     // create socket 
     socket_desc = socket(AF_INET, SOCK_STREAM, 0);
 
     if (socket_desc < 0) {
         printf("Unable to create socket\n");
-        return;
+        return -1;
     }
 
     printf("Socket created successfully\n");
@@ -36,26 +32,44 @@ void open_socket_connection(void) {
     // send connection request to server
     if (connect(socket_desc, (struct sockaddr*)&server_addr, sizeof server_addr) < 0) {
         printf("Unable to connect\n");
-        return;
+        return -1;
     }
 
     printf("Connected with server successfully\n");
-    strcpy(client_message, "Hello World");
-    
+    return socket_desc;
+}
+
+int send_message_to_engine(int socket_desc, char *message) {
+    char server_message[2000];
+
+    // clean buffers
+    memset(server_message, '\0', sizeof server_message );
+
     // send message to server 
-    if (send(socket_desc, client_message, strlen(client_message), 0) < 0) {
+    if (send(socket_desc, message, strlen(message), 0) < 0) {
         printf("Unable to send message\n");
-        return;
+        return -1;
     }
 
     // recieve the servers response
     if (recv(socket_desc, server_message, sizeof server_message, 0) < 0) {
         printf("Error while recieving server's msg\n");
-        return;
+        return -1;
     }
 
     printf("Server's response: %s\n", server_message);
 
-    // close socket 
+    return 0;
+}
+
+int close_engine_connection(int socket_desc) {
+    char msg[1];
+    msg[0] = 4;
+
+    if (send_message_to_engine(socket_desc, msg) < 0) {
+        return -1;
+    }
     shutdown(socket_desc, SHUT_RDWR);
+
+    return 1;
 }

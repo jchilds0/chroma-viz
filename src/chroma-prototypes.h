@@ -8,7 +8,9 @@
 #include <raylib.h>
 
 /* chroma-output.c */
-void open_socket_connection(void);
+int connect_to_engine(char *, int);
+int send_message_to_engine(int, char *);
+int close_engine_connection(int);
 
 /* editor.c */
 void draw_editor(int, int, int, int);

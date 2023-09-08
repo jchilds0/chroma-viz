@@ -5,6 +5,8 @@
 #include "chroma-viz.h" 
 #include "chroma-prototypes.h"
 #include <raylib.h>
+#include <stdio.h>
+#include <sys/socket.h>
 
 void left_pane(PANE *, int);
 void right_pane(PANE *, int);
@@ -24,7 +26,8 @@ int main(int argc, char **argv) {
     InitWindow(screen_width, screen_height, "raylib [core] example - basic window");
     SetTargetFPS(30);
 
-    open_socket_connection();
+    int socket_engine = connect_to_engine("127.0.0.1", 6100);
+    int i = 0;
 
     while (!WindowShouldClose()) {
         BeginDrawing();
@@ -32,6 +35,12 @@ int main(int argc, char **argv) {
 
         // Navbar
         DrawRectangle(0, 0, main.width, main.pos_y, YELLOW);
+
+        char message[50];
+        sprintf(message, "Time: %d", i++ / 10);
+        if (send_message_to_engine(socket_engine, message) < 0) {
+            printf("Error sending message to server\n");
+        }
 
         left  = (PANE) {
             main.pos_x + padding, 
@@ -54,6 +63,8 @@ int main(int argc, char **argv) {
 
         EndDrawing();
     }
+
+    close_engine_connection(socket_engine);
 
     CloseWindow();
     return 0;
