@@ -4,7 +4,7 @@
 
 #include "chroma-viz.h" 
 
-void draw_editor(int pos_x, int pos_y, int width, int height) {
-    DrawRectangle(pos_x, pos_y, width, height, CHROMA_BG);
-    DrawText("Editor", CENTER(pos_x, width), CENTER(pos_y, height), 20, CHROMA_TEXT);
+void draw_editor(TILE *editor) {
+    DrawRectangle(editor->pos_x, editor->pos_y, editor->width, editor->height, CHROMA_BG);
+    DrawText("Editor", CENTER(editor->pos_x, editor->width), CENTER(editor->pos_y, editor->height), 20, CHROMA_TEXT);
 }

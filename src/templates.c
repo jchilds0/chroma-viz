@@ -5,8 +5,9 @@
 #include "chroma-theme.h"
 #include "chroma-viz.h" 
 
-void draw_templates(int pos_x, int pos_y, int width, int height) {
-    DrawRectangle(pos_x, pos_y, width, height, CHROMA_BG);
-    DrawText("Templates", CENTER(pos_x, width), CENTER(pos_y, height), 20, CHROMA_TEXT);
+void draw_templates(TILE *templates) {
+    DrawRectangle(templates->pos_x, templates->pos_y, templates->width, templates->height, CHROMA_BG);
+    DrawText("Templates", CENTER(templates->pos_x, templates->width), 
+             CENTER(templates->pos_y, templates->height), 20, CHROMA_TEXT);
 }
 

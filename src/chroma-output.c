@@ -2,7 +2,6 @@
  * chroma-output.c 
  */
 
-#include "chroma-prototypes.h"
 #include "chroma-viz.h"
 
 #include <stdio.h>
@@ -57,7 +56,7 @@ int send_message_to_engine(int socket_desc, char *message) {
         return -1;
     }
 
-    printf("Server's response: %s\n", server_message);
+    //printf("Server's response: %s\n", server_message);
 
     return 0;
 }
