@@ -70,7 +70,7 @@ RenderPixel *rectangle_to_pixels(RenderObject *object, int *num_pixels) {
 
 void render_object_to_str(RenderPixel *pixel, char *buf) {
     sprintf(buf, "(%d,%d,%d,%d,%d,%d)", pixel->pos_x, pixel->pos_y, 
-            pixel->color.a, pixel->color.b, pixel->color.g, pixel->color.a);
+            pixel->color.r, pixel->color.g, pixel->color.b, pixel->color.a);
 
     //printf("%s\n", buf);
 }

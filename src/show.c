@@ -17,15 +17,19 @@ void draw_page(TILE *, HEADER *, PAGE *, int, int);
 SHOW *init_show(void) {
     SHOW *show = NEW_STRUCT( SHOW );
 
-    show->num_pages = 1;
+    show->num_pages = 2;
     show->page_start = 0;
     show->pages = NEW_ARRAY(show->num_pages, PAGE);
     show->page_graphic = NEW_ARRAY(show->num_pages, RenderObject);
     show->page_height = 30;
 
-    show->pages[0] = (PAGE) {NULL, 001, "Green Rectangle"};
-    show->page_graphic[0] = (RenderObject) {"rectangle", 50, 50, 100, 30, GREEN};
     show->header = (HEADER) {25, 100, 400, 550, 10, 5};
+
+    show->pages[0]        = (PAGE) {NULL, 001, "Green Rectangle On"};
+    show->page_graphic[0] = (RenderObject) {"rectangle", 50, 50, 100, 30, GREEN};
+
+    show->pages[1]        = (PAGE) {NULL, 001, "Green Rectangle Off"};
+    show->page_graphic[1] = (RenderObject) {"rectangle", 50, 50, 100, 30, BLACK};
 
     return show;
 }
@@ -42,6 +46,7 @@ void draw_show(TILE *show_tile, SHOW *show) {
 
     draw_header(show_tile, &show->header);
     draw_page(show_tile, &show->header, &show->pages[0], show->header.height, show->page_height);
+    draw_page(show_tile, &show->header, &show->pages[1], show->header.height + show->page_height, show->page_height);
 }
 
 void draw_header(TILE *show, HEADER *header) {
