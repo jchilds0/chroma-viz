@@ -10,45 +10,52 @@
 #include <stdlib.h>
 #include <string.h>
 
-typedef struct {
-    char *prev;
-    int page_num;
-    char *title;
-} PAGE;
-
-typedef struct {
-    int height;
-    int prev_width;
-    int title_width;
-    int page_num_width;
-    int x_pad_text;
-    int y_pad_text;
-} HEADER;
 
 void draw_header(TILE *, HEADER *);
 void draw_page(TILE *, HEADER *, PAGE *, int, int);
 
-void draw_show(TILE *show) {
-    const int page_height = 30;
-    HEADER header = (HEADER) {25, 100, 400, 550, 10, 5};
-    PAGE page1 = (PAGE) {NULL, 001, "Green Rectangle"};
+SHOW *init_show(void) {
+    SHOW *show = NEW_STRUCT( SHOW );
 
-    DrawRectangle(show->pos_x, show->pos_y, show->width, show->height, CHROMA_BG);
+    show->num_pages = 1;
+    show->page_start = 0;
+    show->pages = NEW_ARRAY(show->num_pages, PAGE);
+    show->page_graphic = NEW_ARRAY(show->num_pages, RenderObject);
+    show->page_height = 30;
+
+    show->pages[0] = (PAGE) {NULL, 001, "Green Rectangle"};
+    show->page_graphic[0] = (RenderObject) {"rectangle", 50, 50, 100, 30, GREEN};
+    show->header = (HEADER) {25, 100, 400, 550, 10, 5};
+
+    return show;
+}
+
+void free_show(SHOW *show) {
+    free(show->pages);
+    free(show);
+}
+
+void draw_show(TILE *show_tile, SHOW *show) {
+
+    DrawRectangle(show_tile->pos_x, show_tile->pos_y, show_tile->width, show_tile->height, CHROMA_BG);
     //DrawText("Show", CENTER(show->pos_x, show->width), CENTER(show->pos_y, show->height), 20, CHROMA_TEXT);
 
-    draw_header(show, &header);
-    draw_page(show, &header, &page1, header.height, page_height);
+    draw_header(show_tile, &show->header);
+    draw_page(show_tile, &show->header, &show->pages[0], show->header.height, show->page_height);
 }
 
 void draw_header(TILE *show, HEADER *header) {
-    DrawRectangle(show->pos_x, show->pos_y, show->width, header->height, LIGHTGRAY);
-    DrawRectangle(show->pos_x, show->pos_y + header->height - 3, show->width, 3, GRAY);
-    DrawRectangle(show->pos_x, show->pos_y, 5, header->height, GRAY);
-    DrawRectangle(show->pos_x + header->prev_width, show->pos_y, 5, header->height, GRAY);
-    DrawRectangle(show->pos_x + header->title_width, show->pos_y, 5, header->height, GRAY);
-    DrawRectangle(show->pos_x + header->page_num_width, show->pos_y, 5, header->height, GRAY);
+    const int lower_pad = 3;
+    const int div_width = 5;
 
-    DrawText("Preview",     show->pos_x + header->x_pad_text,                      show->pos_y + header->y_pad_text, 20, BLACK);
+    DrawRectangle(show->pos_x, show->pos_y, show->width, header->height, LIGHTGRAY);
+    DrawRectangle(show->pos_x, show->pos_y + header->height - lower_pad, show->width, lower_pad, GRAY);
+    DrawRectangle(show->pos_x, show->pos_y, div_width, header->height, GRAY);
+    DrawRectangle(show->pos_x + header->prev_width, show->pos_y, div_width, header->height, GRAY);
+    DrawRectangle(show->pos_x + header->title_width, show->pos_y, div_width, header->height, GRAY);
+    DrawRectangle(show->pos_x + header->page_num_width, show->pos_y, div_width, header->height, GRAY);
+
+    DrawText("Preview",     show->pos_x + header->x_pad_text,                       show->pos_y + header->y_pad_text, 20, BLACK);
     DrawText("Description", show->pos_x + header->prev_width + header->x_pad_text,  show->pos_y + header->y_pad_text, 20, BLACK);
     DrawText("Page Number", show->pos_x + header->title_width + header->x_pad_text, show->pos_y + header->y_pad_text, 20, BLACK);
 }
@@ -86,12 +93,18 @@ void draw_page(TILE *show, HEADER *header, PAGE *page, int pos_y, int page_heigh
     DrawText(page_num,    show->pos_x + num_offset, show->pos_y + pos_y + y_pad, font_size, BLACK);
 }
 
-void show_mouse_click(TILE *show, int socket_engine, int engine_status) {
+void show_mouse_click(TILE *show_tile, SHOW *show, int socket_engine, int engine_status) {
     printf("Show mouse click\n");
+    int page_index = -1;
 
-    if (WITHIN(GetMouseY(), show->pos_y + 30, show->pos_y + 60) && engine_status == ENGINE_CON) {
+    if (show_tile->pos_y + show->header.height <= GetMouseY())
+        page_index = show->page_start + (GetMouseY() - show->header.height - show_tile->pos_y) / show->page_height;
+
+    if (0 <= page_index && page_index < show->num_pages) {
         printf("Render Rectangle\n");
-        RenderObject object = (RenderObject) {"rectangle", 50, 50, 10, 3, GREEN};
-        render_objects(socket_engine, &object, 1);
+
+        if (engine_status == ENGINE_CON) {
+            render_objects(socket_engine, &show->page_graphic[page_index], 1);
+        }
     }
 }

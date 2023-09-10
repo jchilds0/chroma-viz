@@ -41,7 +41,7 @@ int render_objects(int socket_desc, RenderObject *objects, int num_objects) {
 
         for (int j = 0; j < num_pixels; j++) {
             memset(buf, '\0', sizeof buf );
-            render_object_to_str(pixels, buf);
+            render_object_to_str(&pixels[j], buf);
             send_message_to_engine(socket_desc, buf);
         }
 
@@ -72,5 +72,5 @@ void render_object_to_str(RenderPixel *pixel, char *buf) {
     sprintf(buf, "(%d,%d,%d,%d,%d,%d)", pixel->pos_x, pixel->pos_y, 
             pixel->color.a, pixel->color.b, pixel->color.g, pixel->color.a);
 
-    printf("%s\n", buf);
+    //printf("%s\n", buf);
 }

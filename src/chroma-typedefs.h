@@ -47,4 +47,28 @@ typedef struct {
     Color     color;
 } RenderObject;
 
+typedef struct {
+    char *prev;
+    int page_num;
+    char *title;
+} PAGE;
+
+typedef struct {
+    int height;
+    int prev_width;
+    int title_width;
+    int page_num_width;
+    int x_pad_text;
+    int y_pad_text;
+} HEADER;
+
+typedef struct {
+    int       page_start;
+    int       num_pages;
+    int       page_height;
+    PAGE      *pages;
+    RenderObject *page_graphic;
+    HEADER    header;
+} SHOW;
+
 #endif // !CHROMA_TYPEDEFS

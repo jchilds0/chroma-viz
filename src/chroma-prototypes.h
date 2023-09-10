@@ -26,8 +26,10 @@ void draw_preview(TILE *);
 void draw_templates(TILE *);
 
 /* show.c */
-void draw_show(TILE *);
-void show_mouse_click(TILE *, int, int);
+void draw_show(TILE *, SHOW *);
+SHOW *init_show(void);
+void free_show(SHOW *);
+void show_mouse_click(TILE *, SHOW *, int, int);
 
 #endif // !CHROMA_CHROMA_PROTOTYPES
 
