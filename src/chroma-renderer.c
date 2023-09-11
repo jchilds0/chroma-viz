@@ -15,7 +15,7 @@
 #define MAX_OUTPUT_WIDTH          1920
 #define MAX_OUTPUT_HEIGHT         1080
 #define PIXEL_LEN                 (2 * MAX_POS_LEN + 4 * MAX_COLOR_LEN + 10)
-#define MAX_BUF_SIZE              1000
+#define MAX_BUF_SIZE              100
 
 typedef struct {
     int       pos_x;
@@ -48,6 +48,9 @@ int render_objects(int socket_desc, RenderObject *objects, int num_objects) {
         free(pixels);
     }
 
+    memset(buf, '\0', sizeof buf );
+    buf[0] = END_OF_FRAME;
+    send_message_to_engine(socket_desc, buf);
     return 1;
 }
 
@@ -69,8 +72,8 @@ RenderPixel *rectangle_to_pixels(RenderObject *object, int *num_pixels) {
 }
 
 void render_object_to_str(RenderPixel *pixel, char *buf) {
-    sprintf(buf, "(%d,%d,%d,%d,%d,%d)", pixel->pos_x, pixel->pos_y, 
-            pixel->color.r, pixel->color.g, pixel->color.b, pixel->color.a);
+    sprintf(buf, "%d,%d,%d,%d,%d%c", pixel->pos_x, pixel->pos_y, 
+            pixel->color.r, pixel->color.g, pixel->color.b, END_OF_PIXEL);
 
     //printf("%s\n", buf);
 }

@@ -2,12 +2,14 @@
  * chroma-output.c 
  */
 
+#include "chroma-typedefs.h"
 #include "chroma-viz.h"
 
 #include <stdio.h>
 #include <string.h>
 #include <sys/socket.h>
 #include <arpa/inet.h>
+
 
 int connect_to_engine(char *addr, int port) {
     int socket_desc;
@@ -62,8 +64,7 @@ int send_message_to_engine(int socket_desc, char *message) {
 }
 
 int close_engine_connection(int socket_desc) {
-    char msg[1];
-    msg[0] = 4;
+    char msg[1] = {END_OF_CON};
 
     if (send_message_to_engine(socket_desc, msg) < 0) {
         return -1;

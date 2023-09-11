@@ -16,8 +16,11 @@
 #define CENTER(pos, offset)           (pos + offset / 2)
 #define RENDER_NUM_PARAMS             4
 
-#define RENDERER_PIXELS               2
-#define RENDERER_TEXT                 3
+#define RENDER_PIXELS                 2
+#define RENDER_TEXT                   3
+#define END_OF_PIXEL                  4
+#define END_OF_FRAME                  5
+#define END_OF_CON                    6
 
 #define ENGINE_DISCON                 0
 #define ENGINE_TEST                   1

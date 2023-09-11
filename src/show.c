@@ -28,7 +28,7 @@ SHOW *init_show(void) {
     show->pages[0]        = (PAGE) {NULL, 001, "Green Rectangle On"};
     show->page_graphic[0] = (RenderObject) {"rectangle", 50, 50, 100, 30, GREEN};
 
-    show->pages[1]        = (PAGE) {NULL, 001, "Green Rectangle Off"};
+    show->pages[1]        = (PAGE) {NULL, 002, "Green Rectangle Off"};
     show->page_graphic[1] = (RenderObject) {"rectangle", 50, 50, 100, 30, BLACK};
 
     return show;
