@@ -2,7 +2,6 @@
  * templates.c 
  */
 
-#include "chroma-theme.h"
 #include "chroma-viz.h" 
 
 void draw_templates(TILE *templates) {
@@ -11,3 +10,6 @@ void draw_templates(TILE *templates) {
              CENTER(templates->pos_y, templates->height), 20, CHROMA_TEXT);
 }
 
+void templates_mouse_click(TILE *templates, SHOW *show) {
+    printf("Template Mouse Click\n");
+}

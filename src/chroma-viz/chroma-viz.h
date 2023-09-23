@@ -12,7 +12,8 @@
 #include "chroma-prototypes.h"
 #include "chroma-theme.h"
 
+#include "graphic.h"
+#include "tcp.h"
+
 #endif // !CHROMA_CHROMA_VIZ
-
-
 

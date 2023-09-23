@@ -3,37 +3,30 @@
  */
 
 #include "chroma-viz.h" 
-#include "chroma-prototypes.h"
-#include "chroma-typedefs.h"
-#include <raylib.h>
-#include <stdatomic.h>
-#include <stdio.h>
-#include <sys/socket.h>
 
 #define PADDING     5
 
-void left_pane(PANE *, TILE *, TILE *, SHOW *);
-void right_pane(PANE *, TILE *, TILE *);
 void update_window_panes(PANE *, PANE *, PANE *);
 void update_pane_tiles(PANE *, TILE *, TILE *);
-void update_lower_bar(PANE *, TILE *);
-void draw_connection_button(PANE *, TILE *, bool);
-void connection_mouse_click(int *, int *);
 
 int main(int argc, char **argv) {
     PANE main  = {0, 0, 1200, 800, 600};
     PANE left, right;
     TILE editor, preview, templates, show_tile;
-    int engine_status = ENGINE_DISCON;
-    int socket_engine = 0;
     bool resize_mid = false, resize_left = false;
+    Connection engine = (Connection) {1920, 1080, ENGINE_DISCON, -1, "127.0.0.1", 6100};
+    Connection prev = (Connection) {800, 450, ENGINE_DISCON, -1, "127.0.0.1", 6000};
+
+    Keymap keymap = (Keymap) { KEY_KP_DIVIDE, KEY_KP_MULTIPLY, KEY_KP_ADD, KEY_KP_SUBTRACT };
 
     // Navbar
     main.pos_y = 20;
     main.height = main.height - main.pos_y - 30;
     left.split = main.height / 2;
     TILE lower = (TILE) {main.pos_x, main.pos_y + main.height, main.width, 30};
-    SHOW *show = init_show();
+    //SHOW *show = init_show();
+    SHOW *show = read_show_from_file("shows/basic_show.chromashow");
+    //write_show_to_file(show);
 
     SetWindowState(FLAG_WINDOW_RESIZABLE);
     InitWindow(main.width, main.height, "raylib [core] example - basic window");
@@ -54,15 +47,25 @@ int main(int argc, char **argv) {
 
         // Lower bar
         if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) { 
-            if (WITHIN(GetMouseX(), lower.pos_x, lower.pos_x + 100)
-                && WITHIN(GetMouseY(), lower.pos_y, lower.pos_y + 30)) {
+            if (WITHIN(GetMouseY(), lower.pos_y, lower.pos_y + lower.height)) {
 
-                    connection_mouse_click(&socket_engine, &engine_status);
+                lower_bar_mouse_click(&lower, &engine, &prev);
 
             } else if (WITHIN(GetMouseX(), show_tile.pos_x, show_tile.pos_x + show_tile.width) 
                 && WITHIN(GetMouseY(), show_tile.pos_y, show_tile.pos_y + show_tile.height)) {
 
-                    show_mouse_click(&show_tile, show, socket_engine, engine_status);
+                show_mouse_click(&show_tile, show, &engine);
+
+            } else if (WITHIN(GetMouseX(), editor.pos_x, editor.pos_x + editor.width)
+                && WITHIN(GetMouseY(), editor.pos_y, editor.pos_y + editor.height)) {
+
+                editor_mouse_click(&editor, show);
+
+            } else if (WITHIN(GetMouseX(), templates.pos_x, templates.pos_x + templates.width)
+                && WITHIN(GetMouseY(), templates.pos_y, templates.pos_y + templates.height)) {
+
+                templates_mouse_click(&templates, show);
+
             }
         }
         
@@ -80,27 +83,31 @@ int main(int argc, char **argv) {
             resize_left = false;
         }
 
+        handle_keypress(&keymap, show, &engine);
+
         if (resize_mid) {
             main.split = GetMouseX();
         } else if (resize_left) {
             left.split = GetMouseY() - left.pos_y;
         }
 
-        draw_connection_button(&main, &lower, engine_status);
+        draw_connection_button(&main, &lower, &engine, &prev);
 
         update_window_panes(&main, &left, &right);
         update_pane_tiles(&left, &templates, &show_tile);
         update_pane_tiles(&right, &editor, &preview);
         update_lower_bar(&main, &lower);
 
-        left_pane(&left, &templates, &show_tile, show);
-        right_pane(&right, &editor, &preview);
+        draw_templates(&templates);
+        draw_show(&show_tile, show);
+        draw_editor(&editor, show);
+        draw_preview(&preview, &engine, &show->graphic[show->selected_page]);
 
         EndDrawing();
     }
 
-    if (engine_status == ENGINE_CON) {
-        close_engine_connection(socket_engine);
+    if (engine.status == ENGINE_CON) {
+        close_engine_connection(engine.socket_desc);
     }
 
     free_show(show);
@@ -134,35 +141,3 @@ void update_pane_tiles(PANE *pane, TILE *top, TILE *bottom) {
     bottom->height = pane->height - pane->split - PADDING / 2;
 }
 
-void update_lower_bar(PANE *main, TILE *lower) {
-    *lower = (TILE) {main->pos_x, main->pos_y + main->height, main->width, 30};
-}
-
-void left_pane(PANE *left, TILE *templates, TILE *show_tile, SHOW *show) {
-    draw_templates(templates);
-    draw_show(show_tile, show);
-}
-
-void right_pane(PANE *pane, TILE *editor, TILE *preview) {
-    draw_editor(editor);
-    draw_preview(preview);
-}
-
-void draw_connection_button(PANE *main, TILE *lower, bool status) {
-    *lower = (TILE) {main->pos_x, main->pos_y + main->height, main->width, 30};
-
-    DrawRectangle(lower->pos_x, lower->pos_y, lower->width, lower->height, WHITE);
-    DrawRectangle(lower->pos_x, lower->pos_y, 100, lower->height, status ? GREEN : RED);
-
-}
-
-void connection_mouse_click(int *socket_engine, int *engine_status) {
-    if (*engine_status == ENGINE_DISCON) {
-    // draw_connection_button(&main, &lower, ENGINE_TEST);
-        *socket_engine = connect_to_engine("127.0.0.1", 6100);
-        *engine_status = *socket_engine < 0 ? ENGINE_DISCON : ENGINE_CON;
-    } else if (*engine_status == ENGINE_CON) {
-        close_engine_connection(*socket_engine);
-        *engine_status = ENGINE_DISCON;
-    }
-}
