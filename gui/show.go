@@ -1,17 +1,92 @@
 package gui
 
-var show map[int]Page
+import (
+	"strconv"
+	"github.com/gotk3/gotk3/glib"
+	"github.com/gotk3/gotk3/gtk"
+)
 
-NewShowPage(1, )
+const (
+    PAGENUM = iota
+    TITLE
+    TEMPLATEID 
+)
 
-func NewShowPage(pageNum int, template Page) bool {
-    if _, ok := show[pageNum]; !ok {
-        return false
+var KEYTITLE = map[int]string{
+    PAGENUM: "Page Num",
+    TITLE: "Title",
+    TEMPLATEID: "Template ID",
+}
+
+type Page struct {
+    Box         *gtk.ListBoxRow
+    pageNum     int
+    title       string
+    templateID  int
+}
+
+func NewPage(pageNum int, title string, id int) *Page {
+    return &Page{pageNum: pageNum, title: title, templateID: id}
+}
+
+func (page *Page) pageToListRow() *gtk.ListBoxRow {
+    row1, _ := gtk.ListBoxRowNew()
+    row1.Add(textToBuffer(strconv.Itoa(page.pageNum)))
+    row1.Add(textToBuffer(page.title))
+
+    return row1
+}
+
+type ShowTree struct {
+    *gtk.TreeView
+    treeList  *gtk.ListStore
+    pages     map[int]*Page
+    numPages  int
+    edit      *Editor
+}
+
+func NewShow(edit *Editor) *ShowTree {
+    show := &ShowTree{}
+    show.TreeView, _ = gtk.TreeViewNew()
+    show.pages = make(map[int]*Page)
+
+    /* Columns */
+    for key, title := range KEYTITLE {
+        show.AppendColumn(createColumn(title, key))
     }
 
-    show[pageNum] = *NewPage(pageNum, template.title, template.templateID)
+    show.treeList, _ = gtk.ListStoreNew(glib.TYPE_STRING, glib.TYPE_STRING, glib.TYPE_STRING)
+    show.SetModel(show.treeList)
+    show.edit = edit
+
+    // TODO: remove reference to show from outside scope
+    show.Connect("row-activated", 
+        func(tree *gtk.TreeView, path *gtk.TreePath, column *gtk.TreeViewColumn) { 
+            iter, _ := show.treeList.GetIter(path)
+            id, _ := show.treeList.GetValue(iter, PAGENUM)
+            val, _ := id.GoValue()
+            pageNum, _ := strconv.Atoi(val.(string))
+
+            show.edit.SetPage(show.pages[pageNum])
+        })
+
+    return show 
+}
+
+func (show *ShowTree) NewShowPage(temp Template) bool {
+    show.numPages++
+    show.pages[show.numPages] = NewPage(show.numPages, temp.title, temp.templateID)
+    page := show.pages[show.numPages]
+    show.treeList.Set(
+        show.treeList.Append(), 
+        []int{PAGENUM, TITLE, TEMPLATEID}, 
+        []interface{}{page.pageNum, page.title, page.templateID})
     return true
 }
 
+func createColumn(title string, id int) *gtk.TreeViewColumn {
+    cell, _ := gtk.CellRendererTextNew()
+    column, _ := gtk.TreeViewColumnNewWithAttribute(title, cell, "text", id)
 
-
+    return column
+}

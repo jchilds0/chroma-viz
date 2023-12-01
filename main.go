@@ -3,5 +3,7 @@ package main
 import "chroma-viz/gui"
 
 func main() {
-    gui.LaunchGui()
+    conn := gui.NewConnection("127.0.0.1")
+    gui.LaunchGui(conn)
 }
+

@@ -4,17 +4,17 @@ import (
 	"github.com/gotk3/gotk3/gtk"
 )
 
-func LaunchGui() {
+func LaunchGui(conn *Connection) {
     gtk.Init(nil)
 
     win, _ := gtk.WindowNew(gtk.WINDOW_TOPLEVEL)
     win.SetTitle("Chroma Viz")
     win.Connect("destroy", func() { gtk.MainQuit() })
 
-    box, _ := gtk.BoxNew(gtk.ORIENTATION_VERTICAL, 10)
+    box, _ := gtk.BoxNew(gtk.ORIENTATION_VERTICAL, 0)
     box.PackStart(menuLayout(), false, false, 0)
-    box.PackStart(bodyLayout(), true, true, 0)
-    box.PackEnd(lowerBarLayout(), false, false, 0)
+    box.PackStart(bodyLayout(conn), true, true, 0)
+    box.PackEnd(lowerBarLayout(conn), false, false, 0)
     
     win.Add(box)
     win.SetDefaultSize(800, 600)
@@ -39,67 +39,62 @@ func menuLayout() *gtk.HeaderBar {
     return box
 }
 
-func bodyLayout() *gtk.Box {
+func bodyLayout(conn *Connection) *gtk.Box {
     box, _ := gtk.BoxNew(gtk.ORIENTATION_HORIZONTAL, 0)
-    left := leftBox()
-    right := rightBox()
+    editView := NewEditor(conn)
+    showView := NewShow(editView)
+    tempView := NewTempList(showView)
+
+    left := leftBox(showView, tempView)
+    right := rightBox(editView)
 
     box.PackStart(left, true, true, 0)
     box.PackStart(right, true, true, 0)
-    box.SetVAlign(gtk.ALIGN_CENTER)
 
     return box
 }
 
-func leftBox() *gtk.Box {
+func leftBox(showView *ShowTree, tempView *TempTree) *gtk.Box {
     box, _ := gtk.BoxNew(gtk.ORIENTATION_VERTICAL, 0)
-    templates := templatesBox()
-    show := showBox()
+    box.SetHExpand(true)
 
-    box.PackStart(templates, true, true, 0)
-    box.PackStart(show, true, true, 0)
+    header1, _ := gtk.HeaderBarNew()
+    header1.SetTitle("Templates")
+    box.PackStart(header1, false, false, 0)
+
+    scroll1, _ := gtk.ScrolledWindowNew(nil, nil)
+    box.PackStart(scroll1, true, true, 0)
+    scroll1.Add(tempView)
+
+    header2, _ := gtk.HeaderBarNew()
+    header2.SetTitle("Show")
+    box.PackStart(header2, false, false, 0)
+
+    scroll2, _ := gtk.ScrolledWindowNew(nil, nil)
+    box.PackStart(scroll2, true, true, 0)
+    scroll2.Add(showView)
 
     return box
 }
 
-func templatesBox() *gtk.Box {
+func rightBox(editView *Editor) *gtk.Box {
     box, _ := gtk.BoxNew(gtk.ORIENTATION_VERTICAL, 0)
-    header, _ := gtk.HeaderBarNew()
-    header.SetTitle("Templates")
-
-    templates, _ := gtk.ListBoxNew()
-
-    box.PackStart(header, false, false, 0)
-    box.PackStart(templates, true, true, 0)
+    box.PackStart(editView.Box(), true, true, 0)
 
     return box
 }
 
-func showBox() *gtk.Box {
-    box, _ := gtk.BoxNew(gtk.ORIENTATION_VERTICAL, 0)
-    header, _ := gtk.HeaderBarNew()
-    header.SetTitle("Show")
-
-    show, _ := gtk.ListBoxNew()
-
-    box.PackStart(header, false, false, 0)
-    box.PackStart(show, true, true, 0)
-
-    return box
-}
-
-func rightBox() *gtk.Box {
-    box, _ := gtk.BoxNew(gtk.ORIENTATION_VERTICAL, 0)
-
-    return box
-}
-
-func lowerBarLayout() *gtk.HeaderBar {
-    box, _ := gtk.HeaderBarNew()
+func lowerBarLayout(conn *Connection) *gtk.ActionBar {
+    box, _ := gtk.ActionBarNew()
 
     button, _ := gtk.ButtonNew()
     button.SetLabel("Exit")
     button.Connect("clicked", func() { gtk.MainQuit() })
+    box.PackEnd(button)
+
+    eng1 := NewEngineWidget(conn)
+    box.PackStart(eng1)
+
     return box 
 }
 
