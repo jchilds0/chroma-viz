@@ -35,6 +35,7 @@ func (conn *Connection) Connect() bool {
     return true
 }
 
+// TCP Format: ver%d#len%d#page%d#attr%s#val%d ...
 func (conn *Connection) SendPage(pageNum int, action int) {
     conn.conn.Write([]byte(strconv.Itoa(pageNum) + string(action) + string(END_OF_MESSAGE)))
 }

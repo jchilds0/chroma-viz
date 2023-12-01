@@ -23,6 +23,8 @@ type Page struct {
     pageNum     int
     title       string
     templateID  int
+    posX        int
+    posY        int
 }
 
 func NewPage(pageNum int, title string, id int) *Page {
