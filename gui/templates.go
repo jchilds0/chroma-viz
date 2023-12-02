@@ -11,10 +11,20 @@ type Template struct {
     Box         *gtk.ListBoxRow
     title       string
     templateID  int
+    props       map[string]Property
 }
 
 func NewTemplate(title string, id int) *Template {
-    return &Template{title: title, templateID: id}
+    temp := &Template{title: title, templateID: id}
+    temp.props = make(map[string]Property)
+    temp.props["x Pos"] = NewIntProp("pos_x", 0, 1920)
+    temp.props["y Pos"] = NewIntProp("pos_y", 0, 1080)
+    temp.props["Width"] = NewIntProp("width", 0, 1920)
+    temp.props["Height"] = NewIntProp("height", 0, 1080)
+    temp.props["Title"] = NewStrProp("title")
+    temp.props["Subtitle"] = NewStrProp("subtitle")
+
+    return temp
 }
 
 func (temp *Template) templateToListRow() *gtk.ListBoxRow {
@@ -51,9 +61,9 @@ func NewTempList(show *ShowTree) *TempTree {
     temp.treeList, _ = gtk.ListStoreNew(glib.TYPE_STRING, glib.TYPE_STRING)
     temp.SetModel(temp.treeList)
 
-    temp.AddTemplate("template 1", 1)
-    temp.AddTemplate("template 2", 2)
-    temp.AddTemplate("template 3", 3)
+    temp.AddTemplate("Scorebug", 1)
+    temp.AddTemplate("Lower Frame", 2)
+    temp.AddTemplate("Clock", 3)
 
     temp.Connect("row-activated", 
         func(tree *gtk.TreeView, path *gtk.TreePath, column *gtk.TreeViewColumn) { 
@@ -62,7 +72,7 @@ func NewTempList(show *ShowTree) *TempTree {
             val, _ := id.GoValue()
             tempID, _ := strconv.Atoi(val.(string))
 
-            temp.show.NewShowPage(*temp.temps[tempID]) 
+            temp.show.NewShowPage(temp.temps[tempID]) 
         })
 
     return temp

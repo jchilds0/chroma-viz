@@ -2,6 +2,7 @@ package gui
 
 import (
 	"fmt"
+	"log"
 
 	"github.com/gotk3/gotk3/gtk"
 )
@@ -39,7 +40,8 @@ func NewEditor(conn *Connection) *Editor {
             return
         }
 
-        editor.conn.SendPage(editor.page.templateID, ANIMATE_ON)
+        editor.conn.SendPage(editor.page, ANIMATE_ON)
+        editor.conn.Read()
     })
 
     take2.Connect("clicked", func() { 
@@ -48,7 +50,7 @@ func NewEditor(conn *Connection) *Editor {
             return
         }
 
-        editor.conn.SendPage(editor.page.templateID, CONTINUE)
+        editor.conn.SendPage(editor.page, CONTINUE)
     })
 
     take3.Connect("clicked", func() { 
@@ -57,7 +59,7 @@ func NewEditor(conn *Connection) *Editor {
             return
         }
 
-        editor.conn.SendPage(editor.page.templateID, ANIMATE_OFF)
+        editor.conn.SendPage(editor.page, ANIMATE_OFF)
     })
     
     editor.edit, _ = gtk.BoxNew(gtk.ORIENTATION_VERTICAL, 0)
@@ -67,7 +69,6 @@ func NewEditor(conn *Connection) *Editor {
 }
 
 func (edit *Editor) SetPage(page *Page) {
-    edit.header.SetTitle("Editor - " + page.title)
     edit.page = page
 
     edit.edit.Destroy()
@@ -78,8 +79,18 @@ func (edit *Editor) SetPage(page *Page) {
     label, _ := gtk.LabelNew(page.title)
     label.SetVisible(true)
     edit.edit.PackStart(label, false, false, 0)
-    edit.edit.PackStart(IntEditor("x Pos: ", &page.posX, 100), false, false, 0)
-    edit.edit.PackStart(IntEditor("y Pos: ", &page.posY, 100), false, false, 0)
+
+    for _, key := range page.propList {
+        prop, ok := page.props[key]
+
+        if !ok {
+            log.Printf("Unknown prop %s", key)
+            return
+        }
+
+        edit.edit.PackStart(prop.Editor(key), false, false, 0)
+    }
+
 }
 
 func (edit *Editor) Box() *gtk.Box {

@@ -33,11 +33,13 @@ func NewEngineWidget(conn *Connection) *EngineWidget {
     eng.Connect(
         "clicked", 
         func() { 
-
-            if !eng.connStatus {
+            if eng.connStatus {
+                eng.connStatus = eng.conn.IsConnected()
+            } else {
                 eng.connStatus = eng.conn.Connect()
-                eng.area.QueueDraw()
-            }
+            } 
+
+            eng.area.QueueDraw()
         })
 
     eng.area.Connect(

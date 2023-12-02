@@ -23,12 +23,20 @@ type Page struct {
     pageNum     int
     title       string
     templateID  int
-    posX        int
-    posY        int
+    props       map[string]Property
+    propList    []string
 }
 
-func NewPage(pageNum int, title string, id int) *Page {
-    return &Page{pageNum: pageNum, title: title, templateID: id}
+func NewPage(pageNum int, title string, temp *Template) *Page {
+    page := &Page{pageNum: pageNum, title: title, templateID: temp.templateID}
+    page.props = make(map[string]Property)
+    page.propList = []string{"x Pos", "y Pos", "Width", "Height", "Title", "Subtitle"}
+
+    for key, prop := range temp.props {
+        page.props[key] = prop.Copy()
+    }
+
+    return page
 }
 
 func (page *Page) pageToListRow() *gtk.ListBoxRow {
@@ -75,9 +83,9 @@ func NewShow(edit *Editor) *ShowTree {
     return show 
 }
 
-func (show *ShowTree) NewShowPage(temp Template) bool {
+func (show *ShowTree) NewShowPage(temp *Template) bool {
     show.numPages++
-    show.pages[show.numPages] = NewPage(show.numPages, temp.title, temp.templateID)
+    show.pages[show.numPages] = NewPage(show.numPages, temp.title, temp)
     page := show.pages[show.numPages]
     show.treeList.Set(
         show.treeList.Append(), 

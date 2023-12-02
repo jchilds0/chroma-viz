@@ -1,9 +1,11 @@
 package gui
 
 import (
+	"fmt"
 	"log"
 	"net"
 	"strconv"
+	"time"
 )
 
 const (
@@ -27,6 +29,7 @@ func NewConnection(addr string) *Connection {
 func (conn *Connection) Connect() bool {
     var err error
     conn.conn, err = net.Dial("tcp", conn.addr + ":" + strconv.Itoa(conn.port))
+
     if err != nil {
         log.Print(err)
         return false
@@ -35,9 +38,22 @@ func (conn *Connection) Connect() bool {
     return true
 }
 
-// TCP Format: ver%d#len%d#page%d#attr%s#val%d ...
-func (conn *Connection) SendPage(pageNum int, action int) {
-    conn.conn.Write([]byte(strconv.Itoa(pageNum) + string(action) + string(END_OF_MESSAGE)))
+// TCP Format: ver%d#len%d#action%d#page%d#attr%s#val%d ... END_OF_MESSAGE
+func (conn *Connection) SendPage(page *Page, action int) {
+    version := [...]int{1, 0}
+    length := 2
+
+    header := fmt.Sprintf("ver%d,%d#len%d#action%d#temp%d#", 
+        version[0], version[1], length, action, page.templateID)
+
+    str := header
+
+    for _, prop := range page.props {
+        str = str + prop.String()
+    }
+
+    str = str + string(END_OF_MESSAGE)
+    conn.conn.Write([]byte(str))
 }
 
 func (conn *Connection) CloseConn() {
@@ -45,3 +61,33 @@ func (conn *Connection) CloseConn() {
     conn.conn.Close()
 }
 
+func (conn *Connection) IsConnected() bool {
+    buf := make([]byte, 100)
+    conn.conn.SetReadDeadline(time.Now().Add(10 * time.Millisecond))
+    _, err := conn.conn.Read(buf)
+
+    if neterr, ok := err.(net.Error); ok && neterr.Timeout() {
+        return true
+    }
+
+    if err != nil {
+        log.Print(err)
+        return false
+    }
+
+    fmt.Printf("Server Message: %s\n", buf);
+    return true
+}
+
+func (conn *Connection) Read() {
+    buf := make([]byte, 100)
+    conn.conn.SetReadDeadline(time.Now().Add(100 * time.Millisecond))
+    _, err := conn.conn.Read(buf)
+
+    if err != nil {
+        log.Print(err)
+        return 
+    }
+
+    fmt.Printf("Server Message: %s\n", buf);
+}
