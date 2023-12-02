@@ -1,6 +1,10 @@
 package gui
 
 import (
+	"fmt"
+	"os/exec"
+
+	"github.com/gotk3/gotk3/gdk"
 	"github.com/gotk3/gotk3/gtk"
 )
 
@@ -31,14 +35,19 @@ func LaunchGui(conn *Connection) {
  
     /* Body layout */
     bodyBox, _ := gtk.BoxNew(gtk.ORIENTATION_HORIZONTAL, 0)
+    box.PackStart(bodyBox, true, true, 0)
+
     editView := NewEditor(conn)
     showView := NewShow(editView)
     tempView := NewTempList(showView)
 
-    /* left */
     leftBox, _ := gtk.BoxNew(gtk.ORIENTATION_VERTICAL, 0)
-    leftBox.SetHExpand(true)
+    rightBox, _ := gtk.BoxNew(gtk.ORIENTATION_VERTICAL, 0)
+    bodyBox.PackStart(leftBox, true, true, 0)
+    bodyBox.PackStart(rightBox, true, true, 0)
 
+    /* left */
+    leftBox.SetHExpand(true)
     header1, _ := gtk.HeaderBarNew()
     header1.SetTitle("Templates")
     leftBox.PackStart(header1, false, false, 0)
@@ -56,13 +65,24 @@ func LaunchGui(conn *Connection) {
     scroll2.Add(showView)
 
     /* right */
-    rightBox, _ := gtk.BoxNew(gtk.ORIENTATION_VERTICAL, 0)
     rightBox.PackStart(editView.Box(), true, true, 0)
+    var xid uint
+    soc, _ := gtk.SocketNew()
+    fixed, _ := gtk.FixedNew()
+    soc.SetSizeRequest(500, 500)
+    soc.SetVisible(true)
+    soc.Connect("realize", func() {
+        xid = soc.GetId()
+        fmt.Printf("xid: %d\n", xid)
+    })
 
-    bodyBox.PackStart(leftBox, true, true, 0)
-    bodyBox.PackStart(rightBox, true, true, 0)
+    fixed.Put(soc, 0, 0)
+    fixed.SetSizeRequest(500,500)
+    fixed.SetVisible(true)
 
-    box.PackStart(bodyBox, true, true, 0)
+    // connect to preview child process
+
+    rightBox.PackEnd(fixed, false, false, 0)
 
     /* Lower Bar layout */
     lowerBox, _ := gtk.ActionBarNew()
