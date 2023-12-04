@@ -3,12 +3,6 @@
  */
 
 #include "chroma-engine.h"
-#include <asm-generic/socket.h>
-#include <raylib.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <sys/socket.h>
 #include <arpa/inet.h>
 
 int start_tcp_server(char *addr, int port) {
@@ -100,12 +94,12 @@ int recieve_message(int client_sock, char *buf) {
         }
 
         for (int i = 0; i < strlen(client_message); i++) {
+            buf[index++] = client_message[i];
+
             if (client_message[i] == END_OF_GRAPHICS) {
                 index = 0;
                 return END_OF_GRAPHICS;
             }
-
-            buf[index++] = client_message[i];
         }
     }
 

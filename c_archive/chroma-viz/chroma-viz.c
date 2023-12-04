@@ -14,7 +14,7 @@ int main(int argc, char **argv) {
     PANE left, right;
     TILE editor, preview, templates, show_tile;
     bool resize_mid = false, resize_left = false;
-    Connection engine = (Connection) {1920, 1080, ENGINE_DISCON, -1, "127.0.0.1", 6100};
+    Connection engine = (Connection) {1280, 720, ENGINE_DISCON, -1, "127.0.0.1", 6100};
     Connection prev = (Connection) {800, 450, ENGINE_DISCON, -1, "127.0.0.1", 6000};
 
     Keymap keymap = (Keymap) { KEY_KP_DIVIDE, KEY_KP_MULTIPLY, KEY_KP_ADD, KEY_KP_SUBTRACT };

@@ -6,11 +6,12 @@
 #define CHROMA_GRAPHICS
 
 #include <raylib.h>
+#include <stdbool.h>
 #include <stdio.h>
 #include <string.h>
 
-#define MAX_BUF_SIZE                  100
-#define MAX_CHAR_SIZE                 100
+#define MAX_BUF_SIZE                  500
+#define MAX_CHAR_SIZE                 300
 #define MAX_GRAPHICS                  30
 #define MAX_SUB_COMPS                 10
 
@@ -44,7 +45,7 @@ typedef struct {
     Text            text[MAX_SUB_COMPS];
 } Graphic;
 
-void graphic_to_string(Graphic *, char *);
+void graphic_to_engine(int, Graphic *, bool);
 void string_to_graphic(Graphic *, char *);
 
 #endif // !CHROMA_GRAPHICS

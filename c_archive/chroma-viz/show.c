@@ -7,7 +7,7 @@
 #include <string.h>
 
 void draw_header(TILE *);
-void draw_page(TILE *, Graphic *, int, int, bool);
+void draw_page(TILE *, Graphic *, Page *, int, int, bool);
     
 typedef struct {
     int       height;
@@ -56,8 +56,8 @@ void draw_show(TILE *show_tile, SHOW *show) {
     //DrawText("Show", CENTER(show->pos_x, show->width), CENTER(show->pos_y, show->height), 20, CHROMA_TEXT);
 
     draw_header(show_tile);
-    draw_page(show_tile, &show->pages[0], header.height, show->page_height, 0 == show->selected_page);
-    draw_page(show_tile, &show->pages[1], header.height + show->page_height, show->page_height, 1 == show->selected_page);
+    draw_page(show_tile, &show->graphic[0], &show->pages[0], header.height, show->page_height, 0 == show->selected_page);
+    draw_page(show_tile, &show->graphic[1], &show->pages[1], header.height + show->page_height, show->page_height, 1 == show->selected_page);
 }
 
 void draw_header(TILE *show) {
@@ -76,7 +76,7 @@ void draw_header(TILE *show) {
     DrawText("Page Number", show->pos_x + header.title_width + header.x_pad_text, show->pos_y + header.y_pad_text, 20, BLACK);
 }
 
-void draw_page(TILE *show, PAGE *page, int pos_y, int page_height, bool selected) {
+void draw_page(TILE *show, Graphic *graphic, Page *page, int pos_y, int page_height, bool selected) {
     const int font_size = 20;
     const int x_pad = 10;
     const int y_pad = 10;

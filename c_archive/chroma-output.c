@@ -2,9 +2,7 @@
  * chroma-output.c 
  */
 
-#include "chroma-typedefs.h"
-#include "chroma-viz.h"
-
+#include "graphic.h"
 #include <stdio.h>
 #include <string.h>
 #include <sys/socket.h>

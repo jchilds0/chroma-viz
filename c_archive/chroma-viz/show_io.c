@@ -2,19 +2,14 @@
  * show_io.c 
  */ 
 
-#include "chroma-typedefs.h"
 #include "chroma-viz.h"
-#include "render_graphics.h"
-#include <raylib.h>
+#include "graphic.h"
 #include <stdio.h>
 #include <string.h>
 
-#define MAX_BUF_SIZE          1000
-#define MAX_CHAR_SIZE         50 
-
 #define TEXT_STRING           ""
-#define RECTANGLE_STRING      "\t\t\t<rectangle; pos_x = %d; pos_y = %d; width = %d; height = %d; color = (%d, %d, %d, %d)>\n"
-#define PAGE_STRING           "\t<page;prev = %s ;page_num = %d;title = %s ;num_rectangles = %d ;num_text = %d>\n"
+#define RECTANGLE_STRING      "\t\t<rectangle; pos_x = %d; pos_y = %d; width = %d; height = %d; color = (%d, %d, %d, %d)>\n"
+#define PAGE_STRING           "\t<page;prev = %s ;page_num = %d;title = %s ;num_rectangles = %d;num_text = %d>\n"
 #define SHOW_STRING           "<show;show_name = %s ;num_pages = %d>\n"
 
 enum {
@@ -26,9 +21,9 @@ enum {
     KEY_TEXT
 };
 
-void write_page_to_file(FILE *, PAGE *);
-void write_rectangle_to_file(FILE *, ChromaRectangle *);
-void write_text_to_file(FILE *, ChromaText *);
+void write_page_to_file(FILE *, Graphic *, Page *);
+void write_rectangle_to_file(FILE *, Rect *);
+void write_text_to_file(FILE *, Text *);
 int parse_line(char *);
 
 void write_show_to_file(SHOW *show) {
@@ -46,45 +41,29 @@ void write_show_to_file(SHOW *show) {
     fwrite(buf, 1, strlen(buf), file);
 
     for (int i = 0; i < show->num_pages; i++) {
-        write_page_to_file(file, &show->pages[i]);
+        write_page_to_file(file, &show->graphic[i], &show->pages[i]);
     }
 
     fclose(file);
 }
 
-void write_page_to_file(FILE *file, PAGE *page) {
+void write_page_to_file(FILE *file, Graphic *graphic, Page *page) {
     char buf[MAX_BUF_SIZE];
 
     memset(buf, '\0', sizeof buf);
-    sprintf(buf, PAGE_STRING, page->prev, page->page_num, page->title, page->num_rectangles, page->num_text);
+    sprintf(buf, PAGE_STRING, page->prev, page->page_num, page->title, graphic->num_rect, graphic->num_text);
     fwrite(buf, 1, strlen(buf), file);
 
-    memset(buf, '\0', sizeof buf);
-    sprintf(buf, "\t\t<page_on>\n");
-    fwrite(buf, 1, strlen(buf), file);
-
-    for (int i = 0; i < page->num_rectangles; i++) {
-        write_rectangle_to_file(file, &page->rectangles_on[i]);
+    for (int i = 0; i < graphic->num_rect; i++) {
+        write_rectangle_to_file(file, &graphic->rect[i]);
     }
 
-    for (int i = 0; i < page->num_text; i++) {
-        write_text_to_file(file, &page->text_on[i]);
-    }
-
-    memset(buf, '\0', sizeof buf);
-    sprintf(buf, "\t\t<page_off>\n");
-    fwrite(buf, 1, strlen(buf), file);
-
-    for (int i = 0; i < page->num_rectangles; i++) {
-        write_rectangle_to_file(file, &page->rectangles_off[i]);
-    }
-
-    for (int i = 0; i < page->num_text; i++) {
-        write_text_to_file(file, &page->text_off[i]);
+    for (int i = 0; i < graphic->num_text; i++) {
+        write_text_to_file(file, &graphic->text[i]);
     }
 }
 
-void write_rectangle_to_file(FILE *file, ChromaRectangle *rectangle) {
+void write_rectangle_to_file(FILE *file, Rect *rectangle) {
     char buf[MAX_BUF_SIZE];
     memset(buf, '\0', sizeof buf);
 
@@ -95,18 +74,17 @@ void write_rectangle_to_file(FILE *file, ChromaRectangle *rectangle) {
     fwrite(buf, 1, strlen(buf), file);
 }
 
-void write_text_to_file(FILE *file, ChromaText *text) {
+void write_text_to_file(FILE *file, Text *text) {
 
 }
 
 SHOW *read_show_from_file(char *filename) {
     FILE *file = fopen(filename, "r"); 
     SHOW *show = NEW_STRUCT( SHOW );
-    ChromaRectangle *rectangle;
-    ChromaText *text;
+    Rect *rectangle;
+    Text *text;
 
     char line[MAX_BUF_SIZE]; 
-    bool page_on;
     int type, page_num = -1, rectangle_num, text_num;
 
 
@@ -121,52 +99,43 @@ SHOW *read_show_from_file(char *filename) {
 
             sscanf(line, SHOW_STRING, show->show_name, &show->num_pages);
 
-            show->pages = NEW_ARRAY(show->num_pages, PAGE);
+            show->pages = NEW_ARRAY(show->num_pages, Page);
+            show->graphic = NEW_ARRAY(show->num_pages, Graphic);
             show->page_start = 0;
             show->page_height = 30;
 
             // printf("%s, %d\n", show->show_name, show->num_pages);
         } else if (type == KEY_PAGE) {
             page_num++;
+            rectangle_num = 0;
+            text_num = 0;
             show->pages[page_num].prev  = NEW_ARRAY(MAX_CHAR_SIZE, char);
             show->pages[page_num].title = NEW_ARRAY(MAX_CHAR_SIZE, char);
 
             memset(show->pages[page_num].prev, '\0', MAX_CHAR_SIZE);
             memset(show->pages[page_num].title, '\0', MAX_CHAR_SIZE);
 
-            sscanf(line, PAGE_STRING, show->pages[page_num].prev, &show->pages[page_num].page_num, show->pages[page_num].title, &show->pages[page_num].num_rectangles, &show->pages[page_num].num_text);
-
-            show->pages[page_num].rectangles_on  = NEW_ARRAY(show->pages[page_num].num_rectangles, ChromaRectangle);
-            show->pages[page_num].rectangles_off = NEW_ARRAY(show->pages[page_num].num_rectangles, ChromaRectangle);
-
-            show->pages[page_num].text_on  = NEW_ARRAY(show->pages[page_num].num_text, ChromaText);
-            show->pages[page_num].text_off = NEW_ARRAY(show->pages[page_num].num_text, ChromaText);
+            sscanf(line, PAGE_STRING, 
+                   show->pages[page_num].prev, &show->pages[page_num].page_num, show->pages[page_num].title, 
+                   &show->graphic[page_num].num_rect, &show->graphic[page_num].num_text);
 
             //printf("%s, %d\n", show->pages[page_num].title, show->pages[page_num].page_num);
-        } else if (type == KEY_PAGE_ON) {
-            page_on = true;
-            rectangle_num = 0;
-            text_num = 0;
-
-        } else if (type == KEY_PAGE_OFF) {
-            page_on = false;
-            rectangle_num = 0;
-            text_num = 0;
-
         } else if (type == KEY_RECTANGLE) {
-            if (page_on) {
-                rectangle = &show->pages[page_num].rectangles_on[rectangle_num];
-            } else {
-                rectangle = &show->pages[page_num].rectangles_off[rectangle_num];
+            if (rectangle_num > sizeof(show->graphic[page_num]) % sizeof(Rect)) {
+                printf("Too many rectangles\n");
             }
+
+            rectangle = &show->graphic[page_num].rect[rectangle_num];
 
             sscanf(line, RECTANGLE_STRING, 
                    &rectangle->pos_x, &rectangle->pos_y, &rectangle->width, &rectangle->height, 
-                   &rectangle->color.r , &rectangle->color.g , &rectangle->color.b, &rectangle->color.a);
+                   (int *) &rectangle->color.r , (int *) &rectangle->color.g , 
+                   (int *) &rectangle->color.b, (int *) &rectangle->color.a);
 
             //printf("%d, %d, %d, %d\n", rectangle->pos_x, rectangle->pos_y, rectangle->width, rectangle->height);
             rectangle_num++;
         } else if (type == KEY_TEXT) {
+            text_num++;
         }
 
         //printf("%d: %s", type, line);
@@ -190,10 +159,6 @@ int parse_line(char *buf) {
         return KEY_SHOW;
     } else if (strcmp(key, "page") == 0) {
         return KEY_PAGE;
-    } else if (strcmp(key, "page_on") == 0) {
-        return KEY_PAGE_ON;
-    } else if (strcmp(key, "page_off") == 0) {
-        return KEY_PAGE_OFF;
     } else if (strcmp(key, "rectangle") == 0) {
         return KEY_RECTANGLE;
     } else if (strcmp(key, "text") == 0) {

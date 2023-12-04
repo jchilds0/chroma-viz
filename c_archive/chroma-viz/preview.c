@@ -13,7 +13,8 @@ void draw_preview(TILE *preview, Connection *conn, Graphic *current_page) {
 
     for (int i = 0; i < current_page->num_rect; i++) {
         rectangle = &current_page->rect[i];
-        DrawRectangle(preview->pos_x + rectangle->pos_x, preview->pos_y + rectangle->pos_y, 
+        DrawRectangle(preview->pos_x + rectangle->pos_x * preview->width / conn->width, 
+                      preview->pos_y + rectangle->pos_y * preview->width / conn->width, 
                       rectangle->width * preview->width / conn->width, 
                       rectangle->height * preview->height / conn->height, 
                       rectangle->color);

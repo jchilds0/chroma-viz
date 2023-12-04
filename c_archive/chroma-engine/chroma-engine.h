@@ -6,10 +6,10 @@
 #define CHROMA_CHROMA_ENGINE
 
 #include <raylib.h>
+#include "graphic.h"
 #include "tcp.h"
 
 #define CHROMA_FRAMERATE              30
-
 #define CHROMA_TIMEOUT                -1
 #define CHROMA_CLOSE_SOCKET           -2
 
