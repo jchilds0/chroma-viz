@@ -2,18 +2,23 @@ package gui
 
 import (
 	"fmt"
+	"log"
 	"os/exec"
+	"strconv"
 
-	"github.com/gotk3/gotk3/gdk"
 	"github.com/gotk3/gotk3/gtk"
 )
+
+// TODO: seperate preview setup from gui setup
 
 func LaunchGui(conn *Connection) {
     gtk.Init(nil)
 
     win, _ := gtk.WindowNew(gtk.WINDOW_TOPLEVEL)
     win.SetTitle("Chroma Viz")
-    win.Connect("destroy", func() { gtk.MainQuit() })
+    win.Connect("destroy", func() { 
+        gtk.MainQuit() 
+    })
 
     box, _ := gtk.BoxNew(gtk.ORIENTATION_VERTICAL, 0)
 
@@ -34,59 +39,50 @@ func LaunchGui(conn *Connection) {
     box.PackStart(menuBox, false, false, 0)
  
     /* Body layout */
-    bodyBox, _ := gtk.BoxNew(gtk.ORIENTATION_HORIZONTAL, 0)
+    bodyBox, _ := gtk.PanedNew(gtk.ORIENTATION_HORIZONTAL)
     box.PackStart(bodyBox, true, true, 0)
 
     editView := NewEditor(conn)
     showView := NewShow(editView)
     tempView := NewTempList(showView)
 
-    leftBox, _ := gtk.BoxNew(gtk.ORIENTATION_VERTICAL, 0)
+    leftBox, _ := gtk.PanedNew(gtk.ORIENTATION_VERTICAL)
     rightBox, _ := gtk.BoxNew(gtk.ORIENTATION_VERTICAL, 0)
-    bodyBox.PackStart(leftBox, true, true, 0)
-    bodyBox.PackStart(rightBox, true, true, 0)
+    bodyBox.Pack1(leftBox, true, true)
+    bodyBox.Pack2(rightBox, true, true)
 
     /* left */
     leftBox.SetHExpand(true)
+
+    /* templates */
+    templates, _ := gtk.BoxNew(gtk.ORIENTATION_VERTICAL, 0)
+    leftBox.Pack1(templates, true, true)
+
     header1, _ := gtk.HeaderBarNew()
     header1.SetTitle("Templates")
-    leftBox.PackStart(header1, false, false, 0)
-
+    templates.PackStart(header1, false, false, 0)
     scroll1, _ := gtk.ScrolledWindowNew(nil, nil)
-    leftBox.PackStart(scroll1, true, true, 0)
+    templates.PackStart(scroll1, true, true, 0)
     scroll1.Add(tempView)
+
+    /* show */
+    shows, _ := gtk.BoxNew(gtk.ORIENTATION_VERTICAL, 0)
+    leftBox.Pack2(shows, true, true)
 
     header2, _ := gtk.HeaderBarNew()
     header2.SetTitle("Show")
-    leftBox.PackStart(header2, false, false, 0)
-
+    shows.PackStart(header2, false, false, 0)
     scroll2, _ := gtk.ScrolledWindowNew(nil, nil)
-    leftBox.PackStart(scroll2, true, true, 0)
+    shows.PackStart(scroll2, true, true, 0)
     scroll2.Add(showView)
 
     /* right */
+    preview := setup_preview_window(conn)
     rightBox.PackStart(editView.Box(), true, true, 0)
-    var xid uint
-    soc, _ := gtk.SocketNew()
-    fixed, _ := gtk.FixedNew()
-    soc.SetSizeRequest(500, 500)
-    soc.SetVisible(true)
-    soc.Connect("realize", func() {
-        xid = soc.GetId()
-        fmt.Printf("xid: %d\n", xid)
-    })
-
-    fixed.Put(soc, 0, 0)
-    fixed.SetSizeRequest(500,500)
-    fixed.SetVisible(true)
-
-    // connect to preview child process
-
-    rightBox.PackEnd(fixed, false, false, 0)
+    rightBox.PackEnd(preview, false, false, 0)
 
     /* Lower Bar layout */
     lowerBox, _ := gtk.ActionBarNew()
-
     button, _ := gtk.ButtonNew()
     button.SetLabel("Exit")
     button.Connect("clicked", func() { gtk.MainQuit() })
@@ -102,3 +98,42 @@ func LaunchGui(conn *Connection) {
     gtk.Main()
 }
 
+func setup_preview_window(conn *Connection) *gtk.Frame {
+    var prev *exec.Cmd
+    soc, _ := gtk.SocketNew()
+    window, _ := gtk.FrameNew("")
+    window.Add(soc)
+
+    window.Connect("draw", func(window *gtk.Frame) {
+        width := window.GetAllocatedWidth()
+        height := width * 9 / 16
+        window.SetSizeRequest(-1, height)
+    })
+
+    var xid uint
+    soc.SetVisible(true)
+    soc.Connect("realize", func(soc *gtk.Socket) {
+        xid = soc.GetId()
+        prev = exec.Command("/home/josh/Documents/projects/chroma-engine/build/chroma-engine", "-wid", strconv.Itoa(int(xid)))
+        log.Print(prev.String())
+
+        if err := prev.Start(); err != nil {
+            log.Fatal(err)
+        }
+
+        fmt.Printf("xid: %d\n", xid)
+    })
+
+    // window.Connect("destroy", func() { 
+    //     soc.Destroy()
+    //     if prev != nil && prev.Process != nil {
+    //         time.Sleep(5 * time.Second)
+    //         prev.Process.Kill() 
+    //     }
+    // })
+
+    soc.Connect("plug-added", func() { log.Printf("Plug inserted: %d", xid) })
+    window.SetVisible(true)
+
+    return window 
+}

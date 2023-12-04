@@ -57,8 +57,10 @@ func (conn *Connection) SendPage(page *Page, action int) {
 }
 
 func (conn *Connection) CloseConn() {
-    conn.conn.Write([]byte(string(END_OF_CONN)))
-    conn.conn.Close()
+    if conn.conn != nil {
+        conn.conn.Write([]byte(string(END_OF_CONN)))
+        conn.conn.Close()
+    }
 }
 
 func (conn *Connection) IsConnected() bool {
