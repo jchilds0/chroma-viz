@@ -11,7 +11,7 @@ import (
 
 // TODO: seperate preview setup from gui setup
 
-func LaunchGui(conn *Connection) {
+func LaunchGui(conn map[string]*Connection) {
     gtk.Init(nil)
 
     win, _ := gtk.WindowNew(gtk.WINDOW_TOPLEVEL)
@@ -20,31 +20,72 @@ func LaunchGui(conn *Connection) {
         gtk.MainQuit() 
     })
 
+    editView := NewEditor(conn)
+    showView := NewShow(editView, conn["Preview"])
+    tempView := NewTempList(showView)
+
+    showView.ImportShow(tempView, "/home/josh/Documents/projects/chroma-viz/shows/testing.show")
+
     box, _ := gtk.BoxNew(gtk.ORIENTATION_VERTICAL, 0)
 
     /* Menu layout */
-    menuBox, _ := gtk.HeaderBarNew()
     menuBar, _ := gtk.MenuBarNew()
-    menuBox.PackStart(menuBar)
+    box.PackStart(menuBar, false, false, 0)
 
     fileMenu, _ := gtk.MenuItemNewWithMnemonic("File")
     menuBar.Append(fileMenu)
     fileSubMenu, _ := gtk.MenuNew()
     fileMenu.SetSubmenu(fileSubMenu)
 
+    newShow, _ := gtk.MenuItemNewWithLabel("New Show")
+    fileSubMenu.Append(newShow)
+
+    openShow, _ := gtk.MenuItemNewWithLabel("Open Show")
+    fileSubMenu.Append(openShow)
+
+    openShow.Connect("activate", func() {
+        dialog, _ := gtk.FileChooserDialogNewWith2Buttons(
+            "Import Show", win, gtk.FILE_CHOOSER_ACTION_OPEN, 
+            "_Cancel", gtk.RESPONSE_CANCEL, "_Open", gtk.RESPONSE_ACCEPT)
+
+        res := dialog.Run()
+
+        if res == gtk.RESPONSE_ACCEPT {
+            filename := dialog.GetFilename()
+            showView.ImportShow(tempView, filename)
+        }
+        dialog.Destroy()
+    })
+
+    saveShow, _ := gtk.MenuItemNewWithLabel("Save Show")
+    fileSubMenu.Append(saveShow)
+
+    saveShow.Connect("activate", func() {
+        dialog, _ := gtk.FileChooserDialogNewWith2Buttons(
+            "Save Show", win, gtk.FILE_CHOOSER_ACTION_SAVE, 
+            "_Cancel", gtk.RESPONSE_CANCEL, "_Save", gtk.RESPONSE_ACCEPT)
+
+        dialog.SetCurrentName(".show")
+        res := dialog.Run()
+        if res == gtk.RESPONSE_ACCEPT {
+            filename := dialog.GetFilename()
+            showView.ExportShow(filename)
+        }
+
+        dialog.Destroy()
+    })
+
     editMenu, _ := gtk.MenuItemNewWithMnemonic("Edit")
     menuBar.Append(editMenu)
     editSubMenu, _ := gtk.MenuNew()
     editMenu.SetSubmenu(editSubMenu)
-    box.PackStart(menuBox, false, false, 0)
+
+    //box.PackStart(menuBox, false, false, 0)
  
     /* Body layout */
     bodyBox, _ := gtk.PanedNew(gtk.ORIENTATION_HORIZONTAL)
     box.PackStart(bodyBox, true, true, 0)
 
-    editView := NewEditor(conn)
-    showView := NewShow(editView)
-    tempView := NewTempList(showView)
 
     leftBox, _ := gtk.PanedNew(gtk.ORIENTATION_VERTICAL)
     rightBox, _ := gtk.BoxNew(gtk.ORIENTATION_VERTICAL, 0)
@@ -77,7 +118,7 @@ func LaunchGui(conn *Connection) {
     scroll2.Add(showView)
 
     /* right */
-    preview := setup_preview_window(conn)
+    preview := setup_preview_window(conn["Preview"])
     rightBox.PackStart(editView.Box(), true, true, 0)
     rightBox.PackEnd(preview, false, false, 0)
 
@@ -88,9 +129,11 @@ func LaunchGui(conn *Connection) {
     button.Connect("clicked", func() { gtk.MainQuit() })
     lowerBox.PackEnd(button)
 
-    eng1 := NewEngineWidget(conn)
-    lowerBox.PackStart(eng1)
-    box.PackEnd(lowerBox, false, false, 0)
+    for name, render := range conn {
+        eng := NewEngineWidget(name, render)
+        lowerBox.PackStart(eng)
+        box.PackEnd(lowerBox, false, false, 0)
+    }
     
     win.Add(box)
     win.SetDefaultSize(800, 600)
@@ -99,7 +142,6 @@ func LaunchGui(conn *Connection) {
 }
 
 func setup_preview_window(conn *Connection) *gtk.Frame {
-    var prev *exec.Cmd
     soc, _ := gtk.SocketNew()
     window, _ := gtk.FrameNew("")
     window.Add(soc)
@@ -114,7 +156,7 @@ func setup_preview_window(conn *Connection) *gtk.Frame {
     soc.SetVisible(true)
     soc.Connect("realize", func(soc *gtk.Socket) {
         xid = soc.GetId()
-        prev = exec.Command("/home/josh/Documents/projects/chroma-engine/build/chroma-engine", "-wid", strconv.Itoa(int(xid)))
+        prev := exec.Command("/home/josh/Documents/projects/chroma-engine/build/chroma-engine", "-wid", strconv.Itoa(int(xid)))
         log.Print(prev.String())
 
         if err := prev.Start(); err != nil {
@@ -123,14 +165,6 @@ func setup_preview_window(conn *Connection) *gtk.Frame {
 
         fmt.Printf("xid: %d\n", xid)
     })
-
-    // window.Connect("destroy", func() { 
-    //     soc.Destroy()
-    //     if prev != nil && prev.Process != nil {
-    //         time.Sleep(5 * time.Second)
-    //         prev.Process.Kill() 
-    //     }
-    // })
 
     soc.Connect("plug-added", func() { log.Printf("Plug inserted: %d", xid) })
     window.SetVisible(true)

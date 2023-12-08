@@ -12,13 +12,11 @@ type Editor struct {
     edit      *gtk.Box
     header    *gtk.HeaderBar
     page      *Page
-    conn      *Connection 
 }
 
-func NewEditor(conn *Connection) *Editor {
+func NewEditor(conn map[string]*Connection) *Editor {
     editor := &Editor{}
     editor.box, _ = gtk.BoxNew(gtk.ORIENTATION_VERTICAL, 0)
-    editor.conn = conn
 
     editor.header, _ = gtk.HeaderBarNew()
     editor.header.SetTitle("Editor")
@@ -40,8 +38,8 @@ func NewEditor(conn *Connection) *Editor {
             return
         }
 
-        editor.conn.SendPage(editor.page, ANIMATE_ON)
-        editor.conn.Read()
+        conn["Engine"].SendPage(editor.page, ANIMATE_ON)
+        conn["Engine"].Read()
     })
 
     take2.Connect("clicked", func() { 
@@ -50,7 +48,13 @@ func NewEditor(conn *Connection) *Editor {
             return
         }
 
-        editor.conn.SendPage(editor.page, CONTINUE)
+        _, ok := conn["Engine"]
+        if ok == false {
+            fmt.Println("Engine not found")
+            return
+        }
+
+        conn["Engine"].SendPage(editor.page, CONTINUE)
     })
 
     take3.Connect("clicked", func() { 
@@ -59,7 +63,15 @@ func NewEditor(conn *Connection) *Editor {
             return
         }
 
-        editor.conn.SendPage(editor.page, ANIMATE_OFF)
+        conn["Engine"].SendPage(editor.page, ANIMATE_OFF)
+    })
+
+    editor.box.Connect("event", func() { 
+        if editor.page == nil { 
+            return
+        }
+
+        conn["Preview"].SendPage(editor.page, ANIMATE_ON)
     })
     
     editor.edit, _ = gtk.BoxNew(gtk.ORIENTATION_VERTICAL, 0)

@@ -2,6 +2,9 @@ package gui
 
 import (
 	"fmt"
+	"log"
+	"strconv"
+	"strings"
 
 	"github.com/gotk3/gotk3/gtk"
 )
@@ -12,6 +15,7 @@ type Property interface {
     Editor(string) *gtk.Box
     String() string
     Copy() Property
+    Encode(string) []byte
 }
 
 type IntProp struct {
@@ -54,6 +58,10 @@ func (i *IntProp) Copy() Property {
     return newProp
 }
 
+func (i *IntProp) Encode(name string) []byte {
+    return []byte(fmt.Sprintf("type int;name %s;value %d;\n", name, i.value))
+}
+
 type StrProp struct {
     name    string
     value   string
@@ -92,4 +100,39 @@ func (str *StrProp) Copy() Property {
     newProp := NewStrProp(str.name)
     newProp.value = str.value
     return newProp
+}
+
+func (str *StrProp) Encode(name string) []byte {
+    return []byte(fmt.Sprintf("type string;name %s;value %s;\n", name, str.value))
+}
+
+func Decode(page *Page, input string) {
+    props := strings.Split(input, ";")
+    //log.Printf("%v\n", props)
+
+    typed := strings.TrimPrefix(props[0], "type ")
+    name := strings.TrimPrefix(props[1], "name ")
+    prop, ok := page.props[name]
+    if ok == false {
+        log.Printf("property %s does not exist\n", name)
+        return
+    }
+
+    switch (typed) {
+    case "int":
+        value := parse_int_value(props[2], "value")
+        prop.(*IntProp).value = value
+    case "string":
+        value := strings.TrimPrefix(props[2], "value ")
+        prop.(*StrProp).value = value
+    }
+}
+
+func parse_int_value(input string, name string) int {
+    value, err := strconv.Atoi(strings.TrimLeft(input, name + " "))
+    if err != nil {
+        log.Println(err)
+    }
+
+    return value
 }

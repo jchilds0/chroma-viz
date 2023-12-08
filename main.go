@@ -5,13 +5,9 @@ import (
 )
 
 func main() {
-    conn := gui.NewConnection("127.0.0.1")
+    conn := make(map[string]*gui.Connection)
+    conn["Engine"] = gui.NewConnection("127.0.0.1", 6800)
+    conn["Preview"] = gui.NewConnection("127.0.0.1", 6100)
     gui.LaunchGui(conn)
-
-    //conn.CloseConn()
-
-    // if prev != nil {
-    //     prev.Wait()
-    // }
 }
 

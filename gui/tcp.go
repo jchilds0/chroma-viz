@@ -22,8 +22,8 @@ type Connection struct {
     conn    net.Conn
 }
 
-func NewConnection(addr string) *Connection {
-    return &Connection{addr: addr, port: 6100}
+func NewConnection(addr string, port int) *Connection {
+    return &Connection{addr: addr, port: port}
 }
 
 func (conn *Connection) Connect() bool {
@@ -40,6 +40,11 @@ func (conn *Connection) Connect() bool {
 
 // TCP Format: ver%d#len%d#action%d#page%d#attr%s#val%d ... END_OF_MESSAGE
 func (conn *Connection) SendPage(page *Page, action int) {
+    if conn.IsConnected() == false {
+        //log.Printf("%s:%d is not connected", conn.addr, conn.port)
+        return
+    }
+
     version := [...]int{1, 0}
     length := 2
 
@@ -64,6 +69,10 @@ func (conn *Connection) CloseConn() {
 }
 
 func (conn *Connection) IsConnected() bool {
+    if conn.conn == nil {
+        return false
+    }
+
     buf := make([]byte, 100)
     conn.conn.SetReadDeadline(time.Now().Add(10 * time.Millisecond))
     _, err := conn.conn.Read(buf)
@@ -77,11 +86,15 @@ func (conn *Connection) IsConnected() bool {
         return false
     }
 
-    fmt.Printf("Server Message: %s\n", buf);
+    //fmt.Printf("Server Message: %s\n", buf);
     return true
 }
 
 func (conn *Connection) Read() {
+    if conn.IsConnected() == false {
+        return
+    }
+
     buf := make([]byte, 100)
     conn.conn.SetReadDeadline(time.Now().Add(100 * time.Millisecond))
     _, err := conn.conn.Read(buf)

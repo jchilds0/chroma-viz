@@ -55,15 +55,18 @@ func NewTempList(show *ShowTree) *TempTree {
     temp.temps = make(map[int]*Template)
     temp.show = show
 
-    temp.AppendColumn(createColumn("Name", 0))
-    temp.AppendColumn(createColumn("Template ID", 1))
+    cell, _ := gtk.CellRendererTextNew()
+    column, _ := gtk.TreeViewColumnNewWithAttribute("Name", cell, "text", 0)
+    temp.AppendColumn(column)
+    column, _ = gtk.TreeViewColumnNewWithAttribute("Template ID", cell, "text", 1)
+    temp.AppendColumn(column)
 
     temp.treeList, _ = gtk.ListStoreNew(glib.TYPE_STRING, glib.TYPE_STRING)
     temp.SetModel(temp.treeList)
 
-    temp.AddTemplate("Scorebug", 1)
-    temp.AddTemplate("Lower Frame", 2)
-    temp.AddTemplate("Clock", 3)
+    temp.AddTemplate("Red Box", 1)
+    temp.AddTemplate("Orange Box", 2)
+    temp.AddTemplate("Blue Box", 3)
 
     temp.Connect("row-activated", 
         func(tree *gtk.TreeView, path *gtk.TreePath, column *gtk.TreeViewColumn) { 
