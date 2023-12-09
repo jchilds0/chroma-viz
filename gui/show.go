@@ -7,6 +7,7 @@ import (
 	"os"
 	"regexp"
 	"strconv"
+    "chroma-viz/props"
 
 	"github.com/gotk3/gotk3/glib"
 	"github.com/gotk3/gotk3/gtk"
@@ -31,12 +32,12 @@ type Page struct {
     pageNum     int
     title       string
     templateID  int
-    props       map[string]Property
+    propMap     map[string]props.Property
 }
 
 func NewPage(pageNum int, title string, temp *Template) *Page {
     page := &Page{pageNum: pageNum, title: title, templateID: temp.templateID}
-    page.props = make(map[string]Property)
+    page.propMap = make(map[string]props.Property)
 
     animate := func() { conn["Preview"].SendPage(page, ANIMATE_ON) }
 
@@ -45,13 +46,13 @@ func NewPage(pageNum int, title string, temp *Template) *Page {
     for name, prop := range temp.props {
         switch (prop) {
         case "RectProp":
-            page.props[name] = NewRectProp(1920, 1080, animate)
+            page.propMap[name] = props.NewRectProp(1920, 1080, animate)
         case "TextProp":
             count, _ := strconv.Atoi(name)
-            page.props["Text " + strconv.Itoa(num_text)] = NewTextProp(count, animate)
+            page.propMap["Text " + strconv.Itoa(num_text)] = props.NewTextProp(count, animate)
             num_text++
         case "ClockProp":
-            page.props[name] = NewClockProp(page, animate)
+            page.propMap[name] = props.NewClockProp(animate)
         default:
             log.Printf("Page %d: Unknown property %s", pageNum, prop)
         }
@@ -185,12 +186,12 @@ func (show *ShowTree) ImportShow(temp *TempTree, filename string) {
 
             name := match[1]
 
-            if _, ok := page.props[name]; !ok {
+            if _, ok := page.propMap[name]; !ok {
                 log.Printf("Unknown property (%s)\n", name)
                 continue
             }
 
-            page.props[name].Decode(line)
+            page.propMap[name].Decode(line)
         }
     }
 }
@@ -206,7 +207,7 @@ func (show *ShowTree) ExportShow(filename string) {
         pageString := fmt.Sprintf("temp %d; title \"%s\";\n", page.templateID, page.title)
         file.Write([]byte(pageString))
 
-        for name, prop := range page.props {
+        for name, prop := range page.propMap {
             file.WriteString(fmt.Sprintf("name %s;", name))
 
             file.WriteString(prop.Encode())

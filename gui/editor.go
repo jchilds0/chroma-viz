@@ -84,7 +84,7 @@ func (edit *Editor) SetPage(page *Page) {
 
     edit.page = page
 
-    for name, key := range edit.page.props {
+    for name, key := range edit.page.propMap {
         label, _ := gtk.LabelNew(name)
         edit.tabs.AppendPage(key.Tab(), label)
     }

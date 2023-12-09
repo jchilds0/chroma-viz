@@ -53,7 +53,7 @@ func (conn *Connection) SendPage(page *Page, action int) {
 
     str := header
 
-    for _, prop := range page.props {
+    for _, prop := range page.propMap {
         str = str + prop.String()
     }
 
