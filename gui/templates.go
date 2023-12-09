@@ -11,18 +11,12 @@ type Template struct {
     Box         *gtk.ListBoxRow
     title       string
     templateID  int
-    props       map[string]Property
+    props       map[string]string
 }
 
 func NewTemplate(title string, id int) *Template {
     temp := &Template{title: title, templateID: id}
-    temp.props = make(map[string]Property)
-    temp.props["x Pos"] = NewIntProp("pos_x", 0, 1920)
-    temp.props["y Pos"] = NewIntProp("pos_y", 0, 1080)
-    temp.props["Width"] = NewIntProp("width", 0, 1920)
-    temp.props["Height"] = NewIntProp("height", 0, 1080)
-    temp.props["Title"] = NewStrProp("title")
-    temp.props["Subtitle"] = NewStrProp("subtitle")
+    temp.props = make(map[string]string)
 
     return temp
 }
@@ -32,6 +26,10 @@ func (temp *Template) templateToListRow() *gtk.ListBoxRow {
     row1.Add(textToBuffer(temp.title))
 
     return row1
+}
+
+func (temp *Template) AddProp(name string, typed string) {
+    temp.props[name] = typed
 }
 
 func textToBuffer(text string) *gtk.TextView {
@@ -65,8 +63,20 @@ func NewTempList(show *ShowTree) *TempTree {
     temp.SetModel(temp.treeList)
 
     temp.AddTemplate("Red Box", 1)
+    temp.temps[1].AddProp("Background", "RectProp")
+    temp.temps[1].AddProp("2", "TextProp")
+
     temp.AddTemplate("Orange Box", 2)
+    temp.temps[2].AddProp("Background", "RectProp")
+    temp.temps[2].AddProp("2", "TextProp")
+
     temp.AddTemplate("Blue Box", 3)
+    temp.temps[3].AddProp("Background", "RectProp")
+    temp.temps[3].AddProp("2", "TextProp")
+
+    temp.AddTemplate("Clock Box", 4)
+    temp.temps[4].AddProp("Background", "RectProp")
+    temp.temps[4].AddProp("Clock", "ClockProp")
 
     temp.Connect("row-activated", 
         func(tree *gtk.TreeView, path *gtk.TreePath, column *gtk.TreeViewColumn) { 

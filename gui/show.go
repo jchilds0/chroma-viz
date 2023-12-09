@@ -7,7 +7,6 @@ import (
 	"os"
 	"regexp"
 	"strconv"
-	"strings"
 
 	"github.com/gotk3/gotk3/glib"
 	"github.com/gotk3/gotk3/gtk"
@@ -33,16 +32,29 @@ type Page struct {
     title       string
     templateID  int
     props       map[string]Property
-    propList    []string
 }
 
 func NewPage(pageNum int, title string, temp *Template) *Page {
     page := &Page{pageNum: pageNum, title: title, templateID: temp.templateID}
     page.props = make(map[string]Property)
-    page.propList = []string{"x Pos", "y Pos", "Width", "Height", "Title", "Subtitle"}
 
-    for key, prop := range temp.props {
-        page.props[key] = prop.Copy()
+    animate := func() { conn["Preview"].SendPage(page, ANIMATE_ON) }
+
+
+    num_text := 1
+    for name, prop := range temp.props {
+        switch (prop) {
+        case "RectProp":
+            page.props[name] = NewRectProp(1920, 1080, animate)
+        case "TextProp":
+            count, _ := strconv.Atoi(name)
+            page.props["Text " + strconv.Itoa(num_text)] = NewTextProp(count, animate)
+            num_text++
+        case "ClockProp":
+            page.props[name] = NewClockProp(page, animate)
+        default:
+            log.Printf("Page %d: Unknown property %s", pageNum, prop)
+        }
     }
 
     return page
@@ -65,9 +77,12 @@ type ShowTree struct {
     columns   [NUMCOL]bool
 }
 
-func NewShow(edit *Editor, prev *Connection) *ShowTree {
+func NewShow(edit *Editor) *ShowTree {
     show := &ShowTree{}
+
     show.TreeView, _ = gtk.TreeViewNew()
+    show.TreeView.SetReorderable(true)
+
     show.pages = make(map[int]*Page)
     show.columns = [NUMCOL]bool{true, true, true}
 
@@ -115,7 +130,7 @@ func NewShow(edit *Editor, prev *Connection) *ShowTree {
             pageNum, _ := strconv.Atoi(val.(string))
 
             show.edit.SetPage(show.pages[pageNum])
-            prev.SendPage(show.pages[pageNum], ANIMATE_ON)
+            conn["Preview"].SendPage(show.pages[pageNum], ANIMATE_ON)
         })
 
     return show 
@@ -133,7 +148,13 @@ func (show *ShowTree) NewShowPage(temp *Template) *Page {
 }
 
 func (show *ShowTree) ImportShow(temp *TempTree, filename string) {
-    pageReg, err := regexp.Compile("temp [0-9]*; title .*;")
+    pageReg, err := regexp.Compile("temp (?P<tempID>[0-9]*); title \"(?P<title>.*)\";")
+    if err != nil {
+        log.Print(err)
+        return
+    }
+
+    propReg, err := regexp.Compile("name (?P<type>[ \\w]*);")
     if err != nil {
         log.Print(err)
         return
@@ -151,17 +172,27 @@ func (show *ShowTree) ImportShow(temp *TempTree, filename string) {
     for scanner.Scan() {
         line := scanner.Text()
         if pageReg.Match(scanner.Bytes()) {
-            split := strings.Split(line, ";")
-
-            tempID := parse_int_value(split[0], "temp")
+            match := pageReg.FindStringSubmatch(line)
+            tempID, _ := strconv.Atoi(match[1])
             page = show.NewShowPage(temp.temps[tempID])
-            page.title = strings.TrimLeft(split[1], " title ")
+            page.title = match[2]
         } else if page != nil {
-            Decode(page, line)
+            match := propReg.FindStringSubmatch(line)
+            if len(match) < 2 {
+                log.Printf("Incorrect prop format (%s)\n", line)
+                continue
+            }
+
+            name := match[1]
+
+            if _, ok := page.props[name]; !ok {
+                log.Printf("Unknown property (%s)\n", name)
+                continue
+            }
+
+            page.props[name].Decode(line)
         }
-
     }
-
 }
 
 func (show *ShowTree) ExportShow(filename string) {
@@ -172,11 +203,15 @@ func (show *ShowTree) ExportShow(filename string) {
     defer file.Close()
 
     for _, page := range show.pages {
-        pageString := fmt.Sprintf("temp %d; title %s;\n", page.templateID, page.title)
+        pageString := fmt.Sprintf("temp %d; title \"%s\";\n", page.templateID, page.title)
         file.Write([]byte(pageString))
 
         for name, prop := range page.props {
-            file.Write(prop.Encode(name))
+            file.WriteString(fmt.Sprintf("name %s;", name))
+
+            file.WriteString(prop.Encode())
+
+            file.WriteString("\n")
         }
     }
 }

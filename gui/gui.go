@@ -9,9 +9,12 @@ import (
 	"github.com/gotk3/gotk3/gtk"
 )
 
+var conn map[string]*Connection
+
 // TODO: seperate preview setup from gui setup
 
-func LaunchGui(conn map[string]*Connection) {
+func LaunchGui(mainConn map[string]*Connection) {
+    conn = mainConn 
     gtk.Init(nil)
 
     win, _ := gtk.WindowNew(gtk.WINDOW_TOPLEVEL)
@@ -20,8 +23,8 @@ func LaunchGui(conn map[string]*Connection) {
         gtk.MainQuit() 
     })
 
-    editView := NewEditor(conn)
-    showView := NewShow(editView, conn["Preview"])
+    editView := NewEditor()
+    showView := NewShow(editView)
     tempView := NewTempList(showView)
 
     showView.ImportShow(tempView, "/home/josh/Documents/projects/chroma-viz/shows/testing.show")
@@ -80,8 +83,6 @@ func LaunchGui(conn map[string]*Connection) {
     editSubMenu, _ := gtk.MenuNew()
     editMenu.SetSubmenu(editSubMenu)
 
-    //box.PackStart(menuBox, false, false, 0)
- 
     /* Body layout */
     bodyBox, _ := gtk.PanedNew(gtk.ORIENTATION_HORIZONTAL)
     box.PackStart(bodyBox, true, true, 0)
@@ -118,30 +119,33 @@ func LaunchGui(conn map[string]*Connection) {
     scroll2.Add(showView)
 
     /* right */
-    preview := setup_preview_window(conn["Preview"])
+    preview := setup_preview_window()
     rightBox.PackStart(editView.Box(), true, true, 0)
     rightBox.PackEnd(preview, false, false, 0)
 
     /* Lower Bar layout */
     lowerBox, _ := gtk.ActionBarNew()
+    box.PackEnd(lowerBox, false, false, 0)
+
     button, _ := gtk.ButtonNew()
+    lowerBox.PackEnd(button)
+
     button.SetLabel("Exit")
     button.Connect("clicked", func() { gtk.MainQuit() })
-    lowerBox.PackEnd(button)
 
     for name, render := range conn {
         eng := NewEngineWidget(name, render)
         lowerBox.PackStart(eng)
-        box.PackEnd(lowerBox, false, false, 0)
     }
-    
+
     win.Add(box)
     win.SetDefaultSize(800, 600)
     win.ShowAll()
+
     gtk.Main()
 }
 
-func setup_preview_window(conn *Connection) *gtk.Frame {
+func setup_preview_window() *gtk.Frame {
     soc, _ := gtk.SocketNew()
     window, _ := gtk.FrameNew("")
     window.Add(soc)
