@@ -2,12 +2,12 @@ package gui
 
 import (
 	"bufio"
+	"chroma-viz/props"
 	"fmt"
 	"log"
 	"os"
 	"regexp"
 	"strconv"
-    "chroma-viz/props"
 
 	"github.com/gotk3/gotk3/glib"
 	"github.com/gotk3/gotk3/gtk"
@@ -39,8 +39,15 @@ func NewPage(pageNum int, title string, temp *Template) *Page {
     page := &Page{pageNum: pageNum, title: title, templateID: temp.templateID}
     page.propMap = make(map[string]props.Property)
 
-    animate := func() { conn["Preview"].SendPage(page, ANIMATE_ON) }
+    animate := func() { 
+        conn["Preview"].setPage <- page
+        conn["Preview"].sendPage <- ANIMATE_ON
+    }
 
+    cont := func() {
+        conn["Engine"].sendPage <- CONTINUE
+        conn["Preview"].sendPage <- CONTINUE
+    }
 
     num_text := 1
     for name, prop := range temp.props {
@@ -52,7 +59,7 @@ func NewPage(pageNum int, title string, temp *Template) *Page {
             page.propMap["Text " + strconv.Itoa(num_text)] = props.NewTextProp(count, animate)
             num_text++
         case "ClockProp":
-            page.propMap[name] = props.NewClockProp(animate)
+            page.propMap[name] = props.NewClockProp(cont)
         default:
             log.Printf("Page %d: Unknown property %s", pageNum, prop)
         }
@@ -131,7 +138,8 @@ func NewShow(edit *Editor) *ShowTree {
             pageNum, _ := strconv.Atoi(val.(string))
 
             show.edit.SetPage(show.pages[pageNum])
-            conn["Preview"].SendPage(show.pages[pageNum], ANIMATE_ON)
+            conn["Preview"].setPage <- show.pages[pageNum]
+            conn["Preview"].sendPage <- ANIMATE_ON
         })
 
     return show 

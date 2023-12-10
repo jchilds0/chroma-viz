@@ -20,10 +20,17 @@ type Connection struct {
     addr    string
     port    int
     conn    net.Conn
+    setPage chan *Page
+    sendPage chan int
 }
 
 func NewConnection(addr string, port int) *Connection {
-    return &Connection{addr: addr, port: port}
+    conn := &Connection{addr: addr, port: port}
+    conn.setPage = make(chan *Page, 1)
+    conn.sendPage = make(chan int, 1)
+
+    go conn.SendPage()
+    return conn
 }
 
 func (conn *Connection) Connect() bool {
@@ -39,26 +46,53 @@ func (conn *Connection) Connect() bool {
 }
 
 // TCP Format: ver%d#len%d#action%d#page%d#attr%s#val%d ... END_OF_MESSAGE
-func (conn *Connection) SendPage(page *Page, action int) {
-    if conn.IsConnected() == false {
-        //log.Printf("%s:%d is not connected", conn.addr, conn.port)
-        return
+func (conn *Connection) SendPage() {
+    var currentPage, page *Page
+
+    for {
+        action := <-conn.sendPage
+
+        select {
+        case page = <-conn.setPage:
+        default:
+        }
+
+        if page == nil {
+            log.Println("No page selected")
+            continue
+        }
+
+        switch (action) {
+        case ANIMATE_ON, ANIMATE_OFF:
+            currentPage = page
+        case CONTINUE:
+            if currentPage != nil && page.pageNum == currentPage.pageNum {
+                action = ANIMATE_ON
+            } else {
+                continue
+            }
+        }
+
+        if conn.IsConnected() == false {
+            //log.Printf("%s:%d is not connected", conn.addr, conn.port)
+            continue
+        }
+
+        version := [...]int{1, 0}
+        length := 2
+
+        header := fmt.Sprintf("ver%d,%d#len%d#action%d#temp%d#", 
+            version[0], version[1], length, action, page.templateID)
+
+        str := header
+
+        for _, prop := range page.propMap {
+            str = str + prop.String()
+        }
+
+        str = str + string(END_OF_MESSAGE)
+        conn.conn.Write([]byte(str))
     }
-
-    version := [...]int{1, 0}
-    length := 2
-
-    header := fmt.Sprintf("ver%d,%d#len%d#action%d#temp%d#", 
-        version[0], version[1], length, action, page.templateID)
-
-    str := header
-
-    for _, prop := range page.propMap {
-        str = str + prop.String()
-    }
-
-    str = str + string(END_OF_MESSAGE)
-    conn.conn.Write([]byte(str))
 }
 
 func (conn *Connection) CloseConn() {

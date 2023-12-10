@@ -11,14 +11,15 @@ import (
 
 type ClockProp struct {
     box *gtk.Box
-    active bool
+    engine bool
+    preview bool
     c chan int
     currentTime time.Time
     editTime *time.Time
     timeFormat string
 }
 
-func NewClockProp(animate func()) *ClockProp {
+func NewClockProp(cont func()) *ClockProp {
     clock := &ClockProp{}
     clock.box, _ = gtk.BoxNew(gtk.ORIENTATION_VERTICAL, 0)
     clock.box.SetVisible(true)
@@ -77,10 +78,10 @@ func NewClockProp(animate func()) *ClockProp {
                 return
             }
             *clock.editTime = newTime
-            animate()
+            cont()
         })
 
-    go clock.RunClock(animate)
+    go clock.RunClock(cont)
     return clock
 }
 
@@ -100,7 +101,7 @@ func (clock *ClockProp) Encode() string {
 func (clock *ClockProp) Decode(input string) {
 }
 
-func (clock *ClockProp) RunClock(animate func()) {
+func (clock *ClockProp) RunClock(cont func()) {
     state := PAUSE
     clock.currentTime = *clock.editTime
 
@@ -112,7 +113,7 @@ func (clock *ClockProp) RunClock(animate func()) {
 
         switch state {
         case START:
-            animate()
+            cont()
             clock.currentTime = clock.currentTime.Add(time.Second)
             time.Sleep(1 * time.Second)
         case PAUSE:
@@ -121,7 +122,7 @@ func (clock *ClockProp) RunClock(animate func()) {
         case STOP:
             // reset the time and block
             clock.currentTime = *clock.editTime
-            animate()
+            cont()
             state = <-clock.c
         default:
             log.Printf("Clock recieved unknown value through channel %d\n", state)

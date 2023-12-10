@@ -37,7 +37,8 @@ func NewEditor() *Editor {
             return
         }
 
-        conn["Engine"].SendPage(editor.page, ANIMATE_ON)
+        conn["Engine"].setPage <- editor.page
+        conn["Engine"].sendPage <- ANIMATE_ON
         conn["Engine"].Read()
     })
 
@@ -53,7 +54,7 @@ func NewEditor() *Editor {
             return
         }
 
-        conn["Engine"].SendPage(editor.page, CONTINUE)
+        conn["Engine"].sendPage <- CONTINUE 
     })
 
     take3.Connect("clicked", func() { 
@@ -62,7 +63,7 @@ func NewEditor() *Editor {
             return
         }
 
-        conn["Engine"].SendPage(editor.page, ANIMATE_OFF)
+        conn["Engine"].sendPage <- ANIMATE_OFF
     })
 
     editor.tabs, _ = gtk.NotebookNew()
