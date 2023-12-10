@@ -10,28 +10,26 @@ import (
 )
 
 type RectProp struct {
+    box *gtk.Box
     value [4]*gtk.SpinButton
     input [4]*gtk.Box
-    box *gtk.Box
+    num int
 }
 
-func NewRectProp(width, height int, animate func()) Property {
-    rect := &RectProp{}
+func NewRectProp(num, width, height int, animate func()) Property {
+    rect := &RectProp{num: num}
 
     rect.value[0], _ = gtk.SpinButtonNewWithRange(float64(0), float64(width), 1)
     rect.value[1], _ = gtk.SpinButtonNewWithRange(float64(0), float64(height), 1)
     rect.value[2], _ = gtk.SpinButtonNewWithRange(float64(0), float64(width), 1)
     rect.value[3], _ = gtk.SpinButtonNewWithRange(float64(0), float64(height), 1)
 
-    rect.input[0] = IntEditor("x Pos", 0, width, rect.value[0], animate)
-    rect.input[1] = IntEditor("y Pos", 0, height, rect.value[1], animate)
-    rect.input[2] = IntEditor("width", 0, width, rect.value[2], animate)
-    rect.input[3] = IntEditor("height", 0, height, rect.value[3], animate)
-
     rect.box, _ = gtk.BoxNew(gtk.ORIENTATION_VERTICAL, 0)
+    labels := [4]string{"x Pos", "y Pos", "Width", "Height"}
 
-    for _, in := range rect.input {
-        rect.box.PackStart(in, false, false, padding)
+    for i := range rect.input {
+        rect.input[i] = IntEditor(labels[i], rect.value[i], animate)
+        rect.box.PackStart(rect.input[i], false, false, padding)
     }
 
     rect.box.SetVisible(true)
@@ -44,7 +42,8 @@ func (rect *RectProp) Tab() *gtk.Box {
 }
 
 func (rect *RectProp) String() string {
-    return fmt.Sprintf("pos_x#%d#pos_y#%d#width#%d#height#%d#", 
+    return fmt.Sprintf("rect#%d#pos_x#%d#pos_y#%d#width#%d#height#%d#", 
+        rect.num,
         rect.value[0].GetValueAsInt(),
         rect.value[1].GetValueAsInt(),
         rect.value[2].GetValueAsInt(),

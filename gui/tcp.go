@@ -58,7 +58,7 @@ func (conn *Connection) SendPage() {
         }
 
         if page == nil {
-            log.Println("No page selected")
+            //log.Println("No page selected")
             continue
         }
 
@@ -78,7 +78,7 @@ func (conn *Connection) SendPage() {
             continue
         }
 
-        version := [...]int{1, 0}
+        version := [...]int{1, 1}
         length := 2
 
         header := fmt.Sprintf("ver%d,%d#len%d#action%d#temp%d#", 

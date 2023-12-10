@@ -49,17 +49,18 @@ func NewPage(pageNum int, title string, temp *Template) *Page {
         conn["Preview"].sendPage <- CONTINUE
     }
 
-    num_text := 1
+    num_text := 0
+    num_rect := 0
     for name, prop := range temp.props {
         switch (prop) {
         case "RectProp":
-            page.propMap[name] = props.NewRectProp(1920, 1080, animate)
+            page.propMap[name] = props.NewRectProp(num_rect, 1920, 1080, animate)
+            num_rect++
         case "TextProp":
-            count, _ := strconv.Atoi(name)
-            page.propMap["Text " + strconv.Itoa(num_text)] = props.NewTextProp(count, animate)
+            page.propMap[name] = props.NewTextProp(num_text, 1920, 1080, animate)
             num_text++
         case "ClockProp":
-            page.propMap[name] = props.NewClockProp(cont)
+            page.propMap[name] = props.NewClockProp(1920, 1080, animate, cont)
         default:
             log.Printf("Page %d: Unknown property %s", pageNum, prop)
         }

@@ -12,8 +12,7 @@ const (
     STOP
 )
 
-func IntEditor(name string, lowerBound, upperBound int, 
-    spin *gtk.SpinButton, animate interface{}) *gtk.Box {
+func IntEditor(name string, spin *gtk.SpinButton, animate func()) *gtk.Box {
     box, _ := gtk.BoxNew(gtk.ORIENTATION_HORIZONTAL, 0)
     box.SetVisible(true)
 

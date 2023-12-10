@@ -64,15 +64,18 @@ func NewTempList(show *ShowTree) *TempTree {
 
     temp.AddTemplate("Red Box", 1)
     temp.temps[1].AddProp("Background", "RectProp")
-    temp.temps[1].AddProp("2", "TextProp")
+    temp.temps[1].AddProp("Title", "TextProp")
+    temp.temps[1].AddProp("Subtitle", "TextProp")
 
     temp.AddTemplate("Orange Box", 2)
     temp.temps[2].AddProp("Background", "RectProp")
-    temp.temps[2].AddProp("2", "TextProp")
+    temp.temps[2].AddProp("Title", "TextProp")
+    temp.temps[2].AddProp("Subtitle", "TextProp")
 
     temp.AddTemplate("Blue Box", 3)
     temp.temps[3].AddProp("Background", "RectProp")
-    temp.temps[3].AddProp("2", "TextProp")
+    temp.temps[3].AddProp("Title", "TextProp")
+    temp.temps[3].AddProp("Subtitle", "TextProp")
 
     temp.AddTemplate("Clock Box", 4)
     temp.temps[4].AddProp("Background", "RectProp")

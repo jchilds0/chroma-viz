@@ -10,16 +10,17 @@ import (
 
 
 type ClockProp struct {
-    box *gtk.Box
-    engine bool
-    preview bool
-    c chan int
-    currentTime time.Time
-    editTime *time.Time
-    timeFormat string
+    box             *gtk.Box
+    engine          bool
+    preview         bool
+    c               chan int
+    editTime        *time.Time
+    currentTime     time.Time
+    timeFormat      string
+    timeString      TextProp
 }
 
-func NewClockProp(cont func()) *ClockProp {
+func NewClockProp(width, height int, animate, cont func()) *ClockProp {
     clock := &ClockProp{}
     clock.box, _ = gtk.BoxNew(gtk.ORIENTATION_VERTICAL, 0)
     clock.box.SetVisible(true)
@@ -54,32 +55,8 @@ func NewClockProp(cont func()) *ClockProp {
     edit, _ := time.Parse(clock.timeFormat, "00:00")
     clock.editTime = &edit
 
-    inputBox, _ := gtk.BoxNew(gtk.ORIENTATION_HORIZONTAL, 0)
-    inputBox.SetVisible(true)
-    clock.box.PackStart(inputBox, false, false, padding)
-
-    labelTime, _ := gtk.LabelNew("Start Time: ")
-    labelTime.SetVisible(true)
-    labelTime.SetWidthChars(7)
-    inputBox.PackStart(labelTime, false, false, padding)
-
-    editTime := clock.editTime.Format(clock.timeFormat)
-    bufTime, _ := gtk.EntryBufferNew(editTime, len(editTime))
-    textTime, _ := gtk.EntryNewWithBuffer(bufTime)
-    textTime.SetVisible(true)
-    inputBox.PackStart(textTime, false, false, 0)
-
-    textTime.Connect("changed", 
-        func(e *gtk.Entry) { 
-            text, err := e.GetText()
-            newTime, err := time.Parse(clock.timeFormat, text)
-            if err != nil {
-                log.Printf("Incorrect time format entered (%s)\n", text)
-                return
-            }
-            *clock.editTime = newTime
-            cont()
-        })
+    clock.timeString = *NewTextProp(0, width, height, animate)
+    clock.box.PackStart(clock.timeString.Tab(), false, false, 0)
 
     go clock.RunClock(cont)
     return clock
@@ -90,15 +67,23 @@ func (clock *ClockProp) Tab() *gtk.Box {
 }
 
 func (clock *ClockProp) String() string {
-    return fmt.Sprintf("text0#%s#", 
-        clock.currentTime.Format(clock.timeFormat))
+    return fmt.Sprintf("text#%d#string#%s#pos_x#%d#pos_y#%d#", 
+        clock.timeString.num, 
+        clock.currentTime.Format(clock.timeFormat),
+        clock.timeString.x_spin.GetValueAsInt(), 
+        clock.timeString.y_spin.GetValueAsInt(),
+    )
 }
 
 func (clock *ClockProp) Encode() string {
-    return ""
+    return clock.timeString.Encode()
 }
 
 func (clock *ClockProp) Decode(input string) {
+    clock.timeString.Decode(input)
+    current, _ := clock.timeString.entry.GetText()
+    edit, _ := time.Parse(clock.timeFormat, current)
+    clock.editTime = &edit
 }
 
 func (clock *ClockProp) RunClock(cont func()) {
