@@ -67,7 +67,7 @@ func (clock *ClockProp) Tab() *gtk.Box {
 }
 
 func (clock *ClockProp) String() string {
-    return fmt.Sprintf("text#%d#string#%s#pos_x#%d#pos_y#%d#", 
+    return fmt.Sprintf("text=%d#string=%s#pos_x=%d#pos_y=%d#", 
         clock.timeString.num, 
         clock.currentTime.Format(clock.timeFormat),
         clock.timeString.x_spin.GetValueAsInt(), 

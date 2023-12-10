@@ -42,7 +42,7 @@ func (rect *RectProp) Tab() *gtk.Box {
 }
 
 func (rect *RectProp) String() string {
-    return fmt.Sprintf("rect#%d#pos_x#%d#pos_y#%d#width#%d#height#%d#", 
+    return fmt.Sprintf("rect=%d#pos_x=%d#pos_y=%d#width=%d#height=%d#", 
         rect.num,
         rect.value[0].GetValueAsInt(),
         rect.value[1].GetValueAsInt(),

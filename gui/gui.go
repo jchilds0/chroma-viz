@@ -6,9 +6,16 @@ import (
 
 var conn map[string]*Connection
 
+func InitConnections(){
+    conn = make(map[string]*Connection)
+}
+
+func AddConnection(name string, ip string, port int) {
+    conn[name] = NewConnection(ip, port)
+}
+
 // TODO: seperate preview setup from gui setup
-func LaunchGui(mainConn map[string]*Connection) {
-    conn = mainConn 
+func SetupMainGui() {
     gtk.Init(nil)
 
     win, _ := gtk.WindowNew(gtk.WINDOW_TOPLEVEL)

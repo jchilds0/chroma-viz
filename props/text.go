@@ -42,7 +42,7 @@ func (text *TextProp) Tab() *gtk.Box {
 func (text *TextProp) String() string {
     entryText, _ := text.entry.GetText()
 
-    return fmt.Sprintf("text#%d#string#%s#pos_x#%d#pos_y#%d#", 
+    return fmt.Sprintf("text=%d#string=%s#pos_x=%d#pos_y=%d#", 
         text.num, entryText, text.x_spin.GetValueAsInt(), text.y_spin.GetValueAsInt())
 }
  
