@@ -1,6 +1,9 @@
 package gui
 
 import (
+	"log"
+
+	"github.com/gotk3/gotk3/glib"
 	"github.com/gotk3/gotk3/gtk"
 )
 
@@ -15,14 +18,11 @@ func AddConnection(name string, ip string, port int) {
 }
 
 // TODO: seperate preview setup from gui setup
-func SetupMainGui() {
-    gtk.Init(nil)
+func SetupMainGui(app *gtk.Application) {
 
-    win, _ := gtk.WindowNew(gtk.WINDOW_TOPLEVEL)
+    win, _ := gtk.ApplicationWindowNew(app)
+    win.SetDefaultSize(800, 600)
     win.SetTitle("Chroma Viz")
-    win.Connect("destroy", func() { 
-        gtk.MainQuit() 
-    })
 
     editView := NewEditor()
     showView := NewShow(editView)
@@ -31,63 +31,32 @@ func SetupMainGui() {
     showView.ImportShow(tempView, "/home/josh/Documents/projects/chroma-viz/shows/testing.show")
 
     box, _ := gtk.BoxNew(gtk.ORIENTATION_VERTICAL, 0)
+    win.Add(box)
 
     /* Menu layout */
-    menuBar, _ := gtk.MenuBarNew()
-    box.PackStart(menuBar, false, false, 0)
+    builder, _ := gtk.BuilderNew()
+    if err := builder.AddFromFile("/home/josh/Documents/projects/chroma-viz/gtk/menus.ui"); err != nil {
+        log.Print(err)
+    }
 
-    fileMenu, _ := gtk.MenuItemNewWithMnemonic("File")
-    menuBar.Append(fileMenu)
-    fileSubMenu, _ := gtk.MenuNew()
-    fileMenu.SetSubmenu(fileSubMenu)
+    menu, err := builder.GetObject("menubar")
+    if err != nil {
+        log.Print(err)
+    }
 
-    newShow, _ := gtk.MenuItemNewWithLabel("New Show")
-    fileSubMenu.Append(newShow)
+    app.SetMenubar(menu.(*glib.MenuModel))
 
-    openShow, _ := gtk.MenuItemNewWithLabel("Open Show")
-    fileSubMenu.Append(openShow)
+    importAction := glib.SimpleActionNew("import_show", nil)
+    importAction.Connect("activate", func() { guiImportShow(win, showView, tempView) })
+    app.AddAction(importAction)
 
-    openShow.Connect("activate", func() {
-        dialog, _ := gtk.FileChooserDialogNewWith2Buttons(
-            "Import Show", win, gtk.FILE_CHOOSER_ACTION_OPEN, 
-            "_Cancel", gtk.RESPONSE_CANCEL, "_Open", gtk.RESPONSE_ACCEPT)
-
-        res := dialog.Run()
-
-        if res == gtk.RESPONSE_ACCEPT {
-            filename := dialog.GetFilename()
-            showView.ImportShow(tempView, filename)
-        }
-        dialog.Destroy()
-    })
-
-    saveShow, _ := gtk.MenuItemNewWithLabel("Save Show")
-    fileSubMenu.Append(saveShow)
-
-    saveShow.Connect("activate", func() {
-        dialog, _ := gtk.FileChooserDialogNewWith2Buttons(
-            "Save Show", win, gtk.FILE_CHOOSER_ACTION_SAVE, 
-            "_Cancel", gtk.RESPONSE_CANCEL, "_Save", gtk.RESPONSE_ACCEPT)
-
-        dialog.SetCurrentName(".show")
-        res := dialog.Run()
-        if res == gtk.RESPONSE_ACCEPT {
-            filename := dialog.GetFilename()
-            showView.ExportShow(filename)
-        }
-
-        dialog.Destroy()
-    })
-
-    editMenu, _ := gtk.MenuItemNewWithMnemonic("Edit")
-    menuBar.Append(editMenu)
-    editSubMenu, _ := gtk.MenuNew()
-    editMenu.SetSubmenu(editSubMenu)
+    exportAction := glib.SimpleActionNew("export_show", nil)
+    exportAction.Connect("activate", func() { guiExportShow(win, showView) })
+    app.AddAction(exportAction)
 
     /* Body layout */
     bodyBox, _ := gtk.PanedNew(gtk.ORIENTATION_HORIZONTAL)
     box.PackStart(bodyBox, true, true, 0)
-
 
     leftBox, _ := gtk.PanedNew(gtk.ORIENTATION_VERTICAL)
     rightBox, _ := gtk.BoxNew(gtk.ORIENTATION_VERTICAL, 0)
@@ -139,10 +108,34 @@ func SetupMainGui() {
         lowerBox.PackStart(eng)
     }
 
-    win.Add(box)
-    win.SetDefaultSize(800, 600)
     win.ShowAll()
-
-    gtk.Main()
 }
 
+func guiImportShow(win *gtk.ApplicationWindow, show *ShowTree, temp *TempTree) {
+        dialog, _ := gtk.FileChooserDialogNewWith2Buttons(
+            "Import Show", win, gtk.FILE_CHOOSER_ACTION_OPEN, 
+            "_Cancel", gtk.RESPONSE_CANCEL, "_Open", gtk.RESPONSE_ACCEPT)
+
+        res := dialog.Run()
+
+        if res == gtk.RESPONSE_ACCEPT {
+            filename := dialog.GetFilename()
+            show.ImportShow(temp, filename)
+        }
+        dialog.Destroy()
+}
+
+func guiExportShow(win *gtk.ApplicationWindow, show *ShowTree) {
+    dialog, _ := gtk.FileChooserDialogNewWith2Buttons(
+        "Save Show", win, gtk.FILE_CHOOSER_ACTION_SAVE, 
+        "_Cancel", gtk.RESPONSE_CANCEL, "_Save", gtk.RESPONSE_ACCEPT)
+
+    dialog.SetCurrentName(".show")
+    res := dialog.Run()
+    if res == gtk.RESPONSE_ACCEPT {
+        filename := dialog.GetFilename()
+        show.ExportShow(filename)
+    }
+
+    dialog.Destroy()
+}
