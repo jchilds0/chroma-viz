@@ -12,8 +12,16 @@ import (
 const engDir = "/home/josh/Documents/projects/chroma-engine/build/chroma-engine"
 
 func setup_preview_window() *gtk.Frame {
-    soc, _ := gtk.SocketNew()
-    window, _ := gtk.FrameNew("")
+    soc, err := gtk.SocketNew()
+    if err != nil {
+        log.Fatalf("Error setting up preview window (%s)", err)
+    }
+
+    window, err := gtk.FrameNew("")
+    if err != nil {
+        log.Fatalf("Error setting up preview window (%s)", err)
+    }
+
     window.Add(soc)
 
     window.Connect("draw", func(window *gtk.Frame) {

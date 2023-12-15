@@ -47,7 +47,7 @@ func (conn *Connection) Connect() bool {
 
 // TCP Format: ver%d#len%d#action%d#page%d#attr%s#val%d ... END_OF_MESSAGE
 func (conn *Connection) SendPage() {
-    var currentPage, page *Page
+    var page *Page
 
     for {
         action := <-conn.sendPage
@@ -62,16 +62,17 @@ func (conn *Connection) SendPage() {
             continue
         }
 
-        switch (action) {
-        case ANIMATE_ON, ANIMATE_OFF:
-            currentPage = page
-        case CONTINUE:
-            if currentPage != nil && page.pageNum == currentPage.pageNum {
-                action = ANIMATE_ON
-            } else {
-                continue
-            }
-        }
+        // switch (action) {
+        // case ANIMATE_ON, ANIMATE_OFF:
+        //     currentPage = page
+        // case CONTINUE:
+        //     if currentPage != nil && page.pageNum == currentPage.pageNum {
+        //         action = CONTINUE 
+        //     } else {
+        //         currentPage = page
+        //         action = ANIMATE_ON
+        //     }
+        // }
 
         if conn.IsConnected() == false {
             //log.Printf("%s:%d is not connected", conn.addr, conn.port)

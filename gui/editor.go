@@ -2,6 +2,7 @@ package gui
 
 import (
 	"fmt"
+	"log"
 
 	"github.com/gotk3/gotk3/gtk"
 )
@@ -14,19 +15,44 @@ type Editor struct {
 }
 
 func NewEditor() *Editor {
+    var err error
     editor := &Editor{}
-    editor.box, _ = gtk.BoxNew(gtk.ORIENTATION_VERTICAL, 0)
 
-    editor.header, _ = gtk.HeaderBarNew()
+    editor.box, err = gtk.BoxNew(gtk.ORIENTATION_VERTICAL, 0)
+    if err != nil { 
+        log.Fatalf("Error creating editor (%s)", err) 
+    }
+
+    editor.header, err = gtk.HeaderBarNew()
+    if err != nil { 
+        log.Fatalf("Error creating editor (%s)", err) 
+    }
+
     editor.header.SetTitle("Editor")
     editor.box.PackStart(editor.header, false, false, 0)
 
-    actions, _ := gtk.BoxNew(gtk.ORIENTATION_HORIZONTAL, 0)
+    actions, err := gtk.BoxNew(gtk.ORIENTATION_HORIZONTAL, 0)
+    if err != nil { 
+        log.Fatalf("Error creating editor (%s)", err) 
+    }
+
     editor.box.PackStart(actions, false, false, 10)
 
-    take1, _ := gtk.ButtonNewWithLabel("Take On")
-    take2, _ := gtk.ButtonNewWithLabel("Continue")
-    take3, _ := gtk.ButtonNewWithLabel("Take Off")
+    take1, err := gtk.ButtonNewWithLabel("Take On")
+    if err != nil { 
+        log.Fatalf("Error creating editor (%s)", err) 
+    }
+
+    take2, err := gtk.ButtonNewWithLabel("Continue")
+    if err != nil { 
+        log.Fatalf("Error creating editor (%s)", err) 
+    }
+
+    take3, err := gtk.ButtonNewWithLabel("Take Off")
+    if err != nil { 
+        log.Fatalf("Error creating editor (%s)", err) 
+    }
+
     actions.PackStart(take1, false, false, 10)
     actions.PackStart(take2, false, false, 0)
     actions.PackStart(take3, false, false, 10)
@@ -66,14 +92,23 @@ func NewEditor() *Editor {
         conn["Engine"].sendPage <- ANIMATE_OFF
     })
 
-    editor.tabs, _ = gtk.NotebookNew()
-    tab, _ := gtk.BoxNew(gtk.ORIENTATION_VERTICAL, 0)
-    tabLabel, _ := gtk.LabelNew("Select A Page")
+    editor.tabs, err = gtk.NotebookNew()
+    if err != nil { 
+        log.Fatalf("Error creating editor (%s)", err) 
+    }
+
+    tab, err := gtk.BoxNew(gtk.ORIENTATION_VERTICAL, 0)
+    if err != nil { 
+        log.Fatalf("Error creating editor (%s)", err) 
+    }
+
+    tabLabel, err := gtk.LabelNew("Select A Page")
+    if err != nil { 
+        log.Fatalf("Error creating editor (%s)", err) 
+    }
 
     editor.tabs.AppendPage(tab, tabLabel)
-
     editor.box.PackStart(editor.tabs, true, true, 0)
-
     return editor
 }
 
@@ -86,7 +121,11 @@ func (edit *Editor) SetPage(page *Page) {
     edit.page = page
 
     for name, key := range edit.page.propMap {
-        label, _ := gtk.LabelNew(name)
+        label, err := gtk.LabelNew(name)
+        if err != nil { 
+            log.Fatalf("Error setting page (%s)", err) 
+        }
+
         edit.tabs.AppendPage(key.Tab(), label)
     }
 }

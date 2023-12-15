@@ -20,7 +20,11 @@ func AddConnection(name string, ip string, port int) {
 // TODO: seperate preview setup from gui setup
 func SetupMainGui(app *gtk.Application) {
 
-    win, _ := gtk.ApplicationWindowNew(app)
+    win, err := gtk.ApplicationWindowNew(app)
+    if err != nil {
+        log.Fatal(err)
+    }
+
     win.SetDefaultSize(800, 600)
     win.SetTitle("Chroma Viz")
 
@@ -30,18 +34,22 @@ func SetupMainGui(app *gtk.Application) {
 
     showView.ImportShow(tempView, "/home/josh/Documents/projects/chroma-viz/shows/testing.show")
 
-    box, _ := gtk.BoxNew(gtk.ORIENTATION_VERTICAL, 0)
+    box, err := gtk.BoxNew(gtk.ORIENTATION_VERTICAL, 0)
+    if err != nil {
+        log.Fatal(err)
+    }
+
     win.Add(box)
 
     /* Menu layout */
-    builder, _ := gtk.BuilderNew()
+    builder, err := gtk.BuilderNew()
     if err := builder.AddFromFile("/home/josh/Documents/projects/chroma-viz/gtk/menus.ui"); err != nil {
-        log.Print(err)
+        log.Fatal(err)
     }
 
     menu, err := builder.GetObject("menubar")
     if err != nil {
-        log.Print(err)
+        log.Fatal(err)
     }
 
     app.SetMenubar(menu.(*glib.MenuModel))
@@ -55,11 +63,23 @@ func SetupMainGui(app *gtk.Application) {
     app.AddAction(exportAction)
 
     /* Body layout */
-    bodyBox, _ := gtk.PanedNew(gtk.ORIENTATION_HORIZONTAL)
+    bodyBox, err := gtk.PanedNew(gtk.ORIENTATION_HORIZONTAL)
+    if err != nil {
+        log.Fatal(err)
+    }
+
     box.PackStart(bodyBox, true, true, 0)
 
-    leftBox, _ := gtk.PanedNew(gtk.ORIENTATION_VERTICAL)
-    rightBox, _ := gtk.BoxNew(gtk.ORIENTATION_VERTICAL, 0)
+    leftBox, err := gtk.PanedNew(gtk.ORIENTATION_VERTICAL)
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    rightBox, err := gtk.BoxNew(gtk.ORIENTATION_VERTICAL, 0)
+    if err != nil {
+        log.Fatal(err)
+    }
+
     bodyBox.Pack1(leftBox, true, true)
     bodyBox.Pack2(rightBox, true, true)
 
@@ -67,24 +87,49 @@ func SetupMainGui(app *gtk.Application) {
     leftBox.SetHExpand(true)
 
     /* templates */
-    templates, _ := gtk.BoxNew(gtk.ORIENTATION_VERTICAL, 0)
+    templates, err := gtk.BoxNew(gtk.ORIENTATION_VERTICAL, 0)
+    if err != nil {
+        log.Print(err)
+    }
+
     leftBox.Pack1(templates, true, true)
 
-    header1, _ := gtk.HeaderBarNew()
+    header1, err := gtk.HeaderBarNew()
+    if err != nil {
+        log.Fatal(err)
+    }
+
     header1.SetTitle("Templates")
     templates.PackStart(header1, false, false, 0)
-    scroll1, _ := gtk.ScrolledWindowNew(nil, nil)
+
+    scroll1, err := gtk.ScrolledWindowNew(nil, nil)
+    if err != nil {
+        log.Fatal(err)
+    }
+
     templates.PackStart(scroll1, true, true, 0)
     scroll1.Add(tempView)
 
     /* show */
-    shows, _ := gtk.BoxNew(gtk.ORIENTATION_VERTICAL, 0)
+    shows, err := gtk.BoxNew(gtk.ORIENTATION_VERTICAL, 0)
+    if err != nil {
+        log.Fatal(err)
+    }
+
     leftBox.Pack2(shows, true, true)
 
-    header2, _ := gtk.HeaderBarNew()
+    header2, err := gtk.HeaderBarNew()
+    if err != nil {
+        log.Fatal(err)
+    }
+
     header2.SetTitle("Show")
     shows.PackStart(header2, false, false, 0)
-    scroll2, _ := gtk.ScrolledWindowNew(nil, nil)
+    scroll2, err := gtk.ScrolledWindowNew(nil, nil)
+    if err != nil {
+        log.Fatal(err)
+    }
+
     shows.PackStart(scroll2, true, true, 0)
     scroll2.Add(showView)
 
@@ -94,12 +139,19 @@ func SetupMainGui(app *gtk.Application) {
     rightBox.PackEnd(preview, false, false, 0)
 
     /* Lower Bar layout */
-    lowerBox, _ := gtk.ActionBarNew()
+    lowerBox, err := gtk.ActionBarNew()
+    if err != nil {
+        log.Fatal(err)
+    }
+
     box.PackEnd(lowerBox, false, false, 0)
 
-    button, _ := gtk.ButtonNew()
-    lowerBox.PackEnd(button)
+    button, err := gtk.ButtonNew()
+    if err != nil {
+        log.Fatal(err)
+    }
 
+    lowerBox.PackEnd(button)
     button.SetLabel("Exit")
     button.Connect("clicked", func() { gtk.MainQuit() })
 
@@ -112,23 +164,31 @@ func SetupMainGui(app *gtk.Application) {
 }
 
 func guiImportShow(win *gtk.ApplicationWindow, show *ShowTree, temp *TempTree) {
-        dialog, _ := gtk.FileChooserDialogNewWith2Buttons(
-            "Import Show", win, gtk.FILE_CHOOSER_ACTION_OPEN, 
-            "_Cancel", gtk.RESPONSE_CANCEL, "_Open", gtk.RESPONSE_ACCEPT)
+    dialog, err := gtk.FileChooserDialogNewWith2Buttons(
+        "Import Show", win, gtk.FILE_CHOOSER_ACTION_OPEN, 
+        "_Cancel", gtk.RESPONSE_CANCEL, "_Open", gtk.RESPONSE_ACCEPT)
 
-        res := dialog.Run()
+    if err != nil {
+        log.Print(err)
+    }
 
-        if res == gtk.RESPONSE_ACCEPT {
-            filename := dialog.GetFilename()
-            show.ImportShow(temp, filename)
-        }
-        dialog.Destroy()
+    res := dialog.Run()
+
+    if res == gtk.RESPONSE_ACCEPT {
+        filename := dialog.GetFilename()
+        show.ImportShow(temp, filename)
+    }
+    dialog.Destroy()
 }
 
 func guiExportShow(win *gtk.ApplicationWindow, show *ShowTree) {
-    dialog, _ := gtk.FileChooserDialogNewWith2Buttons(
+    dialog, err := gtk.FileChooserDialogNewWith2Buttons(
         "Save Show", win, gtk.FILE_CHOOSER_ACTION_SAVE, 
         "_Cancel", gtk.RESPONSE_CANCEL, "_Save", gtk.RESPONSE_ACCEPT)
+
+    if err != nil {
+        log.Print(err)
+    }
 
     dialog.SetCurrentName(".show")
     res := dialog.Run()

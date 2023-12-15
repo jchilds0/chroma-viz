@@ -1,6 +1,7 @@
 package gui
 
 import (
+	"log"
 	"strconv"
 
 	"github.com/gotk3/gotk3/glib"
@@ -22,9 +23,12 @@ func NewTemplate(title string, id int) *Template {
 }
 
 func (temp *Template) templateToListRow() *gtk.ListBoxRow {
-    row1, _ := gtk.ListBoxRowNew()
-    row1.Add(textToBuffer(temp.title))
+    row1, err := gtk.ListBoxRowNew()
+    if err != nil {
+        log.Fatalf("Error converting template to row (%s)", err)
+    }
 
+    row1.Add(textToBuffer(temp.title))
     return row1
 }
 
@@ -33,10 +37,17 @@ func (temp *Template) AddProp(name string, typed string) {
 }
 
 func textToBuffer(text string) *gtk.TextView {
-    text1, _ := gtk.TextViewNew()
-    buffer, _ := text1.GetBuffer()
-    buffer.SetText(text)
+    text1, err := gtk.TextViewNew()
+    if err != nil {
+        log.Fatalf("Error creating text buffer (%s)", err)
+    }
 
+    buffer, err := text1.GetBuffer()
+    if err != nil {
+        log.Fatalf("Error creating text buffer (%s)", err)
+    }
+
+    buffer.SetText(text)
     return text1
 }
 
@@ -48,18 +59,40 @@ type TempTree struct {
 }
 
 func NewTempList(show *ShowTree) *TempTree {
+    var err error
     temp := &TempTree{}
-    temp.TreeView, _ = gtk.TreeViewNew()
+
+    temp.TreeView, err = gtk.TreeViewNew()
+    if err != nil {
+        log.Fatalf("Error creating temp list (%s)", err)
+    }
+
     temp.temps = make(map[int]*Template)
     temp.show = show
 
-    cell, _ := gtk.CellRendererTextNew()
-    column, _ := gtk.TreeViewColumnNewWithAttribute("Name", cell, "text", 0)
+    cell, err := gtk.CellRendererTextNew()
+    if err != nil {
+        log.Fatalf("Error creating temp list (%s)", err)
+    }
+
+    column, err := gtk.TreeViewColumnNewWithAttribute("Name", cell, "text", 0)
+    if err != nil {
+        log.Fatalf("Error creating temp list (%s)", err)
+    }
+
     temp.AppendColumn(column)
-    column, _ = gtk.TreeViewColumnNewWithAttribute("Template ID", cell, "text", 1)
+    column, err = gtk.TreeViewColumnNewWithAttribute("Template ID", cell, "text", 1)
+    if err != nil {
+        log.Fatalf("Error creating temp list (%s)", err)
+    }
+
     temp.AppendColumn(column)
 
-    temp.treeList, _ = gtk.ListStoreNew(glib.TYPE_STRING, glib.TYPE_STRING)
+    temp.treeList, err = gtk.ListStoreNew(glib.TYPE_STRING, glib.TYPE_STRING)
+    if err != nil {
+        log.Fatalf("Error creating temp list (%s)", err)
+    }
+
     temp.SetModel(temp.treeList)
 
     temp.AddTemplate("Red Box", 1)
@@ -81,12 +114,30 @@ func NewTempList(show *ShowTree) *TempTree {
     temp.temps[4].AddProp("Background", "RectProp")
     temp.temps[4].AddProp("Clock", "ClockProp")
 
+    temp.AddTemplate("White Circle", 5)
+    temp.temps[5].AddProp("Circle", "CircleProp")
+
     temp.Connect("row-activated", 
         func(tree *gtk.TreeView, path *gtk.TreePath, column *gtk.TreeViewColumn) { 
-            iter, _ := temp.treeList.GetIter(path)
-            id, _ := temp.treeList.GetValue(iter, 1)
-            val, _ := id.GoValue()
-            tempID, _ := strconv.Atoi(val.(string))
+            iter, err := temp.treeList.GetIter(path)
+            if err != nil {
+                log.Fatalf("Error sending template to show (%s)", err)
+            }
+
+            id, err := temp.treeList.GetValue(iter, 1)
+            if err != nil {
+            }
+
+            val, err := id.GoValue()
+            if err != nil {
+                log.Fatalf("Error sending template to show (%s)", err)
+            }
+
+            tempID, err := strconv.Atoi(val.(string))
+            if err != nil {
+                log.Fatalf("Error sending template to show (%s)", err)
+            }
+
 
             temp.show.NewShowPage(temp.temps[tempID]) 
         })

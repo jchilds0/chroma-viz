@@ -1,11 +1,13 @@
+temp 5; title "Blue Circle";
+name Circle;x 1200;y 600;radius 400;
 temp 4; title "Clock Box";
 name Background;x 50;y 930;width 210;height 100;
 name Clock;string 00:00;x 80;y 965;
 temp 1; title "Red Box";
+name Title;string Score 0-0;x 90;y 960;
 name Subtitle;string ;x 0;y 0;
 name Background;x 50;y 930;width 350;height 100;
-name Title;string Score 0-0;x 90;y 960;
 temp 3; title "Blue Box";
+name Subtitle;string a lower frame subtitle;x 100;y 90;
 name Background;x 50;y 50;width 750;height 200;
 name Title;string Lower Frame;x 100;y 170;
-name Subtitle;string a lower frame subtitle;x 100;y 90;

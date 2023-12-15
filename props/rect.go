@@ -12,28 +12,46 @@ import (
 type RectProp struct {
     box *gtk.Box
     value [4]*gtk.SpinButton
-    input [4]*gtk.Box
     num int
 }
 
 func NewRectProp(num, width, height int, animate func()) Property {
+    var err error
     rect := &RectProp{num: num}
 
-    rect.value[0], _ = gtk.SpinButtonNewWithRange(float64(0), float64(width), 1)
-    rect.value[1], _ = gtk.SpinButtonNewWithRange(float64(0), float64(height), 1)
-    rect.value[2], _ = gtk.SpinButtonNewWithRange(float64(0), float64(width), 1)
-    rect.value[3], _ = gtk.SpinButtonNewWithRange(float64(0), float64(height), 1)
+    rect.value[0], err = gtk.SpinButtonNewWithRange(float64(0), float64(width), 1)
+    if err != nil { 
+        log.Printf("Error creating rect spin button (%s)", err) 
+    }
 
-    rect.box, _ = gtk.BoxNew(gtk.ORIENTATION_VERTICAL, 0)
+    rect.value[1], err = gtk.SpinButtonNewWithRange(float64(0), float64(height), 1)
+    if err != nil { 
+        log.Printf("Error creating rect spin button (%s)", err) 
+    }
+
+    rect.value[2], err = gtk.SpinButtonNewWithRange(float64(0), float64(width), 1)
+    if err != nil { 
+        log.Printf("Error creating rect spin button (%s)", err) 
+    }
+
+    rect.value[3], err = gtk.SpinButtonNewWithRange(float64(0), float64(height), 1)
+    if err != nil { 
+        log.Printf("Error creating rect spin button (%s)", err) 
+    }
+
+    rect.box, err = gtk.BoxNew(gtk.ORIENTATION_VERTICAL, 0)
+    if err != nil { 
+        log.Printf("Error creating rect box (%s)", err) 
+    }
+
     labels := [4]string{"x Pos", "y Pos", "Width", "Height"}
 
-    for i := range rect.input {
-        rect.input[i] = IntEditor(labels[i], rect.value[i], animate)
-        rect.box.PackStart(rect.input[i], false, false, padding)
+    for i := range rect.value {
+        input := IntEditor(labels[i], rect.value[i], animate)
+        rect.box.PackStart(input, false, false, padding)
     }
 
     rect.box.SetVisible(true)
-
     return rect
 }
 
@@ -69,7 +87,11 @@ func (rect *RectProp) Decode(input string) {
         }
 
         name := line[0]
-        value, _ := strconv.Atoi(line[1])
+        value, err := strconv.Atoi(line[1])
+        if err != nil { 
+            log.Printf("Error decoding rect (%s)", err) 
+        }
+
 
         switch (name) {
         case "x":

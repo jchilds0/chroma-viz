@@ -51,7 +51,12 @@ func NewPage(pageNum int, title string, temp *Template) *Page {
 
     num_text := 0
     num_rect := 0
+    num_circle := 0
     for name, prop := range temp.props {
+        if _, ok := page.propMap[name]; ok {
+            log.Printf("Name collision, overriding page prop %s with %s", name, prop)
+        }
+
         switch (prop) {
         case "RectProp":
             page.propMap[name] = props.NewRectProp(num_rect, 1920, 1080, animate)
@@ -59,6 +64,9 @@ func NewPage(pageNum int, title string, temp *Template) *Page {
         case "TextProp":
             page.propMap[name] = props.NewTextProp(num_text, 1920, 1080, animate)
             num_text++
+        case "CircleProp":
+            page.propMap[name] = props.NewCircleProp(num_circle, 1920, 1080, animate)
+            num_circle++
         case "ClockProp":
             page.propMap[name] = props.NewClockProp(1920, 1080, animate, cont)
         default:
@@ -70,7 +78,11 @@ func NewPage(pageNum int, title string, temp *Template) *Page {
 }
 
 func (page *Page) pageToListRow() *gtk.ListBoxRow {
-    row1, _ := gtk.ListBoxRowNew()
+    row1, err := gtk.ListBoxRowNew()
+    if err != nil {
+        log.Fatalf("Error converting page to list (%s)", err)
+    }
+
     row1.Add(textToBuffer(strconv.Itoa(page.pageNum)))
     row1.Add(textToBuffer(page.title))
 
@@ -87,9 +99,14 @@ type ShowTree struct {
 }
 
 func NewShow(edit *Editor) *ShowTree {
+    var err error
     show := &ShowTree{}
 
-    show.TreeView, _ = gtk.TreeViewNew()
+    show.TreeView, err = gtk.TreeViewNew()
+    if err != nil {
+        log.Fatalf("Error creating show (%s)", err)
+    }
+
     show.TreeView.SetReorderable(true)
 
     show.pages = make(map[int]*Page)
@@ -104,28 +121,64 @@ func NewShow(edit *Editor) *ShowTree {
 
         switch key {
         case TITLE:
-            title, _ := gtk.CellRendererTextNew()
+            title, err := gtk.CellRendererTextNew()
+            if err != nil {
+                log.Fatalf("Error creating show (%s)", err)
+            }
+
             title.SetProperty("editable", true)
             title.Connect("edited", 
                 func(cell *gtk.CellRendererText, path string, text string) {
-                    iter, _ := show.treeList.GetIterFromString(path)
-                    id, _ := show.treeList.GetValue(iter, PAGENUM)
-                    val, _ := id.GoValue()
-                    pageNum, _ := strconv.Atoi(val.(string))
+                    iter, err := show.treeList.GetIterFromString(path)
+                    if err != nil {
+                        log.Fatalf("Error editing page (%s)", err)
+                    }
+
+                    id, err := show.treeList.GetValue(iter, PAGENUM)
+                    if err != nil {
+                        log.Fatalf("Error editing page (%s)", err)
+                    }
+
+                    val, err := id.GoValue()
+                    if err != nil {
+                        log.Fatalf("Error editing page (%s)", err)
+                    }
+
+                    pageNum, err := strconv.Atoi(val.(string))
+                    if err != nil {
+                        log.Fatalf("Error editing page (%s)", err)
+                    }
+
                     show.pages[pageNum].title = text
                     show.treeList.SetValue(iter, TITLE, text)
             })
 
-            column, _ = gtk.TreeViewColumnNewWithAttribute(KEYTITLE[key], title, "text", 1)
+            column, err = gtk.TreeViewColumnNewWithAttribute(KEYTITLE[key], title, "text", 1)
+            if err != nil {
+                log.Fatalf("Error creating show (%s)", err)
+            }
+
         default:
-            cell, _ := gtk.CellRendererTextNew()
-            column, _ = gtk.TreeViewColumnNewWithAttribute(KEYTITLE[key], cell, "text", key)
+            cell, err := gtk.CellRendererTextNew()
+            if err != nil {
+                log.Fatalf("Error creating show (%s)", err)
+            }
+
+            column, err = gtk.TreeViewColumnNewWithAttribute(KEYTITLE[key], cell, "text", key)
+            if err != nil {
+                log.Fatalf("Error creating show (%s)", err)
+            }
+
         }
 
         show.AppendColumn(column)
     }
 
-    show.treeList, _ = gtk.ListStoreNew(glib.TYPE_STRING, glib.TYPE_STRING, glib.TYPE_STRING)
+    show.treeList, err = gtk.ListStoreNew(glib.TYPE_STRING, glib.TYPE_STRING, glib.TYPE_STRING)
+    if err != nil {
+        log.Fatalf("Error creating show (%s)", err)
+    }
+
 
     show.SetModel(show.treeList)
     show.edit = edit
@@ -133,10 +186,25 @@ func NewShow(edit *Editor) *ShowTree {
     // TODO: remove reference to show from outside scope
     show.Connect("row-activated", 
         func(tree *gtk.TreeView, path *gtk.TreePath, column *gtk.TreeViewColumn) { 
-            iter, _ := show.treeList.GetIter(path)
-            id, _ := show.treeList.GetValue(iter, PAGENUM)
-            val, _ := id.GoValue()
-            pageNum, _ := strconv.Atoi(val.(string))
+            iter, err := show.treeList.GetIter(path)
+            if err != nil {
+                log.Fatalf("Error sending page to editor (%s)", err)
+            }
+
+            id, err := show.treeList.GetValue(iter, PAGENUM)
+            if err != nil {
+                log.Fatalf("Error sending page to editor (%s)", err)
+            }
+
+            val, err := id.GoValue()
+            if err != nil {
+                log.Fatalf("Error sending page to editor (%s)", err)
+            }
+
+            pageNum, err := strconv.Atoi(val.(string))
+            if err != nil {
+                log.Fatalf("Error sending page to editor (%s)", err)
+            }
 
             show.edit.SetPage(show.pages[pageNum])
             conn["Preview"].setPage <- show.pages[pageNum]
@@ -160,20 +228,17 @@ func (show *ShowTree) NewShowPage(temp *Template) *Page {
 func (show *ShowTree) ImportShow(temp *TempTree, filename string) {
     pageReg, err := regexp.Compile("temp (?P<tempID>[0-9]*); title \"(?P<title>.*)\";")
     if err != nil {
-        log.Print(err)
-        return
+        log.Fatalf("Error importing show (%s)", err)
     }
 
     propReg, err := regexp.Compile("name (?P<type>[ \\w]*);")
     if err != nil {
-        log.Print(err)
-        return
+        log.Fatalf("Error importing show (%s)", err)
     }
 
     file, err := os.Open(filename)
     if err != nil {
-        log.Print(err)
-        return
+        log.Fatalf("Error importing show (%s)", err)
     }
 
     scanner := bufio.NewScanner(file)
@@ -183,7 +248,11 @@ func (show *ShowTree) ImportShow(temp *TempTree, filename string) {
         line := scanner.Text()
         if pageReg.Match(scanner.Bytes()) {
             match := pageReg.FindStringSubmatch(line)
-            tempID, _ := strconv.Atoi(match[1])
+            tempID, err := strconv.Atoi(match[1])
+            if err != nil {
+                log.Fatalf("Error importing show (%s)", err)
+            }
+
             page = show.NewShowPage(temp.temps[tempID])
             page.title = match[2]
         } else if page != nil {
@@ -208,7 +277,7 @@ func (show *ShowTree) ImportShow(temp *TempTree, filename string) {
 func (show *ShowTree) ExportShow(filename string) {
     file, err := os.Create(filename)
     if err != nil {
-        log.Print(err)
+        log.Fatalf("Error importing show (%s)", err)
     }
     defer file.Close()
 

@@ -1,6 +1,8 @@
 package gui
 
 import (
+	"log"
+
 	"github.com/gotk3/gotk3/cairo"
 	"github.com/gotk3/gotk3/gtk"
 )
@@ -19,15 +21,33 @@ type EngineWidget struct {
 }
 
 func NewEngineWidget(name string, conn *Connection) *EngineWidget {
+    var err error
     eng := &EngineWidget{conn: conn, connStatus: false}
-    eng.Button, _ = gtk.ButtonNew()
-    eng.box, _ = gtk.BoxNew(gtk.ORIENTATION_HORIZONTAL, 0)
+
+    eng.Button, err = gtk.ButtonNew()
+    if err != nil {
+        log.Fatalf("Error creating engine widget (%s)", err)
+    }
+
+    eng.box, err = gtk.BoxNew(gtk.ORIENTATION_HORIZONTAL, 0)
+    if err != nil {
+        log.Fatalf("Error creating engine widget (%s)", err)
+    }
+
     eng.Button.Add(eng.box)
 
-    label, _ := gtk.LabelNew(name + " ")
+    label, err := gtk.LabelNew(name + " ")
+    if err != nil {
+        log.Fatalf("Error creating engine widget (%s)", err)
+    }
+
     eng.box.PackStart(label, true, true, 0)
 
-    eng.area, _ = gtk.DrawingAreaNew()
+    eng.area, err = gtk.DrawingAreaNew()
+    if err != nil {
+        log.Fatalf("Error creating engine widget (%s)", err)
+    }
+
     eng.box.PackStart(eng.area, true, true, 0)
 
     eng.Connect(

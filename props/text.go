@@ -19,15 +19,27 @@ type TextProp struct {
 }
 
 func NewTextProp(num, width, height int, animate func()) *TextProp {
+    var err error
     text := &TextProp{num: num}
     text.input, text.entry = TextEditor("Text: ", animate)
 
-    text.box, _ = gtk.BoxNew(gtk.ORIENTATION_VERTICAL, 0)
+    text.box, err = gtk.BoxNew(gtk.ORIENTATION_VERTICAL, 0)
+    if err != nil { 
+        log.Fatalf("Error creating text prop (%s)", err) 
+    }
+
     text.box.SetVisible(true)
     text.box.PackStart(text.input, false, false, padding)
 
-    text.x_spin, _ = gtk.SpinButtonNewWithRange(float64(0), float64(width), 1)
-    text.y_spin, _ = gtk.SpinButtonNewWithRange(float64(0), float64(height), 1)
+    text.x_spin, err = gtk.SpinButtonNewWithRange(float64(0), float64(width), 1)
+    if err != nil { 
+        log.Fatalf("Error creating text prop (%s)", err) 
+    }
+
+    text.y_spin, err = gtk.SpinButtonNewWithRange(float64(0), float64(height), 1)
+    if err != nil { 
+        log.Fatalf("Error creating text prop (%s)", err) 
+    }
 
     text.box.PackStart(IntEditor("x Pos", text.x_spin, animate), false, false, padding)
     text.box.PackStart(IntEditor("y Pos", text.y_spin, animate), false, false, padding)
@@ -40,14 +52,22 @@ func (text *TextProp) Tab() *gtk.Box {
 }
 
 func (text *TextProp) String() string {
-    entryText, _ := text.entry.GetText()
+    entryText, err := text.entry.GetText()
+    if err != nil { 
+        log.Fatalf("Error creating text string (%s)", err) 
+    }
+
 
     return fmt.Sprintf("text=%d#string=%s#pos_x=%d#pos_y=%d#", 
         text.num, entryText, text.x_spin.GetValueAsInt(), text.y_spin.GetValueAsInt())
 }
  
 func (text *TextProp) Encode() string {
-    entryText, _ := text.entry.GetText()
+    entryText, err := text.entry.GetText()
+    if err != nil { 
+        log.Fatalf("Error encoding text prop (%s)", err) 
+    }
+
     return fmt.Sprintf("string %s;x %d;y %d;", 
         entryText, text.x_spin.GetValueAsInt(), text.y_spin.GetValueAsInt())
 }
@@ -61,10 +81,18 @@ func (text *TextProp) Decode(input string) {
 
         switch (name) {
         case "x":
-            value, _ := strconv.Atoi(line[1])
+            value, err := strconv.Atoi(line[1])
+            if err != nil { 
+                log.Fatalf("Error decoding text prop (%s)", err) 
+            }
+
             text.x_spin.SetValue(float64(value))
         case "y":
-            value, _ := strconv.Atoi(line[1])
+            value, err := strconv.Atoi(line[1])
+            if err != nil { 
+                log.Printf("Error decoding text prop (%s)", err) 
+            }
+
             text.y_spin.SetValue(float64(value))
         case "string":
             text.entry.SetText(strings.TrimPrefix(attr, "string "))

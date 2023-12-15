@@ -21,30 +21,51 @@ type ClockProp struct {
 }
 
 func NewClockProp(width, height int, animate, cont func()) *ClockProp {
+    var err error
     clock := &ClockProp{}
-    clock.box, _ = gtk.BoxNew(gtk.ORIENTATION_VERTICAL, 0)
+    clock.box, err = gtk.BoxNew(gtk.ORIENTATION_VERTICAL, 0)
+    if err != nil { 
+        log.Printf("Error creating clock prop (%s)", err) 
+    }
+
     clock.box.SetVisible(true)
     clock.c = make(chan int, 1)
 
-    actions, _ := gtk.BoxNew(gtk.ORIENTATION_HORIZONTAL, 0)
+    actions, err := gtk.BoxNew(gtk.ORIENTATION_HORIZONTAL, 0)
+    if err != nil { 
+        log.Printf("Error creating clock prop (%s)", err) 
+    }
+
     clock.box.PackStart(actions, false, false, padding)
     actions.SetVisible(true)
 
-    startButton, _ := gtk.ButtonNewWithLabel("Start")
+    startButton, err := gtk.ButtonNewWithLabel("Start")
+    if err != nil { 
+        log.Printf("Error creating clock prop (%s)", err) 
+    }
+
     actions.PackStart(startButton, false, false, padding)
     startButton.SetVisible(true)
     startButton.Connect("clicked", func() {
         clock.c <- START
     })
 
-    pauseButton, _ := gtk.ButtonNewWithLabel("Pause")
+    pauseButton, err := gtk.ButtonNewWithLabel("Pause")
+    if err != nil { 
+        log.Printf("Error creating clock prop (%s)", err) 
+    }
+
     actions.PackStart(pauseButton, false, false, padding)
     pauseButton.SetVisible(true)
     pauseButton.Connect("clicked", func() {
         clock.c <- PAUSE 
     })
 
-    stopButton, _ := gtk.ButtonNewWithLabel("Stop")
+    stopButton, err := gtk.ButtonNewWithLabel("Stop")
+    if err != nil { 
+        log.Printf("Error creating clock prop (%s)", err) 
+    }
+
     actions.PackStart(stopButton, false, false, padding)
     stopButton.SetVisible(true)
     stopButton.Connect("clicked", func() {
@@ -52,7 +73,11 @@ func NewClockProp(width, height int, animate, cont func()) *ClockProp {
     })
 
     clock.timeFormat = "04:05"
-    edit, _ := time.Parse(clock.timeFormat, "00:00")
+    edit, err := time.Parse(clock.timeFormat, "00:00")
+    if err != nil { 
+        log.Printf("Error creating clock prop (%s)", err) 
+    }
+
     clock.editTime = &edit
 
     clock.timeString = *NewTextProp(0, width, height, animate)
@@ -67,12 +92,24 @@ func (clock *ClockProp) Tab() *gtk.Box {
 }
 
 func (clock *ClockProp) String() string {
-    return fmt.Sprintf("text=%d#string=%s#pos_x=%d#pos_y=%d#", 
+    currentTime := clock.currentTime.Format(clock.timeFormat)
+    nextTime := clock.currentTime.Add(time.Second).Format(clock.timeFormat)
+
+    currentString := fmt.Sprintf("text=%d#string=%s#pos_x=%d#pos_y=%d#", 
         clock.timeString.num, 
-        clock.currentTime.Format(clock.timeFormat),
+        currentTime,
         clock.timeString.x_spin.GetValueAsInt(), 
         clock.timeString.y_spin.GetValueAsInt(),
     )
+    
+    nextString := fmt.Sprintf("text=%d#string=%s#pos_x=%d#pos_y=%d#", 
+        clock.timeString.num + 1, 
+        nextTime,
+        clock.timeString.x_spin.GetValueAsInt(), 
+        - 300,
+    )
+
+    return currentString + nextString
 }
 
 func (clock *ClockProp) Encode() string {
@@ -81,8 +118,16 @@ func (clock *ClockProp) Encode() string {
 
 func (clock *ClockProp) Decode(input string) {
     clock.timeString.Decode(input)
-    current, _ := clock.timeString.entry.GetText()
-    edit, _ := time.Parse(clock.timeFormat, current)
+    current, err := clock.timeString.entry.GetText()
+    if err != nil { 
+        log.Printf("Error decoding clock (%s)", err) 
+    }
+
+    edit, err := time.Parse(clock.timeFormat, current)
+    if err != nil { 
+        log.Printf("Error decoding clock (%s)", err) 
+    }
+
     clock.editTime = &edit
 }
 

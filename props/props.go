@@ -1,6 +1,8 @@
-package props 
+package props
 
 import (
+	"log"
+
 	"github.com/gotk3/gotk3/gtk"
 )
 
@@ -13,10 +15,18 @@ const (
 )
 
 func IntEditor(name string, spin *gtk.SpinButton, animate func()) *gtk.Box {
-    box, _ := gtk.BoxNew(gtk.ORIENTATION_HORIZONTAL, 0)
+    box, err := gtk.BoxNew(gtk.ORIENTATION_HORIZONTAL, 0)
+    if err != nil { 
+        log.Printf("Error creating int editor (%s)", err) 
+    }
+
     box.SetVisible(true)
 
-    label, _ := gtk.LabelNew(name)
+    label, err := gtk.LabelNew(name)
+    if err != nil { 
+        log.Printf("Error creating int editor (%s)", err) 
+    }
+
     label.SetVisible(true)
     label.SetWidthChars(7)
     box.PackStart(label, false, false, uint(padding))
@@ -30,16 +40,32 @@ func IntEditor(name string, spin *gtk.SpinButton, animate func()) *gtk.Box {
 }
 
 func TextEditor(name string, animate func()) (*gtk.Box, *gtk.Entry) {
-    box, _ := gtk.BoxNew(gtk.ORIENTATION_HORIZONTAL, 0)
+    box, err := gtk.BoxNew(gtk.ORIENTATION_HORIZONTAL, 0)
+    if err != nil { 
+        log.Printf("Error creating text editor (%s)", err) 
+    }
+
     box.SetVisible(true)
 
-    label, _ := gtk.LabelNew(name)
+    label, err := gtk.LabelNew(name)
+    if err != nil { 
+        log.Printf("Error creating text editor (%s)", err) 
+    }
+
     label.SetVisible(true)
     label.SetWidthChars(7)
     box.PackStart(label, false, false, uint(padding))
 
-    buf, _ := gtk.EntryBufferNew("", 0)
+    buf, err := gtk.EntryBufferNew("", 0)
+    if err != nil { 
+        log.Printf("Error creating text editor (%s)", err) 
+    }
+
     text, _ := gtk.EntryNewWithBuffer(buf)
+    if err != nil { 
+        log.Printf("Error creating text editor (%s)", err) 
+    }
+
     text.SetVisible(true)
     box.PackStart(text, false, false, 0)
 
