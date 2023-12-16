@@ -1,6 +1,7 @@
 package gui
 
 import (
+	"fmt"
 	"log"
 
 	"github.com/gotk3/gotk3/glib"
@@ -17,7 +18,15 @@ func AddConnection(name string, ip string, port int) {
     conn[name] = NewConnection(ip, port)
 }
 
-// TODO: seperate preview setup from gui setup
+func CloseConn() {
+    for name, c := range conn {
+        if c.IsConnected() {
+            c.CloseConn()
+            fmt.Printf("Closed %s\n", name)
+        }
+    }
+}
+
 func SetupMainGui(app *gtk.Application) {
 
     win, err := gtk.ApplicationWindowNew(app)
@@ -157,10 +166,11 @@ func SetupMainGui(app *gtk.Application) {
 
     for name, render := range conn {
         eng := NewEngineWidget(name, render)
-        lowerBox.PackStart(eng)
+        lowerBox.PackStart(eng.button)
     }
 
     win.ShowAll()
+
 }
 
 func guiImportShow(win *gtk.ApplicationWindow, show *ShowTree, temp *TempTree) {
@@ -199,3 +209,4 @@ func guiExportShow(win *gtk.ApplicationWindow, show *ShowTree) {
 
     dialog.Destroy()
 }
+

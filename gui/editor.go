@@ -65,7 +65,6 @@ func NewEditor() *Editor {
 
         conn["Engine"].setPage <- editor.page
         conn["Engine"].sendPage <- ANIMATE_ON
-        conn["Engine"].Read()
     })
 
     take2.Connect("clicked", func() { 

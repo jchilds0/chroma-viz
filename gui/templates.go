@@ -109,6 +109,7 @@ func NewTempList(show *ShowTree) *TempTree {
     temp.temps[3].AddProp("Background", "RectProp")
     temp.temps[3].AddProp("Title", "TextProp")
     temp.temps[3].AddProp("Subtitle", "TextProp")
+    temp.temps[3].AddProp("Logo", "CircleProp")
 
     temp.AddTemplate("Clock Box", 4)
     temp.temps[4].AddProp("Background", "RectProp")

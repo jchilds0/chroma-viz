@@ -20,5 +20,7 @@ func main() {
 
     app.Connect("activate", gui.SetupMainGui)
     app.Run([]string{})
+
+    gui.CloseConn()
 }
 

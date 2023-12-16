@@ -17,11 +17,12 @@ const (
 )
 
 type Connection struct {
-    addr    string
-    port    int
-    conn    net.Conn
-    setPage chan *Page
-    sendPage chan int
+    addr        string
+    port        int
+    connected   bool
+    conn        net.Conn
+    setPage     chan *Page
+    sendPage    chan int
 }
 
 func NewConnection(addr string, port int) *Connection {
@@ -33,16 +34,16 @@ func NewConnection(addr string, port int) *Connection {
     return conn
 }
 
-func (conn *Connection) Connect() bool {
+func (conn *Connection) Connect() {
     var err error
     conn.conn, err = net.Dial("tcp", conn.addr + ":" + strconv.Itoa(conn.port))
 
     if err != nil {
         log.Print(err)
-        return false
+        conn.connected = false
     }
 
-    return true
+    conn.connected = true 
 }
 
 // TCP Format: ver%d#len%d#action%d#page%d#attr%s#val%d ... END_OF_MESSAGE
@@ -104,40 +105,45 @@ func (conn *Connection) CloseConn() {
 }
 
 func (conn *Connection) IsConnected() bool {
-    if conn.conn == nil {
-        return false
-    }
-
-    buf := make([]byte, 100)
-    conn.conn.SetReadDeadline(time.Now().Add(10 * time.Millisecond))
-    _, err := conn.conn.Read(buf)
-
-    if neterr, ok := err.(net.Error); ok && neterr.Timeout() {
-        return true
-    }
-
-    if err != nil {
-        log.Print(err)
-        return false
-    }
-
-    //fmt.Printf("Server Message: %s\n", buf);
-    return true
+    return conn.connected
 }
 
-func (conn *Connection) Read() {
-    if conn.IsConnected() == false {
-        return
-    }
-
+func (conn *Connection) Read() (string, error) {
     buf := make([]byte, 100)
     conn.conn.SetReadDeadline(time.Now().Add(100 * time.Millisecond))
     _, err := conn.conn.Read(buf)
 
-    if err != nil {
-        log.Print(err)
-        return 
-    }
+    return string(buf), err
+}
 
-    fmt.Printf("Server Message: %s\n", buf);
+/*
+    - watch a connection for a close, 
+    - call emit() on close, 
+    - print any message recieved to stdout
+ */
+func (conn *Connection) Watcher(emit func()) {
+    for {
+        time.Sleep(500 * time.Millisecond)
+        if conn.conn == nil {
+            emit()
+            conn.connected = false
+            return
+        }
+
+        string, err := conn.Read()
+        if neterr, ok := err.(net.Error); ok && neterr.Timeout() {
+            conn.connected = true
+            continue
+        }
+
+        if err != nil {
+            log.Print(err)
+            conn.connected = false
+            emit()
+            return
+        }
+
+        log.Printf("(%s : %d): %s\n", conn.addr, conn.port, string);
+        conn.connected = true
+    }
 }

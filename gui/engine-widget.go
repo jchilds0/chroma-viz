@@ -13,62 +13,53 @@ const (
 )
 
 type EngineWidget struct {
-    *gtk.Button
-    box          *gtk.Box
-    area         *gtk.DrawingArea
+    button       *gtk.Button
     conn         *Connection
-    connStatus   bool
 }
 
 func NewEngineWidget(name string, conn *Connection) *EngineWidget {
     var err error
-    eng := &EngineWidget{conn: conn, connStatus: false}
+    eng := &EngineWidget{conn: conn}
 
-    eng.Button, err = gtk.ButtonNew()
+    eng.button, err = gtk.ButtonNew()
     if err != nil {
         log.Fatalf("Error creating engine widget (%s)", err)
     }
 
-    eng.box, err = gtk.BoxNew(gtk.ORIENTATION_HORIZONTAL, 0)
+    box, err := gtk.BoxNew(gtk.ORIENTATION_HORIZONTAL, 0)
     if err != nil {
         log.Fatalf("Error creating engine widget (%s)", err)
     }
 
-    eng.Button.Add(eng.box)
+    eng.button.Add(box)
 
     label, err := gtk.LabelNew(name + " ")
     if err != nil {
         log.Fatalf("Error creating engine widget (%s)", err)
     }
 
-    eng.box.PackStart(label, true, true, 0)
+    box.PackStart(label, true, true, 0)
 
-    eng.area, err = gtk.DrawingAreaNew()
+    area, err := gtk.DrawingAreaNew()
     if err != nil {
         log.Fatalf("Error creating engine widget (%s)", err)
     }
 
-    eng.box.PackStart(eng.area, true, true, 0)
+    box.PackStart(area, true, true, 0)
 
-    eng.Connect(
-        "clicked", 
-        func() { 
-            if eng.connStatus {
-                eng.connStatus = eng.conn.IsConnected()
-            } else {
-                eng.connStatus = eng.conn.Connect()
-            } 
+    eng.button.Connect("clicked", func() { 
+        if !eng.conn.IsConnected() {
+            eng.conn.Connect()
+            go eng.conn.Watcher(func() { area.QueueDraw() })
+        } 
+    })
 
-            eng.area.QueueDraw()
-        })
-
-    eng.area.Connect(
-        "draw", 
+    area.Connect("draw", 
         func(da *gtk.DrawingArea, cr *cairo.Context) {
             height := da.GetAllocatedHeight()
             da.SetSizeRequest(height, height)
 
-            if eng.connStatus {
+            if eng.conn.IsConnected() {
                 cr.SetSourceRGB(0, 255, 0)
             } else {
                 cr.SetSourceRGB(255, 0, 0)
@@ -78,7 +69,7 @@ func NewEngineWidget(name string, conn *Connection) *EngineWidget {
             cr.Fill()
         })
 
-    eng.Button.QueueDraw()
+    eng.button.QueueDraw()
 
     return eng
 }

@@ -1,7 +1,6 @@
 package gui
 
 import (
-	"fmt"
 	"log"
 	"os/exec"
 	"strconv"
@@ -40,8 +39,6 @@ func setup_preview_window() *gtk.Frame {
         if err := prev.Start(); err != nil {
             log.Fatal(err)
         }
-
-        fmt.Printf("xid: %d\n", xid)
     })
 
     soc.Connect("plug-added", func() { log.Printf("Plug inserted: %d", xid) })
