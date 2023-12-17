@@ -11,6 +11,7 @@ import (
 
 type ClockProp struct {
     box             *gtk.Box
+    name            string
     engine          bool
     preview         bool
     c               chan int
@@ -20,9 +21,9 @@ type ClockProp struct {
     timeString      TextProp
 }
 
-func NewClockProp(width, height int, animate, cont func()) *ClockProp {
+func NewClockProp(width, height int, animate, cont func(), name string) *ClockProp {
     var err error
-    clock := &ClockProp{}
+    clock := &ClockProp{name: name}
     clock.box, err = gtk.BoxNew(gtk.ORIENTATION_VERTICAL, 0)
     if err != nil { 
         log.Printf("Error creating clock prop (%s)", err) 
@@ -80,11 +81,15 @@ func NewClockProp(width, height int, animate, cont func()) *ClockProp {
 
     clock.editTime = &edit
 
-    clock.timeString = *NewTextProp(0, width, height, animate)
+    clock.timeString = *NewTextProp(width, height, animate, "clock time")
     clock.box.PackStart(clock.timeString.Tab(), false, false, 0)
 
     go clock.RunClock(cont)
     return clock
+}
+
+func (clock *ClockProp) Name() string {
+    return clock.name
 }
 
 func (clock *ClockProp) Tab() *gtk.Box {
@@ -93,23 +98,13 @@ func (clock *ClockProp) Tab() *gtk.Box {
 
 func (clock *ClockProp) String() string {
     currentTime := clock.currentTime.Format(clock.timeFormat)
-    nextTime := clock.currentTime.Add(time.Second).Format(clock.timeFormat)
-
-    currentString := fmt.Sprintf("text=%d#string=%s#pos_x=%d#pos_y=%d#", 
-        clock.timeString.num, 
+    currentString := fmt.Sprintf("string=%s#pos_x=%d#pos_y=%d#", 
         currentTime,
         clock.timeString.x_spin.GetValueAsInt(), 
         clock.timeString.y_spin.GetValueAsInt(),
     )
     
-    nextString := fmt.Sprintf("text=%d#string=%s#pos_x=%d#pos_y=%d#", 
-        clock.timeString.num + 1, 
-        nextTime,
-        clock.timeString.x_spin.GetValueAsInt(), 
-        - 300,
-    )
-
-    return currentString + nextString
+    return currentString
 }
 
 func (clock *ClockProp) Encode() string {

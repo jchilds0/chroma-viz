@@ -80,7 +80,7 @@ func (conn *Connection) SendPage() {
             continue
         }
 
-        version := [...]int{1, 2}
+        version := [...]int{1, 3}
         length := 2
 
         header := fmt.Sprintf("ver=%d,%d#len=%d#action=%d#temp=%d#", 
@@ -88,8 +88,8 @@ func (conn *Connection) SendPage() {
 
         str := header
 
-        for _, prop := range page.propMap {
-            str = str + prop.String()
+        for i, prop := range page.propMap {
+            str = fmt.Sprintf("%sgeo_num=%d#%s", str, i, prop.String())
         }
 
         str = str + string(END_OF_MESSAGE)

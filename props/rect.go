@@ -11,13 +11,13 @@ import (
 
 type RectProp struct {
     box *gtk.Box
+    name string
     value [4]*gtk.SpinButton
-    num int
 }
 
-func NewRectProp(num, width, height int, animate func()) Property {
+func NewRectProp(width, height int, animate func(), name string) Property {
     var err error
-    rect := &RectProp{num: num}
+    rect := &RectProp{name: name}
 
     rect.value[0], err = gtk.SpinButtonNewWithRange(float64(0), float64(width), 1)
     if err != nil { 
@@ -59,9 +59,12 @@ func (rect *RectProp) Tab() *gtk.Box {
     return rect.box
 }
 
+func (rect *RectProp) Name() string {
+    return rect.name
+}
+
 func (rect *RectProp) String() string {
-    return fmt.Sprintf("rect=%d#pos_x=%d#pos_y=%d#width=%d#height=%d#", 
-        rect.num,
+    return fmt.Sprintf("pos_x=%d#pos_y=%d#width=%d#height=%d#", 
         rect.value[0].GetValueAsInt(),
         rect.value[1].GetValueAsInt(),
         rect.value[2].GetValueAsInt(),

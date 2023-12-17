@@ -10,14 +10,14 @@ import (
 )
 
 type CircleProp struct {
+    name string 
     box *gtk.Box;
     value [3]*gtk.SpinButton
-    num int
 }
 
-func NewCircleProp(num, width, height int, animate func()) Property {
+func NewCircleProp(width, height int, animate func(), name string) Property {
     var err error
-    circle := &CircleProp{num: num}
+    circle := &CircleProp{name: name}
 
     circle.value[0], err = gtk.SpinButtonNewWithRange(float64(0), float64(width), 1)
     if err != nil { 
@@ -41,12 +41,11 @@ func NewCircleProp(num, width, height int, animate func()) Property {
 
     labels := [3]string{"Center x", "Center y", "Radius"}
 
+    circle.value[2].SetValue(1.0)
     for i := range circle.value {
         input := IntEditor(labels[i], circle.value[i], animate)
         circle.box.PackStart(input, false, false, padding)
     }
-
-    circle.value[2].SetValue(1.0)
 
     circle.box.SetVisible(true)
     return circle
@@ -56,9 +55,12 @@ func (circle *CircleProp) Tab() *gtk.Box {
     return circle.box
 }
 
+func (circle *CircleProp) Name() string {
+    return circle.name
+}
+
 func (circle *CircleProp) String() string {
-    return fmt.Sprintf("circle=%d#center_x=%d#center_y=%d#radius=%d#", 
-        circle.num,
+    return fmt.Sprintf("center_x=%d#center_y=%d#radius=%d#", 
         circle.value[0].GetValueAsInt(),
         circle.value[1].GetValueAsInt(),
         circle.value[2].GetValueAsInt())

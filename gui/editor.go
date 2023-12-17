@@ -119,13 +119,17 @@ func (edit *Editor) SetPage(page *Page) {
 
     edit.page = page
 
-    for name, key := range edit.page.propMap {
-        label, err := gtk.LabelNew(name)
+    for _, prop := range edit.page.propMap {
+        if prop == nil {
+            continue
+        }
+
+        label, err := gtk.LabelNew(prop.Name())
         if err != nil { 
             log.Fatalf("Error setting page (%s)", err) 
         }
 
-        edit.tabs.AppendPage(key.Tab(), label)
+        edit.tabs.AppendPage(prop.Tab(), label)
     }
 }
 

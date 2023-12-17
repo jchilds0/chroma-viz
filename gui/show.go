@@ -32,12 +32,11 @@ type Page struct {
     pageNum     int
     title       string
     templateID  int
-    propMap     map[string]props.Property
+    propMap     []props.Property
 }
 
 func NewPage(pageNum int, title string, temp *Template) *Page {
     page := &Page{pageNum: pageNum, title: title, templateID: temp.templateID}
-    page.propMap = make(map[string]props.Property)
 
     animate := func() { 
         conn["Preview"].setPage <- page
@@ -49,26 +48,27 @@ func NewPage(pageNum int, title string, temp *Template) *Page {
         conn["Preview"].sendPage <- CONTINUE
     }
 
-    num_text := 0
-    num_rect := 0
-    num_circle := 0
-    for name, prop := range temp.props {
-        if _, ok := page.propMap[name]; ok {
-            log.Printf("Name collision, overriding page prop %s with %s", name, prop)
-        }
+    for i := 0; i < temp.numProps; i++ {
+        prop := temp.propType[i]
+        name := temp.propName[i]
 
         switch (prop) {
         case "RectProp":
-            page.propMap[name] = props.NewRectProp(num_rect, 1920, 1080, animate)
-            num_rect++
+            page.propMap = append(page.propMap, 
+                props.NewRectProp(1920, 1080, animate, name))
+
         case "TextProp":
-            page.propMap[name] = props.NewTextProp(num_text, 1920, 1080, animate)
-            num_text++
+            page.propMap = append(page.propMap, 
+                props.NewTextProp(1920, 1080, animate, name))
+
         case "CircleProp":
-            page.propMap[name] = props.NewCircleProp(num_circle, 1920, 1080, animate)
-            num_circle++
+            page.propMap = append(page.propMap, 
+                props.NewCircleProp(1920, 1080, animate, name))
+
         case "ClockProp":
-            page.propMap[name] = props.NewClockProp(1920, 1080, animate, cont)
+            page.propMap = append(page.propMap, 
+                props.NewClockProp(1920, 1080, animate, cont, name))
+
         default:
             log.Printf("Page %d: Unknown property %s", pageNum, prop)
         }
@@ -231,7 +231,7 @@ func (show *ShowTree) ImportShow(temp *TempTree, filename string) {
         log.Fatalf("Error importing show (%s)", err)
     }
 
-    propReg, err := regexp.Compile("name (?P<type>[ \\w]*);")
+    propReg, err := regexp.Compile("index (?P<type>[0-9]*);")
     if err != nil {
         log.Fatalf("Error importing show (%s)", err)
     }
@@ -262,14 +262,20 @@ func (show *ShowTree) ImportShow(temp *TempTree, filename string) {
                 continue
             }
 
-            name := match[1]
+            index, err := strconv.Atoi(match[1])
 
-            if _, ok := page.propMap[name]; !ok {
-                log.Printf("Unknown property (%s)\n", name)
+            if err != nil {
+                log.Fatalf("Error importing show (%s)", err);
+            }
+
+            prop := page.propMap[index]
+
+            if prop == nil {
+                log.Printf("Unknown property (%d)\n", index)
                 continue
             }
 
-            page.propMap[name].Decode(line)
+            prop.Decode(line)
         }
     }
 }
@@ -285,8 +291,12 @@ func (show *ShowTree) ExportShow(filename string) {
         pageString := fmt.Sprintf("temp %d; title \"%s\";\n", page.templateID, page.title)
         file.Write([]byte(pageString))
 
-        for name, prop := range page.propMap {
-            file.WriteString(fmt.Sprintf("name %s;", name))
+        for index, prop := range page.propMap {
+            if prop == nil {
+                continue
+            }
+
+            file.WriteString(fmt.Sprintf("index %d;", index))
 
             file.WriteString(prop.Encode())
 

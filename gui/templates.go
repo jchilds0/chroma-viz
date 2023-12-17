@@ -12,13 +12,13 @@ type Template struct {
     Box         *gtk.ListBoxRow
     title       string
     templateID  int
-    props       map[string]string
+    numProps    int
+    propType    []string
+    propName    []string
 }
 
 func NewTemplate(title string, id int) *Template {
     temp := &Template{title: title, templateID: id}
-    temp.props = make(map[string]string)
-
     return temp
 }
 
@@ -33,7 +33,9 @@ func (temp *Template) templateToListRow() *gtk.ListBoxRow {
 }
 
 func (temp *Template) AddProp(name string, typed string) {
-    temp.props[name] = typed
+    temp.propType = append(temp.propType, typed)
+    temp.propName = append(temp.propName, name)
+    temp.numProps++
 }
 
 func textToBuffer(text string) *gtk.TextView {
@@ -107,9 +109,9 @@ func NewTempList(show *ShowTree) *TempTree {
 
     temp.AddTemplate("Blue Box", 3)
     temp.temps[3].AddProp("Background", "RectProp")
+    temp.temps[3].AddProp("Logo", "CircleProp")
     temp.temps[3].AddProp("Title", "TextProp")
     temp.temps[3].AddProp("Subtitle", "TextProp")
-    temp.temps[3].AddProp("Logo", "CircleProp")
 
     temp.AddTemplate("Clock Box", 4)
     temp.temps[4].AddProp("Background", "RectProp")

@@ -14,6 +14,15 @@ const (
     STOP
 )
 
+type Property interface {
+    Tab() *gtk.Box
+    Name() string
+    String() string
+    Encode() string
+    Decode(string)
+}
+
+
 func IntEditor(name string, spin *gtk.SpinButton, animate func()) *gtk.Box {
     box, err := gtk.BoxNew(gtk.ORIENTATION_HORIZONTAL, 0)
     if err != nil { 
@@ -72,12 +81,5 @@ func TextEditor(name string, animate func()) (*gtk.Box, *gtk.Entry) {
     text.Connect("changed", animate)
 
     return box, text
-}
-
-type Property interface {
-    Tab() *gtk.Box
-    String() string
-    Encode() string
-    Decode(string)
 }
 

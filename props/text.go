@@ -10,17 +10,17 @@ import (
 )
 
 type TextProp struct {
+    name string
     entry *gtk.Entry
     input *gtk.Box
     box *gtk.Box
-    num int
     x_spin *gtk.SpinButton
     y_spin *gtk.SpinButton
 }
 
-func NewTextProp(num, width, height int, animate func()) *TextProp {
+func NewTextProp(width, height int, animate func(), name string) *TextProp {
     var err error
-    text := &TextProp{num: num}
+    text := &TextProp{name: name}
     text.input, text.entry = TextEditor("Text: ", animate)
 
     text.box, err = gtk.BoxNew(gtk.ORIENTATION_VERTICAL, 0)
@@ -51,6 +51,10 @@ func (text *TextProp) Tab() *gtk.Box {
     return text.box 
 }
 
+func (text *TextProp) Name() string {
+    return text.name
+}
+
 func (text *TextProp) String() string {
     entryText, err := text.entry.GetText()
     if err != nil { 
@@ -58,8 +62,8 @@ func (text *TextProp) String() string {
     }
 
 
-    return fmt.Sprintf("text=%d#string=%s#pos_x=%d#pos_y=%d#", 
-        text.num, entryText, text.x_spin.GetValueAsInt(), text.y_spin.GetValueAsInt())
+    return fmt.Sprintf("string=%s#pos_x=%d#pos_y=%d#", 
+        entryText, text.x_spin.GetValueAsInt(), text.y_spin.GetValueAsInt())
 }
  
 func (text *TextProp) Encode() string {
