@@ -123,6 +123,7 @@ func NewTempList(show *ShowTree) *TempTree {
     temp.AddTemplate("Graph", 6)
     temp.temps[6].AddProp("Background", "RectProp")
     temp.temps[6].AddProp("Graph", "GraphProp")
+    temp.temps[6].AddProp("Title", "TextProp")
 
     temp.Connect("row-activated", 
         func(tree *gtk.TreeView, path *gtk.TreePath, column *gtk.TreeViewColumn) { 

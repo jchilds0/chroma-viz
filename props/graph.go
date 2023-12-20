@@ -98,6 +98,7 @@ func NewGraphProp(width, height int, animate func(), name string) Property {
                 }
 
                 g.listStore.SetValue(iter, gCell.columnNum, id_val)
+                animate()
         })
         column, err := gtk.TreeViewColumnNewWithAttribute(name, gCell, "text", i)
         if err != nil {
