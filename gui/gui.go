@@ -1,7 +1,6 @@
 package gui
 
 import (
-	"fmt"
 	"log"
 
 	"github.com/gotk3/gotk3/glib"
@@ -22,7 +21,7 @@ func CloseConn() {
     for name, c := range conn {
         if c.IsConnected() {
             c.CloseConn()
-            fmt.Printf("Closed %s\n", name)
+            log.Printf("Closed %s\n", name)
         }
     }
 }

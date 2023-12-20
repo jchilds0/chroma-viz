@@ -69,6 +69,10 @@ func NewPage(pageNum int, title string, temp *Template) *Page {
             page.propMap = append(page.propMap, 
                 props.NewClockProp(1920, 1080, animate, cont, name))
 
+        case "GraphProp":
+            page.propMap = append(page.propMap, 
+                props.NewGraphProp(1920, 1080, animate, name))
+
         default:
             log.Printf("Page %d: Unknown property %s", pageNum, prop)
         }

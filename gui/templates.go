@@ -33,8 +33,8 @@ func (temp *Template) templateToListRow() *gtk.ListBoxRow {
 }
 
 func (temp *Template) AddProp(name string, typed string) {
-    temp.propType = append(temp.propType, typed)
     temp.propName = append(temp.propName, name)
+    temp.propType = append(temp.propType, typed)
     temp.numProps++
 }
 
@@ -119,6 +119,10 @@ func NewTempList(show *ShowTree) *TempTree {
 
     temp.AddTemplate("White Circle", 5)
     temp.temps[5].AddProp("Circle", "CircleProp")
+
+    temp.AddTemplate("Graph", 6)
+    temp.temps[6].AddProp("Background", "RectProp")
+    temp.temps[6].AddProp("Graph", "GraphProp")
 
     temp.Connect("row-activated", 
         func(tree *gtk.TreeView, path *gtk.TreePath, column *gtk.TreeViewColumn) { 

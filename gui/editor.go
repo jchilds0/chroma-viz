@@ -121,6 +121,7 @@ func (edit *Editor) SetPage(page *Page) {
 
     for _, prop := range edit.page.propMap {
         if prop == nil {
+            log.Print("Editor recieved nil prop")
             continue
         }
 
