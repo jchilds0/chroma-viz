@@ -63,6 +63,8 @@ func NewEditor() *Editor {
             return
         }
 
+        editor.page.update(ANIMATE_ON)
+
         conn["Engine"].setPage <- editor.page
         conn["Engine"].sendPage <- ANIMATE_ON
     })
@@ -79,6 +81,9 @@ func NewEditor() *Editor {
             return
         }
 
+        editor.page.update(CONTINUE)
+
+        conn["Engine"].setPage <- editor.page
         conn["Engine"].sendPage <- CONTINUE 
     })
 
@@ -88,6 +93,9 @@ func NewEditor() *Editor {
             return
         }
 
+        editor.page.update(ANIMATE_OFF)
+
+        conn["Engine"].setPage <- editor.page
         conn["Engine"].sendPage <- ANIMATE_OFF
     })
 

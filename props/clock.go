@@ -100,8 +100,8 @@ func (clock *ClockProp) String() string {
     currentTime := clock.currentTime.Format(clock.timeFormat)
     currentString := fmt.Sprintf("string=%s#pos_x=%d#pos_y=%d#", 
         currentTime,
-        clock.timeString.x_spin.GetValueAsInt(), 
-        clock.timeString.y_spin.GetValueAsInt(),
+        clock.timeString.value[0].GetValueAsInt(), 
+        clock.timeString.value[1].GetValueAsInt(),
     )
     
     return currentString
@@ -152,5 +152,15 @@ func (clock *ClockProp) RunClock(cont func()) {
         default:
             log.Printf("Clock recieved unknown value through channel %d\n", state)
         }
+    }
+}
+
+func (clock *ClockProp) Update(action int) {
+    switch action {
+    case ANIMATE_ON:
+    case CONTINUE:
+    case ANIMATE_OFF:
+    default:
+        log.Printf("Unknown action")
     }
 }

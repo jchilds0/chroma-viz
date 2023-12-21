@@ -32,11 +32,17 @@ type Page struct {
     pageNum     int
     title       string
     templateID  int
+    layer       int
     propMap     []props.Property
 }
 
 func NewPage(pageNum int, title string, temp *Template) *Page {
-    page := &Page{pageNum: pageNum, title: title, templateID: temp.templateID}
+    page := &Page{
+        pageNum: pageNum, 
+        title: title, 
+        templateID: temp.templateID,
+        layer: temp.layer,
+    }
 
     animate := func() { 
         conn["Preview"].setPage <- page
@@ -73,6 +79,10 @@ func NewPage(pageNum int, title string, temp *Template) *Page {
             page.propMap = append(page.propMap, 
                 props.NewGraphProp(1920, 1080, animate, name))
 
+        case "TickerProp":
+        page.propMap = append(page.propMap, 
+                props.NewTickerProp(1920, 1080, animate, name))
+
         default:
             log.Printf("Page %d: Unknown property %s", pageNum, prop)
         }
@@ -91,6 +101,12 @@ func (page *Page) pageToListRow() *gtk.ListBoxRow {
     row1.Add(textToBuffer(page.title))
 
     return row1
+}
+
+func (page *Page) update(action int) {
+    for _, prop := range page.propMap {
+        prop.Update(action)
+    }
 }
 
 type ShowTree struct {

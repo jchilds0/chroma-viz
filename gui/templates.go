@@ -13,12 +13,13 @@ type Template struct {
     title       string
     templateID  int
     numProps    int
+    layer       int
     propType    []string
     propName    []string
 }
 
-func NewTemplate(title string, id int) *Template {
-    temp := &Template{title: title, templateID: id}
+func NewTemplate(title string, id int, layer int) *Template {
+    temp := &Template{title: title, templateID: id, layer: layer}
     return temp
 }
 
@@ -97,33 +98,37 @@ func NewTempList(show *ShowTree) *TempTree {
 
     temp.SetModel(temp.treeList)
 
-    temp.AddTemplate("Red Box", 1)
+    temp.AddTemplate("Red Box", 1, 0)
     temp.temps[1].AddProp("Background", "RectProp")
     temp.temps[1].AddProp("Title", "TextProp")
     temp.temps[1].AddProp("Subtitle", "TextProp")
 
-    temp.AddTemplate("Orange Box", 2)
+    temp.AddTemplate("Orange Box", 2, 0)
     temp.temps[2].AddProp("Background", "RectProp")
     temp.temps[2].AddProp("Title", "TextProp")
     temp.temps[2].AddProp("Subtitle", "TextProp")
 
-    temp.AddTemplate("Blue Box", 3)
+    temp.AddTemplate("Blue Box", 3, 1)
     temp.temps[3].AddProp("Background", "RectProp")
     temp.temps[3].AddProp("Logo", "CircleProp")
     temp.temps[3].AddProp("Title", "TextProp")
     temp.temps[3].AddProp("Subtitle", "TextProp")
 
-    temp.AddTemplate("Clock Box", 4)
+    temp.AddTemplate("Clock Box", 4, 0)
     temp.temps[4].AddProp("Background", "RectProp")
     temp.temps[4].AddProp("Clock", "ClockProp")
 
-    temp.AddTemplate("White Circle", 5)
+    temp.AddTemplate("White Circle", 5, 0)
     temp.temps[5].AddProp("Circle", "CircleProp")
 
-    temp.AddTemplate("Graph", 6)
+    temp.AddTemplate("Graph", 6, 1)
     temp.temps[6].AddProp("Background", "RectProp")
     temp.temps[6].AddProp("Graph", "GraphProp")
     temp.temps[6].AddProp("Title", "TextProp")
+
+    temp.AddTemplate("Ticker", 7, 2)
+    temp.temps[7].AddProp("Background", "RectProp")
+    temp.temps[7].AddProp("Text", "TickerProp")
 
     temp.Connect("row-activated", 
         func(tree *gtk.TreeView, path *gtk.TreePath, column *gtk.TreeViewColumn) { 
@@ -153,8 +158,8 @@ func NewTempList(show *ShowTree) *TempTree {
     return temp
 }
 
-func (temp *TempTree) AddTemplate(title string, id int) {
-    temp.temps[id] = NewTemplate(title, id)
+func (temp *TempTree) AddTemplate(title string, id int, layer int) {
+    temp.temps[id] = NewTemplate(title, id, layer)
 
     temp.treeList.Set(
         temp.treeList.Append(), 

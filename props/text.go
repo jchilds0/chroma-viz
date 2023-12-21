@@ -14,8 +14,8 @@ type TextProp struct {
     entry *gtk.Entry
     input *gtk.Box
     box *gtk.Box
-    x_spin *gtk.SpinButton
-    y_spin *gtk.SpinButton
+    pos *gtk.Box
+    value [2]*gtk.SpinButton
 }
 
 func NewTextProp(width, height int, animate func(), name string) *TextProp {
@@ -31,18 +31,26 @@ func NewTextProp(width, height int, animate func(), name string) *TextProp {
     text.box.SetVisible(true)
     text.box.PackStart(text.input, false, false, padding)
 
-    text.x_spin, err = gtk.SpinButtonNewWithRange(float64(0), float64(width), 1)
+    text.value[0], err = gtk.SpinButtonNewWithRange(float64(0), float64(width), 1)
     if err != nil { 
         log.Fatalf("Error creating text prop (%s)", err) 
     }
 
-    text.y_spin, err = gtk.SpinButtonNewWithRange(float64(0), float64(height), 1)
+    text.value[1], err = gtk.SpinButtonNewWithRange(float64(0), float64(height), 1)
     if err != nil { 
         log.Fatalf("Error creating text prop (%s)", err) 
     }
 
-    text.box.PackStart(IntEditor("x Pos", text.x_spin, animate), false, false, padding)
-    text.box.PackStart(IntEditor("y Pos", text.y_spin, animate), false, false, padding)
+    text.pos, err = gtk.BoxNew(gtk.ORIENTATION_HORIZONTAL, 0)
+    if err != nil {
+        log.Fatalf("Error creating text prop (%s)", err)
+    }
+
+    text.pos.PackStart(IntEditor("x Pos", text.value[0], animate), false, false, padding)
+    text.pos.PackStart(IntEditor("y Pos", text.value[1], animate), false, false, padding)
+    text.pos.SetVisible(true)
+
+    text.box.PackStart(text.pos, false, false, padding)
 
     return text
 }
@@ -61,9 +69,10 @@ func (text *TextProp) String() string {
         log.Fatalf("Error creating text string (%s)", err) 
     }
 
-
     return fmt.Sprintf("string=%s#pos_x=%d#pos_y=%d#", 
-        entryText, text.x_spin.GetValueAsInt(), text.y_spin.GetValueAsInt())
+        entryText, 
+        text.value[0].GetValueAsInt(), 
+        text.value[1].GetValueAsInt())
 }
  
 func (text *TextProp) Encode() string {
@@ -73,7 +82,9 @@ func (text *TextProp) Encode() string {
     }
 
     return fmt.Sprintf("string %s;x %d;y %d;", 
-        entryText, text.x_spin.GetValueAsInt(), text.y_spin.GetValueAsInt())
+        entryText, 
+        text.value[0].GetValueAsInt(), 
+        text.value[1].GetValueAsInt())
 }
 
 func (text *TextProp) Decode(input string) {
@@ -90,14 +101,14 @@ func (text *TextProp) Decode(input string) {
                 log.Fatalf("Error decoding text prop (%s)", err) 
             }
 
-            text.x_spin.SetValue(float64(value))
+            text.value[0].SetValue(float64(value))
         case "y":
             value, err := strconv.Atoi(line[1])
             if err != nil { 
                 log.Printf("Error decoding text prop (%s)", err) 
             }
 
-            text.y_spin.SetValue(float64(value))
+            text.value[1].SetValue(float64(value))
         case "string":
             text.entry.SetText(strings.TrimPrefix(attr, "string "))
         case "":
@@ -107,3 +118,12 @@ func (text *TextProp) Decode(input string) {
     }
 }
 
+func (text *TextProp) Update(action int) {
+    switch action {
+    case ANIMATE_ON:
+    case CONTINUE:
+    case ANIMATE_OFF:
+    default:
+        log.Printf("Unknown action")
+    }
+}

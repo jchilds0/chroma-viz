@@ -14,12 +14,21 @@ const (
     STOP
 )
 
+const (
+    END_OF_CONN = iota + 1
+    END_OF_MESSAGE
+    ANIMATE_ON
+    CONTINUE
+    ANIMATE_OFF
+)
+
 type Property interface {
     Tab() *gtk.Box
     Name() string
     String() string
     Encode() string
     Decode(string)
+    Update(int)
 }
 
 

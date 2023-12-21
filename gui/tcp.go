@@ -80,11 +80,10 @@ func (conn *Connection) SendPage() {
             continue
         }
 
-        version := [...]int{1, 3}
-        length := 2
+        version := [...]int{1, 4}
 
-        header := fmt.Sprintf("ver=%d,%d#len=%d#action=%d#temp=%d#", 
-            version[0], version[1], length, action, page.templateID)
+        header := fmt.Sprintf("ver=%d,%d#layer=%d#action=%d#temp=%d#", 
+            version[0], version[1], page.layer, action, page.templateID)
 
         str := header
 

@@ -43,12 +43,12 @@ func NewGraphProp(width, height int, animate func(), name string) Property {
 
     g.value[0], err = gtk.SpinButtonNewWithRange(float64(0), float64(width), 1)
     if err != nil { 
-        log.Printf("Error creating rect spin button (%s)", err) 
+        log.Printf("Error creating graph spin button (%s)", err) 
     }
 
     g.value[1], err = gtk.SpinButtonNewWithRange(float64(0), float64(height), 1)
     if err != nil { 
-        log.Printf("Error creating rect spin button (%s)", err) 
+        log.Printf("Error creating graph spin button (%s)", err) 
     }
 
     posBox, err := gtk.BoxNew(gtk.ORIENTATION_HORIZONTAL, 0)
@@ -272,4 +272,13 @@ func getIntFromIter(model *gtk.ListStore, iter *gtk.TreeIter, col int) int {
     }
         
     return rowVal.(int)
+}
+func (g *GraphProp) Update(action int) {
+    switch action {
+    case ANIMATE_ON:
+    case CONTINUE:
+    case ANIMATE_OFF:
+    default:
+        log.Printf("Unknown action")
+    }
 }

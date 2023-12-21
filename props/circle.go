@@ -102,3 +102,12 @@ func (circle *CircleProp) Decode(input string) {
     }
 }
 
+func (circle *CircleProp) Update(action int) {
+    switch action {
+    case ANIMATE_ON:
+    case CONTINUE:
+    case ANIMATE_OFF:
+    default:
+        log.Printf("Unknown action")
+    }
+}

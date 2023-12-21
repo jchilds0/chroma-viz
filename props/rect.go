@@ -111,3 +111,12 @@ func (rect *RectProp) Decode(input string) {
     }
 }
 
+func (rect *RectProp) Update(action int) {
+    switch action {
+    case ANIMATE_ON:
+    case CONTINUE:
+    case ANIMATE_OFF:
+    default:
+        log.Printf("Unknown action")
+    }
+}
