@@ -2,6 +2,9 @@ package gui
 
 import (
 	"log"
+	"math"
+	"math/rand"
+	"time"
 
 	"github.com/gotk3/gotk3/glib"
 	"github.com/gotk3/gotk3/gtk"
@@ -40,7 +43,8 @@ func SetupMainGui(app *gtk.Application) {
     showView := NewShow(editView)
     tempView := NewTempList(showView)
 
-    showView.ImportShow(tempView, "/home/josh/Documents/projects/chroma-viz/shows/testing.show")
+    //showView.ImportShow(tempView, "/home/josh/Documents/projects/chroma-viz/shows/testing.show")
+    testGui(tempView, showView)
 
     box, err := gtk.BoxNew(gtk.ORIENTATION_VERTICAL, 0)
     if err != nil {
@@ -209,3 +213,34 @@ func guiExportShow(win *gtk.ApplicationWindow, show *ShowTree) {
     dialog.Destroy()
 }
 
+func testGui(temp *TempTree, show *ShowTree) {
+    num_temps := int(math.Pow(10, 4))
+    num_props := 100
+    num_pages := 100
+
+    log.Printf("Testing with %d Templates, %d Properties, %d Pages\n", num_temps, num_props, num_pages)
+
+    start := time.Now()
+    for i := 1; i < num_temps; i++ {
+        page := temp.AddTemplate("Template", i, LOWER_FRAME)
+
+        for j := 0; j < num_props; j++ {
+            page.AddProp("Background", "RectProp")
+            page.AddProp("Text", "TickerProp")
+        }
+    }
+
+    t := time.Now()
+    elapsed := t.Sub(start)
+    log.Printf("Built Templates in %s\n", elapsed)
+
+    start = time.Now()
+    for i := 0; i < num_pages; i++ {
+        index := rand.Int() % (num_temps - 1) + 1
+        show.NewShowPage(temp.temps[index])
+    }
+
+    t = time.Now()
+    elapsed = t.Sub(start)
+    log.Printf("Built Templates in %s\n", elapsed)
+}

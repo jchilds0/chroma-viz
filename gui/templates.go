@@ -105,38 +105,6 @@ func NewTempList(show *ShowTree) *TempTree {
 
     temp.SetModel(temp.treeList)
 
-    temp.AddTemplate("Red Box", 1, TOP_LEFT)
-    temp.temps[1].AddProp("Background", "RectProp")
-    temp.temps[1].AddProp("Title", "TextProp")
-    temp.temps[1].AddProp("Subtitle", "TextProp")
-
-    temp.AddTemplate("Orange Box", 2, TOP_LEFT)
-    temp.temps[2].AddProp("Background", "RectProp")
-    temp.temps[2].AddProp("Title", "TextProp")
-    temp.temps[2].AddProp("Subtitle", "TextProp")
-
-    temp.AddTemplate("Blue Box", 3, LOWER_FRAME)
-    temp.temps[3].AddProp("Background", "RectProp")
-    temp.temps[3].AddProp("Logo", "CircleProp")
-    temp.temps[3].AddProp("Title", "TextProp")
-    temp.temps[3].AddProp("Subtitle", "TextProp")
-
-    temp.AddTemplate("Clock Box", 4, TOP_LEFT)
-    temp.temps[4].AddProp("Background", "RectProp")
-    temp.temps[4].AddProp("Clock", "ClockProp")
-
-    temp.AddTemplate("White Circle", 5, LOWER_FRAME)
-    temp.temps[5].AddProp("Circle", "CircleProp")
-
-    temp.AddTemplate("Graph", 6, LOWER_FRAME)
-    temp.temps[6].AddProp("Background", "RectProp")
-    temp.temps[6].AddProp("Graph", "GraphProp")
-    temp.temps[6].AddProp("Title", "TextProp")
-
-    temp.AddTemplate("Ticker", 7, TICKER)
-    temp.temps[7].AddProp("Background", "RectProp")
-    temp.temps[7].AddProp("Text", "TickerProp")
-
     temp.Connect("row-activated", 
         func(tree *gtk.TreeView, path *gtk.TreePath, column *gtk.TreeViewColumn) { 
             iter, err := temp.treeList.GetIter(path)
@@ -162,15 +130,55 @@ func NewTempList(show *ShowTree) *TempTree {
             temp.show.NewShowPage(temp.temps[tempID]) 
         })
 
+    //temp.exampleHub()
+
     return temp
 }
 
-func (temp *TempTree) AddTemplate(title string, id int, layer int) {
+func (temp *TempTree) AddTemplate(title string, id int, layer int) *Template {
     temp.temps[id] = NewTemplate(title, id, layer)
 
     temp.treeList.Set(
         temp.treeList.Append(), 
         []int{0, 1}, 
         []interface{}{title, id})
+
+    return temp.temps[id]
+}
+
+func (temp *TempTree) exampleHub() {
+    var page *Template
+
+    page = temp.AddTemplate("Red Box", 1, TOP_LEFT)
+    page.AddProp("Background", "RectProp")
+    page.AddProp("Title", "TextProp")
+    page.AddProp("Subtitle", "TextProp")
+
+    page = temp.AddTemplate("Orange Box", 2, TOP_LEFT)
+    page.AddProp("Background", "RectProp")
+    page.AddProp("Title", "TextProp")
+    page.AddProp("Subtitle", "TextProp")
+
+    page = temp.AddTemplate("Blue Box", 3, LOWER_FRAME)
+    page.AddProp("Background", "RectProp")
+    page.AddProp("Logo", "CircleProp")
+    page.AddProp("Title", "TextProp")
+    page.AddProp("Subtitle", "TextProp")
+
+    page = temp.AddTemplate("Clock Box", 4, TOP_LEFT)
+    page.AddProp("Background", "RectProp")
+    page.AddProp("Clock", "ClockProp")
+
+    page = temp.AddTemplate("White Circle", 5, LOWER_FRAME)
+    page.AddProp("Circle", "CircleProp")
+
+    page = temp.AddTemplate("Graph", 6, LOWER_FRAME)
+    page.AddProp("Background", "RectProp")
+    page.AddProp("Graph", "GraphProp")
+    page.AddProp("Title", "TextProp")
+
+    page = temp.AddTemplate("Ticker", 7, TICKER)
+    page.AddProp("Background", "RectProp")
+    page.AddProp("Text", "TickerProp")
 }
 

@@ -54,34 +54,30 @@ func NewPage(pageNum int, title string, temp *Template) *Page {
         conn["Preview"].sendPage <- CONTINUE
     }
 
+    page.propMap = make([]props.Property, temp.numProps)
+
     for i := 0; i < temp.numProps; i++ {
         prop := temp.propType[i]
         name := temp.propName[i]
 
         switch (prop) {
         case "RectProp":
-            page.propMap = append(page.propMap, 
-                props.NewRectProp(1920, 1080, animate, name))
+            page.propMap[i] = props.NewRectProp(1920, 1080, animate, name)
 
         case "TextProp":
-            page.propMap = append(page.propMap, 
-                props.NewTextProp(1920, 1080, animate, name))
+            page.propMap[i] = props.NewTextProp(1920, 1080, animate, name)
 
         case "CircleProp":
-            page.propMap = append(page.propMap, 
-                props.NewCircleProp(1920, 1080, animate, name))
+            page.propMap[i] = props.NewCircleProp(1920, 1080, animate, name)
 
         case "ClockProp":
-            page.propMap = append(page.propMap, 
-                props.NewClockProp(1920, 1080, animate, cont, name))
+            page.propMap[i] = props.NewClockProp(1920, 1080, animate, cont, name)
 
         case "GraphProp":
-            page.propMap = append(page.propMap, 
-                props.NewGraphProp(1920, 1080, animate, name))
+            page.propMap[i] = props.NewGraphProp(1920, 1080, animate, name)
 
         case "TickerProp":
-        page.propMap = append(page.propMap, 
-                props.NewTickerProp(1920, 1080, animate, name))
+            page.propMap[i] = props.NewTickerProp(1920, 1080, animate, name)
 
         default:
             log.Printf("Page %d: Unknown property %s", pageNum, prop)
