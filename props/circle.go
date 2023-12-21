@@ -12,42 +12,36 @@ import (
 type CircleProp struct {
     name string 
     box *gtk.Box;
-    value [3]*gtk.SpinButton
+    value [6]*gtk.SpinButton
 }
 
 func NewCircleProp(width, height int, animate func(), name string) Property {
     var err error
     circle := &CircleProp{name: name}
 
-    circle.value[0], err = gtk.SpinButtonNewWithRange(float64(0), float64(width), 1)
-    if err != nil { 
-        log.Printf("Error creating circle spin button (%s)", err) 
-    }
-
-    circle.value[1], err = gtk.SpinButtonNewWithRange(float64(0), float64(height), 1)
-    if err != nil { 
-        log.Printf("Error creating circle spin button (%s)", err) 
-    }
-
-    circle.value[2], err = gtk.SpinButtonNewWithRange(float64(0), float64(width), 1)
-    if err != nil { 
-        log.Printf("Error creating circle spin button (%s)", err) 
-    }
-
     circle.box, err = gtk.BoxNew(gtk.ORIENTATION_VERTICAL, 0)
     if err != nil { 
         log.Printf("Error creating circle box (%s)", err) 
     }
 
-    labels := [3]string{"Center x", "Center y", "Radius"}
+    labels := []string{"Center x", "Center y", "Inner Radius", 
+        "Outer Radius", "Start Angle", "End Angle"}
+    upper := []int{width, height, width, width, 360, 360}   
 
-    circle.value[2].SetValue(1.0)
     for i := range circle.value {
+        circle.value[i], err = gtk.SpinButtonNewWithRange(float64(0), float64(upper[i]), 1)
+        if err != nil { 
+            log.Printf("Error creating circle spin button (%s)", err) 
+        }
+
         input := IntEditor(labels[i], circle.value[i], animate)
         circle.box.PackStart(input, false, false, padding)
     }
 
+    circle.value[2].SetValue(1.0)
+    circle.value[5].SetValue(360.0)
     circle.box.SetVisible(true)
+
     return circle
 }
 
@@ -60,17 +54,25 @@ func (circle *CircleProp) Name() string {
 }
 
 func (circle *CircleProp) String() string {
-    return fmt.Sprintf("center_x=%d#center_y=%d#radius=%d#", 
+    return fmt.Sprintf("center_x=%d#center_y=%d#inner_radius=%d#" + 
+        "outer_radius=%d#start_angle=%d#end_angle=%d#", 
         circle.value[0].GetValueAsInt(),
         circle.value[1].GetValueAsInt(),
-        circle.value[2].GetValueAsInt())
+        circle.value[2].GetValueAsInt(),
+        circle.value[3].GetValueAsInt(),
+        circle.value[4].GetValueAsInt(),
+        circle.value[5].GetValueAsInt())
 }
 
 func (circle *CircleProp) Encode() string {
-    return fmt.Sprintf("x %d;y %d;radius %d;", 
+    return fmt.Sprintf("x %d;y %d;inner_radius %d;outer_radius %d;" +
+        "start_angle %d;end_angle %d;", 
         circle.value[0].GetValueAsInt(),
         circle.value[1].GetValueAsInt(),
-        circle.value[2].GetValueAsInt())
+        circle.value[2].GetValueAsInt(),
+        circle.value[3].GetValueAsInt(),
+        circle.value[4].GetValueAsInt(),
+        circle.value[5].GetValueAsInt())
 }
 
 func (circle *CircleProp) Decode(input string) {
@@ -94,8 +96,14 @@ func (circle *CircleProp) Decode(input string) {
             circle.value[0].SetValue(float64(value))
         case "y":
             circle.value[1].SetValue(float64(value))
-        case "radius":
+        case "inner_radius":
             circle.value[2].SetValue(float64(value))
+        case "outer_radius":
+            circle.value[3].SetValue(float64(value))
+        case "start_angle":
+            circle.value[4].SetValue(float64(value))
+        case "end_angle":
+            circle.value[5].SetValue(float64(value))
         default:
             log.Printf("Unknown CircleProp attr name (%s)\n", name)
         }

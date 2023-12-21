@@ -8,6 +8,13 @@ import (
 	"github.com/gotk3/gotk3/gtk"
 )
 
+const (
+    PREVIEW = iota
+    TOP_LEFT
+    LOWER_FRAME
+    TICKER
+)
+
 type Template struct {
     Box         *gtk.ListBoxRow
     title       string
@@ -98,35 +105,35 @@ func NewTempList(show *ShowTree) *TempTree {
 
     temp.SetModel(temp.treeList)
 
-    temp.AddTemplate("Red Box", 1, 0)
+    temp.AddTemplate("Red Box", 1, TOP_LEFT)
     temp.temps[1].AddProp("Background", "RectProp")
     temp.temps[1].AddProp("Title", "TextProp")
     temp.temps[1].AddProp("Subtitle", "TextProp")
 
-    temp.AddTemplate("Orange Box", 2, 0)
+    temp.AddTemplate("Orange Box", 2, TOP_LEFT)
     temp.temps[2].AddProp("Background", "RectProp")
     temp.temps[2].AddProp("Title", "TextProp")
     temp.temps[2].AddProp("Subtitle", "TextProp")
 
-    temp.AddTemplate("Blue Box", 3, 1)
+    temp.AddTemplate("Blue Box", 3, LOWER_FRAME)
     temp.temps[3].AddProp("Background", "RectProp")
     temp.temps[3].AddProp("Logo", "CircleProp")
     temp.temps[3].AddProp("Title", "TextProp")
     temp.temps[3].AddProp("Subtitle", "TextProp")
 
-    temp.AddTemplate("Clock Box", 4, 0)
+    temp.AddTemplate("Clock Box", 4, TOP_LEFT)
     temp.temps[4].AddProp("Background", "RectProp")
     temp.temps[4].AddProp("Clock", "ClockProp")
 
-    temp.AddTemplate("White Circle", 5, 0)
+    temp.AddTemplate("White Circle", 5, LOWER_FRAME)
     temp.temps[5].AddProp("Circle", "CircleProp")
 
-    temp.AddTemplate("Graph", 6, 1)
+    temp.AddTemplate("Graph", 6, LOWER_FRAME)
     temp.temps[6].AddProp("Background", "RectProp")
     temp.temps[6].AddProp("Graph", "GraphProp")
     temp.temps[6].AddProp("Title", "TextProp")
 
-    temp.AddTemplate("Ticker", 7, 2)
+    temp.AddTemplate("Ticker", 7, TICKER)
     temp.temps[7].AddProp("Background", "RectProp")
     temp.temps[7].AddProp("Text", "TickerProp")
 
