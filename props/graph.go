@@ -25,16 +25,16 @@ func NewGraphCell(i int) *GraphCell {
     return gCell
 }
 
-type GraphProp struct {
+type GraphEditor struct {
     box *gtk.Box
+    treeView *gtk.TreeView
     listStore *gtk.ListStore
-    name string
     value [2]*gtk.SpinButton
 }
 
-func NewGraphProp(width, height int, animate func(), name string) Property {
+func NewGraphEditor(width, height int, animate func()) PropertyEditor {
     var err error
-    g := &GraphProp{name: name}
+    g := &GraphEditor{}
 
     g.box, err = gtk.BoxNew(gtk.ORIENTATION_VERTICAL, 0)
     if err != nil {
@@ -67,14 +67,9 @@ func NewGraphProp(width, height int, animate func(), name string) Property {
 
     columns := []string{"x Pos", "y Pos"}
 
-    listTree, err := gtk.TreeViewNew()
+    g.treeView, err = gtk.TreeViewNew()
     if err != nil {
         log.Printf("Error creating list box (%s)", err)
-    }
-
-    g.listStore, err = gtk.ListStoreNew(glib.TYPE_INT, glib.TYPE_INT)
-    if err != nil {
-        log.Printf("Error creating graph list (%s)", err)
     }
 
     for i, name := range columns {
@@ -85,7 +80,12 @@ func NewGraphProp(width, height int, animate func(), name string) Property {
         gCell.SetProperty("editable", true)
         gCell.Connect("edited", 
             func(cell *gtk.CellRendererText, path string, text string) {
-                iter, err := g.listStore.GetIterFromString(path)
+                if g.listStore == nil {
+                    log.Printf("Error editing graph prop")
+                    return
+                }
+
+                iter, err := g.listStore.ToTreeModel().GetIterFromString(path)
                 if err != nil {
                     log.Printf("Error editing graph prop (%s)", err)
                     return
@@ -105,10 +105,8 @@ func NewGraphProp(width, height int, animate func(), name string) Property {
             log.Printf("Error creating graph list (%s)", err)
         }
 
-        listTree.AppendColumn(column)
+        g.treeView.AppendColumn(column)
     }
-
-    listTree.SetModel(g.listStore)
 
     frame, err := gtk.FrameNew("Graph Data")
     if err != nil {
@@ -116,7 +114,9 @@ func NewGraphProp(width, height int, animate func(), name string) Property {
     }
 
     frame.Set("border-width", 2 * padding)
-    frame.Add(listTree)
+    frame.Add(g.treeView)
+    g.treeView.SetVisible(true)
+
     g.box.PackStart(frame, true, true, 0)
 
     label, err := gtk.LabelNew("Data Rows")
@@ -133,8 +133,14 @@ func NewGraphProp(width, height int, animate func(), name string) Property {
     }
 
     button.Connect("clicked", func() { 
+        if g.listStore == nil {
+            log.Printf("Graph prop editor does not have a list store")
+            return
+        }
+
         g.listStore.Append()
     })
+
     button.SetVisible(true)
     posBox.PackStart(button, false, false, padding)
 
@@ -144,7 +150,12 @@ func NewGraphProp(width, height int, animate func(), name string) Property {
     }
 
     button.Connect("clicked", func() {
-        selection, err := listTree.GetSelection()
+        if g.listStore == nil {
+            log.Printf("Graph prop editor does not have a list store")
+            return
+        }
+
+        selection, err := g.treeView.GetSelection()
         if err != nil {
             log.Printf("Error getting current row (%s)", err)
             return
@@ -158,17 +169,54 @@ func NewGraphProp(width, height int, animate func(), name string) Property {
 
         g.listStore.Remove(iter)
     })
+
     button.SetVisible(true)
     posBox.PackStart(button, false, false, padding)
 
-    listTree.SetVisible(true)
     frame.SetVisible(true)
     g.box.SetVisible(true)
+ 
     return g
 }
 
-func (g *GraphProp) Tab() *gtk.Box {
+func (g *GraphEditor) Box() *gtk.Box {
     return g.box
+}
+
+func (gEdit *GraphEditor) Update(g Property) {
+    gProp, ok := g.(*GraphProp)
+    if !ok {
+        log.Printf("GraphEditor.Update requires a GraphProp")
+        return
+    }
+
+    gEdit.value[0].SetValue(float64(gProp.value[0]))
+    gEdit.value[1].SetValue(float64(gProp.value[1]))
+
+    gEdit.listStore = gProp.listStore
+    gEdit.treeView.SetModel(gEdit.listStore)
+}
+
+type GraphProp struct {
+    name string
+    listStore *gtk.ListStore
+    value [2]int
+}
+
+func NewGraphProp(name string) Property {
+    var err error
+    g := &GraphProp{name: name}
+
+    g.listStore, err = gtk.ListStoreNew(glib.TYPE_INT, glib.TYPE_INT)
+    if err != nil {
+        log.Printf("Error creating graph list (%s)", err)
+    }
+
+    return g
+}
+
+func (g *GraphProp) Type() int {
+    return GRAPH_PROP 
 }
 
 func (g *GraphProp) Name() string {
@@ -177,8 +225,7 @@ func (g *GraphProp) Name() string {
 
 func (g *GraphProp) String() string {
     str := fmt.Sprintf("pos_x=%d#pos_y=%d#num_node=0#", 
-        g.value[0].GetValueAsInt(),
-        g.value[1].GetValueAsInt())
+        g.value[0], g.value[1])
 
     iter, ok := g.listStore.GetIterFirst()
     i := 0
@@ -196,8 +243,7 @@ func (g *GraphProp) String() string {
 
 func (g *GraphProp) Encode() string {
     str := fmt.Sprintf("x %d;y %d;",
-        g.value[0].GetValueAsInt(),
-        g.value[1].GetValueAsInt())
+        g.value[0], g.value[1])
 
     iter, ok := g.listStore.GetIterFirst()
     i := 0
@@ -232,14 +278,14 @@ func (g *GraphProp) Decode(input string) {
                 log.Printf("Error decoding graph (%s)", err) 
             }
 
-            g.value[0].SetValue(float64(value))
+            g.value[0] = value
         case "y":
             value, err := strconv.Atoi(line[1])
             if err != nil { 
                 log.Printf("Error decoding graph (%s)", err) 
             }
 
-            g.value[1].SetValue(float64(value))
+            g.value[1] = value
         case "node":
             x, err := strconv.Atoi(line[1])
             if err != nil { 
@@ -273,12 +319,13 @@ func getIntFromIter(model *gtk.ListStore, iter *gtk.TreeIter, col int) int {
         
     return rowVal.(int)
 }
-func (g *GraphProp) Update(action int) {
-    switch action {
-    case ANIMATE_ON:
-    case CONTINUE:
-    case ANIMATE_OFF:
-    default:
-        log.Printf("Unknown action")
+func (gProp *GraphProp) Update(g PropertyEditor, action int) {
+    gEdit, ok := g.(*GraphEditor)
+    if !ok {
+        log.Printf("GraphProp.Update requires GraphEditor")
+        return
     }
+
+    gProp.value[0] = gEdit.value[0].GetValueAsInt()
+    gProp.value[1] = gEdit.value[1].GetValueAsInt()
 }

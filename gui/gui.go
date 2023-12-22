@@ -1,6 +1,7 @@
 package gui
 
 import (
+	"chroma-viz/props"
 	"log"
 	"math"
 	"math/rand"
@@ -29,7 +30,7 @@ func CloseConn() {
     }
 }
 
-func SetupMainGui(app *gtk.Application) {
+func MainGui(app *gtk.Application) {
 
     win, err := gtk.ApplicationWindowNew(app)
     if err != nil {
@@ -215,18 +216,17 @@ func guiExportShow(win *gtk.ApplicationWindow, show *ShowTree) {
 
 func testGui(temp *TempTree, show *ShowTree) {
     num_temps := int(math.Pow(10, 4))
-    num_props := 100
-    num_pages := 100
+    num_props := 10000
+    num_pages := 10000
 
     log.Printf("Testing with %d Templates, %d Properties, %d Pages\n", num_temps, num_props, num_pages)
 
     start := time.Now()
     for i := 1; i < num_temps; i++ {
-        page := temp.AddTemplate("Template", i, LOWER_FRAME)
+        page := temp.AddTemplate("Template", i, LOWER_FRAME, num_props)
 
         for j := 0; j < num_props; j++ {
-            page.AddProp("Background", "RectProp")
-            page.AddProp("Text", "TickerProp")
+            page.AddProp("Background", props.RECT_PROP)
         }
     }
 
@@ -242,5 +242,5 @@ func testGui(temp *TempTree, show *ShowTree) {
 
     t = time.Now()
     elapsed = t.Sub(start)
-    log.Printf("Built Templates in %s\n", elapsed)
+    log.Printf("Built Show in %s\n", elapsed)
 }

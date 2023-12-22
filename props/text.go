@@ -9,19 +9,16 @@ import (
 	"github.com/gotk3/gotk3/gtk"
 )
 
-type TextProp struct {
-    name string
+type TextEditor struct {
+    box *gtk.Box
     entry *gtk.Entry
     input *gtk.Box
-    box *gtk.Box
-    pos *gtk.Box
     value [2]*gtk.SpinButton
 }
 
-func NewTextProp(width, height int, animate func(), name string) *TextProp {
+func NewTextEditor(width, height int, animate func()) PropertyEditor {
     var err error
-    text := &TextProp{name: name}
-    text.input, text.entry = TextEditor("Text: ", animate)
+    text := &TextEditor{}
 
     text.box, err = gtk.BoxNew(gtk.ORIENTATION_VERTICAL, 0)
     if err != nil { 
@@ -29,6 +26,8 @@ func NewTextProp(width, height int, animate func(), name string) *TextProp {
     }
 
     text.box.SetVisible(true)
+
+    text.input, text.entry = StringEditor("Text: ", animate)
     text.box.PackStart(text.input, false, false, padding)
 
     text.value[0], err = gtk.SpinButtonNewWithRange(float64(0), float64(width), 1)
@@ -41,22 +40,41 @@ func NewTextProp(width, height int, animate func(), name string) *TextProp {
         log.Fatalf("Error creating text prop (%s)", err) 
     }
 
-    text.pos, err = gtk.BoxNew(gtk.ORIENTATION_HORIZONTAL, 0)
-    if err != nil {
-        log.Fatalf("Error creating text prop (%s)", err)
-    }
-
-    text.pos.PackStart(IntEditor("x Pos", text.value[0], animate), false, false, padding)
-    text.pos.PackStart(IntEditor("y Pos", text.value[1], animate), false, false, padding)
-    text.pos.SetVisible(true)
-
-    text.box.PackStart(text.pos, false, false, padding)
+    text.box.PackStart(IntEditor("x Pos", text.value[0], animate), false, false, padding)
+    text.box.PackStart(IntEditor("y Pos", text.value[1], animate), false, false, padding)
 
     return text
 }
 
-func (text *TextProp) Tab() *gtk.Box {
-    return text.box 
+func (text *TextEditor) Box() *gtk.Box {
+    return text.box
+}
+
+func (textEdit *TextEditor) Update(text Property) {
+    textProp, ok := text.(*TextProp)
+    if !ok {
+        log.Printf("TextEditor.Update requires TextProp")
+        return
+    }
+
+    textEdit.value[0].SetValue(float64(textProp.value[0]))
+    textEdit.value[1].SetValue(float64(textProp.value[1]))
+    textEdit.entry.SetText(textProp.str)
+}
+
+type TextProp struct {
+    name string
+    str string
+    value [2]int
+}
+
+func NewTextProp(name string) *TextProp {
+    text := &TextProp{name: name}
+    return text
+}
+
+func (text *TextProp) Type() int {
+    return TEXT_PROP
 }
 
 func (text *TextProp) Name() string {
@@ -64,27 +82,13 @@ func (text *TextProp) Name() string {
 }
 
 func (text *TextProp) String() string {
-    entryText, err := text.entry.GetText()
-    if err != nil { 
-        log.Fatalf("Error creating text string (%s)", err) 
-    }
-
     return fmt.Sprintf("string=%s#pos_x=%d#pos_y=%d#", 
-        entryText, 
-        text.value[0].GetValueAsInt(), 
-        text.value[1].GetValueAsInt())
+        text.str, text.value[0], text.value[1])
 }
  
 func (text *TextProp) Encode() string {
-    entryText, err := text.entry.GetText()
-    if err != nil { 
-        log.Fatalf("Error encoding text prop (%s)", err) 
-    }
-
     return fmt.Sprintf("string %s;x %d;y %d;", 
-        entryText, 
-        text.value[0].GetValueAsInt(), 
-        text.value[1].GetValueAsInt())
+        text.str, text.value[0], text.value[1])
 }
 
 func (text *TextProp) Decode(input string) {
@@ -101,16 +105,16 @@ func (text *TextProp) Decode(input string) {
                 log.Fatalf("Error decoding text prop (%s)", err) 
             }
 
-            text.value[0].SetValue(float64(value))
+            text.value[0] = value
         case "y":
             value, err := strconv.Atoi(line[1])
             if err != nil { 
                 log.Printf("Error decoding text prop (%s)", err) 
             }
 
-            text.value[1].SetValue(float64(value))
+            text.value[1] = value
         case "string":
-            text.entry.SetText(strings.TrimPrefix(attr, "string "))
+            text.str = strings.TrimPrefix(attr, "string ")
         case "":
         default:
             log.Printf("Unknown TextProp attr name (%s)\n", name)
@@ -118,12 +122,19 @@ func (text *TextProp) Decode(input string) {
     }
 }
 
-func (text *TextProp) Update(action int) {
-    switch action {
-    case ANIMATE_ON:
-    case CONTINUE:
-    case ANIMATE_OFF:
-    default:
-        log.Printf("Unknown action")
+func (textProp *TextProp) Update(text PropertyEditor, action int) {
+    var err error
+    textEdit, ok := text.(*TextEditor)
+    if !ok {
+        log.Printf("TextProp.Update requires TextEditor")
+        return
+    }
+
+    textProp.value[0] = textEdit.value[0].GetValueAsInt()
+    textProp.value[1] = textEdit.value[1].GetValueAsInt()
+    textProp.str, err = textEdit.entry.GetText()
+    if err != nil {
+        log.Printf("Error getting text from editor entry (%s)", err)
+        textProp.str = ""
     }
 }

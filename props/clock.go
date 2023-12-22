@@ -3,27 +3,31 @@ package props
 import (
 	"fmt"
 	"log"
+	"strconv"
+	"strings"
 	"time"
 
 	"github.com/gotk3/gotk3/gtk"
 )
 
-
-type ClockProp struct {
+type ClockEditor struct {
     box             *gtk.Box
-    name            string
+    value           [2]*gtk.SpinButton
     engine          bool
     preview         bool
     c               chan int
-    editTime        *time.Time
+    timeFormat      string 
+    editTime        time.Time
     currentTime     time.Time
-    timeFormat      string
-    timeString      TextProp
+    entry           *gtk.Entry
 }
 
-func NewClockProp(width, height int, animate, cont func(), name string) *ClockProp {
+func NewClockEditor(width, height int, animate, cont func()) PropertyEditor {
     var err error
-    clock := &ClockProp{name: name}
+    clock := &ClockEditor{
+        timeFormat: "04:05",
+    }
+
     clock.box, err = gtk.BoxNew(gtk.ORIENTATION_VERTICAL, 0)
     if err != nil { 
         log.Printf("Error creating clock prop (%s)", err) 
@@ -73,62 +77,40 @@ func NewClockProp(width, height int, animate, cont func(), name string) *ClockPr
         clock.c <- STOP
     })
 
-    clock.timeFormat = "04:05"
-    edit, err := time.Parse(clock.timeFormat, "00:00")
+    var input *gtk.Box
+    input, clock.entry = StringEditor("Time: ", animate)
+    clock.box.PackStart(input, false, false, padding)
+
+    clock.value[0], err = gtk.SpinButtonNewWithRange(float64(0), float64(width), 1)
     if err != nil { 
-        log.Printf("Error creating clock prop (%s)", err) 
+        log.Fatalf("Error creating text prop (%s)", err) 
     }
 
-    clock.editTime = &edit
+    clock.value[1], err = gtk.SpinButtonNewWithRange(float64(0), float64(height), 1)
+    if err != nil { 
+        log.Fatalf("Error creating text prop (%s)", err) 
+    }
 
-    clock.timeString = *NewTextProp(width, height, animate, "clock time")
-    clock.box.PackStart(clock.timeString.Tab(), false, false, 0)
+    clock.box.PackStart(IntEditor("x Pos", clock.value[0], animate), false, false, padding)
+    clock.box.PackStart(IntEditor("y Pos", clock.value[1], animate), false, false, padding)
 
     go clock.RunClock(cont)
     return clock
 }
 
-func (clock *ClockProp) Name() string {
-    return clock.name
-}
-
-func (clock *ClockProp) Tab() *gtk.Box {
-    return clock.box
-}
-
-func (clock *ClockProp) String() string {
-    currentTime := clock.currentTime.Format(clock.timeFormat)
-    currentString := fmt.Sprintf("string=%s#pos_x=%d#pos_y=%d#", 
-        currentTime,
-        clock.timeString.value[0].GetValueAsInt(), 
-        clock.timeString.value[1].GetValueAsInt(),
-    )
-    
-    return currentString
-}
-
-func (clock *ClockProp) Encode() string {
-    return clock.timeString.Encode()
-}
-
-func (clock *ClockProp) Decode(input string) {
-    clock.timeString.Decode(input)
-    current, err := clock.timeString.entry.GetText()
-    if err != nil { 
-        log.Printf("Error decoding clock (%s)", err) 
-    }
-
-    edit, err := time.Parse(clock.timeFormat, current)
-    if err != nil { 
-        log.Printf("Error decoding clock (%s)", err) 
-    }
-
-    clock.editTime = &edit
-}
-
-func (clock *ClockProp) RunClock(cont func()) {
+func (clock *ClockEditor) RunClock(cont func()) {
+    var err error
     state := PAUSE
-    clock.currentTime = *clock.editTime
+
+    clock.currentTime, err = time.Parse(
+        clock.timeFormat, 
+        clock.editTime.Format(clock.timeFormat),
+    )
+
+    if err != nil {
+        log.Printf("Error parsing edit time (%s)", err)
+        return
+    }
 
     for {
         select {
@@ -146,7 +128,10 @@ func (clock *ClockProp) RunClock(cont func()) {
             state = <-clock.c
         case STOP:
             // reset the time and block
-            clock.currentTime = *clock.editTime
+            clock.currentTime, err = time.Parse(
+                clock.timeFormat, 
+                clock.editTime.Format(clock.timeFormat),
+            )
             cont()
             state = <-clock.c
         default:
@@ -155,10 +140,120 @@ func (clock *ClockProp) RunClock(cont func()) {
     }
 }
 
-func (clock *ClockProp) Update(action int) {
+func (clock *ClockEditor) Box() *gtk.Box {
+    return clock.box
+}
+
+func (clockEdit *ClockEditor) Update(clock Property) {
+    clockProp, ok := clock.(*ClockProp)
+    if !ok {
+        log.Printf("ClockEditor.Update requires ClockProp")
+        return
+    }
+
+    clockEdit.editTime = clockProp.editTime
+    clockEdit.value[0].SetValue(float64(clockProp.value[0]))
+    clockEdit.value[1].SetValue(float64(clockProp.value[1]))
+}
+
+type ClockProp struct {
+    name            string
+    value           [2]int
+    editTime        time.Time
+    currentTime     string
+    timeFormat      string
+}
+
+func NewClockProp(name string) *ClockProp {
+    clock := &ClockProp{
+        name: name,
+        timeFormat: "04:05",
+    }
+
+    edit, err := time.Parse(clock.timeFormat, "00:00")
+    if err != nil { 
+        log.Printf("Error creating clock prop (%s)", err) 
+    }
+
+    clock.editTime = edit
+
+    return clock
+}
+
+func (clock *ClockProp) Type() int {
+    return CLOCK_PROP 
+}
+
+func (clock *ClockProp) Name() string {
+    return clock.name
+}
+
+func (clock *ClockProp) String() string {
+    currentString := fmt.Sprintf("string=%s#pos_x=%d#pos_y=%d#", 
+        clock.currentTime,
+        clock.value[0],
+        clock.value[1],
+    )
+    
+    return currentString
+}
+
+func (clock *ClockProp) Encode() string {
+    return fmt.Sprintf("string %s;x %d;y %d;", 
+        clock.editTime.Format(clock.timeFormat), clock.value[0], clock.value[1])
+}
+
+func (clock *ClockProp) Decode(input string) {
+    attrs := strings.Split(input, ";")
+
+    for _, attr := range attrs[1:] {
+        line := strings.Split(attr, " ")
+        name := line[0]
+
+        switch (name) {
+        case "x":
+            value, err := strconv.Atoi(line[1])
+            if err != nil { 
+                log.Fatalf("Error decoding text prop (%s)", err) 
+            }
+
+            clock.value[0] = value
+        case "y":
+            value, err := strconv.Atoi(line[1])
+            if err != nil { 
+                log.Printf("Error decoding text prop (%s)", err) 
+            }
+
+            clock.value[1] = value
+        case "string":
+            textTime := strings.TrimPrefix(attr, "string ")
+            edit, err := time.Parse(clock.timeFormat, textTime)
+            if err != nil { 
+                log.Printf("Error decoding clock (%s)", err) 
+            }
+
+            clock.editTime = edit
+        case "":
+        default:
+            log.Printf("Unknown TextProp attr name (%s)\n", name)
+        }
+    }
+}
+
+func (clockProp *ClockProp) Update(clock PropertyEditor, action int) {
+    clockEdit, ok := clock.(*ClockEditor)
+
+    if !ok {
+        log.Printf("ClockProp.Update requires ClockEditor") 
+        return
+    }
+
     switch action {
     case ANIMATE_ON:
+        clockProp.value[0] = clockEdit.value[0].GetValueAsInt()
+        clockProp.value[1] = clockEdit.value[1].GetValueAsInt()
     case CONTINUE:
+        clockProp.currentTime = clockEdit.editTime.Format(clockProp.timeFormat)
     case ANIMATE_OFF:
     default:
         log.Printf("Unknown action")

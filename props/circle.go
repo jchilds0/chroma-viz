@@ -9,15 +9,14 @@ import (
 	"github.com/gotk3/gotk3/gtk"
 )
 
-type CircleProp struct {
-    name string 
-    box *gtk.Box;
+type CircleEditor struct {
+    box *gtk.Box
     value [6]*gtk.SpinButton
 }
 
-func NewCircleProp(width, height int, animate func(), name string) Property {
+func NewCircleEditor(width, height int, animate func()) PropertyEditor {
     var err error
-    circle := &CircleProp{name: name}
+    circle := &CircleEditor{}
 
     circle.box, err = gtk.BoxNew(gtk.ORIENTATION_VERTICAL, 0)
     if err != nil { 
@@ -45,8 +44,34 @@ func NewCircleProp(width, height int, animate func(), name string) Property {
     return circle
 }
 
-func (circle *CircleProp) Tab() *gtk.Box {
+func (circle *CircleEditor) Box() *gtk.Box {
     return circle.box
+}
+
+func (circleEdit *CircleEditor) Update(circle Property) {
+    circleProp, ok := circle.(*CircleProp)
+    if !ok {
+        log.Printf("CircleEditor.Update requires CircleProp")
+        return
+    }
+
+    for i := range circleEdit.value {
+        circleEdit.value[i].SetValue(float64(circleProp.value[i]))
+    }
+}
+
+type CircleProp struct {
+    name string 
+    value [6]int 
+}
+
+func NewCircleProp(name string) Property {
+    circle := &CircleProp{name: name}
+    return circle
+}
+
+func (circle *CircleProp) Type() int {
+    return CIRCLE_PROP
 }
 
 func (circle *CircleProp) Name() string {
@@ -56,23 +81,15 @@ func (circle *CircleProp) Name() string {
 func (circle *CircleProp) String() string {
     return fmt.Sprintf("center_x=%d#center_y=%d#inner_radius=%d#" + 
         "outer_radius=%d#start_angle=%d#end_angle=%d#", 
-        circle.value[0].GetValueAsInt(),
-        circle.value[1].GetValueAsInt(),
-        circle.value[2].GetValueAsInt(),
-        circle.value[3].GetValueAsInt(),
-        circle.value[4].GetValueAsInt(),
-        circle.value[5].GetValueAsInt())
+        circle.value[0], circle.value[1], circle.value[2],
+        circle.value[3], circle.value[4], circle.value[5])
 }
 
 func (circle *CircleProp) Encode() string {
     return fmt.Sprintf("x %d;y %d;inner_radius %d;outer_radius %d;" +
         "start_angle %d;end_angle %d;", 
-        circle.value[0].GetValueAsInt(),
-        circle.value[1].GetValueAsInt(),
-        circle.value[2].GetValueAsInt(),
-        circle.value[3].GetValueAsInt(),
-        circle.value[4].GetValueAsInt(),
-        circle.value[5].GetValueAsInt())
+        circle.value[0], circle.value[1], circle.value[2],
+        circle.value[3], circle.value[4], circle.value[5])
 }
 
 func (circle *CircleProp) Decode(input string) {
@@ -93,29 +110,31 @@ func (circle *CircleProp) Decode(input string) {
 
         switch (name) {
         case "x":
-            circle.value[0].SetValue(float64(value))
+            circle.value[0] = value
         case "y":
-            circle.value[1].SetValue(float64(value))
+            circle.value[1] = value
         case "inner_radius":
-            circle.value[2].SetValue(float64(value))
+            circle.value[2] = value
         case "outer_radius":
-            circle.value[3].SetValue(float64(value))
+            circle.value[3] = value
         case "start_angle":
-            circle.value[4].SetValue(float64(value))
+            circle.value[4] = value
         case "end_angle":
-            circle.value[5].SetValue(float64(value))
+            circle.value[5] = value
         default:
             log.Printf("Unknown CircleProp attr name (%s)\n", name)
         }
     }
 }
 
-func (circle *CircleProp) Update(action int) {
-    switch action {
-    case ANIMATE_ON:
-    case CONTINUE:
-    case ANIMATE_OFF:
-    default:
-        log.Printf("Unknown action")
+func (circleProp *CircleProp) Update(circle PropertyEditor, action int) {
+    circleEdit, ok := circle.(*CircleEditor)
+    if !ok {
+        log.Printf("CircleProp.Update requires CircleEditor")
+        return
+    }
+
+    for i := range circleEdit.value {
+        circleProp.value[i] = circleEdit.value[i].GetValueAsInt()
     }
 }

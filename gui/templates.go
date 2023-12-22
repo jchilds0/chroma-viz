@@ -1,6 +1,7 @@
 package gui
 
 import (
+	"chroma-viz/props"
 	"log"
 	"strconv"
 
@@ -21,12 +22,15 @@ type Template struct {
     templateID  int
     numProps    int
     layer       int
-    propType    []string
+    propType    []int
     propName    []string
 }
 
-func NewTemplate(title string, id int, layer int) *Template {
+func NewTemplate(title string, id int, layer int, n int) *Template {
     temp := &Template{title: title, templateID: id, layer: layer}
+
+    temp.propType = make([]int, n)
+    temp.propName = make([]string, n)
     return temp
 }
 
@@ -40,9 +44,14 @@ func (temp *Template) templateToListRow() *gtk.ListBoxRow {
     return row1
 }
 
-func (temp *Template) AddProp(name string, typed string) {
-    temp.propName = append(temp.propName, name)
-    temp.propType = append(temp.propType, typed)
+func (temp *Template) AddProp(name string, typed int) {
+    if temp.numProps == len(temp.propName) {
+        log.Println("Ran out of memory in template")
+        return
+    }
+
+    temp.propName[temp.numProps] = name
+    temp.propType[temp.numProps] = typed
     temp.numProps++
 }
 
@@ -135,8 +144,8 @@ func NewTempList(show *ShowTree) *TempTree {
     return temp
 }
 
-func (temp *TempTree) AddTemplate(title string, id int, layer int) *Template {
-    temp.temps[id] = NewTemplate(title, id, layer)
+func (temp *TempTree) AddTemplate(title string, id, layer, n int) *Template {
+    temp.temps[id] = NewTemplate(title, id, layer, n)
 
     temp.treeList.Set(
         temp.treeList.Append(), 
@@ -149,36 +158,36 @@ func (temp *TempTree) AddTemplate(title string, id int, layer int) *Template {
 func (temp *TempTree) exampleHub() {
     var page *Template
 
-    page = temp.AddTemplate("Red Box", 1, TOP_LEFT)
-    page.AddProp("Background", "RectProp")
-    page.AddProp("Title", "TextProp")
-    page.AddProp("Subtitle", "TextProp")
+    page = temp.AddTemplate("Red Box", 1, TOP_LEFT, 10)
+    page.AddProp("Background", props.RECT_PROP)
+    page.AddProp("Title", props.TEXT_PROP)
+    page.AddProp("Subtitle", props.TEXT_PROP)
 
-    page = temp.AddTemplate("Orange Box", 2, TOP_LEFT)
-    page.AddProp("Background", "RectProp")
-    page.AddProp("Title", "TextProp")
-    page.AddProp("Subtitle", "TextProp")
+    page = temp.AddTemplate("Orange Box", 2, TOP_LEFT, 10)
+    page.AddProp("Background", props.RECT_PROP)
+    page.AddProp("Title", props.TEXT_PROP)
+    page.AddProp("Subtitle", props.TEXT_PROP)
 
-    page = temp.AddTemplate("Blue Box", 3, LOWER_FRAME)
-    page.AddProp("Background", "RectProp")
-    page.AddProp("Logo", "CircleProp")
-    page.AddProp("Title", "TextProp")
-    page.AddProp("Subtitle", "TextProp")
+    page = temp.AddTemplate("Blue Box", 3, LOWER_FRAME, 10)
+    page.AddProp("Background", props.RECT_PROP)
+    page.AddProp("Logo", props.CIRCLE_PROP)
+    page.AddProp("Title", props.TEXT_PROP)
+    page.AddProp("Subtitle", props.TEXT_PROP)
 
-    page = temp.AddTemplate("Clock Box", 4, TOP_LEFT)
-    page.AddProp("Background", "RectProp")
-    page.AddProp("Clock", "ClockProp")
+    page = temp.AddTemplate("Clock Box", 4, TOP_LEFT, 10)
+    page.AddProp("Background", props.RECT_PROP)
+    page.AddProp("Clock", props.CLOCK_PROP)
 
-    page = temp.AddTemplate("White Circle", 5, LOWER_FRAME)
-    page.AddProp("Circle", "CircleProp")
+    page = temp.AddTemplate("White Circle", 5, LOWER_FRAME, 10)
+    page.AddProp("Circle", props.CLOCK_PROP)
 
-    page = temp.AddTemplate("Graph", 6, LOWER_FRAME)
-    page.AddProp("Background", "RectProp")
-    page.AddProp("Graph", "GraphProp")
-    page.AddProp("Title", "TextProp")
+    page = temp.AddTemplate("Graph", 6, LOWER_FRAME, 10)
+    page.AddProp("Background", props.RECT_PROP)
+    page.AddProp("Graph", props.GRAPH_PROP)
+    page.AddProp("Title", props.TEXT_PROP)
 
-    page = temp.AddTemplate("Ticker", 7, TICKER)
-    page.AddProp("Background", "RectProp")
-    page.AddProp("Text", "TickerProp")
+    page = temp.AddTemplate("Ticker", 7, TICKER, 10)
+    page.AddProp("Background", props.RECT_PROP)
+    page.AddProp("Text", props.TICKER_PROP)
 }
 

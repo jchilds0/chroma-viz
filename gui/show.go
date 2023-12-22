@@ -43,17 +43,6 @@ func NewPage(pageNum int, title string, temp *Template) *Page {
         templateID: temp.templateID,
         layer: temp.layer,
     }
-
-    animate := func() { 
-        conn["Preview"].setPage <- page
-        conn["Preview"].sendPage <- ANIMATE_ON
-    }
-
-    cont := func() {
-        conn["Engine"].sendPage <- CONTINUE
-        conn["Preview"].sendPage <- CONTINUE
-    }
-
     page.propMap = make([]props.Property, temp.numProps)
 
     for i := 0; i < temp.numProps; i++ {
@@ -61,26 +50,26 @@ func NewPage(pageNum int, title string, temp *Template) *Page {
         name := temp.propName[i]
 
         switch (prop) {
-        case "RectProp":
-            page.propMap[i] = props.NewRectProp(1920, 1080, animate, name)
+        case props.RECT_PROP:
+            page.propMap[i] = props.NewRectProp(name)
 
-        case "TextProp":
-            page.propMap[i] = props.NewTextProp(1920, 1080, animate, name)
+        case props.TEXT_PROP:
+            page.propMap[i] = props.NewTextProp(name)
 
-        case "CircleProp":
-            page.propMap[i] = props.NewCircleProp(1920, 1080, animate, name)
+        case props.CIRCLE_PROP:
+            page.propMap[i] = props.NewCircleProp(name)
 
-        case "ClockProp":
-            page.propMap[i] = props.NewClockProp(1920, 1080, animate, cont, name)
+        case props.CLOCK_PROP:
+            page.propMap[i] = props.NewClockProp(name)
 
-        case "GraphProp":
-            page.propMap[i] = props.NewGraphProp(1920, 1080, animate, name)
+        case props.GRAPH_PROP:
+            page.propMap[i] = props.NewGraphProp(name)
 
-        case "TickerProp":
-            page.propMap[i] = props.NewTickerProp(1920, 1080, animate, name)
+        case props.TICKER_PROP:
+            page.propMap[i] = props.NewTickerProp(name)
 
         default:
-            log.Printf("Page %d: Unknown property %s", pageNum, prop)
+            log.Printf("Page %d: Unknown property %d", pageNum, prop)
         }
     }
 
@@ -99,9 +88,13 @@ func (page *Page) pageToListRow() *gtk.ListBoxRow {
     return row1
 }
 
-func (page *Page) update(action int) {
-    for _, prop := range page.propMap {
-        prop.Update(action)
+func (page *Page) update(pair []Pairing, action int) {
+    for _, item := range pair {
+        if item.prop == nil {
+            continue
+        }
+
+        item.prop.Update(item.editor, action)
     }
 }
 

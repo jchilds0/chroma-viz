@@ -9,54 +9,64 @@ import (
 	"github.com/gotk3/gotk3/gtk"
 )
 
-type RectProp struct {
+type RectEditor struct {
     box *gtk.Box
-    name string
     value [4]*gtk.SpinButton
 }
 
-func NewRectProp(width, height int, animate func(), name string) Property {
+func NewRectEditor(width, height int, animate func()) PropertyEditor {
     var err error
-    rect := &RectProp{name: name}
-
-    rect.value[0], err = gtk.SpinButtonNewWithRange(float64(0), float64(width), 1)
-    if err != nil { 
-        log.Printf("Error creating rect spin button (%s)", err) 
-    }
-
-    rect.value[1], err = gtk.SpinButtonNewWithRange(float64(0), float64(height), 1)
-    if err != nil { 
-        log.Printf("Error creating rect spin button (%s)", err) 
-    }
-
-    rect.value[2], err = gtk.SpinButtonNewWithRange(float64(0), float64(width), 1)
-    if err != nil { 
-        log.Printf("Error creating rect spin button (%s)", err) 
-    }
-
-    rect.value[3], err = gtk.SpinButtonNewWithRange(float64(0), float64(height), 1)
-    if err != nil { 
-        log.Printf("Error creating rect spin button (%s)", err) 
-    }
+    rect := &RectEditor{}
 
     rect.box, err = gtk.BoxNew(gtk.ORIENTATION_VERTICAL, 0)
     if err != nil { 
         log.Printf("Error creating rect box (%s)", err) 
     }
 
+    upper := []int{width, height, width, height}
     labels := [4]string{"x Pos", "y Pos", "Width", "Height"}
-
     for i := range rect.value {
+        rect.value[i], err = gtk.SpinButtonNewWithRange(float64(0), float64(upper[i]), 1)
+        if err != nil { 
+            log.Printf("Error creating rect spin button (%s)", err) 
+        }
+
         input := IntEditor(labels[i], rect.value[i], animate)
         rect.box.PackStart(input, false, false, padding)
     }
 
-    rect.box.SetVisible(true)
     return rect
 }
 
-func (rect *RectProp) Tab() *gtk.Box {
-    return rect.box
+func (rectEdit *RectEditor) Box() *gtk.Box {
+    return rectEdit.box
+}
+
+func (rectEdit *RectEditor) Update(rect Property) {
+    rectProp, ok := rect.(*RectProp)
+    if !ok {
+        log.Printf("RectEditor.Update requires RectProp")
+        return 
+    }
+
+    rectEdit.value[0].SetValue(float64(rectProp.value[0]))
+    rectEdit.value[1].SetValue(float64(rectProp.value[1]))
+    rectEdit.value[2].SetValue(float64(rectProp.value[2]))
+    rectEdit.value[3].SetValue(float64(rectProp.value[3]))
+}
+
+type RectProp struct {
+    name string
+    value [4]int
+}
+
+func NewRectProp(name string) Property {
+    rect := &RectProp{name: name}
+    return rect
+}
+
+func (rect *RectProp) Type() int {
+    return RECT_PROP
 }
 
 func (rect *RectProp) Name() string {
@@ -65,18 +75,12 @@ func (rect *RectProp) Name() string {
 
 func (rect *RectProp) String() string {
     return fmt.Sprintf("pos_x=%d#pos_y=%d#width=%d#height=%d#", 
-        rect.value[0].GetValueAsInt(),
-        rect.value[1].GetValueAsInt(),
-        rect.value[2].GetValueAsInt(),
-        rect.value[3].GetValueAsInt())
+        rect.value[0], rect.value[1], rect.value[2], rect.value[3])
 }
 
 func (rect *RectProp) Encode() string {
     return fmt.Sprintf("x %d;y %d;width %d;height %d;", 
-        rect.value[0].GetValueAsInt(),
-        rect.value[1].GetValueAsInt(),
-        rect.value[2].GetValueAsInt(),
-        rect.value[3].GetValueAsInt())
+        rect.value[0], rect.value[1], rect.value[2], rect.value[3])
 }
 
 func (rect *RectProp) Decode(input string) {
@@ -98,25 +102,28 @@ func (rect *RectProp) Decode(input string) {
 
         switch (name) {
         case "x":
-            rect.value[0].SetValue(float64(value))
+            rect.value[0] = value
         case "y":
-            rect.value[1].SetValue(float64(value))
+            rect.value[1] = value
         case "width":
-            rect.value[2].SetValue(float64(value))
+            rect.value[2] = value
         case "height":
-            rect.value[3].SetValue(float64(value))
+            rect.value[3] = value
         default:
             log.Printf("Unknown RectProp attr name (%s)\n", name)
         }
     }
 }
 
-func (rect *RectProp) Update(action int) {
-    switch action {
-    case ANIMATE_ON:
-    case CONTINUE:
-    case ANIMATE_OFF:
-    default:
-        log.Printf("Unknown action")
+func (rectProp *RectProp) Update(rect PropertyEditor, action int) {
+    rectEdit, ok := rect.(*RectEditor)
+    if !ok {
+        log.Printf("RectProp.Update requires RectEditor")
+        return
     }
+
+    rectProp.value[0] = rectEdit.value[0].GetValueAsInt()
+    rectProp.value[1] = rectEdit.value[1].GetValueAsInt()
+    rectProp.value[2] = rectEdit.value[2].GetValueAsInt()
+    rectProp.value[3] = rectEdit.value[3].GetValueAsInt()
 }

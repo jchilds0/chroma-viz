@@ -1,18 +1,28 @@
 package gui
 
 import (
+	"chroma-viz/props"
 	"fmt"
 	"log"
 
 	"github.com/gotk3/gotk3/gtk"
 )
 
+type Pairing struct {
+    prop      props.Property
+    editor    props.PropertyEditor
+}
+
 type Editor struct {
     box       *gtk.Box
     tabs      *gtk.Notebook
     header    *gtk.HeaderBar
     page      *Page
+    pairs     []Pairing
+    propEdit  [][]props.PropertyEditor
 }
+
+
 
 func NewEditor() *Editor {
     var err error
@@ -63,7 +73,7 @@ func NewEditor() *Editor {
             return
         }
 
-        editor.page.update(ANIMATE_ON)
+        editor.page.update(editor.pairs, ANIMATE_ON)
 
         conn["Engine"].setPage <- editor.page
         conn["Engine"].sendPage <- ANIMATE_ON
@@ -81,7 +91,7 @@ func NewEditor() *Editor {
             return
         }
 
-        editor.page.update(CONTINUE)
+        editor.page.update(editor.pairs, CONTINUE)
 
         conn["Engine"].setPage <- editor.page
         conn["Engine"].sendPage <- CONTINUE 
@@ -93,7 +103,7 @@ func NewEditor() *Editor {
             return
         }
 
-        editor.page.update(ANIMATE_OFF)
+        editor.page.update(editor.pairs, ANIMATE_OFF)
 
         conn["Engine"].setPage <- editor.page
         conn["Engine"].sendPage <- ANIMATE_OFF
@@ -116,6 +126,28 @@ func NewEditor() *Editor {
 
     editor.tabs.AppendPage(tab, tabLabel)
     editor.box.PackStart(editor.tabs, true, true, 0)
+
+    // prop editors 
+    editor.propEdit = make([][]props.PropertyEditor, props.NUM_PROPS)
+    animate := func() { 
+        //conn["Preview"].setPage <- page
+        conn["Preview"].sendPage <- ANIMATE_ON
+    }
+
+    cont := func() {
+        conn["Engine"].sendPage <- CONTINUE
+        conn["Preview"].sendPage <- CONTINUE
+    }
+
+    for i := range editor.propEdit {
+        num := 10
+        editor.propEdit[i] = make([]props.PropertyEditor, num)
+
+        for j := 0; j < num; j++ {
+            editor.propEdit[i][j] = props.NewPropertyEditor(i, animate, cont)
+        }
+    }
+
     return editor
 }
 
@@ -126,19 +158,44 @@ func (edit *Editor) SetPage(page *Page) {
     }
 
     edit.page = page
-
+    edit.pairs = make([]Pairing, 0, 10)
+    propCount := make([]int, props.NUM_PROPS)
     for _, prop := range edit.page.propMap {
         if prop == nil {
             log.Print("Editor recieved nil prop")
             continue
         }
 
+        typed := prop.Type()
         label, err := gtk.LabelNew(prop.Name())
         if err != nil { 
             log.Fatalf("Error setting page (%s)", err) 
         }
 
-        edit.tabs.AppendPage(prop.Tab(), label)
+        // pair up with prop editor
+        var propEdit props.PropertyEditor
+        if propCount[typed] == len(edit.propEdit[typed]) {
+            // we ran out of editors, add a new one
+            animate := func() { 
+                //conn["Preview"].setPage <- page
+                conn["Preview"].sendPage <- ANIMATE_ON
+            }
+
+            cont := func() {
+                conn["Engine"].sendPage <- CONTINUE
+                conn["Preview"].sendPage <- CONTINUE
+            }
+
+            propEdit = props.NewPropertyEditor(typed, animate, cont)
+            edit.propEdit[typed] = append(edit.propEdit[typed], propEdit)
+        } else {
+            propEdit = edit.propEdit[typed][propCount[typed]]
+        }
+
+        propEdit.Update(prop)
+        edit.tabs.AppendPage(propEdit.Box(), label)
+        propCount[typed]++
+        edit.pairs = append(edit.pairs, Pairing{prop: prop, editor: propEdit})
     }
 }
 
