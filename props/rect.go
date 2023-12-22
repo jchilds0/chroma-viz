@@ -23,6 +23,8 @@ func NewRectEditor(width, height int, animate func()) PropertyEditor {
         log.Printf("Error creating rect box (%s)", err) 
     }
 
+    rect.box.SetVisible(true)
+
     upper := []int{width, height, width, height}
     labels := [4]string{"x Pos", "y Pos", "Width", "Height"}
     for i := range rect.value {

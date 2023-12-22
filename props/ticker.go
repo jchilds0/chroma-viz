@@ -33,18 +33,24 @@ func NewTickerEditor(width, height int, animate func()) PropertyEditor {
         log.Printf("Error creating ticker (%s)", err)
     }
 
-    t.value[0], err = gtk.SpinButtonNewWithRange(float64(0), float64(width), 1)
-    if err != nil { 
-        log.Fatalf("Error creating text prop (%s)", err) 
+    pos, err := gtk.BoxNew(gtk.ORIENTATION_HORIZONTAL, 0)
+    if err != nil {
+        log.Printf("Error creating ticker (%s)", err)
     }
 
-    t.value[1], err = gtk.SpinButtonNewWithRange(float64(0), float64(height), 1)
-    if err != nil { 
-        log.Fatalf("Error creating text prop (%s)", err) 
-    }
+    pos.SetVisible(true)
+    t.box.PackStart(pos, false, false, padding)
 
-    t.box.PackStart(IntEditor("x Pos", t.value[0], animate), false, false, padding)
-    t.box.PackStart(IntEditor("y Pos", t.value[1], animate), false, false, padding)
+    upper := []int{width, height}
+    for i := range t.value {
+        t.value[i], err = gtk.SpinButtonNewWithRange(float64(0), float64(upper[i]), 1)
+        if err != nil { 
+            log.Fatalf("Error creating text prop (%s)", err) 
+        }
+
+        spin := IntEditor("x Pos", t.value[i], animate)
+        pos.PackStart(spin, false, false, 0)
+    }
 
     t.treeView, err = gtk.TreeViewNew()
     if err != nil {
@@ -99,7 +105,7 @@ func NewTickerEditor(width, height int, animate func()) PropertyEditor {
     }
 
     label.SetVisible(true)
-    t.box.PackStart(label, false, false, padding)
+    pos.PackStart(label, false, false, padding)
 
     button, err := gtk.ButtonNewWithLabel("+")
     if err != nil {
@@ -110,7 +116,7 @@ func NewTickerEditor(width, height int, animate func()) PropertyEditor {
         t.listStore.Append()
     })
     button.SetVisible(true)
-    t.box.PackStart(button, false, false, padding)
+    pos.PackStart(button, false, false, padding)
 
     button, err = gtk.ButtonNewWithLabel("-")
     if err != nil {
@@ -134,7 +140,7 @@ func NewTickerEditor(width, height int, animate func()) PropertyEditor {
     })
 
     button.SetVisible(true)
-    t.box.PackStart(button, false, false, padding)
+    pos.PackStart(button, false, false, padding)
 
     frame, err := gtk.FrameNew("Ticker Text")
     if err != nil {
@@ -260,14 +266,14 @@ func (t *TickerProp) Decode(input string) {
         case "x":
             value, err := strconv.Atoi(line[1])
             if err != nil { 
-                log.Fatalf("Error decoding text prop (%s)", err) 
+                log.Fatalf("Error decoding ticker prop (%s)", err) 
             }
 
             t.value[0] = value
         case "y":
             value, err := strconv.Atoi(line[1])
             if err != nil { 
-                log.Printf("Error decoding text prop (%s)", err) 
+                log.Printf("Error decoding ticker prop (%s)", err) 
             }
 
             t.value[1] = value
@@ -278,7 +284,7 @@ func (t *TickerProp) Decode(input string) {
                 []interface{}{0, strings.TrimPrefix(attr, "text ")})
         case "":
         default:
-            log.Printf("Unknown TextProp attr name (%s)\n", name)
+            log.Printf("Unknown TickerProp attr name (%s)\n", name)
         }
     }
 

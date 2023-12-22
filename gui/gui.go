@@ -44,8 +44,8 @@ func MainGui(app *gtk.Application) {
     showView := NewShow(editView)
     tempView := NewTempList(showView)
 
-    //showView.ImportShow(tempView, "/home/josh/Documents/projects/chroma-viz/shows/testing.show")
-    testGui(tempView, showView)
+    showView.ImportShow(tempView, "/home/josh/Documents/projects/chroma-viz/shows/testing.show")
+    //testGui(tempView, showView)
 
     box, err := gtk.BoxNew(gtk.ORIENTATION_VERTICAL, 0)
     if err != nil {
@@ -215,9 +215,9 @@ func guiExportShow(win *gtk.ApplicationWindow, show *ShowTree) {
 }
 
 func testGui(temp *TempTree, show *ShowTree) {
-    num_temps := int(math.Pow(10, 4))
-    num_props := 10000
-    num_pages := 10000
+    num_temps := int(math.Pow(10, 6))
+    num_props := 100
+    num_pages := 100
 
     log.Printf("Testing with %d Templates, %d Properties, %d Pages\n", num_temps, num_props, num_pages)
 

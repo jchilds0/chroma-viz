@@ -10,6 +10,8 @@ import (
 	"github.com/gotk3/gotk3/gtk"
 )
 
+// TODO: untangle clock updating
+
 type ClockEditor struct {
     box             *gtk.Box
     value           [2]*gtk.SpinButton
@@ -17,7 +19,7 @@ type ClockEditor struct {
     preview         bool
     c               chan int
     timeFormat      string 
-    editTime        time.Time
+    editTime        *time.Time
     currentTime     time.Time
     entry           *gtk.Entry
 }
@@ -102,11 +104,6 @@ func (clock *ClockEditor) RunClock(cont func()) {
     var err error
     state := PAUSE
 
-    clock.currentTime, err = time.Parse(
-        clock.timeFormat, 
-        clock.editTime.Format(clock.timeFormat),
-    )
-
     if err != nil {
         log.Printf("Error parsing edit time (%s)", err)
         return
@@ -128,10 +125,7 @@ func (clock *ClockEditor) RunClock(cont func()) {
             state = <-clock.c
         case STOP:
             // reset the time and block
-            clock.currentTime, err = time.Parse(
-                clock.timeFormat, 
-                clock.editTime.Format(clock.timeFormat),
-            )
+            clock.currentTime = *clock.editTime
             cont()
             state = <-clock.c
         default:
@@ -152,6 +146,8 @@ func (clockEdit *ClockEditor) Update(clock Property) {
     }
 
     clockEdit.editTime = clockProp.editTime
+    text := clockEdit.editTime.Format(clockEdit.timeFormat)
+    clockEdit.entry.SetText(text)
     clockEdit.value[0].SetValue(float64(clockProp.value[0]))
     clockEdit.value[1].SetValue(float64(clockProp.value[1]))
 }
@@ -159,7 +155,7 @@ func (clockEdit *ClockEditor) Update(clock Property) {
 type ClockProp struct {
     name            string
     value           [2]int
-    editTime        time.Time
+    editTime        *time.Time
     currentTime     string
     timeFormat      string
 }
@@ -175,8 +171,7 @@ func NewClockProp(name string) *ClockProp {
         log.Printf("Error creating clock prop (%s)", err) 
     }
 
-    clock.editTime = edit
-
+    clock.editTime = &edit
     return clock
 }
 
@@ -232,7 +227,7 @@ func (clock *ClockProp) Decode(input string) {
                 log.Printf("Error decoding clock (%s)", err) 
             }
 
-            clock.editTime = edit
+            clock.editTime = &edit
         case "":
         default:
             log.Printf("Unknown TextProp attr name (%s)\n", name)
@@ -252,8 +247,16 @@ func (clockProp *ClockProp) Update(clock PropertyEditor, action int) {
     case ANIMATE_ON:
         clockProp.value[0] = clockEdit.value[0].GetValueAsInt()
         clockProp.value[1] = clockEdit.value[1].GetValueAsInt()
+
+        editText := clockEdit.editTime.Format(clockEdit.timeFormat)
+        editTime, err := time.Parse(clockProp.timeFormat, editText)
+        if err != nil {
+            log.Printf("Error parsing time in ClockProp.Update (%s)", err)
+            return
+        }
+        clockProp.editTime = &editTime
     case CONTINUE:
-        clockProp.currentTime = clockEdit.editTime.Format(clockProp.timeFormat)
+        clockProp.currentTime = clockEdit.currentTime.Format(clockProp.timeFormat)
     case ANIMATE_OFF:
     default:
         log.Printf("Unknown action")

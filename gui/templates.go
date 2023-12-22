@@ -139,7 +139,7 @@ func NewTempList(show *ShowTree) *TempTree {
             temp.show.NewShowPage(temp.temps[tempID]) 
         })
 
-    //temp.exampleHub()
+    temp.exampleHub()
 
     return temp
 }

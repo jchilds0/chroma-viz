@@ -22,8 +22,6 @@ type Editor struct {
     propEdit  [][]props.PropertyEditor
 }
 
-
-
 func NewEditor() *Editor {
     var err error
     editor := &Editor{}
@@ -63,9 +61,15 @@ func NewEditor() *Editor {
         log.Fatalf("Error creating editor (%s)", err) 
     }
 
+    save, err := gtk.ButtonNewWithLabel("Save")
+    if err != nil { 
+        log.Fatalf("Error creating editor (%s)", err) 
+    }
+
     actions.PackStart(take1, false, false, 10)
     actions.PackStart(take2, false, false, 0)
     actions.PackStart(take3, false, false, 10)
+    actions.PackEnd(save, false, false, 10)
 
     take1.Connect("clicked", func() { 
         if editor.page == nil { 
@@ -99,7 +103,7 @@ func NewEditor() *Editor {
 
     take3.Connect("clicked", func() { 
         if editor.page == nil { 
-            fmt.Println("No page selected")
+            log.Printf("No page selected")
             return
         }
 
@@ -107,6 +111,15 @@ func NewEditor() *Editor {
 
         conn["Engine"].setPage <- editor.page
         conn["Engine"].sendPage <- ANIMATE_OFF
+    })
+
+    save.Connect("clicked", func() {
+        if editor.page == nil {
+            log.Printf("No page selected")
+            return
+        }
+
+        editor.page.update(editor.pairs, ANIMATE_ON)
     })
 
     editor.tabs, err = gtk.NotebookNew()

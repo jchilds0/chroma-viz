@@ -31,6 +31,7 @@ const (
     CLOCK_PROP
     NUM_PROPS
 )
+
 type PropertyEditor interface {
     Update(Property)
     Box() *gtk.Box
