@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 
+	"github.com/gotk3/gotk3/glib"
 	"github.com/gotk3/gotk3/gtk"
 )
 
@@ -18,6 +19,8 @@ type Editor struct {
     tabs      *gtk.Notebook
     header    *gtk.HeaderBar
     page      *Page
+    animate   func()
+    cont      func()
     pairs     []Pairing
     propEdit  [][]props.PropertyEditor
 }
@@ -25,6 +28,10 @@ type Editor struct {
 func NewEditor() *Editor {
     var err error
     editor := &Editor{}
+
+    glib.SignalNew("animate-on")
+    glib.SignalNew("continue")
+    glib.SignalNew("animate-off")
 
     editor.box, err = gtk.BoxNew(gtk.ORIENTATION_VERTICAL, 0)
     if err != nil { 
@@ -77,8 +84,7 @@ func NewEditor() *Editor {
             return
         }
 
-        editor.page.update(editor.pairs, ANIMATE_ON)
-
+        editor.UpdateProps(ANIMATE_ON)
         conn["Engine"].setPage <- editor.page
         conn["Engine"].sendPage <- ANIMATE_ON
     })
@@ -95,8 +101,7 @@ func NewEditor() *Editor {
             return
         }
 
-        editor.page.update(editor.pairs, CONTINUE)
-
+        editor.UpdateProps(CONTINUE)
         conn["Engine"].setPage <- editor.page
         conn["Engine"].sendPage <- CONTINUE 
     })
@@ -107,8 +112,7 @@ func NewEditor() *Editor {
             return
         }
 
-        editor.page.update(editor.pairs, ANIMATE_OFF)
-
+        editor.UpdateProps(ANIMATE_OFF)
         conn["Engine"].setPage <- editor.page
         conn["Engine"].sendPage <- ANIMATE_OFF
     })
@@ -118,8 +122,6 @@ func NewEditor() *Editor {
             log.Printf("No page selected")
             return
         }
-
-        editor.page.update(editor.pairs, ANIMATE_ON)
     })
 
     editor.tabs, err = gtk.NotebookNew()
@@ -142,26 +144,39 @@ func NewEditor() *Editor {
 
     // prop editors 
     editor.propEdit = make([][]props.PropertyEditor, props.NUM_PROPS)
-    animate := func() { 
-        //conn["Preview"].setPage <- page
+
+    editor.animate = func() { 
+        editor.UpdateProps(ANIMATE_ON)
+        conn["Preview"].setPage <- editor.page
         conn["Preview"].sendPage <- ANIMATE_ON
     }
 
-    cont := func() {
+    editor.cont = func() {
+        editor.UpdateProps(CONTINUE)
         conn["Engine"].sendPage <- CONTINUE
         conn["Preview"].sendPage <- CONTINUE
     }
-
+    
     for i := range editor.propEdit {
         num := 10
         editor.propEdit[i] = make([]props.PropertyEditor, num)
 
         for j := 0; j < num; j++ {
-            editor.propEdit[i][j] = props.NewPropertyEditor(i, animate, cont)
+            editor.propEdit[i][j] = props.NewPropertyEditor(i, editor.animate, editor.cont)
         }
     }
 
     return editor
+}
+
+func (edit *Editor) UpdateProps(action int) {
+    for _, item := range edit.pairs {
+        if item.prop == nil {
+            continue
+        }
+
+        item.prop.Update(item.editor, action)
+    }
 }
 
 func (edit *Editor) SetPage(page *Page) {
@@ -189,17 +204,7 @@ func (edit *Editor) SetPage(page *Page) {
         var propEdit props.PropertyEditor
         if propCount[typed] == len(edit.propEdit[typed]) {
             // we ran out of editors, add a new one
-            animate := func() { 
-                //conn["Preview"].setPage <- page
-                conn["Preview"].sendPage <- ANIMATE_ON
-            }
-
-            cont := func() {
-                conn["Engine"].sendPage <- CONTINUE
-                conn["Preview"].sendPage <- CONTINUE
-            }
-
-            propEdit = props.NewPropertyEditor(typed, animate, cont)
+            propEdit = props.NewPropertyEditor(typed, edit.animate, edit.cont)
             edit.propEdit[typed] = append(edit.propEdit[typed], propEdit)
         } else {
             propEdit = edit.propEdit[typed][propCount[typed]]

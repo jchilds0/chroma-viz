@@ -31,7 +31,6 @@ func CloseConn() {
 }
 
 func MainGui(app *gtk.Application) {
-
     win, err := gtk.ApplicationWindowNew(app)
     if err != nil {
         log.Fatal(err)

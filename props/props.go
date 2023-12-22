@@ -47,19 +47,22 @@ type Property interface {
 }
 
 func NewPropertyEditor(typed int, animate, cont func()) PropertyEditor {
+    width := 1920
+    height := 1080 
+
     switch (typed) {
     case RECT_PROP:
-        return NewRectEditor(1920, 1080, animate)
+        return NewRectEditor(width, height, animate)
     case TEXT_PROP:
-        return NewTextEditor(1920, 1080, animate)
+        return NewTextEditor(width, height, animate)
     case CIRCLE_PROP:
-        return NewCircleEditor(1920, 1080, animate)
+        return NewCircleEditor(width, height, animate)
     case GRAPH_PROP:
-        return NewGraphEditor(1920, 1080, animate)
+        return NewGraphEditor(width, height, animate)
     case TICKER_PROP:
-        return NewTickerEditor(1920, 1080, animate)
+        return NewTickerEditor(width, height, animate)
     case CLOCK_PROP:
-        return NewClockEditor(1920, 1080, animate, cont)
+        return NewClockEditor(width, height, animate, cont)
     default:
         log.Printf("Unknown Prop %d", typed)
         return nil
@@ -101,7 +104,7 @@ func IntEditor(name string, spin *gtk.SpinButton, animate func()) *gtk.Box {
     }
 
     label.SetVisible(true)
-    label.SetWidthChars(7)
+    label.SetWidthChars(12)
     box.PackStart(label, false, false, uint(padding))
 
     spin.SetVisible(true)
@@ -126,7 +129,7 @@ func StringEditor(name string, animate func()) (*gtk.Box, *gtk.Entry) {
     }
 
     label.SetVisible(true)
-    label.SetWidthChars(7)
+    label.SetWidthChars(12)
     box.PackStart(label, false, false, uint(padding))
 
     buf, err := gtk.EntryBufferNew("", 0)

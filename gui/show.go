@@ -88,16 +88,6 @@ func (page *Page) pageToListRow() *gtk.ListBoxRow {
     return row1
 }
 
-func (page *Page) update(pair []Pairing, action int) {
-    for _, item := range pair {
-        if item.prop == nil {
-            continue
-        }
-
-        item.prop.Update(item.editor, action)
-    }
-}
-
 type ShowTree struct {
     *gtk.TreeView
     treeList  *gtk.ListStore
