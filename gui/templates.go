@@ -174,12 +174,21 @@ func (temp *TempTree) exampleHub() {
     page.AddProp("Title", props.TEXT_PROP)
     page.AddProp("Subtitle", props.TEXT_PROP)
 
-    page = temp.AddTemplate("Clock Box", 4, TOP_LEFT, 10)
+    page = temp.AddTemplate("Clock Box", 4, TOP_LEFT, 20)
     page.AddProp("Background", props.RECT_PROP)
     page.AddProp("Clock", props.CLOCK_PROP)
+    page.AddProp("Clock Title", props.TEXT_PROP)
+    page.AddProp("Team 1", props.TEXT_PROP)
+    page.AddProp("Team 2", props.TEXT_PROP)
+    page.AddProp("Score 1", props.TEXT_PROP)
+    page.AddProp("Score 2", props.TEXT_PROP)
+    page.AddProp("Left Split", props.RECT_PROP)
+    page.AddProp("Mid Split", props.RECT_PROP)
+    page.AddProp("Right Split", props.RECT_PROP)
+    page.AddProp("Circle", props.CIRCLE_PROP)
 
     page = temp.AddTemplate("White Circle", 5, LOWER_FRAME, 10)
-    page.AddProp("Circle", props.CLOCK_PROP)
+    page.AddProp("Circle", props.CIRCLE_PROP)
 
     page = temp.AddTemplate("Graph", 6, LOWER_FRAME, 10)
     page.AddProp("Background", props.RECT_PROP)
@@ -188,6 +197,7 @@ func (temp *TempTree) exampleHub() {
 
     page = temp.AddTemplate("Ticker", 7, TICKER, 10)
     page.AddProp("Background", props.RECT_PROP)
+    page.AddProp("Box", props.RECT_PROP)
     page.AddProp("Text", props.TICKER_PROP)
 }
 

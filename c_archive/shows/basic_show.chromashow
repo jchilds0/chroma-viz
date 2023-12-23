@@ -1,5 +1,0 @@
-<show;show_name = basic_show ;num_pages = 2>
-	<page;prev = prev ;page_num = 0;title = Green-Rectangle ;num_rectangles = 1;num_text = 0>
-		<rectangle; pos_x = 20; pos_y = 20; width = 350; height = 100; color = (0, 228, 48, 255)>
-	<page;prev = prev ;page_num = 1;title = Blue-Rectangle ;num_rectangles = 1;num_text = 0>
-		<rectangle; pos_x = 25; pos_y = 500; width = 900; height = 200; color = (0, 121, 241, 255)>

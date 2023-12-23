@@ -1,8 +1,0 @@
-<show;show_name=test show;num_pages=2>
-    <page;prev=0;page_num=1;title=Green Rectangle>
-        <page_on>
-            <rendergraphic;num_rectangles=1;num_text=0>
-                <rectangle;pos_x=20;pox_y=20;width=150;height=50;color=0,228,48,255>
-        <page_off>
-            <rendergraphic;num_rectangles=1;num_text=0>
-                <rectangle;pos_x=20;pox_y=20;width=150;height=50;color=0,0,0,255>

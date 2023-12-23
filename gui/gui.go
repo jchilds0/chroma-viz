@@ -214,7 +214,7 @@ func guiExportShow(win *gtk.ApplicationWindow, show *ShowTree) {
 }
 
 func testGui(temp *TempTree, show *ShowTree) {
-    num_temps := int(math.Pow(10, 6))
+    num_temps := int(math.Pow(10, 4))
     num_props := 100
     num_pages := 100
 

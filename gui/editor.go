@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/gotk3/gotk3/glib"
 	"github.com/gotk3/gotk3/gtk"
 )
 
@@ -28,10 +27,6 @@ type Editor struct {
 func NewEditor() *Editor {
     var err error
     editor := &Editor{}
-
-    glib.SignalNew("animate-on")
-    glib.SignalNew("continue")
-    glib.SignalNew("animate-off")
 
     editor.box, err = gtk.BoxNew(gtk.ORIENTATION_VERTICAL, 0)
     if err != nil { 
@@ -122,6 +117,9 @@ func NewEditor() *Editor {
             log.Printf("No page selected")
             return
         }
+
+        conn["Preview"].setPage <- editor.page
+        conn["Preview"].sendPage <- ANIMATE_ON
     })
 
     editor.tabs, err = gtk.NotebookNew()
@@ -147,8 +145,8 @@ func NewEditor() *Editor {
 
     editor.animate = func() { 
         editor.UpdateProps(ANIMATE_ON)
-        conn["Preview"].setPage <- editor.page
-        conn["Preview"].sendPage <- ANIMATE_ON
+        // conn["Preview"].setPage <- editor.page
+        // conn["Preview"].sendPage <- ANIMATE_ON
     }
 
     editor.cont = func() {

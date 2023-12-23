@@ -170,6 +170,9 @@ func (tickEdit *TickerEditor) Update(tick Property) {
 
     tickEdit.listStore = tickProp.listStore
     tickEdit.treeView.SetModel(tickEdit.listStore)
+
+    tickEdit.value[0].SetValue(float64(tickProp.value[0]))
+    tickEdit.value[1].SetValue(float64(tickProp.value[1]))
 }
 
 type TickerProp struct {
@@ -300,6 +303,9 @@ func (tickProp *TickerProp) Update(t PropertyEditor, action int) {
 
     switch action {
     case ANIMATE_ON, CONTINUE:
+        tickProp.value[0] = tickEdit.value[0].GetValueAsInt()
+        tickProp.value[1] = tickEdit.value[1].GetValueAsInt()
+
         // Get text from selection
         selection, err := tickEdit.treeView.GetSelection()
         if err != nil {
