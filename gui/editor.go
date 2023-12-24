@@ -145,8 +145,8 @@ func NewEditor() *Editor {
 
     editor.animate = func() { 
         editor.UpdateProps(ANIMATE_ON)
-        // conn["Preview"].setPage <- editor.page
-        // conn["Preview"].sendPage <- ANIMATE_ON
+        conn["Preview"].setPage <- editor.page
+        conn["Preview"].sendPage <- ANIMATE_ON
     }
 
     editor.cont = func() {

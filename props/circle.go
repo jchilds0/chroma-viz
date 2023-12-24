@@ -28,7 +28,7 @@ func NewCircleEditor(width, height int, animate func()) PropertyEditor {
     upper := []int{width, height, width, width, 360, 360}   
 
     for i := range circle.value {
-        circle.value[i], err = gtk.SpinButtonNewWithRange(float64(0), float64(upper[i]), 1)
+        circle.value[i], err = gtk.SpinButtonNewWithRange(-float64(upper[i]), float64(upper[i]), 1)
         if err != nil { 
             log.Printf("Error creating circle spin button (%s)", err) 
         }
@@ -79,7 +79,7 @@ func (circle *CircleProp) Name() string {
 }
 
 func (circle *CircleProp) String() string {
-    return fmt.Sprintf("center_x=%d#center_y=%d#inner_radius=%d#" + 
+    return fmt.Sprintf("rel_x=%d#rel_y=%d#inner_radius=%d#" + 
         "outer_radius=%d#start_angle=%d#end_angle=%d#", 
         circle.value[0], circle.value[1], circle.value[2],
         circle.value[3], circle.value[4], circle.value[5])

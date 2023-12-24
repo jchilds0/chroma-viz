@@ -88,7 +88,7 @@ func (conn *Connection) SendPage() {
         str := header
 
         for i, prop := range page.propMap {
-            str = fmt.Sprintf("%sgeo_num=%d#%s", str, i, prop.String())
+            str = fmt.Sprintf("%sgeo_num=%d#%s", str, i + 1, prop.String())
         }
 
         str = str + string(END_OF_MESSAGE)

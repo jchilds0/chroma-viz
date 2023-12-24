@@ -83,12 +83,12 @@ func NewClockEditor(width, height int, animate, cont func()) PropertyEditor {
     input, clock.entry = StringEditor("Time: ", animate)
     clock.box.PackStart(input, false, false, padding)
 
-    clock.value[0], err = gtk.SpinButtonNewWithRange(float64(0), float64(width), 1)
+    clock.value[0], err = gtk.SpinButtonNewWithRange(-float64(width), float64(width), 1)
     if err != nil { 
         log.Fatalf("Error creating text prop (%s)", err) 
     }
 
-    clock.value[1], err = gtk.SpinButtonNewWithRange(float64(0), float64(height), 1)
+    clock.value[1], err = gtk.SpinButtonNewWithRange(-float64(height), float64(height), 1)
     if err != nil { 
         log.Fatalf("Error creating text prop (%s)", err) 
     }
@@ -184,7 +184,7 @@ func (clock *ClockProp) Name() string {
 }
 
 func (clock *ClockProp) String() string {
-    currentString := fmt.Sprintf("string=%s#pos_x=%d#pos_y=%d#", 
+    currentString := fmt.Sprintf("string=%s#rel_x=%d#rel_y=%d#", 
         clock.currentTime,
         clock.value[0],
         clock.value[1],

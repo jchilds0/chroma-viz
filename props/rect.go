@@ -28,7 +28,7 @@ func NewRectEditor(width, height int, animate func()) PropertyEditor {
     upper := []int{width, height, width, height}
     labels := [4]string{"x Pos", "y Pos", "Width", "Height"}
     for i := range rect.value {
-        rect.value[i], err = gtk.SpinButtonNewWithRange(float64(0), float64(upper[i]), 1)
+        rect.value[i], err = gtk.SpinButtonNewWithRange(-float64(upper[i]), float64(upper[i]), 1)
         if err != nil { 
             log.Printf("Error creating rect spin button (%s)", err) 
         }
@@ -76,7 +76,7 @@ func (rect *RectProp) Name() string {
 }
 
 func (rect *RectProp) String() string {
-    return fmt.Sprintf("pos_x=%d#pos_y=%d#width=%d#height=%d#", 
+    return fmt.Sprintf("rel_x=%d#rel_y=%d#width=%d#height=%d#", 
         rect.value[0], rect.value[1], rect.value[2], rect.value[3])
 }
 

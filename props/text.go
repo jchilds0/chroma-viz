@@ -30,12 +30,12 @@ func NewTextEditor(width, height int, animate func()) PropertyEditor {
     text.input, text.entry = StringEditor("Text: ", animate)
     text.box.PackStart(text.input, false, false, padding)
 
-    text.value[0], err = gtk.SpinButtonNewWithRange(float64(0), float64(width), 1)
+    text.value[0], err = gtk.SpinButtonNewWithRange(-float64(width), float64(width), 1)
     if err != nil { 
         log.Fatalf("Error creating text prop (%s)", err) 
     }
 
-    text.value[1], err = gtk.SpinButtonNewWithRange(float64(0), float64(height), 1)
+    text.value[1], err = gtk.SpinButtonNewWithRange(-float64(width), float64(height), 1)
     if err != nil { 
         log.Fatalf("Error creating text prop (%s)", err) 
     }
@@ -82,7 +82,7 @@ func (text *TextProp) Name() string {
 }
 
 func (text *TextProp) String() string {
-    return fmt.Sprintf("string=%s#pos_x=%d#pos_y=%d#", 
+    return fmt.Sprintf("string=%s#rel_x=%d#rel_y=%d#", 
         text.str, text.value[0], text.value[1])
 }
  

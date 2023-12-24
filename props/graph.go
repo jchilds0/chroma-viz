@@ -41,12 +41,12 @@ func NewGraphEditor(width, height int, animate func()) PropertyEditor {
         log.Printf("Error creating graph box (%s)", err)
     }
 
-    g.value[0], err = gtk.SpinButtonNewWithRange(float64(0), float64(width), 1)
+    g.value[0], err = gtk.SpinButtonNewWithRange(-float64(width), float64(width), 1)
     if err != nil { 
         log.Printf("Error creating graph spin button (%s)", err) 
     }
 
-    g.value[1], err = gtk.SpinButtonNewWithRange(float64(0), float64(height), 1)
+    g.value[1], err = gtk.SpinButtonNewWithRange(-float64(height), float64(height), 1)
     if err != nil { 
         log.Printf("Error creating graph spin button (%s)", err) 
     }
@@ -224,7 +224,7 @@ func (g *GraphProp) Name() string {
 }
 
 func (g *GraphProp) String() string {
-    str := fmt.Sprintf("pos_x=%d#pos_y=%d#num_node=0#", 
+    str := fmt.Sprintf("rel_x=%d#rel_y=%d#num_node=0#", 
         g.value[0], g.value[1])
 
     iter, ok := g.listStore.GetIterFirst()

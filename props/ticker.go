@@ -43,7 +43,7 @@ func NewTickerEditor(width, height int, animate func()) PropertyEditor {
 
     upper := []int{width, height}
     for i := range t.value {
-        t.value[i], err = gtk.SpinButtonNewWithRange(float64(0), float64(upper[i]), 1)
+        t.value[i], err = gtk.SpinButtonNewWithRange(-float64(upper[i]), float64(upper[i]), 1)
         if err != nil { 
             log.Fatalf("Error creating text prop (%s)", err) 
         }
@@ -230,7 +230,7 @@ func (t *TickerProp) Name() string {
 }
 
 func(t *TickerProp) String() string {
-    return fmt.Sprintf("string=%s#pos_x=%d#pos_y=%d#", 
+    return fmt.Sprintf("string=%s#rel_x=%d#rel_y=%d#", 
         t.text, t.value[0], t.value[1])
 }
 
