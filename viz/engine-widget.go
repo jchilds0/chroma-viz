@@ -1,6 +1,7 @@
-package gui
+package viz
 
 import (
+	"chroma-viz/tcp"
 	"log"
 
 	"github.com/gotk3/gotk3/cairo"
@@ -14,10 +15,10 @@ const (
 
 type EngineWidget struct {
     button       *gtk.Button
-    conn         *Connection
+    conn         *tcp.Connection
 }
 
-func NewEngineWidget(name string, conn *Connection) *EngineWidget {
+func NewEngineWidget(name string, conn *tcp.Connection) *EngineWidget {
     var err error
     eng := &EngineWidget{conn: conn}
 

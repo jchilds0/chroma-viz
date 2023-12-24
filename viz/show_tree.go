@@ -1,8 +1,9 @@
-package gui
+package viz
 
 import (
 	"bufio"
 	"chroma-viz/props"
+	"chroma-viz/tcp"
 	"fmt"
 	"log"
 	"os"
@@ -26,72 +27,10 @@ var KEYTITLE = map[int]string{
     TITLE: "Title",
     TEMPLATEID: "Template ID",
 }
-
-type Page struct {
-    Box         *gtk.ListBoxRow
-    pageNum     int
-    title       string
-    templateID  int
-    layer       int
-    propMap     []props.Property
-}
-
-func NewPage(pageNum int, title string, temp *Template) *Page {
-    page := &Page{
-        pageNum: pageNum, 
-        title: title, 
-        templateID: temp.templateID,
-        layer: temp.layer,
-    }
-    page.propMap = make([]props.Property, temp.numProps)
-
-    for i := 0; i < temp.numProps; i++ {
-        prop := temp.propType[i]
-        name := temp.propName[i]
-
-        switch (prop) {
-        case props.RECT_PROP:
-            page.propMap[i] = props.NewRectProp(name)
-
-        case props.TEXT_PROP:
-            page.propMap[i] = props.NewTextProp(name)
-
-        case props.CIRCLE_PROP:
-            page.propMap[i] = props.NewCircleProp(name)
-
-        case props.CLOCK_PROP:
-            page.propMap[i] = props.NewClockProp(name)
-
-        case props.GRAPH_PROP:
-            page.propMap[i] = props.NewGraphProp(name)
-
-        case props.TICKER_PROP:
-            page.propMap[i] = props.NewTickerProp(name)
-
-        default:
-            log.Printf("Page %d: Unknown property %d", pageNum, prop)
-        }
-    }
-
-    return page
-}
-
-func (page *Page) pageToListRow() *gtk.ListBoxRow {
-    row1, err := gtk.ListBoxRowNew()
-    if err != nil {
-        log.Fatalf("Error converting page to list (%s)", err)
-    }
-
-    row1.Add(textToBuffer(strconv.Itoa(page.pageNum)))
-    row1.Add(textToBuffer(page.title))
-
-    return row1
-}
-
 type ShowTree struct {
     *gtk.TreeView
     treeList  *gtk.ListStore
-    pages     map[int]*Page
+    pages     map[int]*props.Page
     numPages  int
     edit      *Editor
     columns   [NUMCOL]bool
@@ -108,7 +47,7 @@ func NewShow(edit *Editor) *ShowTree {
 
     show.TreeView.SetReorderable(true)
 
-    show.pages = make(map[int]*Page)
+    show.pages = make(map[int]*props.Page)
     show.columns = [NUMCOL]bool{true, true, true}
 
     /* Columns */
@@ -148,7 +87,7 @@ func NewShow(edit *Editor) *ShowTree {
                         log.Fatalf("Error editing page (%s)", err)
                     }
 
-                    show.pages[pageNum].title = text
+                    show.pages[pageNum].Title = text
                     show.treeList.SetValue(iter, TITLE, text)
             })
 
@@ -206,21 +145,21 @@ func NewShow(edit *Editor) *ShowTree {
             }
 
             show.edit.SetPage(show.pages[pageNum])
-            conn["Preview"].setPage <- show.pages[pageNum]
-            conn["Preview"].sendPage <- ANIMATE_ON
+            conn["Preview"].SetPage <- show.pages[pageNum]
+            conn["Preview"].SetAction <- tcp.ANIMATE_ON
         })
 
     return show 
 }
 
-func (show *ShowTree) NewShowPage(temp *Template) *Page {
+func (show *ShowTree) NewShowPage(temp *props.Template) *props.Page {
     show.numPages++
-    show.pages[show.numPages] = NewPage(show.numPages, temp.title, temp)
+    show.pages[show.numPages] = props.NewPage(show.numPages, temp.Title, temp)
     page := show.pages[show.numPages]
     show.treeList.Set(
         show.treeList.Append(), 
         []int{PAGENUM, TITLE, TEMPLATEID}, 
-        []interface{}{page.pageNum, page.title, page.templateID})
+        []interface{}{page.PageNum, page.Title, page.TemplateID})
     return page
 }
 
@@ -242,7 +181,7 @@ func (show *ShowTree) ImportShow(temp *TempTree, filename string) {
 
     scanner := bufio.NewScanner(file)
 
-    var page *Page
+    var page *props.Page
     for scanner.Scan() {
         line := scanner.Text()
         if pageReg.Match(scanner.Bytes()) {
@@ -253,7 +192,7 @@ func (show *ShowTree) ImportShow(temp *TempTree, filename string) {
             }
 
             page = show.NewShowPage(temp.temps[tempID])
-            page.title = match[2]
+            page.Title = match[2]
         } else if page != nil {
             match := propReg.FindStringSubmatch(line)
             if len(match) < 2 {
@@ -267,7 +206,7 @@ func (show *ShowTree) ImportShow(temp *TempTree, filename string) {
                 log.Fatalf("Error importing show (%s)", err);
             }
 
-            prop := page.propMap[index]
+            prop := page.PropMap[index]
 
             if prop == nil {
                 log.Printf("Unknown property (%d)\n", index)
@@ -287,10 +226,10 @@ func (show *ShowTree) ExportShow(filename string) {
     defer file.Close()
 
     for _, page := range show.pages {
-        pageString := fmt.Sprintf("temp %d; title \"%s\";\n", page.templateID, page.title)
+        pageString := fmt.Sprintf("temp %d; title \"%s\";\n", page.TemplateID, page.Title)
         file.Write([]byte(pageString))
 
-        for index, prop := range page.propMap {
+        for index, prop := range page.PropMap {
             if prop == nil {
                 continue
             }

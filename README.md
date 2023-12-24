@@ -12,6 +12,16 @@ Communicates with [Chroma Engine][chroma-engine] over tcp to render graphics.
 
 ![Chroma_Engine](data/chroma-viz.png)
 
+## Installation
+
+- Install and build [Chroma Engine][chroma-engine].
+- Set the `engDir` constants in `viz/preview.go` and `artist/preview.go` to the location of the Chroma Engine binary.
+- Run 
+
+```
+go run main.go -mode=[viz | artist]
+```
+
 ## Disclaimer
 
 This is a personal project, not an application intended for production.

@@ -1,4 +1,4 @@
-package gui
+package viz
 
 import (
 	"log"

@@ -1,6 +1,7 @@
-package gui
+package tcp
 
 import (
+	"chroma-viz/props"
 	"fmt"
 	"log"
 	"net"
@@ -21,14 +22,14 @@ type Connection struct {
     port        int
     connected   bool
     conn        net.Conn
-    setPage     chan *Page
-    sendPage    chan int
+    SetPage     chan *props.Page
+    SetAction   chan int
 }
 
 func NewConnection(addr string, port int) *Connection {
     conn := &Connection{addr: addr, port: port}
-    conn.setPage = make(chan *Page, 1)
-    conn.sendPage = make(chan int, 1)
+    conn.SetPage = make(chan *props.Page, 1)
+    conn.SetAction = make(chan int, 1)
 
     go conn.SendPage()
     return conn
@@ -48,13 +49,13 @@ func (conn *Connection) Connect() {
 
 // TCP Format: ver%d#len%d#action%d#page%d#attr%s#val%d ... END_OF_MESSAGE
 func (conn *Connection) SendPage() {
-    var page *Page
+    var page *props.Page
 
     for {
-        action := <-conn.sendPage
+        action := <-conn.SetAction
 
         select {
-        case page = <-conn.setPage:
+        case page = <-conn.SetPage:
         default:
         }
 
@@ -83,11 +84,11 @@ func (conn *Connection) SendPage() {
         version := [...]int{1, 4}
 
         header := fmt.Sprintf("ver=%d,%d#layer=%d#action=%d#temp=%d#", 
-            version[0], version[1], page.layer, action, page.templateID)
+            version[0], version[1], page.Layer, action, page.TemplateID)
 
         str := header
 
-        for i, prop := range page.propMap {
+        for i, prop := range page.PropMap {
             str = fmt.Sprintf("%sgeo_num=%d#%s", str, i + 1, prop.String())
         }
 

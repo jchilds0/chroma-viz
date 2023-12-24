@@ -1,7 +1,8 @@
-package gui
+package viz
 
 import (
 	"chroma-viz/props"
+	"chroma-viz/tcp"
 	"fmt"
 	"log"
 
@@ -17,7 +18,7 @@ type Editor struct {
     box       *gtk.Box
     tabs      *gtk.Notebook
     header    *gtk.HeaderBar
-    page      *Page
+    page      *props.Page
     animate   func()
     cont      func()
     pairs     []Pairing
@@ -79,9 +80,9 @@ func NewEditor() *Editor {
             return
         }
 
-        editor.UpdateProps(ANIMATE_ON)
-        conn["Engine"].setPage <- editor.page
-        conn["Engine"].sendPage <- ANIMATE_ON
+        editor.UpdateProps(tcp.ANIMATE_ON)
+        conn["Engine"].SetPage <- editor.page
+        conn["Engine"].SetAction <- tcp.ANIMATE_ON
     })
 
     take2.Connect("clicked", func() { 
@@ -96,9 +97,9 @@ func NewEditor() *Editor {
             return
         }
 
-        editor.UpdateProps(CONTINUE)
-        conn["Engine"].setPage <- editor.page
-        conn["Engine"].sendPage <- CONTINUE 
+        editor.UpdateProps(tcp.CONTINUE)
+        conn["Engine"].SetPage <- editor.page
+        conn["Engine"].SetAction <- tcp.CONTINUE 
     })
 
     take3.Connect("clicked", func() { 
@@ -107,9 +108,9 @@ func NewEditor() *Editor {
             return
         }
 
-        editor.UpdateProps(ANIMATE_OFF)
-        conn["Engine"].setPage <- editor.page
-        conn["Engine"].sendPage <- ANIMATE_OFF
+        editor.UpdateProps(props.ANIMATE_OFF)
+        conn["Engine"].SetPage <- editor.page
+        conn["Engine"].SetAction <- tcp.ANIMATE_OFF
     })
 
     save.Connect("clicked", func() {
@@ -118,8 +119,8 @@ func NewEditor() *Editor {
             return
         }
 
-        conn["Preview"].setPage <- editor.page
-        conn["Preview"].sendPage <- ANIMATE_ON
+        conn["Preview"].SetPage <- editor.page
+        conn["Preview"].SetAction <- tcp.ANIMATE_ON
     })
 
     editor.tabs, err = gtk.NotebookNew()
@@ -144,15 +145,15 @@ func NewEditor() *Editor {
     editor.propEdit = make([][]props.PropertyEditor, props.NUM_PROPS)
 
     editor.animate = func() { 
-        editor.UpdateProps(ANIMATE_ON)
-        conn["Preview"].setPage <- editor.page
-        conn["Preview"].sendPage <- ANIMATE_ON
+        editor.UpdateProps(tcp.ANIMATE_ON)
+        conn["Preview"].SetPage <- editor.page
+        conn["Preview"].SetAction <- tcp.ANIMATE_ON
     }
 
     editor.cont = func() {
-        editor.UpdateProps(CONTINUE)
-        conn["Engine"].sendPage <- CONTINUE
-        conn["Preview"].sendPage <- CONTINUE
+        editor.UpdateProps(tcp.CONTINUE)
+        conn["Engine"].SetAction <- tcp.CONTINUE
+        conn["Preview"].SetAction <- tcp.CONTINUE
     }
     
     for i := range editor.propEdit {
@@ -177,7 +178,7 @@ func (edit *Editor) UpdateProps(action int) {
     }
 }
 
-func (edit *Editor) SetPage(page *Page) {
+func (edit *Editor) SetPage(page *props.Page) {
     num_pages := edit.tabs.GetNPages()
     for i := 0; i < num_pages; i++  {
         edit.tabs.RemovePage(0)
@@ -186,7 +187,7 @@ func (edit *Editor) SetPage(page *Page) {
     edit.page = page
     edit.pairs = make([]Pairing, 0, 10)
     propCount := make([]int, props.NUM_PROPS)
-    for _, prop := range edit.page.propMap {
+    for _, prop := range edit.page.PropMap {
         if prop == nil {
             log.Print("Editor recieved nil prop")
             continue

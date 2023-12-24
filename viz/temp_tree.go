@@ -1,4 +1,4 @@
-package gui
+package viz
 
 import (
 	"chroma-viz/props"
@@ -15,65 +15,10 @@ const (
     LOWER_FRAME
     TICKER
 )
-
-type Template struct {
-    Box         *gtk.ListBoxRow
-    title       string
-    templateID  int
-    numProps    int
-    layer       int
-    propType    []int
-    propName    []string
-}
-
-func NewTemplate(title string, id int, layer int, n int) *Template {
-    temp := &Template{title: title, templateID: id, layer: layer}
-
-    temp.propType = make([]int, n)
-    temp.propName = make([]string, n)
-    return temp
-}
-
-func (temp *Template) templateToListRow() *gtk.ListBoxRow {
-    row1, err := gtk.ListBoxRowNew()
-    if err != nil {
-        log.Fatalf("Error converting template to row (%s)", err)
-    }
-
-    row1.Add(textToBuffer(temp.title))
-    return row1
-}
-
-func (temp *Template) AddProp(name string, typed int) {
-    if temp.numProps == len(temp.propName) {
-        log.Println("Ran out of memory in template")
-        return
-    }
-
-    temp.propName[temp.numProps] = name
-    temp.propType[temp.numProps] = typed
-    temp.numProps++
-}
-
-func textToBuffer(text string) *gtk.TextView {
-    text1, err := gtk.TextViewNew()
-    if err != nil {
-        log.Fatalf("Error creating text buffer (%s)", err)
-    }
-
-    buffer, err := text1.GetBuffer()
-    if err != nil {
-        log.Fatalf("Error creating text buffer (%s)", err)
-    }
-
-    buffer.SetText(text)
-    return text1
-}
-
 type TempTree struct {
     *gtk.TreeView
     treeList  *gtk.ListStore
-    temps     map[int]*Template
+    temps     map[int]*props.Template
     show      *ShowTree
 }
 
@@ -86,7 +31,7 @@ func NewTempList(show *ShowTree) *TempTree {
         log.Fatalf("Error creating temp list (%s)", err)
     }
 
-    temp.temps = make(map[int]*Template)
+    temp.temps = make(map[int]*props.Template)
     temp.show = show
 
     cell, err := gtk.CellRendererTextNew()
@@ -144,8 +89,8 @@ func NewTempList(show *ShowTree) *TempTree {
     return temp
 }
 
-func (temp *TempTree) AddTemplate(title string, id, layer, n int) *Template {
-    temp.temps[id] = NewTemplate(title, id, layer, n)
+func (temp *TempTree) AddTemplate(title string, id, layer, n int) *props.Template {
+    temp.temps[id] = props.NewTemplate(title, id, layer, n)
 
     temp.treeList.Set(
         temp.treeList.Append(), 
@@ -156,7 +101,7 @@ func (temp *TempTree) AddTemplate(title string, id, layer, n int) *Template {
 }
 
 func (temp *TempTree) exampleHub() {
-    var page *Template
+    var page *props.Template
 
     page = temp.AddTemplate("Red Box", 1, TOP_LEFT, 10)
     page.AddProp("Background", props.RECT_PROP)

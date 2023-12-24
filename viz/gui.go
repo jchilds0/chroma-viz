@@ -1,7 +1,8 @@
-package gui
+package viz
 
 import (
 	"chroma-viz/props"
+	"chroma-viz/tcp"
 	"log"
 	"math"
 	"math/rand"
@@ -11,14 +12,14 @@ import (
 	"github.com/gotk3/gotk3/gtk"
 )
 
-var conn map[string]*Connection
+var conn map[string]*tcp.Connection
 
 func InitConnections(){
-    conn = make(map[string]*Connection)
+    conn = make(map[string]*tcp.Connection)
 }
 
 func AddConnection(name string, ip string, port int) {
-    conn[name] = NewConnection(ip, port)
+    conn[name] = tcp.NewConnection(ip, port)
 }
 
 func CloseConn() {
@@ -30,7 +31,7 @@ func CloseConn() {
     }
 }
 
-func MainGui(app *gtk.Application) {
+func VizGui(app *gtk.Application) {
     win, err := gtk.ApplicationWindowNew(app)
     if err != nil {
         log.Fatal(err)
@@ -146,8 +147,9 @@ func MainGui(app *gtk.Application) {
     scroll2.Add(showView)
 
     /* right */
-    preview := setup_preview_window()
     rightBox.PackStart(editView.Box(), true, true, 0)
+
+    preview := setup_preview_window()
     rightBox.PackEnd(preview, false, false, 0)
 
     /* Lower Bar layout */
