@@ -1,7 +1,7 @@
 package tcp
 
 import (
-	"chroma-viz/props"
+	"chroma-viz/shows"
 	"fmt"
 	"log"
 	"net"
@@ -21,14 +21,14 @@ type Connection struct {
     addr        string
     port        int
     connected   bool
-    conn        net.Conn
-    SetPage     chan *props.Page
+    Conn        net.Conn
+    SetPage     chan *shows.Page
     SetAction   chan int
 }
 
 func NewConnection(addr string, port int) *Connection {
     conn := &Connection{addr: addr, port: port}
-    conn.SetPage = make(chan *props.Page, 1)
+    conn.SetPage = make(chan *shows.Page, 1)
     conn.SetAction = make(chan int, 1)
 
     go conn.SendPage()
@@ -37,7 +37,9 @@ func NewConnection(addr string, port int) *Connection {
 
 func (conn *Connection) Connect() {
     var err error
-    conn.conn, err = net.Dial("tcp", conn.addr + ":" + strconv.Itoa(conn.port))
+    fmt.Println(conn.addr)
+    fmt.Println(conn.port)
+    conn.Conn, err = net.Dial("tcp", conn.addr + ":" + strconv.Itoa(conn.port))
 
     if err != nil {
         log.Print(err)
@@ -49,7 +51,7 @@ func (conn *Connection) Connect() {
 
 // TCP Format: ver%d#len%d#action%d#page%d#attr%s#val%d ... END_OF_MESSAGE
 func (conn *Connection) SendPage() {
-    var page *props.Page
+    var page *shows.Page
 
     for {
         action := <-conn.SetAction
@@ -93,14 +95,14 @@ func (conn *Connection) SendPage() {
         }
 
         str = str + string(END_OF_MESSAGE)
-        conn.conn.Write([]byte(str))
+        conn.Conn.Write([]byte(str))
     }
 }
 
 func (conn *Connection) CloseConn() {
-    if conn.conn != nil {
-        conn.conn.Write([]byte(string(END_OF_CONN)))
-        conn.conn.Close()
+    if conn.Conn != nil {
+        conn.Conn.Write([]byte(string(END_OF_CONN)))
+        conn.Conn.Close()
     }
 }
 
@@ -110,8 +112,8 @@ func (conn *Connection) IsConnected() bool {
 
 func (conn *Connection) Read() (string, error) {
     buf := make([]byte, 100)
-    conn.conn.SetReadDeadline(time.Now().Add(100 * time.Millisecond))
-    _, err := conn.conn.Read(buf)
+    conn.Conn.SetReadDeadline(time.Now().Add(100 * time.Millisecond))
+    _, err := conn.Conn.Read(buf)
 
     return string(buf), err
 }
@@ -124,7 +126,7 @@ func (conn *Connection) Read() (string, error) {
 func (conn *Connection) Watcher(emit func()) {
     for {
         time.Sleep(500 * time.Millisecond)
-        if conn.conn == nil {
+        if conn.Conn == nil {
             emit()
             conn.connected = false
             return

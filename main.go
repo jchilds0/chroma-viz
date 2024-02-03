@@ -7,18 +7,21 @@ import (
 	"log"
 	"os"
 	"runtime/pprof"
+	"strconv"
+	"strings"
 
 	"github.com/gotk3/gotk3/glib"
 	"github.com/gotk3/gotk3/gtk"
 )
 
-var cpuprofile = flag.String("cpuprofile", "", "write cpu profile to file")
+var profile = flag.String("profile", "", "write profile to file")
 var mode = flag.String("mode", "", "chroma mode (artist | viz)")
+var hub = flag.String("hub", "127.0.0.1:9000", "graphics hub port")
 
 func main() {
     flag.Parse()
-    if *cpuprofile != "" {
-        f, err := os.Create(*cpuprofile)
+    if *profile != "" {
+        f, err := os.Create(*profile)
         if err != nil {
             log.Fatal(err)
         }
@@ -44,8 +47,16 @@ func main() {
         viz.InitConnections()
         defer viz.CloseConn()
 
+        hubAddr := strings.Split(*hub, ":")[0]
+        hubPort, err := strconv.Atoi(strings.Split(*hub, ":")[1])
+        if err != nil {
+            log.Printf("Invalid graphics hub address (%s)", *hub)
+            hubPort = 9000
+        }
+
         viz.AddConnection("Engine", "127.0.0.1", 6800)
         viz.AddConnection("Preview", "127.0.0.1", 6100)
+        viz.AddConnection("Hub", hubAddr, hubPort)
 
         app, err = gtk.ApplicationNew("app.chroma.viz", glib.APPLICATION_FLAGS_NONE)
         if err != nil {

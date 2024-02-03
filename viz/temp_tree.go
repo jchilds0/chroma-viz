@@ -2,6 +2,7 @@ package viz
 
 import (
 	"chroma-viz/props"
+	"chroma-viz/templates"
 	"log"
 	"strconv"
 
@@ -15,24 +16,24 @@ const (
     LOWER_FRAME
     TICKER
 )
+
 type TempTree struct {
     *gtk.TreeView
-    treeList  *gtk.ListStore
-    temps     map[int]*props.Template
-    show      *ShowTree
+    treeList        *gtk.ListStore
+    Temps           map[int]*templates.Template
+    sendTemplate    func(*templates.Template)
 }
 
-func NewTempList(show *ShowTree) *TempTree {
+func NewTempTree(sendTemplate func(*templates.Template)) *TempTree {
     var err error
-    temp := &TempTree{}
+    temp := &TempTree{sendTemplate: sendTemplate}
 
     temp.TreeView, err = gtk.TreeViewNew()
     if err != nil {
         log.Fatalf("Error creating temp list (%s)", err)
     }
 
-    temp.temps = make(map[int]*props.Template)
-    temp.show = show
+    temp.Temps = make(map[int]*templates.Template)
 
     cell, err := gtk.CellRendererTextNew()
     if err != nil {
@@ -68,6 +69,7 @@ func NewTempList(show *ShowTree) *TempTree {
 
             id, err := temp.treeList.GetValue(iter, 1)
             if err != nil {
+                log.Fatalf("Error sending template to show (%s)", err)
             }
 
             val, err := id.GoValue()
@@ -80,46 +82,43 @@ func NewTempList(show *ShowTree) *TempTree {
                 log.Fatalf("Error sending template to show (%s)", err)
             }
 
-
-            temp.show.NewShowPage(temp.temps[tempID]) 
+            temp.sendTemplate(temp.Temps[tempID])
         })
-
-    temp.exampleHub()
 
     return temp
 }
 
-func (temp *TempTree) AddTemplate(title string, id, layer, n int) *props.Template {
-    temp.temps[id] = props.NewTemplate(title, id, layer, n)
+func (temp *TempTree) AddTemplate(title string, id, layer, n int) (*templates.Template, error) {
+    temp.Temps[id] = templates.NewTemplate(title, id, layer, n)
 
-    temp.treeList.Set(
+    err := temp.treeList.Set(
         temp.treeList.Append(), 
         []int{0, 1}, 
         []interface{}{title, id})
 
-    return temp.temps[id]
+    return temp.Temps[id], err
 }
 
 func (temp *TempTree) exampleHub() {
-    var page *props.Template
+    var page *templates.Template
 
-    page = temp.AddTemplate("Red Box", 1, TOP_LEFT, 10)
+    page, _ = temp.AddTemplate("Red Box", 1, TOP_LEFT, 10)
     page.AddProp("Background", props.RECT_PROP)
     page.AddProp("Title", props.TEXT_PROP)
     page.AddProp("Subtitle", props.TEXT_PROP)
 
-    page = temp.AddTemplate("Orange Box", 2, TOP_LEFT, 10)
+    page, _ = temp.AddTemplate("Orange Box", 2, TOP_LEFT, 10)
     page.AddProp("Background", props.RECT_PROP)
     page.AddProp("Title", props.TEXT_PROP)
     page.AddProp("Subtitle", props.TEXT_PROP)
 
-    page = temp.AddTemplate("Blue Box", 3, LOWER_FRAME, 10)
+    page, _ = temp.AddTemplate("Blue Box", 3, LOWER_FRAME, 10)
     page.AddProp("Background", props.RECT_PROP)
     page.AddProp("Logo", props.CIRCLE_PROP)
     page.AddProp("Title", props.TEXT_PROP)
     page.AddProp("Subtitle", props.TEXT_PROP)
 
-    page = temp.AddTemplate("Clock Box", 4, TOP_LEFT, 20)
+    page, _ = temp.AddTemplate("Clock Box", 4, TOP_LEFT, 20)
     page.AddProp("Background", props.RECT_PROP)
     page.AddProp("Circle", props.CIRCLE_PROP)
     page.AddProp("Left Split", props.RECT_PROP)
@@ -132,15 +131,15 @@ func (temp *TempTree) exampleHub() {
     page.AddProp("Clock", props.CLOCK_PROP)
     page.AddProp("Clock Title", props.TEXT_PROP)
 
-    page = temp.AddTemplate("White Circle", 5, LOWER_FRAME, 10)
+    page, _ = temp.AddTemplate("White Circle", 5, LOWER_FRAME, 10)
     page.AddProp("Circle", props.CIRCLE_PROP)
 
-    page = temp.AddTemplate("Graph", 6, LOWER_FRAME, 10)
+    page, _ = temp.AddTemplate("Graph", 6, LOWER_FRAME, 10)
     page.AddProp("Background", props.RECT_PROP)
     page.AddProp("Graph", props.GRAPH_PROP)
     page.AddProp("Title", props.TEXT_PROP)
 
-    page = temp.AddTemplate("Ticker", 7, TICKER, 10)
+    page, _ = temp.AddTemplate("Ticker", 7, TICKER, 10)
     page.AddProp("Background", props.RECT_PROP)
     page.AddProp("Box", props.RECT_PROP)
     page.AddProp("Text", props.TICKER_PROP)

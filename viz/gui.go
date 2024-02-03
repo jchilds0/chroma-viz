@@ -2,9 +2,10 @@ package viz
 
 import (
 	"chroma-viz/props"
+	"chroma-viz/shows"
 	"chroma-viz/tcp"
+	"chroma-viz/templates"
 	"log"
-	"math"
 	"math/rand"
 	"time"
 
@@ -14,7 +15,7 @@ import (
 
 var conn map[string]*tcp.Connection
 
-func InitConnections(){
+func InitConnections() {
     conn = make(map[string]*tcp.Connection)
 }
 
@@ -41,10 +42,15 @@ func VizGui(app *gtk.Application) {
     win.SetTitle("Chroma Viz")
 
     editView := NewEditor()
-    showView := NewShow(editView)
-    tempView := NewTempList(showView)
+    showView := NewShow(func(page *shows.Page) { editView.SetPage(page) }, conn)
+    tempView := NewTempTree(func(temp *templates.Template) {showView.NewShowPage(temp)})
 
-    showView.ImportShow(tempView, "/home/josh/Documents/projects/chroma-viz/shows/testing.show")
+    conn["Hub"].Connect()
+    templates.ImportTemplates(conn["Hub"].Conn, tempView.Temps)
+
+    return
+
+    //showView.ImportShow(tempView, "/home/josh/Documents/projects/chroma-viz/shows/simple.show")
     //testGui(tempView, showView)
 
     box, err := gtk.BoxNew(gtk.ORIENTATION_VERTICAL, 0)
@@ -191,7 +197,11 @@ func guiImportShow(win *gtk.ApplicationWindow, show *ShowTree, temp *TempTree) {
 
     if res == gtk.RESPONSE_ACCEPT {
         filename := dialog.GetFilename()
-        show.ImportShow(temp, filename)
+        err := show.ImportShow(temp, filename)
+
+        if err != nil {
+            log.Printf("Error importing show (%s)", err)
+        }
     }
     dialog.Destroy()
 }
@@ -216,15 +226,15 @@ func guiExportShow(win *gtk.ApplicationWindow, show *ShowTree) {
 }
 
 func testGui(temp *TempTree, show *ShowTree) {
-    num_temps := int(math.Pow(10, 4))
+    num_temps := 10000
     num_props := 100
-    num_pages := 100
+    num_pages := 1000
 
     log.Printf("Testing with %d Templates, %d Properties, %d Pages\n", num_temps, num_props, num_pages)
 
     start := time.Now()
     for i := 1; i < num_temps; i++ {
-        page := temp.AddTemplate("Template", i, LOWER_FRAME, num_props)
+        page, _ := temp.AddTemplate("Template", i, LOWER_FRAME, num_props)
 
         for j := 0; j < num_props; j++ {
             page.AddProp("Background", props.RECT_PROP)
@@ -238,7 +248,7 @@ func testGui(temp *TempTree, show *ShowTree) {
     start = time.Now()
     for i := 0; i < num_pages; i++ {
         index := rand.Int() % (num_temps - 1) + 1
-        show.NewShowPage(temp.temps[index])
+        show.NewShowPage(temp.Temps[index])
     }
 
     t = time.Now()

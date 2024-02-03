@@ -2,8 +2,10 @@ package viz
 
 import (
 	"bufio"
-	"chroma-viz/props"
+	"chroma-viz/shows"
 	"chroma-viz/tcp"
+	"chroma-viz/templates"
+	"errors"
 	"fmt"
 	"log"
 	"os"
@@ -30,13 +32,12 @@ var KEYTITLE = map[int]string{
 type ShowTree struct {
     *gtk.TreeView
     treeList  *gtk.ListStore
-    pages     map[int]*props.Page
+    pages     map[int]*shows.Page
     numPages  int
-    edit      *Editor
     columns   [NUMCOL]bool
 }
 
-func NewShow(edit *Editor) *ShowTree {
+func NewShow(sendPage func(*shows.Page), conn map[string]*tcp.Connection) *ShowTree {
     var err error
     show := &ShowTree{}
 
@@ -47,7 +48,7 @@ func NewShow(edit *Editor) *ShowTree {
 
     show.TreeView.SetReorderable(true)
 
-    show.pages = make(map[int]*props.Page)
+    show.pages = make(map[int]*shows.Page)
     show.columns = [NUMCOL]bool{true, true, true}
 
     /* Columns */
@@ -117,9 +118,7 @@ func NewShow(edit *Editor) *ShowTree {
         log.Fatalf("Error creating show (%s)", err)
     }
 
-
     show.SetModel(show.treeList)
-    show.edit = edit
 
     // TODO: remove reference to show from outside scope
     show.Connect("row-activated", 
@@ -144,7 +143,7 @@ func NewShow(edit *Editor) *ShowTree {
                 log.Fatalf("Error sending page to editor (%s)", err)
             }
 
-            show.edit.SetPage(show.pages[pageNum])
+            sendPage(show.pages[pageNum])
             conn["Preview"].SetPage <- show.pages[pageNum]
             conn["Preview"].SetAction <- tcp.ANIMATE_ON
         })
@@ -152,9 +151,9 @@ func NewShow(edit *Editor) *ShowTree {
     return show 
 }
 
-func (show *ShowTree) NewShowPage(temp *props.Template) *props.Page {
+func (show *ShowTree) NewShowPage(temp *templates.Template) *shows.Page {
     show.numPages++
-    show.pages[show.numPages] = props.NewPage(show.numPages, temp.Title, temp)
+    show.pages[show.numPages] = shows.NewPage(show.numPages, temp.Title, temp)
     page := show.pages[show.numPages]
     show.treeList.Set(
         show.treeList.Append(), 
@@ -163,35 +162,39 @@ func (show *ShowTree) NewShowPage(temp *props.Template) *props.Page {
     return page
 }
 
-func (show *ShowTree) ImportShow(temp *TempTree, filename string) {
+func (show *ShowTree) ImportShow(temp *TempTree, filename string) error {
     pageReg, err := regexp.Compile("temp (?P<tempID>[0-9]*); title \"(?P<title>.*)\";")
     if err != nil {
-        log.Fatalf("Error importing show (%s)", err)
+        return err
     }
 
     propReg, err := regexp.Compile("index (?P<type>[0-9]*);")
     if err != nil {
-        log.Fatalf("Error importing show (%s)", err)
+        return err
     }
 
     file, err := os.Open(filename)
     if err != nil {
-        log.Fatalf("Error importing show (%s)", err)
+        return err
     }
 
     scanner := bufio.NewScanner(file)
 
-    var page *props.Page
+    var page *shows.Page
     for scanner.Scan() {
         line := scanner.Text()
         if pageReg.Match(scanner.Bytes()) {
             match := pageReg.FindStringSubmatch(line)
             tempID, err := strconv.Atoi(match[1])
             if err != nil {
-                log.Fatalf("Error importing show (%s)", err)
+                return err
             }
 
-            page = show.NewShowPage(temp.temps[tempID])
+            if 0 < tempID || tempID >= len(temp.Temps) {
+                return errors.New("Template ID out of range")
+            }
+
+            page = show.NewShowPage(temp.Temps[tempID])
             page.Title = match[2]
         } else if page != nil {
             match := propReg.FindStringSubmatch(line)
@@ -203,7 +206,7 @@ func (show *ShowTree) ImportShow(temp *TempTree, filename string) {
             index, err := strconv.Atoi(match[1])
 
             if err != nil {
-                log.Fatalf("Error importing show (%s)", err);
+                return err
             }
 
             prop := page.PropMap[index]
@@ -216,6 +219,8 @@ func (show *ShowTree) ImportShow(temp *TempTree, filename string) {
             prop.Decode(line)
         }
     }
+
+    return nil
 }
 
 func (show *ShowTree) ExportShow(filename string) {

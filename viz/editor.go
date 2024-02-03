@@ -2,6 +2,7 @@ package viz
 
 import (
 	"chroma-viz/props"
+	"chroma-viz/shows"
 	"chroma-viz/tcp"
 	"fmt"
 	"log"
@@ -18,7 +19,7 @@ type Editor struct {
     box       *gtk.Box
     tabs      *gtk.Notebook
     header    *gtk.HeaderBar
-    page      *props.Page
+    page      *shows.Page
     animate   func()
     cont      func()
     pairs     []Pairing
@@ -92,7 +93,7 @@ func NewEditor() *Editor {
         }
 
         _, ok := conn["Engine"]
-        if ok == false {
+        if !ok {
             fmt.Println("Engine not found")
             return
         }
@@ -178,7 +179,7 @@ func (edit *Editor) UpdateProps(action int) {
     }
 }
 
-func (edit *Editor) SetPage(page *props.Page) {
+func (edit *Editor) SetPage(page *shows.Page) {
     num_pages := edit.tabs.GetNPages()
     for i := 0; i < num_pages; i++  {
         edit.tabs.RemovePage(0)
