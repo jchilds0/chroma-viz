@@ -5,7 +5,6 @@ import (
 	"chroma-viz/shows"
 	"chroma-viz/tcp"
 	"chroma-viz/templates"
-	"errors"
 	"fmt"
 	"log"
 	"os"
@@ -152,6 +151,11 @@ func NewShow(sendPage func(*shows.Page), conn map[string]*tcp.Connection) *ShowT
 }
 
 func (show *ShowTree) NewShowPage(temp *templates.Template) *shows.Page {
+    if temp == nil {
+        log.Printf("Invalid template")
+        return nil
+    }
+
     show.numPages++
     show.pages[show.numPages] = shows.NewPage(show.numPages, temp.Title, temp)
     page := show.pages[show.numPages]
@@ -188,10 +192,6 @@ func (show *ShowTree) ImportShow(temp *TempTree, filename string) error {
             tempID, err := strconv.Atoi(match[1])
             if err != nil {
                 return err
-            }
-
-            if 0 < tempID || tempID >= len(temp.Temps) {
-                return errors.New("Template ID out of range")
             }
 
             page = show.NewShowPage(temp.Temps[tempID])

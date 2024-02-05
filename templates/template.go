@@ -12,15 +12,15 @@ type Template struct {
     TempID  int
     NumProps    int
     Layer       int
-    PropType    []int
-    PropName    []string
+    PropType    map[int]int
+    PropName    map[int]string
 }
 
-func NewTemplate(title string, id int, layer int, n int) *Template {
+func NewTemplate(title string, id int, layer int, num_geo int) *Template {
     temp := &Template{Title: title, TempID: id, Layer: layer}
 
-    temp.PropType = make([]int, n)
-    temp.PropName = make([]string, n)
+    temp.PropType = make(map[int]int, num_geo)
+    temp.PropName = make(map[int]string, num_geo)
     return temp
 }
 
@@ -34,14 +34,9 @@ func (temp *Template) TemplateToListRow() *gtk.ListBoxRow {
     return row1
 }
 
-func (temp *Template) AddProp(name string, typed int) {
-    if temp.NumProps == len(temp.PropName) {
-        log.Println("Ran out of memory in template")
-        return
-    }
-
-    temp.PropName[temp.NumProps] = name
-    temp.PropType[temp.NumProps] = typed
+func (temp *Template) AddProp(name string, geo_id, typed int) {
+    temp.PropName[geo_id] = name
+    temp.PropType[geo_id] = typed
     temp.NumProps++
 }
 

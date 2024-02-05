@@ -7,6 +7,7 @@ import (
 	"chroma-viz/templates"
 	"log"
 	"math/rand"
+	"net"
 	"time"
 
 	"github.com/gotk3/gotk3/glib"
@@ -45,10 +46,17 @@ func VizGui(app *gtk.Application) {
     showView := NewShow(func(page *shows.Page) { editView.SetPage(page) }, conn)
     tempView := NewTempTree(func(temp *templates.Template) {showView.NewShowPage(temp)})
 
-    conn["Hub"].Connect()
-    templates.ImportTemplates(conn["Hub"].Conn, tempView.Temps)
+    hub, err := net.Dial("tcp", "127.0.0.1:9000")
+    if err != nil {
+        log.Printf("Error connecting to hub (%s)", err)
+    }
 
-    return
+    err = ImportTemplates(hub, tempView)
+    if err != nil {
+        log.Printf("Error importing hub (%s)", err)
+    }
+
+    log.Println("Graphics hub imported")
 
     //showView.ImportShow(tempView, "/home/josh/Documents/projects/chroma-viz/shows/simple.show")
     //testGui(tempView, showView)
@@ -237,7 +245,7 @@ func testGui(temp *TempTree, show *ShowTree) {
         page, _ := temp.AddTemplate("Template", i, LOWER_FRAME, num_props)
 
         for j := 0; j < num_props; j++ {
-            page.AddProp("Background", props.RECT_PROP)
+            page.AddProp("Background", j, props.RECT_PROP)
         }
     }
 

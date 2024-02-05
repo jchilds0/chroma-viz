@@ -37,8 +37,6 @@ func NewConnection(addr string, port int) *Connection {
 
 func (conn *Connection) Connect() {
     var err error
-    fmt.Println(conn.addr)
-    fmt.Println(conn.port)
     conn.Conn, err = net.Dial("tcp", conn.addr + ":" + strconv.Itoa(conn.port))
 
     if err != nil {
@@ -91,7 +89,7 @@ func (conn *Connection) SendPage() {
         str := header
 
         for i, prop := range page.PropMap {
-            str = fmt.Sprintf("%sgeo_num=%d#%s", str, i + 1, prop.String())
+            str = fmt.Sprintf("%sgeo_num=%d#%s", str, i, prop.String())
         }
 
         str = str + string(END_OF_MESSAGE)

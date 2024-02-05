@@ -33,7 +33,7 @@ func setup_preview_window() *gtk.Frame {
     soc.SetVisible(true)
     soc.Connect("realize", func(soc *gtk.Socket) {
         xid = soc.GetId()
-        prev := exec.Command(engDir, "-wid", strconv.Itoa(int(xid)))
+        prev := exec.Command(engDir, "-w", strconv.Itoa(int(xid)))
         log.Print(prev.String())
 
         if err := prev.Start(); err != nil {

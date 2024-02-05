@@ -32,6 +32,15 @@ const (
     NUM_PROPS
 )
 
+var StringToProp map[string]int = map[string]int{
+    "rect": RECT_PROP,
+    "text": TEXT_PROP,
+    "circle": CIRCLE_PROP,
+    "graph": GRAPH_PROP,
+    "ticker": TICKER_PROP,
+    "clock": CLOCK_PROP,
+}
+
 type PropertyEditor interface {
     Update(Property)
     Box() *gtk.Box
