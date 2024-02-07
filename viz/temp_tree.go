@@ -24,9 +24,9 @@ type TempTree struct {
     sendTemplate    func(*templates.Template)
 }
 
-func NewTempTree(sendTemplate func(*templates.Template)) *TempTree {
+func NewTempTree(templateToShow func(*templates.Template)) *TempTree {
     var err error
-    temp := &TempTree{sendTemplate: sendTemplate}
+    temp := &TempTree{sendTemplate: templateToShow}
 
     temp.TreeView, err = gtk.TreeViewNew()
     if err != nil {

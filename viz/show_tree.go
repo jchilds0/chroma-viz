@@ -36,7 +36,7 @@ type ShowTree struct {
     columns   [NUMCOL]bool
 }
 
-func NewShow(sendPage func(*shows.Page), conn map[string]*tcp.Connection) *ShowTree {
+func NewShow(pageToEditor func(*shows.Page)) *ShowTree {
     var err error
     show := &ShowTree{}
 
@@ -142,9 +142,8 @@ func NewShow(sendPage func(*shows.Page), conn map[string]*tcp.Connection) *ShowT
                 log.Fatalf("Error sending page to editor (%s)", err)
             }
 
-            sendPage(show.pages[pageNum])
-            conn["Preview"].SetPage <- show.pages[pageNum]
-            conn["Preview"].SetAction <- tcp.ANIMATE_ON
+            pageToEditor(show.pages[pageNum])
+            SendPreview(show.pages[pageNum], tcp.ANIMATE_ON)
         })
 
     return show 

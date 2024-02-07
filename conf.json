@@ -1,0 +1,18 @@
+{
+    "HubAddr": "127.0.0.1",
+    "HubPort": 9000,
+    "Connections": [
+        {
+            "Name": "Engine",
+            "Address": "127.0.0.1",
+            "Port": 6800,
+            "Type": "engine"
+        },
+        {
+            "Name": "Preview",
+            "Address": "127.0.0.1",
+            "Port": 6100,
+            "Type": "preview"
+        }
+    ]
+}

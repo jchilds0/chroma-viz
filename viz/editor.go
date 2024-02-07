@@ -82,8 +82,7 @@ func NewEditor() *Editor {
         }
 
         editor.UpdateProps(tcp.ANIMATE_ON)
-        conn["Engine"].SetPage <- editor.page
-        conn["Engine"].SetAction <- tcp.ANIMATE_ON
+        SendEngine(editor.page, tcp.ANIMATE_ON)
     })
 
     take2.Connect("clicked", func() { 
@@ -92,15 +91,8 @@ func NewEditor() *Editor {
             return
         }
 
-        _, ok := conn["Engine"]
-        if !ok {
-            fmt.Println("Engine not found")
-            return
-        }
-
         editor.UpdateProps(tcp.CONTINUE)
-        conn["Engine"].SetPage <- editor.page
-        conn["Engine"].SetAction <- tcp.CONTINUE 
+        SendEngine(editor.page, tcp.CONTINUE)
     })
 
     take3.Connect("clicked", func() { 
@@ -110,8 +102,7 @@ func NewEditor() *Editor {
         }
 
         editor.UpdateProps(props.ANIMATE_OFF)
-        conn["Engine"].SetPage <- editor.page
-        conn["Engine"].SetAction <- tcp.ANIMATE_OFF
+        SendEngine(editor.page, tcp.ANIMATE_OFF)
     })
 
     save.Connect("clicked", func() {
@@ -120,8 +111,7 @@ func NewEditor() *Editor {
             return
         }
 
-        conn["Preview"].SetPage <- editor.page
-        conn["Preview"].SetAction <- tcp.ANIMATE_ON
+        SendPreview(editor.page, tcp.ANIMATE_ON)
     })
 
     editor.tabs, err = gtk.NotebookNew()
@@ -147,14 +137,13 @@ func NewEditor() *Editor {
 
     editor.animate = func() { 
         editor.UpdateProps(tcp.ANIMATE_ON)
-        conn["Preview"].SetPage <- editor.page
-        conn["Preview"].SetAction <- tcp.ANIMATE_ON
+        SendPreview(editor.page, tcp.ANIMATE_ON)
     }
 
     editor.cont = func() {
         editor.UpdateProps(tcp.CONTINUE)
-        conn["Engine"].SetAction <- tcp.CONTINUE
-        conn["Preview"].SetAction <- tcp.CONTINUE
+        SendPreview(editor.page, tcp.CONTINUE)
+        SendEngine(editor.page, tcp.CONTINUE)
     }
     
     for i := range editor.propEdit {

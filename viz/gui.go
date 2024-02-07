@@ -5,30 +5,90 @@ import (
 	"chroma-viz/shows"
 	"chroma-viz/tcp"
 	"chroma-viz/templates"
+	"fmt"
 	"log"
 	"math/rand"
-	"net"
 	"time"
 
 	"github.com/gotk3/gotk3/glib"
 	"github.com/gotk3/gotk3/gtk"
 )
 
-var conn map[string]*tcp.Connection
+var conn *GuiConn = NewGuiConn()
 
-func InitConnections() {
-    conn = make(map[string]*tcp.Connection)
+type GuiConn struct {
+    hub   *tcp.Connection
+    eng   []*tcp.Connection
+    prev  []*tcp.Connection
 }
 
-func AddConnection(name string, ip string, port int) {
-    conn[name] = tcp.NewConnection(ip, port)
+func NewGuiConn() *GuiConn {
+    gui := &GuiConn{}
+    gui.eng = make([]*tcp.Connection, 0, 10)
+    gui.prev = make([]*tcp.Connection, 0, 10)
+
+    return gui
+}
+
+func AddGraphicsHub(addr string, port int) {
+    conn.hub = tcp.NewConnection("Hub", addr, port)
+    conn.hub.Connect()
+}
+
+func AddConnection(name, conn_type, ip string, port int) error {
+    if conn_type == "engine" {
+        conn.eng = append(conn.eng, tcp.NewConnection(name, ip, port))
+        return nil
+    } else if conn_type == "preview" {
+        conn.prev = append(conn.prev, tcp.NewConnection(name, ip, port))
+        return nil
+    }
+
+    return fmt.Errorf("Unknown connection type %s", conn_type)
+}
+
+func SendPreview(page *shows.Page, action int) {
+    for _, c := range conn.prev {
+        if c == nil {
+            continue
+        }
+
+        c.SetPage <- page
+        c.SetAction <- action 
+    }
+}
+
+func SendEngine(page *shows.Page, action int) {
+    for _, c := range conn.eng {
+        if c == nil {
+            continue
+        }
+
+        c.SetPage <- page
+        c.SetAction <- action 
+    }
 }
 
 func CloseConn() {
-    for name, c := range conn {
+    for _, c := range conn.eng {
+        if c == nil {
+            continue
+        }
+
         if c.IsConnected() {
             c.CloseConn()
-            log.Printf("Closed %s\n", name)
+            log.Printf("Closed %s\n", c.Name)
+        }
+    }
+
+    for _, c := range conn.prev {
+        if c == nil {
+            continue
+        }
+
+        if c.IsConnected() {
+            c.CloseConn()
+            log.Printf("Closed %s\n", c.Name)
         }
     }
 }
@@ -43,20 +103,15 @@ func VizGui(app *gtk.Application) {
     win.SetTitle("Chroma Viz")
 
     editView := NewEditor()
-    showView := NewShow(func(page *shows.Page) { editView.SetPage(page) }, conn)
+    showView := NewShow(func(page *shows.Page) { editView.SetPage(page) })
     tempView := NewTempTree(func(temp *templates.Template) {showView.NewShowPage(temp)})
 
-    hub, err := net.Dial("tcp", "127.0.0.1:9000")
-    if err != nil {
-        log.Printf("Error connecting to hub (%s)", err)
-    }
-
-    err = ImportTemplates(hub, tempView)
+    err = ImportTemplates(conn.hub.Conn, tempView)
     if err != nil {
         log.Printf("Error importing hub (%s)", err)
+    } else {
+        log.Println("Graphics hub imported")
     }
-
-    log.Println("Graphics hub imported")
 
     //showView.ImportShow(tempView, "/home/josh/Documents/projects/chroma-viz/shows/simple.show")
     //testGui(tempView, showView)
@@ -183,8 +238,21 @@ func VizGui(app *gtk.Application) {
     button.SetLabel("Exit")
     button.Connect("clicked", func() { gtk.MainQuit() })
 
-    for name, render := range conn {
-        eng := NewEngineWidget(name, render)
+    for _, c := range conn.eng {
+        if c == nil {
+            continue
+        }
+
+        eng := NewEngineWidget(c)
+        lowerBox.PackStart(eng.button)
+    }
+
+    for _, c := range conn.prev {
+        if c == nil {
+            continue
+        }
+
+        eng := NewEngineWidget(c)
         lowerBox.PackStart(eng.button)
     }
 

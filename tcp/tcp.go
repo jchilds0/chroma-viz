@@ -18,6 +18,7 @@ const (
 )
 
 type Connection struct {
+    Name        string
     addr        string
     port        int
     connected   bool
@@ -26,8 +27,8 @@ type Connection struct {
     SetAction   chan int
 }
 
-func NewConnection(addr string, port int) *Connection {
-    conn := &Connection{addr: addr, port: port}
+func NewConnection(name, addr string, port int) *Connection {
+    conn := &Connection{Name: name, addr: addr, port: port}
     conn.SetPage = make(chan *shows.Page, 1)
     conn.SetAction = make(chan int, 1)
 

@@ -15,7 +15,7 @@ func InitConnections(){
 }
 
 func AddConnection(name string, ip string, port int) {
-    conn[name] = tcp.NewConnection(ip, port)
+    conn[name] = tcp.NewConnection(name, ip, port)
 }
 
 func CloseConn() {

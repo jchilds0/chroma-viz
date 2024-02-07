@@ -18,7 +18,7 @@ type EngineWidget struct {
     conn         *tcp.Connection
 }
 
-func NewEngineWidget(name string, conn *tcp.Connection) *EngineWidget {
+func NewEngineWidget(conn *tcp.Connection) *EngineWidget {
     var err error
     eng := &EngineWidget{conn: conn}
 
@@ -34,7 +34,7 @@ func NewEngineWidget(name string, conn *tcp.Connection) *EngineWidget {
 
     eng.button.Add(box)
 
-    label, err := gtk.LabelNew(name + " ")
+    label, err := gtk.LabelNew(conn.Name + " ")
     if err != nil {
         log.Fatalf("Error creating engine widget (%s)", err)
     }

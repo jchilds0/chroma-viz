@@ -3,10 +3,12 @@ package main
 import (
 	"chroma-viz/artist"
 	"chroma-viz/viz"
+	"encoding/json"
 	"flag"
 	"log"
 	"os"
 	"runtime/pprof"
+
 	"github.com/gotk3/gotk3/glib"
 	"github.com/gotk3/gotk3/gtk"
 )
@@ -41,19 +43,20 @@ func main() {
 
         app.Connect("activate", artist.ArtistGui)
     } else if *mode == "viz" {
-        viz.InitConnections()
         defer viz.CloseConn()
 
-        // hubAddr := strings.Split(*hub, ":")[0]
-        // hubPort, err := strconv.Atoi(strings.Split(*hub, ":")[1])
-        // if err != nil {
-        //     log.Printf("Invalid graphics hub address (%s)", *hub)
-        //     hubPort = 9000
-        //}
+        buf, err := os.ReadFile("conf.json")
+        if err != nil {
+            log.Fatalf("Error reading config file (%s)", err)
+        }
 
-        viz.AddConnection("Engine", "127.0.0.1", 6800)
-        viz.AddConnection("Preview", "127.0.0.1", 6100)
-        //viz.AddConnection("Hub", hubAddr, hubPort)
+        conf := NewConfig()
+        err = json.Unmarshal(buf, conf)
+        if err != nil {
+            log.Fatalf("Error parsing config file (%s)", err)
+        }
+
+        SendConnToViz(conf)
 
         app, err = gtk.ApplicationNew("app.chroma.viz", glib.APPLICATION_FLAGS_NONE)
         if err != nil {
@@ -69,3 +72,28 @@ func main() {
     app.Run([]string{})
 }
 
+type Conn struct {
+    Name    string
+    Address string
+    Port    int
+    Type    string
+}
+
+type Config struct {
+    HubAddr       string
+    HubPort       int
+    Connections   []Conn
+}
+
+func NewConfig() *Config {
+    conf := &Config{}
+    return conf
+}
+
+func SendConnToViz(conf *Config) {
+    viz.AddGraphicsHub(conf.HubAddr, conf.HubPort)
+
+    for _, c := range conf.Connections {
+        viz.AddConnection(c.Name, c.Type, c.Address, c.Port)
+    }
+}
