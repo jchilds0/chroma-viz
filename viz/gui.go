@@ -105,11 +105,11 @@ func VizGui(app *gtk.Application) {
     win.SetDefaultSize(800, 600)
     win.SetTitle("Chroma Viz")
 
-    editView := NewEditor()
-    showView := NewShow(func(page *shows.Page) { editView.SetPage(page) })
-    tempView := NewTempTree(func(temp *templates.Template) {showView.NewShowPage(temp)})
+    edit := NewEditor()
+    show := NewShow(func(page *shows.Page) { edit.SetPage(page) })
+    temp := NewTempTree(func(temp *templates.Template) {show.NewShowPage(temp)})
 
-    err = ImportTemplates(conn.hub.Conn, tempView)
+    err = ImportTemplates(conn.hub.Conn, temp)
     if err != nil {
         log.Printf("Error importing hub (%s)", err)
     } else {
@@ -140,7 +140,7 @@ func VizGui(app *gtk.Application) {
 
     importShow := glib.SimpleActionNew("import_show", nil)
     importShow.Connect("activate", func() { 
-        err := guiImportShow(win, showView, tempView) 
+        err := guiImportShow(win, show, temp) 
         if err != nil {
             log.Printf("Error importing show (%s)", err)
         }
@@ -149,7 +149,7 @@ func VizGui(app *gtk.Application) {
 
     exportShow := glib.SimpleActionNew("export_show", nil)
     exportShow.Connect("activate", func() { 
-        err := guiExportShow(win, showView) 
+        err := guiExportShow(win, show) 
         if err != nil {
             log.Printf("Error exporting show (%s)", err)
         }
@@ -158,7 +158,7 @@ func VizGui(app *gtk.Application) {
 
     importPage := glib.SimpleActionNew("import_page", nil)
     importPage.Connect("activate", func() { 
-        err := guiImportPage(win, tempView, showView) 
+        err := guiImportPage(win, temp, show) 
         if err != nil {
             log.Printf("Error importing page (%s)", err)
         }
@@ -167,7 +167,7 @@ func VizGui(app *gtk.Application) {
 
     exportPage := glib.SimpleActionNew("export_page", nil)
     exportPage.Connect("activate", func() { 
-        err := guiExportPage(win, showView) 
+        err := guiExportPage(win, show) 
         if err != nil {
             log.Printf("Error exporting page (%s)", err)
         }
@@ -176,7 +176,7 @@ func VizGui(app *gtk.Application) {
 
     deletePage := glib.SimpleActionNew("delete_page", nil)
     deletePage.Connect("activate", func() { 
-        err := guiDeletePage(showView) 
+        err := guiDeletePage(show) 
         if err != nil {
             log.Printf("Error deleting page (%s)", err)
         }
@@ -229,7 +229,7 @@ func VizGui(app *gtk.Application) {
     }
 
     templates.PackStart(scroll1, true, true, 0)
-    scroll1.Add(tempView)
+    scroll1.Add(temp.treeView)
 
     /* show */
     shows, err := gtk.BoxNew(gtk.ORIENTATION_VERTICAL, 0)
@@ -252,10 +252,10 @@ func VizGui(app *gtk.Application) {
     }
 
     shows.PackStart(scroll2, true, true, 0)
-    scroll2.Add(showView)
+    scroll2.Add(show.treeView)
 
     /* right */
-    rightBox.PackStart(editView.Box(), true, true, 0)
+    rightBox.PackStart(edit.Box(), true, true, 0)
 
     preview := setup_preview_window()
     rightBox.PackEnd(preview, false, false, 0)
@@ -383,7 +383,7 @@ func guiImportPage(win *gtk.ApplicationWindow, temp *TempTree, show *ShowTree) e
 }
 
 func guiExportPage(win *gtk.ApplicationWindow, show *ShowTree) error {
-    selection, err := show.GetSelection()
+    selection, err := show.treeView.GetSelection()
     if err != nil { 
         return err 
     }
@@ -463,7 +463,7 @@ func guiExportPage(win *gtk.ApplicationWindow, show *ShowTree) error {
 }
 
 func guiDeletePage(show *ShowTree) error {
-    selection, err := show.GetSelection()
+    selection, err := show.treeView.GetSelection()
     if err != nil {
         return err
     }

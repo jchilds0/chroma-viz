@@ -29,7 +29,7 @@ var KEYTITLE = map[int]string{
     TEMPLATEID: "Template ID",
 }
 type ShowTree struct {
-    *gtk.TreeView
+    treeView  *gtk.TreeView
     treeList  *gtk.ListStore
     pages     map[int]*shows.Page
     numPages  int
@@ -40,17 +40,17 @@ func NewShow(pageToEditor func(*shows.Page)) *ShowTree {
     var err error
     show := &ShowTree{}
 
-    show.TreeView, err = gtk.TreeViewNew()
+    show.treeView, err = gtk.TreeViewNew()
     if err != nil {
         log.Fatalf("Error creating show (%s)", err)
     }
 
-    show.TreeView.SetReorderable(true)
+    show.treeView.SetReorderable(true)
 
     show.pages = make(map[int]*shows.Page)
     show.columns = [NUMCOL]bool{true, true, true}
 
-    /* Columns */
+    // create tree columns
     var column *gtk.TreeViewColumn
     for key := range show.columns {
         if show.columns[key] == false {
@@ -109,7 +109,7 @@ func NewShow(pageToEditor func(*shows.Page)) *ShowTree {
 
         }
 
-        show.AppendColumn(column)
+        show.treeView.AppendColumn(column)
     }
 
     show.treeList, err = gtk.ListStoreNew(glib.TYPE_STRING, glib.TYPE_STRING, glib.TYPE_STRING)
@@ -117,9 +117,10 @@ func NewShow(pageToEditor func(*shows.Page)) *ShowTree {
         log.Fatalf("Error creating show (%s)", err)
     }
 
-    show.SetModel(show.treeList)
+    show.treeView.SetModel(show.treeList)
 
-    show.Connect("row-activated", 
+    // send page to editor on double click
+    show.treeView.Connect("row-activated", 
         func(tree *gtk.TreeView, path *gtk.TreePath, column *gtk.TreeViewColumn) { 
             iter, err := show.treeList.GetIter(path)
             if err != nil {
