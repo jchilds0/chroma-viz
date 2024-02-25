@@ -329,3 +329,4 @@ func (gProp *GraphProp) Update(g PropertyEditor, action int) {
     gProp.value[0] = gEdit.value[0].GetValueAsInt()
     gProp.value[1] = gEdit.value[1].GetValueAsInt()
 }
+

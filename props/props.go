@@ -2,7 +2,6 @@ package props
 
 import (
 	"log"
-
 	"github.com/gotk3/gotk3/gtk"
 )
 
@@ -158,4 +157,3 @@ func StringEditor(name string, animate func()) (*gtk.Box, *gtk.Entry) {
 
     return box, text
 }
-

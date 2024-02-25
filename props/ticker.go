@@ -347,3 +347,4 @@ func (tickProp *TickerProp) Update(t PropertyEditor, action int) {
         log.Printf("Unknown action")
     }
 }
+

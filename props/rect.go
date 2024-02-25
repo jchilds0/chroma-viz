@@ -129,3 +129,4 @@ func (rectProp *RectProp) Update(rect PropertyEditor, action int) {
     rectProp.value[2] = rectEdit.value[2].GetValueAsInt()
     rectProp.value[3] = rectEdit.value[3].GetValueAsInt()
 }
+

@@ -119,7 +119,6 @@ func NewShow(pageToEditor func(*shows.Page)) *ShowTree {
 
     show.SetModel(show.treeList)
 
-    // TODO: remove reference to show from outside scope
     show.Connect("row-activated", 
         func(tree *gtk.TreeView, path *gtk.TreePath, column *gtk.TreeViewColumn) { 
             iter, err := show.treeList.GetIter(path)
@@ -163,6 +162,20 @@ func (show *ShowTree) NewShowPage(temp *templates.Template) *shows.Page {
         []int{PAGENUM, TITLE, TEMPLATEID}, 
         []interface{}{page.PageNum, page.Title, page.TemplateID})
     return page
+}
+
+func (show *ShowTree) ImportPage(title string, temp *templates.Template) error {
+    if temp == nil {
+        return fmt.Errorf("Missing template")
+    }
+
+    show.numPages++
+    show.pages[show.numPages] = shows.NewPage(show.numPages, title, temp)
+    show.treeList.Set(
+        show.treeList.Append(), 
+        []int{PAGENUM, TITLE, TEMPLATEID}, 
+        []interface{}{show.numPages, title, temp.TempID})
+    return nil 
 }
 
 func (show *ShowTree) ImportShow(temp *TempTree, filename string) error {

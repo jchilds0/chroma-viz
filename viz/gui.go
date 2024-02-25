@@ -5,9 +5,12 @@ import (
 	"chroma-viz/shows"
 	"chroma-viz/tcp"
 	"chroma-viz/templates"
+	"encoding/json"
 	"fmt"
 	"log"
 	"math/rand"
+	"os"
+	"strconv"
 	"time"
 
 	"github.com/gotk3/gotk3/glib"
@@ -113,7 +116,6 @@ func VizGui(app *gtk.Application) {
         log.Println("Graphics hub imported")
     }
 
-    //showView.ImportShow(tempView, "/home/josh/Documents/projects/chroma-viz/shows/simple.show")
     //testGui(tempView, showView)
 
     box, err := gtk.BoxNew(gtk.ORIENTATION_VERTICAL, 0)
@@ -125,7 +127,7 @@ func VizGui(app *gtk.Application) {
 
     /* Menu layout */
     builder, err := gtk.BuilderNew()
-    if err := builder.AddFromFile("/home/josh/Documents/projects/chroma-viz/gtk/menus.ui"); err != nil {
+    if err := builder.AddFromFile("./gtk/menus.ui"); err != nil {
         log.Fatal(err)
     }
 
@@ -136,13 +138,50 @@ func VizGui(app *gtk.Application) {
 
     app.SetMenubar(menu.(*glib.MenuModel))
 
-    importAction := glib.SimpleActionNew("import_show", nil)
-    importAction.Connect("activate", func() { guiImportShow(win, showView, tempView) })
-    app.AddAction(importAction)
+    importShow := glib.SimpleActionNew("import_show", nil)
+    importShow.Connect("activate", func() { 
+        err := guiImportShow(win, showView, tempView) 
+        if err != nil {
+            log.Printf("Error importing show (%s)", err)
+        }
+    })
+    app.AddAction(importShow)
 
-    exportAction := glib.SimpleActionNew("export_show", nil)
-    exportAction.Connect("activate", func() { guiExportShow(win, showView) })
-    app.AddAction(exportAction)
+    exportShow := glib.SimpleActionNew("export_show", nil)
+    exportShow.Connect("activate", func() { 
+        err := guiExportShow(win, showView) 
+        if err != nil {
+            log.Printf("Error exporting show (%s)", err)
+        }
+    })
+    app.AddAction(exportShow)
+
+    importPage := glib.SimpleActionNew("import_page", nil)
+    importPage.Connect("activate", func() { 
+        err := guiImportPage(win, tempView, showView) 
+        if err != nil {
+            log.Printf("Error importing page (%s)", err)
+        }
+    })
+    app.AddAction(importPage)
+
+    exportPage := glib.SimpleActionNew("export_page", nil)
+    exportPage.Connect("activate", func() { 
+        err := guiExportPage(win, showView) 
+        if err != nil {
+            log.Printf("Error exporting page (%s)", err)
+        }
+    })
+    app.AddAction(exportPage)
+
+    deletePage := glib.SimpleActionNew("delete_page", nil)
+    deletePage.Connect("activate", func() { 
+        err := guiDeletePage(showView) 
+        if err != nil {
+            log.Printf("Error deleting page (%s)", err)
+        }
+    })
+    app.AddAction(deletePage)
 
     /* Body layout */
     bodyBox, err := gtk.PanedNew(gtk.ORIENTATION_HORIZONTAL)
@@ -260,36 +299,36 @@ func VizGui(app *gtk.Application) {
 
 }
 
-func guiImportShow(win *gtk.ApplicationWindow, show *ShowTree, temp *TempTree) {
+func guiImportShow(win *gtk.ApplicationWindow, show *ShowTree, temp *TempTree) error {
     dialog, err := gtk.FileChooserDialogNewWith2Buttons(
         "Import Show", win, gtk.FILE_CHOOSER_ACTION_OPEN, 
         "_Cancel", gtk.RESPONSE_CANCEL, "_Open", gtk.RESPONSE_ACCEPT)
-
     if err != nil {
-        log.Print(err)
+        return err
     }
+    defer dialog.Destroy()
 
     res := dialog.Run()
-
     if res == gtk.RESPONSE_ACCEPT {
         filename := dialog.GetFilename()
         err := show.ImportShow(temp, filename)
 
         if err != nil {
-            log.Printf("Error importing show (%s)", err)
+            return err 
         }
     }
-    dialog.Destroy()
+    
+    return nil
 }
 
-func guiExportShow(win *gtk.ApplicationWindow, show *ShowTree) {
+func guiExportShow(win *gtk.ApplicationWindow, show *ShowTree) error {
     dialog, err := gtk.FileChooserDialogNewWith2Buttons(
         "Save Show", win, gtk.FILE_CHOOSER_ACTION_SAVE, 
         "_Cancel", gtk.RESPONSE_CANCEL, "_Save", gtk.RESPONSE_ACCEPT)
-
     if err != nil {
-        log.Print(err)
+        return err
     }
+    defer dialog.Destroy()
 
     dialog.SetCurrentName(".show")
     res := dialog.Run()
@@ -298,7 +337,144 @@ func guiExportShow(win *gtk.ApplicationWindow, show *ShowTree) {
         show.ExportShow(filename)
     }
 
-    dialog.Destroy()
+    return nil
+}
+
+/*
+    Simple struct for encoding/decoding json format of a page
+    TODO: change the property format to facilitate direct encoding
+*/
+type GuiPage struct {
+    Title     string
+    TempID    int
+}
+
+func guiImportPage(win *gtk.ApplicationWindow, temp *TempTree, show *ShowTree) error {
+    dialog, err := gtk.FileChooserDialogNewWith2Buttons(
+        "Import Page", win, gtk.FILE_CHOOSER_ACTION_OPEN, 
+        "_Cancel", gtk.RESPONSE_CANCEL, "_Open", gtk.RESPONSE_ACCEPT)
+    if err != nil {
+        return err
+    }
+    defer dialog.Destroy()
+
+    res := dialog.Run()
+    if res == gtk.RESPONSE_ACCEPT {
+        page := &GuiPage{}
+        filename := dialog.GetFilename()
+
+        buf, err := os.ReadFile(filename)
+        if err != nil {
+            return err
+        }
+
+        err = json.Unmarshal(buf, page)
+        if err != nil {
+            return err 
+        }
+
+        err = show.ImportPage(page.Title, temp.Temps[page.TempID])
+        if err != nil {
+            return err 
+        }
+    }
+
+    return nil
+}
+
+func guiExportPage(win *gtk.ApplicationWindow, show *ShowTree) error {
+    selection, err := show.GetSelection()
+    if err != nil { 
+        return err 
+    }
+
+    _, iter, ok := selection.GetSelected()
+    if !ok { 
+        return fmt.Errorf("Error getting selected iter") 
+    }
+
+    id, err := show.treeList.GetValue(iter, TITLE)
+    if err != nil { 
+        return err 
+    }
+
+    val, err := id.GoValue()
+    if err != nil { 
+        return err 
+    }
+
+    title := val.(string)
+
+    id, err = show.treeList.GetValue(iter, PAGENUM)
+    if err != nil { 
+        return err 
+    }
+
+    val, err = id.GoValue()
+    if err != nil { 
+        return err 
+    }
+
+    pageNum, err := strconv.Atoi(val.(string))
+    if err != nil { 
+        return err 
+    }
+
+    dialog, err := gtk.FileChooserDialogNewWith2Buttons(
+        "Save Page", win, gtk.FILE_CHOOSER_ACTION_SAVE, 
+        "_Cancel", gtk.RESPONSE_CANCEL, "_Save", gtk.RESPONSE_ACCEPT)
+    if err != nil {
+        return err
+    }
+    defer dialog.Destroy()
+
+    dialog.SetCurrentName(title + ".json")
+    res := dialog.Run()
+    if res == gtk.RESPONSE_ACCEPT {
+        filename := dialog.GetFilename()
+        file, err := os.Create(filename)
+        if err != nil {
+            return err
+        }
+        defer file.Close()
+
+        page := show.pages[pageNum]
+        if page == nil {
+            return fmt.Errorf("Page %d does not exist", pageNum)
+        }
+
+        guiPage := &GuiPage{
+            Title: title, 
+            TempID: page.TemplateID,
+        }
+
+        buf, err := json.Marshal(guiPage)
+        if err != nil {
+            return err
+        }
+
+        _, err = file.Write(buf)
+        if err != nil {
+            return err
+        }
+    }
+
+    return nil
+}
+
+func guiDeletePage(show *ShowTree) error {
+    selection, err := show.GetSelection()
+    if err != nil {
+        return err
+    }
+
+    _, iter, ok := selection.GetSelected()
+    if !ok {
+        return fmt.Errorf("Error getting selection iter")
+    }
+
+    show.treeList.Remove(iter)
+    return nil
 }
 
 func testGui(temp *TempTree, show *ShowTree) {
