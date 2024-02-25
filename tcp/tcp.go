@@ -48,7 +48,13 @@ func (conn *Connection) Connect() {
     conn.connected = true 
 }
 
-// TCP Format: ver%d#len%d#action%d#page%d#attr%s#val%d ... END_OF_MESSAGE
+/*
+    Chroma message grammar (spaces are only for grammar readability)
+
+    S -> ver=%d#len=%d#action=%d#page=%d# G END_OF_MESSAGE
+    G -> geo_num=%d# P G
+    P -> attr=%s#val=%s# P
+*/
 func (conn *Connection) SendPage() {
     var page *shows.Page
 
@@ -61,24 +67,11 @@ func (conn *Connection) SendPage() {
         }
 
         if page == nil {
-            //log.Println("No page selected")
             continue
         }
 
-        // switch (action) {
-        // case ANIMATE_ON, ANIMATE_OFF:
-        //     currentPage = page
-        // case CONTINUE:
-        //     if currentPage != nil && page.pageNum == currentPage.pageNum {
-        //         action = CONTINUE 
-        //     } else {
-        //         currentPage = page
-        //         action = ANIMATE_ON
-        //     }
-        // }
-
         if conn.IsConnected() == false {
-            //log.Printf("%s:%d is not connected", conn.addr, conn.port)
+            log.Printf("%s:%d is not connected", conn.addr, conn.port)
             continue
         }
 
@@ -87,13 +80,12 @@ func (conn *Connection) SendPage() {
         header := fmt.Sprintf("ver=%d,%d#layer=%d#action=%d#temp=%d#", 
             version[0], version[1], page.Layer, action, page.TemplateID)
 
-        str := header
-
+        geo := ""
         for i, prop := range page.PropMap {
-            str = fmt.Sprintf("%sgeo_num=%d#%s", str, i, prop.String())
+            geo = geo + fmt.Sprintf("geo_num=%d#%s", i, prop.String())
         }
 
-        str = str + string(END_OF_MESSAGE)
+        str := header + geo + string(END_OF_MESSAGE)
         conn.Conn.Write([]byte(str))
     }
 }

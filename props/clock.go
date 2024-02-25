@@ -103,6 +103,7 @@ func NewClockEditor(width, height int, animate, cont func()) PropertyEditor {
 func (clock *ClockEditor) RunClock(cont func()) {
     var err error
     state := PAUSE
+    tick := time.NewTicker(time.Second)
 
     if err != nil {
         log.Printf("Error parsing edit time (%s)", err)
@@ -112,14 +113,14 @@ func (clock *ClockEditor) RunClock(cont func()) {
     for {
         select {
         case state = <-clock.c:
-        default:
+        case <-tick.C:
         }    
 
         switch state {
         case START:
+            // update time and animate
             cont()
             clock.currentTime = clock.currentTime.Add(time.Second)
-            time.Sleep(1 * time.Second)
         case PAUSE:
             // block until we recieve an instruction
             state = <-clock.c
