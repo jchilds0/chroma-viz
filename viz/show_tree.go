@@ -1,14 +1,11 @@
 package viz
 
 import (
-	"bufio"
 	"chroma-viz/shows"
 	"chroma-viz/tcp"
 	"chroma-viz/templates"
 	"fmt"
 	"log"
-	"os"
-	"regexp"
 	"strconv"
 
 	"github.com/gotk3/gotk3/glib"
@@ -31,29 +28,28 @@ var KEYTITLE = map[int]string{
 type ShowTree struct {
     treeView  *gtk.TreeView
     treeList  *gtk.ListStore
-    pages     map[int]*shows.Page
-    numPages  int
+    // pages     map[int]*shows.Page
+    show      *shows.Show
     columns   [NUMCOL]bool
 }
 
-func NewShow(pageToEditor func(*shows.Page)) *ShowTree {
+func NewShowTree(pageToEditor func(*shows.Page)) *ShowTree {
     var err error
-    show := &ShowTree{}
+    showTree := &ShowTree{}
 
-    show.treeView, err = gtk.TreeViewNew()
+    showTree.treeView, err = gtk.TreeViewNew()
     if err != nil {
         log.Fatalf("Error creating show (%s)", err)
     }
 
-    show.treeView.SetReorderable(true)
-
-    show.pages = make(map[int]*shows.Page)
-    show.columns = [NUMCOL]bool{true, true, true}
+    showTree.show = shows.NewShow()
+    showTree.treeView.SetReorderable(true)
+    showTree.columns = [NUMCOL]bool{true, true, true}
 
     // create tree columns
     var column *gtk.TreeViewColumn
-    for key := range show.columns {
-        if show.columns[key] == false {
+    for key := range showTree.columns {
+        if showTree.columns[key] == false {
             continue
         }
 
@@ -67,28 +63,37 @@ func NewShow(pageToEditor func(*shows.Page)) *ShowTree {
             title.SetProperty("editable", true)
             title.Connect("edited", 
                 func(cell *gtk.CellRendererText, path string, text string) {
-                    iter, err := show.treeList.GetIterFromString(path)
+                    iter, err := showTree.treeList.GetIterFromString(path)
                     if err != nil {
-                        log.Fatalf("Error editing page (%s)", err)
+                        log.Printf("Error editing page (%s)", err)
+                        return
                     }
 
-                    id, err := show.treeList.GetValue(iter, PAGENUM)
+                    id, err := showTree.treeList.GetValue(iter, PAGENUM)
                     if err != nil {
-                        log.Fatalf("Error editing page (%s)", err)
+                        log.Printf("Error editing page (%s)", err)
+                        return
                     }
 
                     val, err := id.GoValue()
                     if err != nil {
-                        log.Fatalf("Error editing page (%s)", err)
+                        log.Printf("Error editing page (%s)", err)
+                        return
                     }
 
                     pageNum, err := strconv.Atoi(val.(string))
                     if err != nil {
-                        log.Fatalf("Error editing page (%s)", err)
+                        log.Printf("Error editing page (%s)", err)
+                        return
                     }
 
-                    show.pages[pageNum].Title = text
-                    show.treeList.SetValue(iter, TITLE, text)
+                    if _, ok := showTree.show.Pages[pageNum]; !ok {
+                        log.Print("Error getting page")
+                        return
+                    }
+
+                    showTree.show.Pages[pageNum].Title = text
+                    showTree.treeList.SetValue(iter, TITLE, text)
             })
 
             column, err = gtk.TreeViewColumnNewWithAttribute(KEYTITLE[key], title, "text", 1)
@@ -109,154 +114,79 @@ func NewShow(pageToEditor func(*shows.Page)) *ShowTree {
 
         }
 
-        show.treeView.AppendColumn(column)
+        showTree.treeView.AppendColumn(column)
     }
 
-    show.treeList, err = gtk.ListStoreNew(glib.TYPE_STRING, glib.TYPE_STRING, glib.TYPE_STRING)
+    showTree.treeList, err = gtk.ListStoreNew(glib.TYPE_STRING, glib.TYPE_STRING, glib.TYPE_STRING)
     if err != nil {
         log.Fatalf("Error creating show (%s)", err)
     }
 
-    show.treeView.SetModel(show.treeList)
+    showTree.treeView.SetModel(showTree.treeList)
 
     // send page to editor on double click
-    show.treeView.Connect("row-activated", 
+    showTree.treeView.Connect("row-activated", 
         func(tree *gtk.TreeView, path *gtk.TreePath, column *gtk.TreeViewColumn) { 
-            iter, err := show.treeList.GetIter(path)
+            iter, err := showTree.treeList.GetIter(path)
             if err != nil {
-                log.Fatalf("Error sending page to editor (%s)", err)
+                log.Printf("Error sending page to editor (%s)", err)
+                return
             }
 
-            id, err := show.treeList.GetValue(iter, PAGENUM)
+            id, err := showTree.treeList.GetValue(iter, PAGENUM)
             if err != nil {
-                log.Fatalf("Error sending page to editor (%s)", err)
+                log.Printf("Error sending page to editor (%s)", err)
+                return
             }
 
             val, err := id.GoValue()
             if err != nil {
-                log.Fatalf("Error sending page to editor (%s)", err)
+                log.Printf("Error sending page to editor (%s)", err)
+                return
             }
 
             pageNum, err := strconv.Atoi(val.(string))
             if err != nil {
-                log.Fatalf("Error sending page to editor (%s)", err)
+                log.Printf("Error sending page to editor (%s)", err)
+                return
             }
 
-            pageToEditor(show.pages[pageNum])
-            SendPreview(show.pages[pageNum], tcp.ANIMATE_ON)
+            pageToEditor(showTree.show.Pages[pageNum])
+            SendPreview(showTree.show.Pages[pageNum], tcp.ANIMATE_ON)
         })
 
-    return show 
+    return showTree 
 }
 
-func (show *ShowTree) NewShowPage(temp *templates.Template) *shows.Page {
-    if temp == nil {
-        log.Printf("Invalid template")
-        return nil
+func (showTree *ShowTree) NewShowPage(page *shows.Page) {
+    if page == nil {
+        log.Print("Missing template")
+        return
     }
 
-    show.numPages++
-    show.pages[show.numPages] = shows.NewPage(show.numPages, temp.Title, temp)
-    page := show.pages[show.numPages]
-    show.treeList.Set(
-        show.treeList.Append(), 
+    showTree.treeList.Set(
+        showTree.treeList.Append(), 
         []int{PAGENUM, TITLE, TEMPLATEID}, 
-        []interface{}{page.PageNum, page.Title, page.TemplateID})
-    return page
+        []interface{}{page.PageNum, page.Title, page.TemplateID},
+    )
 }
 
-func (show *ShowTree) ImportPage(title string, temp *templates.Template) error {
+func (showTree *ShowTree) ImportShow(temps *TempTree, filename string) {
+    showTree.show.ImportShow(temps.Temps, filename)
+
+    for _, page := range showTree.show.Pages {
+        showTree.NewShowPage(page)
+    }
+}
+
+func (showTree *ShowTree) ImportPage(title string, temp *templates.Template) error {
     if temp == nil {
         return fmt.Errorf("Missing template")
     }
 
-    show.numPages++
-    show.pages[show.numPages] = shows.NewPage(show.numPages, title, temp)
-    show.treeList.Set(
-        show.treeList.Append(), 
-        []int{PAGENUM, TITLE, TEMPLATEID}, 
-        []interface{}{show.numPages, title, temp.TempID})
+    page := showTree.show.AddPage(title, temp)
+    showTree.NewShowPage(page)
+
     return nil 
 }
 
-func (show *ShowTree) ImportShow(temp *TempTree, filename string) error {
-    pageReg, err := regexp.Compile("temp (?P<tempID>[0-9]*); title \"(?P<title>.*)\";")
-    if err != nil {
-        return err
-    }
-
-    propReg, err := regexp.Compile("index (?P<type>[0-9]*);")
-    if err != nil {
-        return err
-    }
-
-    file, err := os.Open(filename)
-    if err != nil {
-        return err
-    }
-
-    scanner := bufio.NewScanner(file)
-
-    var page *shows.Page
-    for scanner.Scan() {
-        line := scanner.Text()
-        if pageReg.Match(scanner.Bytes()) {
-            match := pageReg.FindStringSubmatch(line)
-            tempID, err := strconv.Atoi(match[1])
-            if err != nil {
-                return err
-            }
-
-            page = show.NewShowPage(temp.Temps[tempID])
-            page.Title = match[2]
-        } else if page != nil {
-            match := propReg.FindStringSubmatch(line)
-            if len(match) < 2 {
-                log.Printf("Incorrect prop format (%s)\n", line)
-                continue
-            }
-
-            index, err := strconv.Atoi(match[1])
-
-            if err != nil {
-                return err
-            }
-
-            prop := page.PropMap[index]
-
-            if prop == nil {
-                log.Printf("Unknown property (%d)\n", index)
-                continue
-            }
-
-            prop.Decode(line)
-        }
-    }
-
-    return nil
-}
-
-func (show *ShowTree) ExportShow(filename string) {
-    file, err := os.Create(filename)
-    if err != nil {
-        log.Fatalf("Error importing show (%s)", err)
-    }
-    defer file.Close()
-
-    for _, page := range show.pages {
-        pageString := fmt.Sprintf("temp %d; title \"%s\";\n", page.TemplateID, page.Title)
-        file.Write([]byte(pageString))
-
-        for index, prop := range page.PropMap {
-            if prop == nil {
-                continue
-            }
-
-            file.WriteString(fmt.Sprintf("index %d;", index))
-
-            file.WriteString(prop.Encode())
-
-            file.WriteString("\n")
-        }
-    }
-}

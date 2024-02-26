@@ -106,8 +106,10 @@ func VizGui(app *gtk.Application) {
     win.SetTitle("Chroma Viz")
 
     edit := NewEditor()
-    show := NewShow(func(page *shows.Page) { edit.SetPage(page) })
-    temp := NewTempTree(func(temp *templates.Template) {show.NewShowPage(temp)})
+    show := NewShowTree(func(page *shows.Page) { 
+        edit.SetPage(page) 
+    })
+    temp := NewTempTree(func(temp *templates.Template) { show.ImportPage(temp.Title, temp) })
 
     err = ImportTemplates(conn.hub.Conn, temp)
     if err != nil {
@@ -311,17 +313,13 @@ func guiImportShow(win *gtk.ApplicationWindow, show *ShowTree, temp *TempTree) e
     res := dialog.Run()
     if res == gtk.RESPONSE_ACCEPT {
         filename := dialog.GetFilename()
-        err := show.ImportShow(temp, filename)
-
-        if err != nil {
-            return err 
-        }
+        show.ImportShow(temp, filename)
     }
     
     return nil
 }
 
-func guiExportShow(win *gtk.ApplicationWindow, show *ShowTree) error {
+func guiExportShow(win *gtk.ApplicationWindow, showTree *ShowTree) error {
     dialog, err := gtk.FileChooserDialogNewWith2Buttons(
         "Save Show", win, gtk.FILE_CHOOSER_ACTION_SAVE, 
         "_Cancel", gtk.RESPONSE_CANCEL, "_Save", gtk.RESPONSE_ACCEPT)
@@ -334,7 +332,7 @@ func guiExportShow(win *gtk.ApplicationWindow, show *ShowTree) error {
     res := dialog.Run()
     if res == gtk.RESPONSE_ACCEPT {
         filename := dialog.GetFilename()
-        show.ExportShow(filename)
+        showTree.show.ExportShow(filename)
     }
 
     return nil
@@ -349,7 +347,7 @@ type GuiPage struct {
     TempID    int
 }
 
-func guiImportPage(win *gtk.ApplicationWindow, temp *TempTree, show *ShowTree) error {
+func guiImportPage(win *gtk.ApplicationWindow, tempTree *TempTree, showTree *ShowTree) error {
     dialog, err := gtk.FileChooserDialogNewWith2Buttons(
         "Import Page", win, gtk.FILE_CHOOSER_ACTION_OPEN, 
         "_Cancel", gtk.RESPONSE_CANCEL, "_Open", gtk.RESPONSE_ACCEPT)
@@ -373,7 +371,7 @@ func guiImportPage(win *gtk.ApplicationWindow, temp *TempTree, show *ShowTree) e
             return err 
         }
 
-        err = show.ImportPage(page.Title, temp.Temps[page.TempID])
+        err = showTree.ImportPage(page.Title, tempTree.Temps.Temps[page.TempID])
         if err != nil {
             return err 
         }
@@ -382,8 +380,8 @@ func guiImportPage(win *gtk.ApplicationWindow, temp *TempTree, show *ShowTree) e
     return nil
 }
 
-func guiExportPage(win *gtk.ApplicationWindow, show *ShowTree) error {
-    selection, err := show.treeView.GetSelection()
+func guiExportPage(win *gtk.ApplicationWindow, showTree *ShowTree) error {
+    selection, err := showTree.treeView.GetSelection()
     if err != nil { 
         return err 
     }
@@ -393,7 +391,7 @@ func guiExportPage(win *gtk.ApplicationWindow, show *ShowTree) error {
         return fmt.Errorf("Error getting selected iter") 
     }
 
-    id, err := show.treeList.GetValue(iter, TITLE)
+    id, err := showTree.treeList.GetValue(iter, TITLE)
     if err != nil { 
         return err 
     }
@@ -405,7 +403,7 @@ func guiExportPage(win *gtk.ApplicationWindow, show *ShowTree) error {
 
     title := val.(string)
 
-    id, err = show.treeList.GetValue(iter, PAGENUM)
+    id, err = showTree.treeList.GetValue(iter, PAGENUM)
     if err != nil { 
         return err 
     }
@@ -438,7 +436,7 @@ func guiExportPage(win *gtk.ApplicationWindow, show *ShowTree) error {
         }
         defer file.Close()
 
-        page := show.pages[pageNum]
+        page := showTree.show.Pages[pageNum]
         if page == nil {
             return fmt.Errorf("Page %d does not exist", pageNum)
         }
@@ -477,7 +475,7 @@ func guiDeletePage(show *ShowTree) error {
     return nil
 }
 
-func testGui(temp *TempTree, show *ShowTree) {
+func testGui(tempTree *TempTree, showTree *ShowTree) {
     num_temps := 10000
     num_props := 100
     num_pages := 1000
@@ -486,7 +484,7 @@ func testGui(temp *TempTree, show *ShowTree) {
 
     start := time.Now()
     for i := 1; i < num_temps; i++ {
-        page, _ := temp.AddTemplate("Template", i, LOWER_FRAME, num_props)
+        page, _ := tempTree.AddTemplate("Template", i, LOWER_FRAME, num_props)
 
         for j := 0; j < num_props; j++ {
             page.AddProp("Background", j, props.RECT_PROP)
@@ -500,7 +498,8 @@ func testGui(temp *TempTree, show *ShowTree) {
     start = time.Now()
     for i := 0; i < num_pages; i++ {
         index := rand.Int() % (num_temps - 1) + 1
-        show.NewShowPage(temp.Temps[index])
+        temp := tempTree.Temps.Temps[index]
+        showTree.ImportPage(temp.Title, temp)
     }
 
     t = time.Now()

@@ -18,7 +18,7 @@ type Page struct {
     PropMap     map[int]props.Property
 }
 
-func NewPage(pageNum int, title string, temp *templates.Template) *Page {
+func newPage(pageNum int, title string, temp *templates.Template) *Page {
     page := &Page{
         PageNum: pageNum, 
         Title: title, 

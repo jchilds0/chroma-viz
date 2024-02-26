@@ -19,7 +19,8 @@ const (
 type TempTree struct {
     treeView        *gtk.TreeView
     treeList        *gtk.ListStore
-    Temps           map[int]*templates.Template
+    //Temps           map[int]*templates.Template
+    Temps           *templates.Temps
     sendTemplate    func(*templates.Template)
 }
 
@@ -32,7 +33,7 @@ func NewTempTree(templateToShow func(*templates.Template)) *TempTree {
         log.Fatalf("Error creating temp list (%s)", err)
     }
 
-    temp.Temps = make(map[int]*templates.Template)
+    temp.Temps = templates.NewTemps()
 
     // create tree columns
     cell, err := gtk.CellRendererTextNew()
@@ -83,20 +84,21 @@ func NewTempTree(templateToShow func(*templates.Template)) *TempTree {
                 log.Fatalf("Error sending template to show (%s)", err)
             }
 
-            temp.sendTemplate(temp.Temps[tempID])
+            temp.sendTemplate(temp.Temps.Temps[tempID])
         })
 
     return temp
 }
 
 func (temp *TempTree) AddTemplate(title string, id, layer, num_geo int) (*templates.Template, error) {
-    temp.Temps[id] = templates.NewTemplate(title, id, layer, num_geo)
+    temp.Temps.SetTemplate(id, layer, num_geo, title)
 
     err := temp.treeList.Set(
         temp.treeList.Append(), 
         []int{0, 1}, 
-        []interface{}{title, id})
+        []interface{}{title, id},
+    )
 
-    return temp.Temps[id], err
+    return temp.Temps.Temps[id], err
 }
 
