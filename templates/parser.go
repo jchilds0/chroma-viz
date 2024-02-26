@@ -1,9 +1,8 @@
-package viz
+package templates 
 
 import (
 	"bufio"
 	"chroma-viz/props"
-	"chroma-viz/templates"
 	"fmt"
 	"log"
 	"net"
@@ -26,7 +25,7 @@ type Token struct {
 var c_tok Token 
 
 // S -> {'num_temp': 123, 'templates': [T]}
-func ImportTemplates(conn net.Conn, temp *TempTree) error {
+func (temp *Temps) ImportTemplates(conn net.Conn) error {
     // check conn is open
     if conn == nil {
         return fmt.Errorf("Graphics hub not connected")
@@ -56,7 +55,7 @@ func ImportTemplates(conn net.Conn, temp *TempTree) error {
             matchToken(':', buf)
             matchToken('[', buf)
 
-            parseTemplate(temp, buf)
+            temp.parseTemplate(buf)
 
             matchToken(']', buf)
         }
@@ -70,7 +69,7 @@ func ImportTemplates(conn net.Conn, temp *TempTree) error {
 }
 
 // T -> {'id': 123, 'num_geo': 123, 'geometry': [G]} | T, T
-func parseTemplate(tempTree *TempTree, buf *bufio.Reader) (err error) {
+func (temp *Temps) parseTemplate(buf *bufio.Reader) (err error) {
     data := make(map[string]string)
     matchToken('{', buf)
 
@@ -104,8 +103,9 @@ func parseTemplate(tempTree *TempTree, buf *bufio.Reader) (err error) {
                 data["name"] = "Template"
             }
 
-            var template *templates.Template
-            template, err = tempTree.AddTemplate(data["name"], temp_id, layer, num_geo)
+            temp.SetTemplate(temp_id, layer, num_geo, data["name"])
+            template := temp.Temps[temp_id]
+
             if err != nil {
                 return
             }
@@ -124,14 +124,14 @@ func parseTemplate(tempTree *TempTree, buf *bufio.Reader) (err error) {
 
     if (c_tok.tok == ',') {
         matchToken(',', buf)
-        parseTemplate(tempTree, buf)
+        temp.parseTemplate(buf)
     }
 
     return
 }
 
 // G -> {'id': 123, 'prop_type': 'abc', 'parent': 123, 'attr': [A]} | G, G
-func parseProperty(temp *templates.Template, buf *bufio.Reader) (err error) {
+func parseProperty(temp *Template, buf *bufio.Reader) (err error) {
     data := make(map[string]string)
     matchToken('{', buf)
 
@@ -180,7 +180,7 @@ func parseProperty(temp *templates.Template, buf *bufio.Reader) (err error) {
     return nil
 }
 
-func parseAttributes(temp *templates.Template, buf *bufio.Reader) (err error) {
+func parseAttributes(temp *Template, buf *bufio.Reader) (err error) {
     data := make(map[string]string)
     matchToken('{', buf)
 

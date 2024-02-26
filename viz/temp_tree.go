@@ -3,6 +3,7 @@ package viz
 import (
 	"chroma-viz/templates"
 	"log"
+	"net"
 	"strconv"
 
 	"github.com/gotk3/gotk3/glib"
@@ -90,15 +91,25 @@ func NewTempTree(templateToShow func(*templates.Template)) *TempTree {
     return temp
 }
 
-func (temp *TempTree) AddTemplate(title string, id, layer, num_geo int) (*templates.Template, error) {
-    temp.Temps.SetTemplate(id, layer, num_geo, title)
-
+func (temp *TempTree) AddTemplate(template *templates.Template) error {
     err := temp.treeList.Set(
         temp.treeList.Append(), 
         []int{0, 1}, 
-        []interface{}{title, id},
+        []interface{}{template.Title, template.TempID},
     )
 
-    return temp.Temps.Temps[id], err
+    return err
 }
 
+func (temp *TempTree) ImportTemplates(hub net.Conn) {
+    err := temp.Temps.ImportTemplates(hub)
+    if err != nil {
+        log.Printf("Error importing hub (%s)", err)
+    } else {
+        log.Println("Graphics hub imported")
+    }
+
+    for _, template := range temp.Temps.Temps {
+        temp.AddTemplate(template)
+    }
+}

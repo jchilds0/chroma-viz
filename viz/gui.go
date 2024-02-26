@@ -1,7 +1,6 @@
 package viz
 
 import (
-	"chroma-viz/props"
 	"chroma-viz/shows"
 	"chroma-viz/tcp"
 	"chroma-viz/templates"
@@ -106,17 +105,10 @@ func VizGui(app *gtk.Application) {
     win.SetTitle("Chroma Viz")
 
     edit := NewEditor()
-    show := NewShowTree(func(page *shows.Page) { 
-        edit.SetPage(page) 
-    })
+    show := NewShowTree(func(page *shows.Page) { edit.SetPage(page) })
     temp := NewTempTree(func(temp *templates.Template) { show.ImportPage(temp.Title, temp) })
 
-    err = ImportTemplates(conn.hub.Conn, temp)
-    if err != nil {
-        log.Printf("Error importing hub (%s)", err)
-    } else {
-        log.Println("Graphics hub imported")
-    }
+    temp.ImportTemplates(conn.hub.Conn)
 
     //testGui(tempView, showView)
 
@@ -484,11 +476,11 @@ func testGui(tempTree *TempTree, showTree *ShowTree) {
 
     start := time.Now()
     for i := 1; i < num_temps; i++ {
-        page, _ := tempTree.AddTemplate("Template", i, LOWER_FRAME, num_props)
+        //page, _ := tempTree.AddTemplate("Template", i, LOWER_FRAME, num_props)
 
-        for j := 0; j < num_props; j++ {
-            page.AddProp("Background", j, props.RECT_PROP)
-        }
+        // for j := 0; j < num_props; j++ {
+        //     page.AddProp("Background", j, props.RECT_PROP)
+        // }
     }
 
     t := time.Now()
