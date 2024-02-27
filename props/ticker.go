@@ -171,14 +171,14 @@ func (tickEdit *TickerEditor) Update(tick Property) {
     tickEdit.listStore = tickProp.listStore
     tickEdit.treeView.SetModel(tickEdit.listStore)
 
-    tickEdit.value[0].SetValue(float64(tickProp.value[0]))
-    tickEdit.value[1].SetValue(float64(tickProp.value[1]))
+    tickEdit.value[0].SetValue(float64(tickProp.Value[0]))
+    tickEdit.value[1].SetValue(float64(tickProp.Value[1]))
 }
 
 type TickerProp struct {
     name string
     text string 
-    value [2]int
+    Value [2]int
     listStore *gtk.ListStore
 }
 
@@ -231,11 +231,11 @@ func (t *TickerProp) Name() string {
 
 func(t *TickerProp) String() string {
     return fmt.Sprintf("string=%s#rel_x=%d#rel_y=%d#", 
-        t.text, t.value[0], t.value[1])
+        t.text, t.Value[0], t.Value[1])
 }
 
 func (t *TickerProp) Encode() string {
-    str := fmt.Sprintf("x %d;y %d;", t.value[0], t.value[1])
+    str := fmt.Sprintf("x %d;y %d;", t.Value[0], t.Value[1])
     iter, ok := t.listStore.GetIterFirst()
 
     for ok {
@@ -272,14 +272,14 @@ func (t *TickerProp) Decode(input string) {
                 log.Fatalf("Error decoding ticker prop (%s)", err) 
             }
 
-            t.value[0] = value
+            t.Value[0] = value
         case "y":
             value, err := strconv.Atoi(line[1])
             if err != nil { 
                 log.Printf("Error decoding ticker prop (%s)", err) 
             }
 
-            t.value[1] = value
+            t.Value[1] = value
         case "text":
             t.listStore.Set(
                 t.listStore.Append(), 
@@ -303,8 +303,8 @@ func (tickProp *TickerProp) Update(t PropertyEditor, action int) {
 
     switch action {
     case ANIMATE_ON, CONTINUE:
-        tickProp.value[0] = tickEdit.value[0].GetValueAsInt()
-        tickProp.value[1] = tickEdit.value[1].GetValueAsInt()
+        tickProp.Value[0] = tickEdit.value[0].GetValueAsInt()
+        tickProp.Value[1] = tickEdit.value[1].GetValueAsInt()
 
         // Get text from selection
         selection, err := tickEdit.treeView.GetSelection()

@@ -56,13 +56,13 @@ func (circleEdit *CircleEditor) Update(circle Property) {
     }
 
     for i := range circleEdit.value {
-        circleEdit.value[i].SetValue(float64(circleProp.value[i]))
+        circleEdit.value[i].SetValue(float64(circleProp.Value[i]))
     }
 }
 
 type CircleProp struct {
     name string 
-    value [6]int 
+    Value [6]int 
 }
 
 func NewCircleProp(name string) Property {
@@ -81,15 +81,15 @@ func (circle *CircleProp) Name() string {
 func (circle *CircleProp) String() string {
     return fmt.Sprintf("rel_x=%d#rel_y=%d#inner_radius=%d#" + 
         "outer_radius=%d#start_angle=%d#end_angle=%d#", 
-        circle.value[0], circle.value[1], circle.value[2],
-        circle.value[3], circle.value[4], circle.value[5])
+        circle.Value[0], circle.Value[1], circle.Value[2],
+        circle.Value[3], circle.Value[4], circle.Value[5])
 }
 
 func (circle *CircleProp) Encode() string {
     return fmt.Sprintf("x %d;y %d;inner_radius %d;outer_radius %d;" +
         "start_angle %d;end_angle %d;", 
-        circle.value[0], circle.value[1], circle.value[2],
-        circle.value[3], circle.value[4], circle.value[5])
+        circle.Value[0], circle.Value[1], circle.Value[2],
+        circle.Value[3], circle.Value[4], circle.Value[5])
 }
 
 func (circle *CircleProp) Decode(input string) {
@@ -110,17 +110,17 @@ func (circle *CircleProp) Decode(input string) {
 
         switch (name) {
         case "x":
-            circle.value[0] = value
+            circle.Value[0] = value
         case "y":
-            circle.value[1] = value
+            circle.Value[1] = value
         case "inner_radius":
-            circle.value[2] = value
+            circle.Value[2] = value
         case "outer_radius":
-            circle.value[3] = value
+            circle.Value[3] = value
         case "start_angle":
-            circle.value[4] = value
+            circle.Value[4] = value
         case "end_angle":
-            circle.value[5] = value
+            circle.Value[5] = value
         default:
             log.Printf("Unknown CircleProp attr name (%s)\n", name)
         }
@@ -135,6 +135,6 @@ func (circleProp *CircleProp) Update(circle PropertyEditor, action int) {
     }
 
     for i := range circleEdit.value {
-        circleProp.value[i] = circleEdit.value[i].GetValueAsInt()
+        circleProp.Value[i] = circleEdit.value[i].GetValueAsInt()
     }
 }

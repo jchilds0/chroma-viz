@@ -51,15 +51,15 @@ func (rectEdit *RectEditor) Update(rect Property) {
         return 
     }
 
-    rectEdit.value[0].SetValue(float64(rectProp.value[0]))
-    rectEdit.value[1].SetValue(float64(rectProp.value[1]))
-    rectEdit.value[2].SetValue(float64(rectProp.value[2]))
-    rectEdit.value[3].SetValue(float64(rectProp.value[3]))
+    rectEdit.value[0].SetValue(float64(rectProp.Value[0]))
+    rectEdit.value[1].SetValue(float64(rectProp.Value[1]))
+    rectEdit.value[2].SetValue(float64(rectProp.Value[2]))
+    rectEdit.value[3].SetValue(float64(rectProp.Value[3]))
 }
 
 type RectProp struct {
     name string
-    value [4]int
+    Value [4]int
 }
 
 func NewRectProp(name string) Property {
@@ -77,12 +77,12 @@ func (rect *RectProp) Name() string {
 
 func (rect *RectProp) String() string {
     return fmt.Sprintf("rel_x=%d#rel_y=%d#width=%d#height=%d#", 
-        rect.value[0], rect.value[1], rect.value[2], rect.value[3])
+        rect.Value[0], rect.Value[1], rect.Value[2], rect.Value[3])
 }
 
 func (rect *RectProp) Encode() string {
     return fmt.Sprintf("x %d;y %d;width %d;height %d;", 
-        rect.value[0], rect.value[1], rect.value[2], rect.value[3])
+        rect.Value[0], rect.Value[1], rect.Value[2], rect.Value[3])
 }
 
 func (rect *RectProp) Decode(input string) {
@@ -104,13 +104,13 @@ func (rect *RectProp) Decode(input string) {
 
         switch (name) {
         case "x":
-            rect.value[0] = value
+            rect.Value[0] = value
         case "y":
-            rect.value[1] = value
+            rect.Value[1] = value
         case "width":
-            rect.value[2] = value
+            rect.Value[2] = value
         case "height":
-            rect.value[3] = value
+            rect.Value[3] = value
         default:
             log.Printf("Unknown RectProp attr name (%s)\n", name)
         }
@@ -124,9 +124,9 @@ func (rectProp *RectProp) Update(rect PropertyEditor, action int) {
         return
     }
 
-    rectProp.value[0] = rectEdit.value[0].GetValueAsInt()
-    rectProp.value[1] = rectEdit.value[1].GetValueAsInt()
-    rectProp.value[2] = rectEdit.value[2].GetValueAsInt()
-    rectProp.value[3] = rectEdit.value[3].GetValueAsInt()
+    rectProp.Value[0] = rectEdit.value[0].GetValueAsInt()
+    rectProp.Value[1] = rectEdit.value[1].GetValueAsInt()
+    rectProp.Value[2] = rectEdit.value[2].GetValueAsInt()
+    rectProp.Value[3] = rectEdit.value[3].GetValueAsInt()
 }
 

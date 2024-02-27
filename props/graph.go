@@ -190,8 +190,8 @@ func (gEdit *GraphEditor) Update(g Property) {
         return
     }
 
-    gEdit.value[0].SetValue(float64(gProp.value[0]))
-    gEdit.value[1].SetValue(float64(gProp.value[1]))
+    gEdit.value[0].SetValue(float64(gProp.Value[0]))
+    gEdit.value[1].SetValue(float64(gProp.Value[1]))
 
     gEdit.listStore = gProp.listStore
     gEdit.treeView.SetModel(gEdit.listStore)
@@ -200,7 +200,7 @@ func (gEdit *GraphEditor) Update(g Property) {
 type GraphProp struct {
     name string
     listStore *gtk.ListStore
-    value [2]int
+    Value [2]int
 }
 
 func NewGraphProp(name string) Property {
@@ -225,7 +225,7 @@ func (g *GraphProp) Name() string {
 
 func (g *GraphProp) String() string {
     str := fmt.Sprintf("rel_x=%d#rel_y=%d#num_node=0#", 
-        g.value[0], g.value[1])
+        g.Value[0], g.Value[1])
 
     iter, ok := g.listStore.GetIterFirst()
     i := 0
@@ -243,7 +243,7 @@ func (g *GraphProp) String() string {
 
 func (g *GraphProp) Encode() string {
     str := fmt.Sprintf("x %d;y %d;",
-        g.value[0], g.value[1])
+        g.Value[0], g.Value[1])
 
     iter, ok := g.listStore.GetIterFirst()
     i := 0
@@ -278,14 +278,14 @@ func (g *GraphProp) Decode(input string) {
                 log.Printf("Error decoding graph (%s)", err) 
             }
 
-            g.value[0] = value
+            g.Value[0] = value
         case "y":
             value, err := strconv.Atoi(line[1])
             if err != nil { 
                 log.Printf("Error decoding graph (%s)", err) 
             }
 
-            g.value[1] = value
+            g.Value[1] = value
         case "node":
             x, err := strconv.Atoi(line[1])
             if err != nil { 
@@ -326,7 +326,7 @@ func (gProp *GraphProp) Update(g PropertyEditor, action int) {
         return
     }
 
-    gProp.value[0] = gEdit.value[0].GetValueAsInt()
-    gProp.value[1] = gEdit.value[1].GetValueAsInt()
+    gProp.Value[0] = gEdit.value[0].GetValueAsInt()
+    gProp.Value[1] = gEdit.value[1].GetValueAsInt()
 }
 

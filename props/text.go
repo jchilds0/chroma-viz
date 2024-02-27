@@ -57,15 +57,15 @@ func (textEdit *TextEditor) Update(text Property) {
         return
     }
 
-    textEdit.value[0].SetValue(float64(textProp.value[0]))
-    textEdit.value[1].SetValue(float64(textProp.value[1]))
-    textEdit.entry.SetText(textProp.str)
+    textEdit.value[0].SetValue(float64(textProp.Value[0]))
+    textEdit.value[1].SetValue(float64(textProp.Value[1]))
+    textEdit.entry.SetText(textProp.S)
 }
 
 type TextProp struct {
     name string
-    str string
-    value [2]int
+    S string
+    Value [2]int
 }
 
 func NewTextProp(name string) *TextProp {
@@ -83,12 +83,12 @@ func (text *TextProp) Name() string {
 
 func (text *TextProp) String() string {
     return fmt.Sprintf("string=%s#rel_x=%d#rel_y=%d#", 
-        text.str, text.value[0], text.value[1])
+        text.S, text.Value[0], text.Value[1])
 }
  
 func (text *TextProp) Encode() string {
     return fmt.Sprintf("string %s;x %d;y %d;", 
-        text.str, text.value[0], text.value[1])
+        text.S, text.Value[0], text.Value[1])
 }
 
 func (text *TextProp) Decode(input string) {
@@ -105,16 +105,16 @@ func (text *TextProp) Decode(input string) {
                 log.Fatalf("Error decoding text prop (%s)", err) 
             }
 
-            text.value[0] = value
+            text.Value[0] = value
         case "y":
             value, err := strconv.Atoi(line[1])
             if err != nil { 
                 log.Printf("Error decoding text prop (%s)", err) 
             }
 
-            text.value[1] = value
+            text.Value[1] = value
         case "string":
-            text.str = strings.TrimPrefix(attr, "string ")
+            text.S = strings.TrimPrefix(attr, "string ")
         case "":
         default:
             log.Printf("Unknown TextProp attr name (%s)\n", name)
@@ -130,11 +130,11 @@ func (textProp *TextProp) Update(text PropertyEditor, action int) {
         return
     }
 
-    textProp.value[0] = textEdit.value[0].GetValueAsInt()
-    textProp.value[1] = textEdit.value[1].GetValueAsInt()
-    textProp.str, err = textEdit.entry.GetText()
+    textProp.Value[0] = textEdit.value[0].GetValueAsInt()
+    textProp.Value[1] = textEdit.value[1].GetValueAsInt()
+    textProp.S, err = textEdit.entry.GetText()
     if err != nil {
         log.Printf("Error getting text from editor entry (%s)", err)
-        textProp.str = ""
+        textProp.S = ""
     }
 }

@@ -149,15 +149,15 @@ func (clockEdit *ClockEditor) Update(clock Property) {
     clockEdit.editTime = clockProp.editTime
     text := clockEdit.editTime.Format(clockEdit.timeFormat)
     clockEdit.entry.SetText(text)
-    clockEdit.value[0].SetValue(float64(clockProp.value[0]))
-    clockEdit.value[1].SetValue(float64(clockProp.value[1]))
+    clockEdit.value[0].SetValue(float64(clockProp.Value[0]))
+    clockEdit.value[1].SetValue(float64(clockProp.Value[1]))
 }
 
 type ClockProp struct {
     name            string
-    value           [2]int
+    Value           [2]int
     editTime        *time.Time
-    currentTime     string
+    CurrentTime     string
     timeFormat      string
 }
 
@@ -186,9 +186,9 @@ func (clock *ClockProp) Name() string {
 
 func (clock *ClockProp) String() string {
     currentString := fmt.Sprintf("string=%s#rel_x=%d#rel_y=%d#", 
-        clock.currentTime,
-        clock.value[0],
-        clock.value[1],
+        clock.CurrentTime,
+        clock.Value[0],
+        clock.Value[1],
     )
     
     return currentString
@@ -196,7 +196,7 @@ func (clock *ClockProp) String() string {
 
 func (clock *ClockProp) Encode() string {
     return fmt.Sprintf("string %s;x %d;y %d;", 
-        clock.editTime.Format(clock.timeFormat), clock.value[0], clock.value[1])
+        clock.editTime.Format(clock.timeFormat), clock.Value[0], clock.Value[1])
 }
 
 func (clock *ClockProp) Decode(input string) {
@@ -213,14 +213,14 @@ func (clock *ClockProp) Decode(input string) {
                 log.Fatalf("Error decoding text prop (%s)", err) 
             }
 
-            clock.value[0] = value
+            clock.Value[0] = value
         case "y":
             value, err := strconv.Atoi(line[1])
             if err != nil { 
                 log.Printf("Error decoding text prop (%s)", err) 
             }
 
-            clock.value[1] = value
+            clock.Value[1] = value
         case "string":
             textTime := strings.TrimPrefix(attr, "string ")
             edit, err := time.Parse(clock.timeFormat, textTime)
@@ -246,8 +246,8 @@ func (clockProp *ClockProp) Update(clock PropertyEditor, action int) {
 
     switch action {
     case ANIMATE_ON:
-        clockProp.value[0] = clockEdit.value[0].GetValueAsInt()
-        clockProp.value[1] = clockEdit.value[1].GetValueAsInt()
+        clockProp.Value[0] = clockEdit.value[0].GetValueAsInt()
+        clockProp.Value[1] = clockEdit.value[1].GetValueAsInt()
 
         editText := clockEdit.editTime.Format(clockEdit.timeFormat)
         editTime, err := time.Parse(clockProp.timeFormat, editText)
@@ -257,7 +257,7 @@ func (clockProp *ClockProp) Update(clock PropertyEditor, action int) {
         }
         clockProp.editTime = &editTime
     case CONTINUE:
-        clockProp.currentTime = clockEdit.currentTime.Format(clockProp.timeFormat)
+        clockProp.CurrentTime = clockEdit.currentTime.Format(clockProp.timeFormat)
     case ANIMATE_OFF:
     default:
         log.Printf("Unknown action")
