@@ -62,8 +62,6 @@ func TestImportTemplates(t *testing.T) {
             t.Errorf("Unknown template %s", template.Title)
         }
     }
-
-    t.Fatalf("Testing finished")
 }
 
 func propTest(t *testing.T, template *Template, i int, name, typed string) {

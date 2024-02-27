@@ -65,8 +65,6 @@ func TestImportShow(t *testing.T) {
             t.Errorf("Unknown page %s", page.Title)
         }
     }
-
-    t.Fatalf("Testing finished")
 }
 
 func rectPropTest(t *testing.T, prop props.Property, x, y, w, h int) {
