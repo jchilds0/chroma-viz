@@ -1,0 +1,31 @@
+---
+name: Chroma Viz
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+env:
+  BUILD_TYPE: Release
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Setup Environment
+      run: |
+          sudo apt-get install golang
+
+    - name: Test Templates 
+      working-directory: ${{github.workspace}}/templates
+      run: go test
+
+    - name: Test Show
+      working-directory: ${{github.workspace}}/shows
+      run: go test
+
