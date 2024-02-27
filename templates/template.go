@@ -9,7 +9,7 @@ import (
 type Template struct {
     Box         *gtk.ListBoxRow
     Title       string
-    TempID  int
+    TempID      int
     NumProps    int
     Layer       int
     PropType    map[int]int
