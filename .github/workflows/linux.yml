@@ -14,12 +14,11 @@ jobs:
   build:
     runs-on: ubuntu-latest
 
+    container: 
+      image: golang:1.22.0
+
     steps:
     - uses: actions/checkout@v3
-
-    - name: Setup Environment
-      run: |
-          sudo apt-get install golang
 
     - name: Test Templates 
       working-directory: ${{github.workspace}}/templates
