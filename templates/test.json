@@ -1,0 +1,400 @@
+{
+    "Array": {
+        "0": {
+            "Id": 0,
+            "Name": "Teal Box",
+            "Layer": 0,
+            "Geo": {
+                "0": {
+                    "Id": 0,
+                    "Name": "Background",
+                    "Parent": 0,
+                    "GeoType": "rect",
+                    "PropType": "rect",
+                    "Attrs": [
+                        {
+                            "Name": "color",
+                            "Value": "2 132 130 255"
+                        },
+                        {
+                            "Name": "rounding",
+                            "Value": "20"
+                        }
+                    ]
+                },
+                "1": {
+                    "Id": 1,
+                    "Name": "Circle",
+                    "Parent": 0,
+                    "GeoType": "circle",
+                    "PropType": "circle",
+                    "Attrs": [
+                        {
+                            "Name": "color",
+                            "Value": "255 255 255 255"
+                        }
+                    ]
+                },
+                "2": {
+                    "Id": 2,
+                    "Name": "Title",
+                    "Parent": 0,
+                    "GeoType": "text",
+                    "PropType": "text",
+                    "Attrs": [
+                        {
+                            "Name": "color",
+                            "Value": "255 255 255 255"
+                        },
+                        {
+                            "Name": "scale",
+                            "Value": "1.0"
+                        }
+                    ]
+                },
+                "3": {
+                    "Id": 3,
+                    "Name": "Subtitle",
+                    "Parent": 0,
+                    "GeoType": "text",
+                    "PropType": "text",
+                    "Attrs": [
+                        {
+                            "Name": "color",
+                            "Value": "255 255 255 255"
+                        },
+                        {
+                            "Name": "scale",
+                            "Value": "1.0"
+                        }
+                    ]
+                }
+            },
+            "Animate_on": "left_to_right",
+            "Animate_cont": "",
+            "Animate_off": "left_to_right"
+        },
+        "1": {
+            "Id": 1,
+            "Name": "Clock",
+            "Layer": 0,
+            "Geo": {
+                "0": {
+                    "Id": 0,
+                    "Name": "Background",
+                    "Parent": 0,
+                    "GeoType": "rect",
+                    "PropType": "rect",
+                    "Attrs": [
+                        {
+                            "Name": "color",
+                            "Value": "5 68 94 255"
+                        },
+                        {
+                            "Name": "rounding",
+                            "Value": "10"
+                        }
+                    ]
+                },
+                "1": {
+                    "Id": 1,
+                    "Name": "Circle",
+                    "Parent": 0,
+                    "GeoType": "circle",
+                    "PropType": "circle",
+                    "Attrs": [
+                        {
+                            "Name": "color",
+                            "Value": "255 255 255 255"
+                        }
+                    ]
+                },
+                "10": {
+                    "Id": 10,
+                    "Name": "Period",
+                    "Parent": 8,
+                    "GeoType": "text",
+                    "PropType": "text",
+                    "Attrs": [
+                        {
+                            "Name": "color",
+                            "Value": "255 255 255 255"
+                        },
+                        {
+                            "Name": "scale",
+                            "Value": "1.0"
+                        }
+                    ]
+                },
+                "2": {
+                    "Id": 2,
+                    "Name": "Left Split",
+                    "Parent": 0,
+                    "GeoType": "rect",
+                    "PropType": "rect",
+                    "Attrs": [
+                        {
+                            "Name": "color",
+                            "Value": "255 255 255 255"
+                        }
+                    ]
+                },
+                "3": {
+                    "Id": 3,
+                    "Name": "Team 1",
+                    "Parent": 2,
+                    "GeoType": "text",
+                    "PropType": "text",
+                    "Attrs": [
+                        {
+                            "Name": "color",
+                            "Value": "255 255 255 255"
+                        },
+                        {
+                            "Name": "scale",
+                            "Value": "1.0"
+                        }
+                    ]
+                },
+                "4": {
+                    "Id": 4,
+                    "Name": "Score 1",
+                    "Parent": 2,
+                    "GeoType": "text",
+                    "PropType": "text",
+                    "Attrs": [
+                        {
+                            "Name": "color",
+                            "Value": "255 255 255 255"
+                        },
+                        {
+                            "Name": "scale",
+                            "Value": "1.0"
+                        }
+                    ]
+                },
+                "5": {
+                    "Id": 5,
+                    "Name": "Mid Split",
+                    "Parent": 2,
+                    "GeoType": "rect",
+                    "PropType": "rect",
+                    "Attrs": [
+                        {
+                            "Name": "color",
+                            "Value": "255 255 255 255"
+                        }
+                    ]
+                },
+                "6": {
+                    "Id": 6,
+                    "Name": "Team 2",
+                    "Parent": 5,
+                    "GeoType": "text",
+                    "PropType": "text",
+                    "Attrs": [
+                        {
+                            "Name": "color",
+                            "Value": "255 255 255 255"
+                        },
+                        {
+                            "Name": "scale",
+                            "Value": "1.0"
+                        }
+                    ]
+                },
+                "7": {
+                    "Id": 7,
+                    "Name": "Score 2",
+                    "Parent": 5,
+                    "GeoType": "text",
+                    "PropType": "text",
+                    "Attrs": [
+                        {
+                            "Name": "color",
+                            "Value": "255 255 255 255"
+                        },
+                        {
+                            "Name": "scale",
+                            "Value": "1.0"
+                        }
+                    ]
+                },
+                "8": {
+                    "Id": 8,
+                    "Name": "Right Split",
+                    "Parent": 5,
+                    "GeoType": "rect",
+                    "PropType": "rect",
+                    "Attrs": [
+                        {
+                            "Name": "color",
+                            "Value": "255 255 255 255"
+                        }
+                    ]
+                },
+                "9": {
+                    "Id": 9,
+                    "Name": "Clock",
+                    "Parent": 8,
+                    "GeoType": "text",
+                    "PropType": "clock",
+                    "Attrs": [
+                        {
+                            "Name": "color",
+                            "Value": "255 255 255 255"
+                        },
+                        {
+                            "Name": "scale",
+                            "Value": "1.0"
+                        }
+                    ]
+                }
+            },
+            "Animate_on": "left_to_right",
+            "Animate_cont": "clock_tick",
+            "Animate_off": "left_to_right"
+        },
+        "2": {
+            "Id": 2,
+            "Name": "White Circle",
+            "Layer": 0,
+            "Geo": {
+                "0": {
+                    "Id": 0,
+                    "Name": "Circle",
+                    "Parent": 0,
+                    "GeoType": "circle",
+                    "PropType": "circle",
+                    "Attrs": [
+                        {
+                            "Name": "color",
+                            "Value": "255 255 255 255"
+                        }
+                    ]
+                }
+            },
+            "Animate_on": "",
+            "Animate_cont": "",
+            "Animate_off": ""
+        },
+        "3": {
+            "Id": 3,
+            "Name": "Graph",
+            "Layer": 0,
+            "Geo": {
+                "0": {
+                    "Id": 0,
+                    "Name": "Background",
+                    "Parent": 0,
+                    "GeoType": "rect",
+                    "PropType": "rect",
+                    "Attrs": [
+                        {
+                            "Name": "color",
+                            "Value": "2 132 130 255"
+                        },
+                        {
+                            "Name": "rounding",
+                            "Value": "20"
+                        }
+                    ]
+                },
+                "1": {
+                    "Id": 1,
+                    "Name": "Graph",
+                    "Parent": 0,
+                    "GeoType": "graph",
+                    "PropType": "graph",
+                    "Attrs": [
+                        {
+                            "Name": "graph_type",
+                            "Value": "step"
+                        },
+                        {
+                            "Name": "color",
+                            "Value": "255 255 255 255"
+                        }
+                    ]
+                },
+                "2": {
+                    "Id": 2,
+                    "Name": "Title",
+                    "Parent": 0,
+                    "GeoType": "text",
+                    "PropType": "text",
+                    "Attrs": [
+                        {
+                            "Name": "color",
+                            "Value": "255 255 255 255"
+                        },
+                        {
+                            "Name": "scale",
+                            "Value": "1.0"
+                        }
+                    ]
+                }
+            },
+            "Animate_on": "left_to_right",
+            "Animate_cont": "",
+            "Animate_off": "left_to_right"
+        },
+        "4": {
+            "Id": 4,
+            "Name": "Ticker",
+            "Layer": 0,
+            "Geo": {
+                "0": {
+                    "Id": 0,
+                    "Name": "Background",
+                    "Parent": 0,
+                    "GeoType": "rect",
+                    "PropType": "rect",
+                    "Attrs": [
+                        {
+                            "Name": "color",
+                            "Value": "2 132 130 255"
+                        }
+                    ]
+                },
+                "1": {
+                    "Id": 1,
+                    "Name": "Box",
+                    "Parent": 0,
+                    "GeoType": "rect",
+                    "PropType": "rect",
+                    "Attrs": [
+                        {
+                            "Name": "color",
+                            "Value": "5 68 94 255"
+                        },
+                        {
+                            "Name": "rounding",
+                            "Value": "50"
+                        }
+                    ]
+                },
+                "2": {
+                    "Id": 2,
+                    "Name": "Ticker",
+                    "Parent": 0,
+                    "GeoType": "text",
+                    "PropType": "ticker",
+                    "Attrs": [
+                        {
+                            "Name": "color",
+                            "Value": "255 255 255 255"
+                        },
+                        {
+                            "Name": "scale",
+                            "Value": "1.0"
+                        }
+                    ]
+                }
+            },
+            "Animate_on": "up",
+            "Animate_cont": "",
+            "Animate_off": "up"
+        }
+    }
+}
