@@ -49,6 +49,9 @@ func newPage(pageNum int, title string, temp *templates.Template) *Page {
         case props.TICKER_PROP:
             page.PropMap[i] = props.NewTickerProp(name)
 
+        case props.IMAGE_PROP:
+            page.PropMap[i] = props.NewImageProp(name)
+
         default:
             log.Printf("Page %d: Unknown property %d", pageNum, prop)
         }

@@ -28,6 +28,7 @@ const (
     GRAPH_PROP
     TICKER_PROP
     CLOCK_PROP
+    IMAGE_PROP
     NUM_PROPS
 )
 
@@ -38,6 +39,7 @@ var StringToProp map[string]int = map[string]int{
     "graph": GRAPH_PROP,
     "ticker": TICKER_PROP,
     "clock": CLOCK_PROP,
+    "image": IMAGE_PROP,
 }
 
 type PropertyEditor interface {
@@ -71,6 +73,8 @@ func NewPropertyEditor(typed int, animate, cont func()) PropertyEditor {
         return NewTickerEditor(width, height, animate)
     case CLOCK_PROP:
         return NewClockEditor(width, height, animate, cont)
+    case IMAGE_PROP:
+        return NewImageEditor(width, height, animate)
     default:
         log.Printf("Unknown Prop %d", typed)
         return nil
@@ -91,6 +95,8 @@ func NewProperty(typed int, name string) Property {
         return NewTickerProp(name)
     case CLOCK_PROP:
         return NewClockProp(name)
+    case IMAGE_PROP:
+        return NewImageProp(name)
     default:
         log.Printf("Unknown Prop %d", typed)
         return nil
