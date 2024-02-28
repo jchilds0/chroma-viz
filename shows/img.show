@@ -1,32 +1,32 @@
+temp 4; title "Ticker";
+index 2;x 25;y 20;text Hello there;text world;text ;text ;text ;text ;
+index 0;x 0;y 0;width 1920;height 75;
+index 1;x 1700;y 25;width 400;height 100;
+temp 0; title "Teal Box";
+index 3;string A lower frame subtitle;x 220;y 30;
+index 0;x 50;y 100;width 886;height 180;
+index 1;string data/logo.png;x -23;y 2;scale 0.290000
+index 2;string Lower Frame;x 220;y 100;
+temp 3; title "Graph";
+index 1;x 25;y 25;node 0 30;node 50 80;node 100 60;node 150 55;node 200 50;node 250 50;node 300 60;node 350 60;node 400 80;node 450 80;
+index 2;string Step Graph;x 50;y 175;
+index 0;x 50;y 100;width 570;height 240;
 temp 5; title "Image";
 index 0;string build/afl.png;x 0;y 0;scale 1.000000
 temp 0; title "Score";
-index 3;string ;x 0;y 0;
 index 0;x 50;y 930;width 325;height 100;
 index 1;string ;x 30;y 30;scale 1.000000
 index 2;string ;x 0;y 0;
+index 3;string ;x 0;y 0;
 temp 1; title "Clock Box";
-index 7;string 0;x 180;y 15;
-index 1;x 35;y 32;inner_radius 0;outer_radius 25;start_angle 0;end_angle 360;
 index 3;string TEAM;x 20;y 15;
+index 8;x 230;y 0;width 10;height 65;
+index 1;x 35;y 32;inner_radius 0;outer_radius 25;start_angle 0;end_angle 360;
+index 9;string 00:00;x 110;y 15;
+index 6;string TEAM;x 20;y 15;
+index 7;string 0;x 180;y 15;
+index 0;x 50;y 965;width 810;height 65;
 index 5;x 230;y 0;width 10;height 65;
 index 10;string Q1;x 30;y 15;
-index 8;x 230;y 0;width 10;height 65;
-index 6;string TEAM;x 20;y 15;
-index 0;x 50;y 965;width 810;height 65;
 index 4;string 0;x 180;y 15;
-index 9;string 00:00;x 110;y 15;
 index 2;x 76;y 0;width 10;height 65;
-temp 4; title "Ticker";
-index 2;x 25;y 20;text Hello there;text world;text ;text ;text ;
-index 0;x 0;y 0;width 1920;height 75;
-index 1;x 1700;y 25;width 400;height 100;
-temp 0; title "Blue Box";
-index 3;string A lower frame subtitle;x 350;y 30;
-index 0;x 50;y 100;width 1020;height 180;
-index 1;string build/afl.png;x 17;y 0;scale 0.490000
-index 2;string Lower Frame;x 350;y 100;
-temp 3; title "Graph";
-index 0;x 50;y 100;width 570;height 240;
-index 1;x 25;y 25;node 0 30;node 50 80;node 100 60;node 150 55;node 200 50;node 250 50;node 300 60;node 350 60;node 400 80;node 450 80;
-index 2;string Step Graph;x 50;y 175;
