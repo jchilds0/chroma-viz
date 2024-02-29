@@ -52,6 +52,9 @@ func newPage(pageNum int, title string, temp *templates.Template) *Page {
         case props.IMAGE_PROP:
             page.PropMap[i] = props.NewImageProp(name)
 
+        case props.VIDEO_PROP:
+            page.PropMap[i] = props.NewVideoProp(name)
+
         default:
             log.Printf("Page %d: Unknown property %d", pageNum, prop)
         }
