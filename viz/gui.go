@@ -1,6 +1,7 @@
 package viz
 
 import (
+	"chroma-viz/editor"
 	"chroma-viz/shows"
 	"chroma-viz/tcp"
 	"chroma-viz/templates"
@@ -104,7 +105,7 @@ func VizGui(app *gtk.Application) {
     win.SetDefaultSize(800, 600)
     win.SetTitle("Chroma Viz")
 
-    edit := NewEditor()
+    edit := editor.NewEditor(SendEngine, SendPreview)
     show := NewShowTree(func(page *shows.Page) { edit.SetPage(page) })
     temp := NewTempTree(func(temp *templates.Template) { show.ImportPage(temp.Title, temp) })
 

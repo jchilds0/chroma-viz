@@ -1,4 +1,4 @@
-package viz
+package editor
 
 import (
 	"chroma-viz/props"
@@ -26,7 +26,7 @@ type Editor struct {
     propEdit  [][]props.PropertyEditor
 }
 
-func NewEditor() *Editor {
+func NewEditor(sendEngine, sendPreview func(*shows.Page, int)) *Editor {
     var err error
     editor := &Editor{}
 
@@ -82,7 +82,7 @@ func NewEditor() *Editor {
         }
 
         editor.UpdateProps(tcp.ANIMATE_ON)
-        SendEngine(editor.page, tcp.ANIMATE_ON)
+        sendEngine(editor.page, tcp.ANIMATE_ON)
     })
 
     take2.Connect("clicked", func() { 
@@ -92,7 +92,7 @@ func NewEditor() *Editor {
         }
 
         editor.UpdateProps(tcp.CONTINUE)
-        SendEngine(editor.page, tcp.CONTINUE)
+        sendEngine(editor.page, tcp.CONTINUE)
     })
 
     take3.Connect("clicked", func() { 
@@ -102,7 +102,7 @@ func NewEditor() *Editor {
         }
 
         editor.UpdateProps(props.ANIMATE_OFF)
-        SendEngine(editor.page, tcp.ANIMATE_OFF)
+        sendEngine(editor.page, tcp.ANIMATE_OFF)
     })
 
     save.Connect("clicked", func() {
@@ -111,7 +111,7 @@ func NewEditor() *Editor {
             return
         }
 
-        SendPreview(editor.page, tcp.ANIMATE_ON)
+        sendPreview(editor.page, tcp.ANIMATE_ON)
     })
 
     editor.tabs, err = gtk.NotebookNew()
@@ -137,13 +137,13 @@ func NewEditor() *Editor {
 
     editor.animate = func() { 
         editor.UpdateProps(tcp.ANIMATE_ON)
-        SendPreview(editor.page, tcp.ANIMATE_ON)
+        sendPreview(editor.page, tcp.ANIMATE_ON)
     }
 
     editor.cont = func() {
         editor.UpdateProps(tcp.CONTINUE)
-        SendPreview(editor.page, tcp.CONTINUE)
-        SendEngine(editor.page, tcp.CONTINUE)
+        sendPreview(editor.page, tcp.CONTINUE)
+        sendEngine(editor.page, tcp.CONTINUE)
     }
     
     for i := range editor.propEdit {
