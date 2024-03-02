@@ -1,8 +1,12 @@
 package artist
 
 import (
+	"chroma-viz/editor"
+	"chroma-viz/props"
+	"chroma-viz/shows"
 	"chroma-viz/tcp"
 	"log"
+	"strconv"
 
 	"github.com/gotk3/gotk3/glib"
 	"github.com/gotk3/gotk3/gtk"
@@ -27,6 +31,20 @@ func CloseConn() {
     }
 }
 
+func SendPreview(page *shows.Page, action int) {
+    for _, c := range conn{
+        if c == nil {
+            continue
+        }
+
+        c.SetPage <- page
+        c.SetAction <- action 
+    }
+}
+
+var page = ArtistPage()
+var propCount int 
+
 func ArtistGui(app *gtk.Application) {
     win, err := gtk.ApplicationWindowNew(app)
     if err != nil {
@@ -36,7 +54,11 @@ func ArtistGui(app *gtk.Application) {
     win.SetDefaultSize(800, 600)
     win.SetTitle("Chroma Artist")
 
-    temp, err := NewTempTree()
+    editView := editor.NewEditor(func(page *shows.Page, action int) {}, SendPreview)
+    editView.PropertyEditor()
+    editView.Page = page
+
+    temp, err := NewTempTree(func(propID int) {editView.SetProperty(page.PropMap[propID])})
     if err != nil {
         log.Fatalf("Error starting artist gui (%s)", err)
     }
@@ -133,8 +155,8 @@ func ArtistGui(app *gtk.Application) {
         }
 
         temp.model.SetValue(temp.model.Append(nil), NAME, name)
+        AddProp(name)
     })
-
 
     button2, err := gtk.ButtonNewWithLabel("Remove Geometry")
 
@@ -156,6 +178,22 @@ func ArtistGui(app *gtk.Application) {
             return
         }
         temp.model.Remove(iter)
+        id, err := temp.model.GetValue(iter, PROP_NUM)
+        if err != nil {
+            log.Fatalf("Error removing prop (%s)", err)
+        }
+
+        val, err := id.GoValue()
+        if err != nil {
+            log.Fatalf("Error removing prop (%s)", err)
+        }
+
+        propID, err := strconv.Atoi(val.(string))
+        if err != nil {
+            log.Fatalf("Error removing prop (%s)", err)
+        }
+
+        RemoveProp(propID)
     })
 
     scroll1, err := gtk.ScrolledWindowNew(nil, nil)
@@ -167,7 +205,7 @@ func ArtistGui(app *gtk.Application) {
     scroll1.Add(temp.view)
 
     /* right */
-    //rightBox.PackStart(editView.Box(), true, true, 0)
+    rightBox.PackStart(editView.Box, true, true, 0)
 
     preview := setup_preview_window()
     rightBox.PackEnd(preview, false, false, 0)
@@ -195,4 +233,35 @@ func ArtistGui(app *gtk.Application) {
     }
 
     win.ShowAll()
+}
+
+func ArtistPage() *shows.Page {
+    page := &shows.Page{
+        Layer: 0,
+        TemplateID: 0,
+        PageNum: 0,
+    }
+
+    page.PropMap = make(map[int]props.Property)
+
+    return page
+}
+
+func AddProp(name string) {
+    switch name {
+    case "Rectangle":
+        page.PropMap[propCount] = props.NewRectProp(name)
+    case "Circle":
+        page.PropMap[propCount] = props.NewCircleProp(name)
+    case "Text":
+        page.PropMap[propCount] = props.NewTextProp(name)
+    default:
+        log.Printf("Unknown prop name %s", name)
+    }
+
+    propCount++
+}
+
+func RemoveProp(propID int) {
+    page.PropMap[propID] = nil
 }

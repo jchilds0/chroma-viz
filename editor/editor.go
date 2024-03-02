@@ -16,21 +16,25 @@ type Pairing struct {
 }
 
 type Editor struct {
-    box       *gtk.Box
+    Box       *gtk.Box
     tabs      *gtk.Notebook
     header    *gtk.HeaderBar
-    page      *shows.Page
-    animate   func()
-    cont      func()
+    propBox   *gtk.Box
+    Page      *shows.Page
     pairs     []Pairing
     propEdit  [][]props.PropertyEditor
+    sendEngine func(*shows.Page, int)
+    sendPreview func(*shows.Page, int)
 }
 
 func NewEditor(sendEngine, sendPreview func(*shows.Page, int)) *Editor {
     var err error
-    editor := &Editor{}
+    editor := &Editor{
+        sendEngine: sendEngine,
+        sendPreview: sendPreview,
+    }
 
-    editor.box, err = gtk.BoxNew(gtk.ORIENTATION_VERTICAL, 0)
+    editor.Box, err = gtk.BoxNew(gtk.ORIENTATION_VERTICAL, 0)
     if err != nil { 
         log.Fatalf("Error creating editor (%s)", err) 
     }
@@ -41,14 +45,20 @@ func NewEditor(sendEngine, sendPreview func(*shows.Page, int)) *Editor {
     }
 
     editor.header.SetTitle("Editor")
-    editor.box.PackStart(editor.header, false, false, 0)
+    editor.Box.PackStart(editor.header, false, false, 0)
+
+    return editor
+}
+
+func (editor *Editor) EnginePanel() {
+    var err error
 
     actions, err := gtk.BoxNew(gtk.ORIENTATION_HORIZONTAL, 0)
     if err != nil { 
         log.Fatalf("Error creating editor (%s)", err) 
     }
 
-    editor.box.PackStart(actions, false, false, 10)
+    editor.Box.PackStart(actions, false, false, 10)
 
     take1, err := gtk.ButtonNewWithLabel("Take On")
     if err != nil { 
@@ -76,44 +86,47 @@ func NewEditor(sendEngine, sendPreview func(*shows.Page, int)) *Editor {
     actions.PackEnd(save, false, false, 10)
 
     take1.Connect("clicked", func() { 
-        if editor.page == nil { 
+        if editor.Page == nil { 
             fmt.Println("No page selected")
             return
         }
 
         editor.UpdateProps(tcp.ANIMATE_ON)
-        sendEngine(editor.page, tcp.ANIMATE_ON)
+        editor.sendEngine(editor.Page, tcp.ANIMATE_ON)
     })
 
     take2.Connect("clicked", func() { 
-        if editor.page == nil { 
+        if editor.Page == nil { 
             fmt.Println("No page selected")
             return
         }
 
         editor.UpdateProps(tcp.CONTINUE)
-        sendEngine(editor.page, tcp.CONTINUE)
+        editor.sendEngine(editor.Page, tcp.CONTINUE)
     })
 
     take3.Connect("clicked", func() { 
-        if editor.page == nil { 
+        if editor.Page == nil { 
             log.Printf("No page selected")
             return
         }
 
         editor.UpdateProps(props.ANIMATE_OFF)
-        sendEngine(editor.page, tcp.ANIMATE_OFF)
+        editor.sendEngine(editor.Page, tcp.ANIMATE_OFF)
     })
 
     save.Connect("clicked", func() {
-        if editor.page == nil {
+        if editor.Page == nil {
             log.Printf("No page selected")
             return
         }
 
-        sendPreview(editor.page, tcp.ANIMATE_ON)
+        editor.sendPreview(editor.Page, tcp.ANIMATE_ON)
     })
+}
 
+func (editor *Editor) PageEditor() {
+    var err error
     editor.tabs, err = gtk.NotebookNew()
     if err != nil { 
         log.Fatalf("Error creating editor (%s)", err) 
@@ -130,20 +143,20 @@ func NewEditor(sendEngine, sendPreview func(*shows.Page, int)) *Editor {
     }
 
     editor.tabs.AppendPage(tab, tabLabel)
-    editor.box.PackStart(editor.tabs, true, true, 0)
+    editor.Box.PackStart(editor.tabs, true, true, 0)
 
     // prop editors 
     editor.propEdit = make([][]props.PropertyEditor, props.NUM_PROPS)
 
-    editor.animate = func() { 
+    animate := func() { 
         editor.UpdateProps(tcp.ANIMATE_ON)
-        sendPreview(editor.page, tcp.ANIMATE_ON)
+        editor.sendPreview(editor.Page, tcp.ANIMATE_ON)
     }
 
-    editor.cont = func() {
+    cont := func() {
         editor.UpdateProps(tcp.CONTINUE)
-        sendPreview(editor.page, tcp.CONTINUE)
-        sendEngine(editor.page, tcp.CONTINUE)
+        editor.sendPreview(editor.Page, tcp.CONTINUE)
+        editor.sendEngine(editor.Page, tcp.CONTINUE)
     }
     
     for i := range editor.propEdit {
@@ -151,11 +164,34 @@ func NewEditor(sendEngine, sendPreview func(*shows.Page, int)) *Editor {
         editor.propEdit[i] = make([]props.PropertyEditor, num)
 
         for j := 0; j < num; j++ {
-            editor.propEdit[i][j] = props.NewPropertyEditor(i, editor.animate, editor.cont)
+            editor.propEdit[i][j] = props.NewPropertyEditor(i, animate, cont)
         }
     }
+}
 
-    return editor
+func (editor *Editor) PropertyEditor() {
+    // prop editors 
+    editor.propEdit = make([][]props.PropertyEditor, props.NUM_PROPS)
+
+    animate := func() { 
+        editor.UpdateProps(tcp.ANIMATE_ON)
+        editor.sendPreview(editor.Page, tcp.ANIMATE_ON)
+    }
+
+    cont := func() {
+        editor.UpdateProps(tcp.CONTINUE)
+        editor.sendPreview(editor.Page, tcp.CONTINUE)
+        editor.sendEngine(editor.Page, tcp.CONTINUE)
+    }
+    
+    for i := range editor.propEdit {
+        num := 1
+        editor.propEdit[i] = make([]props.PropertyEditor, num)
+
+        for j := 0; j < num; j++ {
+            editor.propEdit[i][j] = props.NewPropertyEditor(i, animate, cont)
+        }
+    }
 }
 
 func (edit *Editor) UpdateProps(action int) {
@@ -168,16 +204,27 @@ func (edit *Editor) UpdateProps(action int) {
     }
 }
 
-func (edit *Editor) SetPage(page *shows.Page) {
-    num_pages := edit.tabs.GetNPages()
+func (editor *Editor) SetPage(page *shows.Page) {
+    num_pages := editor.tabs.GetNPages()
     for i := 0; i < num_pages; i++  {
-        edit.tabs.RemovePage(0)
+        editor.tabs.RemovePage(0)
     }
 
-    edit.page = page
-    edit.pairs = make([]Pairing, 0, 10)
+    animate := func() { 
+        editor.UpdateProps(tcp.ANIMATE_ON)
+        editor.sendPreview(editor.Page, tcp.ANIMATE_ON)
+    }
+
+    cont := func() {
+        editor.UpdateProps(tcp.CONTINUE)
+        editor.sendPreview(editor.Page, tcp.CONTINUE)
+        editor.sendEngine(editor.Page, tcp.CONTINUE)
+    }
+
+    editor.Page = page
+    editor.pairs = make([]Pairing, 0, 10)
     propCount := make([]int, props.NUM_PROPS)
-    for _, prop := range edit.page.PropMap {
+    for _, prop := range editor.Page.PropMap {
         if prop == nil {
             log.Print("Editor recieved nil prop")
             continue
@@ -191,22 +238,31 @@ func (edit *Editor) SetPage(page *shows.Page) {
 
         // pair up with prop editor
         var propEdit props.PropertyEditor
-        if propCount[typed] == len(edit.propEdit[typed]) {
+        if propCount[typed] == len(editor.propEdit[typed]) {
             // we ran out of editors, add a new one
-            propEdit = props.NewPropertyEditor(typed, edit.animate, edit.cont)
-            edit.propEdit[typed] = append(edit.propEdit[typed], propEdit)
+            propEdit = props.NewPropertyEditor(typed, animate, cont)
+            editor.propEdit[typed] = append(editor.propEdit[typed], propEdit)
         } else {
-            propEdit = edit.propEdit[typed][propCount[typed]]
+            propEdit = editor.propEdit[typed][propCount[typed]]
         }
 
         propEdit.Update(prop)
-        edit.tabs.AppendPage(propEdit.Box(), label)
+        editor.tabs.AppendPage(propEdit.Box(), label)
         propCount[typed]++
-        edit.pairs = append(edit.pairs, Pairing{prop: prop, editor: propEdit})
+        editor.pairs = append(editor.pairs, Pairing{prop: prop, editor: propEdit})
     }
 }
 
-func (edit *Editor) Box() *gtk.Box {
-    return edit.box
+func (editor *Editor) SetProperty(prop props.Property) {
+    if editor.propBox != nil {
+        editor.Box.Remove(editor.propBox)
+    }
+
+    propType := prop.Type()
+    propEdit := editor.propEdit[propType][0]
+    propEdit.Update(prop)
+    editor.propBox = propEdit.Box()
+
+    editor.Box.PackStart(editor.propBox, true, true, 0)
 }
 

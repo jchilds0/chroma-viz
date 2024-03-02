@@ -106,6 +106,9 @@ func VizGui(app *gtk.Application) {
     win.SetTitle("Chroma Viz")
 
     edit := editor.NewEditor(SendEngine, SendPreview)
+    edit.EnginePanel()
+    edit.PageEditor()
+
     show := NewShowTree(func(page *shows.Page) { edit.SetPage(page) })
     temp := NewTempTree(func(temp *templates.Template) { show.ImportPage(temp.Title, temp) })
 
@@ -250,7 +253,7 @@ func VizGui(app *gtk.Application) {
     scroll2.Add(show.treeView)
 
     /* right */
-    rightBox.PackStart(edit.Box(), true, true, 0)
+    rightBox.PackStart(edit.Box, true, true, 0)
 
     preview := setup_preview_window()
     rightBox.PackEnd(preview, false, false, 0)

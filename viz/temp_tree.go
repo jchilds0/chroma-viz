@@ -20,7 +20,6 @@ const (
 type TempTree struct {
     treeView        *gtk.TreeView
     treeList        *gtk.ListStore
-    //Temps           map[int]*templates.Template
     Temps           *templates.Temps
     sendTemplate    func(*templates.Template)
 }
