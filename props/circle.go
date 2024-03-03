@@ -1,72 +1,73 @@
 package props
 
 import (
-	"fmt"
-	"log"
-	"strconv"
-	"strings"
+	"chroma-viz/attribute"
 
 	"github.com/gotk3/gotk3/gtk"
 )
 
 type CircleEditor struct {
     box *gtk.Box
-    value [6]*gtk.SpinButton
+    edit map[string]attribute.Editor
 }
 
-func NewCircleEditor(width, height int, animate func()) PropertyEditor {
-    var err error
-    circle := &CircleEditor{}
+func NewCircleEditor(width, height int, animate func()) (circleEdit *CircleEditor, err error) {
+    circleEdit = &CircleEditor{}
+    circleEdit.edit = make(map[string]attribute.Editor, 10)
 
-    circle.box, err = gtk.BoxNew(gtk.ORIENTATION_VERTICAL, 0)
+    circleEdit.box, err = gtk.BoxNew(gtk.ORIENTATION_VERTICAL, 0)
     if err != nil { 
-        log.Printf("Error creating circle box (%s)", err) 
+        return
     }
 
     labels := []string{"Center x", "Center y", "Inner Radius", 
         "Outer Radius", "Start Angle", "End Angle"}
     upper := []int{width, height, width, width, 360, 360}   
 
-    for i := range circle.value {
-        circle.value[i], err = gtk.SpinButtonNewWithRange(-float64(upper[i]), float64(upper[i]), 1)
-        if err != nil { 
-            log.Printf("Error creating circle spin button (%s)", err) 
-        }
+    for i := range labels {
+        circleEdit.edit[labels[i]], err = attribute.NewIntEditor(labels[i], 0, float64(upper[i]), animate)
 
-        input := IntEditor(labels[i], circle.value[i], animate)
-        circle.box.PackStart(input, false, false, padding)
+        if err != nil { 
+            return
+        }
     }
 
-    circle.value[2].SetValue(1.0)
-    circle.value[5].SetValue(360.0)
-    circle.box.SetVisible(true)
-
-    return circle
-}
-
-func (circle *CircleEditor) Box() *gtk.Box {
-    return circle.box
-}
-
-func (circleEdit *CircleEditor) Update(circle Property) {
-    circleProp, ok := circle.(*CircleProp)
-    if !ok {
-        log.Printf("CircleEditor.Update requires CircleProp")
+    circleEdit.edit["color"], err = attribute.NewColorEditor("Color", animate)
+    if err != nil {
         return
     }
 
-    for i := range circleEdit.value {
-        circleEdit.value[i].SetValue(float64(circleProp.Value[i]))
+    circleEdit.box, err = gtk.BoxNew(gtk.ORIENTATION_VERTICAL, 0)
+    if err != nil { 
+        return 
     }
+
+    circleEdit.box.SetVisible(true)
+    for _, attr := range circleEdit.edit {
+        circleEdit.box.PackStart(attr.Box(), false, false, padding)
+    }
+
+    return 
+}
+
+func (circleEdit *CircleEditor) Box() *gtk.Box {
+    return circleEdit.box
+}
+
+func (circleEdit *CircleEditor) Editors() map[string]attribute.Editor {
+    return circleEdit.edit
 }
 
 type CircleProp struct {
-    name string 
-    Value [6]int 
+    name      string 
+    attrs     map[string]attribute.Attribute
+    visible   map[string]bool
 }
 
-func NewCircleProp(name string) Property {
+func NewCircleProp(name string) *CircleProp {
     circle := &CircleProp{name: name}
+    circle.attrs = make(map[string]attribute.Attribute, 10)
+    circle.visible = make(map[string]bool, 10)
     return circle
 }
 
@@ -78,63 +79,10 @@ func (circle *CircleProp) Name() string {
     return circle.name
 }
 
-func (circle *CircleProp) String() string {
-    return fmt.Sprintf("rel_x=%d#rel_y=%d#inner_radius=%d#" + 
-        "outer_radius=%d#start_angle=%d#end_angle=%d#", 
-        circle.Value[0], circle.Value[1], circle.Value[2],
-        circle.Value[3], circle.Value[4], circle.Value[5])
+func (circle *CircleProp) Visible() map[string]bool {
+    return circle.visible
 }
 
-func (circle *CircleProp) Encode() string {
-    return fmt.Sprintf("x %d;y %d;inner_radius %d;outer_radius %d;" +
-        "start_angle %d;end_angle %d;", 
-        circle.Value[0], circle.Value[1], circle.Value[2],
-        circle.Value[3], circle.Value[4], circle.Value[5])
-}
-
-func (circle *CircleProp) Decode(input string) {
-    attrs := strings.Split(input, ";")
-
-    for _, attr := range attrs[1:] {
-        line := strings.Split(attr, " ")
-
-        if len(line) != 2 {
-            continue
-        }
-
-        name := line[0]
-        value, err := strconv.Atoi(line[1])
-        if err != nil { 
-            log.Printf("Error circle decode (%s)", err) 
-        }
-
-        switch (name) {
-        case "x":
-            circle.Value[0] = value
-        case "y":
-            circle.Value[1] = value
-        case "inner_radius":
-            circle.Value[2] = value
-        case "outer_radius":
-            circle.Value[3] = value
-        case "start_angle":
-            circle.Value[4] = value
-        case "end_angle":
-            circle.Value[5] = value
-        default:
-            log.Printf("Unknown CircleProp attr name (%s)\n", name)
-        }
-    }
-}
-
-func (circleProp *CircleProp) Update(circle PropertyEditor, action int) {
-    circleEdit, ok := circle.(*CircleEditor)
-    if !ok {
-        log.Printf("CircleProp.Update requires CircleEditor")
-        return
-    }
-
-    for i := range circleEdit.value {
-        circleProp.Value[i] = circleEdit.value[i].GetValueAsInt()
-    }
+func (circle *CircleProp) Attributes() map[string]attribute.Attribute {
+    return circle.attrs
 }

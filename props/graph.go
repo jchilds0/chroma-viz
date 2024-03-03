@@ -1,6 +1,7 @@
 package props
 
 import (
+	"chroma-viz/attribute"
 	"fmt"
 	"log"
 	"strconv"
@@ -26,10 +27,10 @@ func NewGraphCell(i int) *GraphCell {
 }
 
 type GraphEditor struct {
-    box *gtk.Box
-    treeView *gtk.TreeView
-    listStore *gtk.ListStore
-    value [2]*gtk.SpinButton
+    box         *gtk.Box
+    treeView    *gtk.TreeView
+    listStore   *gtk.ListStore
+    edit        map[string]attribute.Editor
 }
 
 func NewGraphEditor(width, height int, animate func()) PropertyEditor {

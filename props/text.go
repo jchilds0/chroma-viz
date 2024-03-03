@@ -1,75 +1,78 @@
 package props
 
 import (
-	"fmt"
-	"log"
-	"strconv"
-	"strings"
+	"chroma-viz/attribute"
 
 	"github.com/gotk3/gotk3/gtk"
 )
 
 type TextEditor struct {
     box *gtk.Box
-    entry *gtk.Entry
-    input *gtk.Box
-    value [2]*gtk.SpinButton
+    edit map[string]attribute.Editor
 }
 
-func NewTextEditor(width, height int, animate func()) PropertyEditor {
-    var err error
-    text := &TextEditor{}
+func NewTextEditor(width, height int, animate func()) (textEdit *TextEditor, err error) {
+    textEdit = &TextEditor{}
 
-    text.box, err = gtk.BoxNew(gtk.ORIENTATION_VERTICAL, 0)
+    textEdit.box, err = gtk.BoxNew(gtk.ORIENTATION_VERTICAL, 0)
     if err != nil { 
-        log.Fatalf("Error creating text prop (%s)", err) 
+        return
     }
 
-    text.box.SetVisible(true)
+    textEdit.box.SetVisible(true)
+    textEdit.edit = make(map[string]attribute.Editor, 5)
 
-    text.input, text.entry = StringEditor("Text: ", animate)
-    text.box.PackStart(text.input, false, false, padding)
-
-    text.value[0], err = gtk.SpinButtonNewWithRange(-float64(width), float64(width), 1)
-    if err != nil { 
-        log.Fatalf("Error creating text prop (%s)", err) 
+    textEdit.edit["text"], err = attribute.NewStringEditor("Text", animate)
+    if err != nil {
+        return
     }
 
-    text.value[1], err = gtk.SpinButtonNewWithRange(-float64(width), float64(height), 1)
-    if err != nil { 
-        log.Fatalf("Error creating text prop (%s)", err) 
+    textEdit.edit["x"], err = attribute.NewIntEditor("x", 0, float64(width), animate)
+    if err != nil {
+        return
     }
 
-    text.box.PackStart(IntEditor("x Pos", text.value[0], animate), false, false, padding)
-    text.box.PackStart(IntEditor("y Pos", text.value[1], animate), false, false, padding)
+    textEdit.edit["y"], err = attribute.NewIntEditor("y", 0, float64(height), animate)
+    if err != nil {
+        return
+    }
 
-    return text
+    textEdit.edit["color"], err = attribute.NewColorEditor("Color", animate)
+    if err != nil {
+        return
+    }
+
+    for _, attr := range textEdit.edit {
+        textEdit.box.PackStart(attr.Box(), false, false, padding)
+    }
+
+    return 
 }
 
 func (text *TextEditor) Box() *gtk.Box {
     return text.box
 }
 
-func (textEdit *TextEditor) Update(text Property) {
-    textProp, ok := text.(*TextProp)
-    if !ok {
-        log.Printf("TextEditor.Update requires TextProp")
-        return
-    }
-
-    textEdit.value[0].SetValue(float64(textProp.Value[0]))
-    textEdit.value[1].SetValue(float64(textProp.Value[1]))
-    textEdit.entry.SetText(textProp.S)
+func (text *TextEditor) Editors() map[string]attribute.Editor {
+    return text.edit
 }
 
 type TextProp struct {
-    name string
-    S string
-    Value [2]int
+    name        string
+    attrs       map[string]attribute.Attribute
+    visible     map[string]bool
 }
 
 func NewTextProp(name string) *TextProp {
     text := &TextProp{name: name}
+    text.attrs = make(map[string]attribute.Attribute, 5)
+    text.visible = make(map[string]bool, 5)
+
+    text.attrs["x"] = attribute.NewIntAttribute("x")
+    text.attrs["y"] = attribute.NewIntAttribute("y")
+    text.attrs["text"] = attribute.NewStringAttribute("text")
+    text.attrs["color"] = attribute.NewColorAttribute()
+
     return text
 }
 
@@ -81,60 +84,10 @@ func (text *TextProp) Name() string {
     return text.name
 }
 
-func (text *TextProp) String() string {
-    return fmt.Sprintf("string=%s#rel_x=%d#rel_y=%d#", 
-        text.S, text.Value[0], text.Value[1])
-}
- 
-func (text *TextProp) Encode() string {
-    return fmt.Sprintf("string %s;x %d;y %d;", 
-        text.S, text.Value[0], text.Value[1])
+func (text *TextProp) Visible() map[string]bool {
+    return text.visible
 }
 
-func (text *TextProp) Decode(input string) {
-    attrs := strings.Split(input, ";")
-
-    for _, attr := range attrs[1:] {
-        line := strings.Split(attr, " ")
-        name := line[0]
-
-        switch (name) {
-        case "x":
-            value, err := strconv.Atoi(line[1])
-            if err != nil { 
-                log.Fatalf("Error decoding text prop (%s)", err) 
-            }
-
-            text.Value[0] = value
-        case "y":
-            value, err := strconv.Atoi(line[1])
-            if err != nil { 
-                log.Printf("Error decoding text prop (%s)", err) 
-            }
-
-            text.Value[1] = value
-        case "string":
-            text.S = strings.TrimPrefix(attr, "string ")
-        case "":
-        default:
-            log.Printf("Unknown TextProp attr name (%s)\n", name)
-        }
-    }
-}
-
-func (textProp *TextProp) Update(text PropertyEditor, action int) {
-    var err error
-    textEdit, ok := text.(*TextEditor)
-    if !ok {
-        log.Printf("TextProp.Update requires TextEditor")
-        return
-    }
-
-    textProp.Value[0] = textEdit.value[0].GetValueAsInt()
-    textProp.Value[1] = textEdit.value[1].GetValueAsInt()
-    textProp.S, err = textEdit.entry.GetText()
-    if err != nil {
-        log.Printf("Error getting text from editor entry (%s)", err)
-        textProp.S = ""
-    }
+func (text *TextProp) Attributes() map[string]attribute.Attribute {
+    return text.attrs
 }

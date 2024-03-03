@@ -1,132 +1,90 @@
 package props
 
 import (
-	"fmt"
-	"log"
-	"strconv"
-	"strings"
+	"chroma-viz/attribute"
 
 	"github.com/gotk3/gotk3/gtk"
 )
 
+
 type RectEditor struct {
-    box *gtk.Box
-    value [4]*gtk.SpinButton
+    box     *gtk.Box
+    edit    map[string]attribute.Editor
 }
 
-func NewRectEditor(width, height int, animate func()) PropertyEditor {
-    var err error
-    rect := &RectEditor{}
+func NewRectEditor(width, height int, animate func()) (rectEdit *RectEditor, err error) {
+    rectEdit = &RectEditor{}
+    rectEdit.edit = make(map[string]attribute.Editor, 5) 
 
-    rect.box, err = gtk.BoxNew(gtk.ORIENTATION_VERTICAL, 0)
-    if err != nil { 
-        log.Printf("Error creating rect box (%s)", err) 
-    }
-
-    rect.box.SetVisible(true)
-
+    labels := []string{"x", "y", "Width", "Height"}
     upper := []int{width, height, width, height}
-    labels := [4]string{"x Pos", "y Pos", "Width", "Height"}
-    for i := range rect.value {
-        rect.value[i], err = gtk.SpinButtonNewWithRange(-float64(upper[i]), float64(upper[i]), 1)
-        if err != nil { 
-            log.Printf("Error creating rect spin button (%s)", err) 
-        }
 
-        input := IntEditor(labels[i], rect.value[i], animate)
-        rect.box.PackStart(input, false, false, padding)
+    for i := range labels {
+        rectEdit.edit[labels[i]], err = attribute.NewIntEditor(labels[i], 0, float64(upper[i]), animate)
+
+        if err != nil {
+            return
+        }
     }
 
-    return rect
+    rectEdit.edit["color"], err = attribute.NewColorEditor("Color", animate)
+    if err != nil {
+        return
+    }
+
+    rectEdit.box, err = gtk.BoxNew(gtk.ORIENTATION_VERTICAL, 0)
+    if err != nil { 
+        return 
+    }
+
+    rectEdit.box.SetVisible(true)
+    for _, attr := range rectEdit.edit {
+        rectEdit.box.PackStart(attr.Box(), false, false, padding)
+    }
+
+    return 
 }
 
 func (rectEdit *RectEditor) Box() *gtk.Box {
     return rectEdit.box
 }
 
-func (rectEdit *RectEditor) Update(rect Property) {
-    rectProp, ok := rect.(*RectProp)
-    if !ok {
-        log.Printf("RectEditor.Update requires RectProp")
-        return 
-    }
-
-    rectEdit.value[0].SetValue(float64(rectProp.Value[0]))
-    rectEdit.value[1].SetValue(float64(rectProp.Value[1]))
-    rectEdit.value[2].SetValue(float64(rectProp.Value[2]))
-    rectEdit.value[3].SetValue(float64(rectProp.Value[3]))
+func (rectEdit *RectEditor) Editors() map[string]attribute.Editor {
+    return rectEdit.edit
 }
 
 type RectProp struct {
-    name string
-    Value [4]int
+    name        string 
+    attrs       map[string]attribute.Attribute
+    visible     map[string]bool
 }
 
-func NewRectProp(name string) Property {
+func NewRectProp(name string) *RectProp {
     rect := &RectProp{name: name}
-    return rect
-}
+    rect.attrs = make(map[string]attribute.Attribute, 5)
+    rect.visible = make(map[string]bool, 5)
 
-func (rect *RectProp) Type() int {
-    return RECT_PROP
+    rect.attrs["x"] = attribute.NewIntAttribute("x")
+    rect.attrs["y"] = attribute.NewIntAttribute("y")
+    rect.attrs["width"] = attribute.NewIntAttribute("width")
+    rect.attrs["height"] = attribute.NewIntAttribute("height")
+    rect.attrs["color"] = attribute.NewColorAttribute()
+
+    return rect
 }
 
 func (rect *RectProp) Name() string {
     return rect.name
 }
 
-func (rect *RectProp) String() string {
-    return fmt.Sprintf("rel_x=%d#rel_y=%d#width=%d#height=%d#", 
-        rect.Value[0], rect.Value[1], rect.Value[2], rect.Value[3])
+func (rect *RectProp) Type() int {
+    return RECT_PROP
 }
 
-func (rect *RectProp) Encode() string {
-    return fmt.Sprintf("x %d;y %d;width %d;height %d;", 
-        rect.Value[0], rect.Value[1], rect.Value[2], rect.Value[3])
+func (rect *RectProp) Visible() map[string]bool {
+    return rect.visible
 }
 
-func (rect *RectProp) Decode(input string) {
-    attrs := strings.Split(input, ";")
-
-    for _, attr := range attrs[1:] {
-        line := strings.Split(attr, " ")
-
-        if len(line) != 2 {
-            continue
-        }
-
-        name := line[0]
-        value, err := strconv.Atoi(line[1])
-        if err != nil { 
-            log.Printf("Error decoding rect (%s)", err) 
-        }
-
-
-        switch (name) {
-        case "x":
-            rect.Value[0] = value
-        case "y":
-            rect.Value[1] = value
-        case "width":
-            rect.Value[2] = value
-        case "height":
-            rect.Value[3] = value
-        default:
-            log.Printf("Unknown RectProp attr name (%s)\n", name)
-        }
-    }
+func (rect *RectProp) Attributes() map[string]attribute.Attribute {
+    return rect.attrs
 }
-
-func (rectProp *RectProp) Update(rect PropertyEditor, action int) {
-    rectEdit, ok := rect.(*RectEditor)
-    if !ok {
-        log.Printf("RectProp.Update requires RectEditor")
-        return
-    }
-
-    rectProp.Value[0] = rectEdit.value[0].GetValueAsInt()
-    rectProp.Value[1] = rectEdit.value[1].GetValueAsInt()
-    rectProp.Value[2] = rectEdit.value[2].GetValueAsInt()
-    rectProp.Value[3] = rectEdit.value[3].GetValueAsInt()
-}
-

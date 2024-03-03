@@ -10,7 +10,7 @@ import (
 
 const engDir = "/home/josh/Documents/projects/chroma-engine/build/chroma-engine"
 
-func setup_preview_window() *gtk.Frame {
+func setup_preview_window(port int) *gtk.Frame {
     soc, err := gtk.SocketNew()
     if err != nil {
         log.Fatalf("Error setting up preview window (%s)", err)
@@ -33,7 +33,7 @@ func setup_preview_window() *gtk.Frame {
     soc.SetVisible(true)
     soc.Connect("realize", func(soc *gtk.Socket) {
         xid = soc.GetId()
-        prev := exec.Command(engDir, "-w", strconv.Itoa(int(xid)))
+        prev := exec.Command(engDir, "-w", strconv.Itoa(int(xid)), "-p", strconv.Itoa(int(port)))
         log.Print(prev.String())
 
         if err := prev.Start(); err != nil {

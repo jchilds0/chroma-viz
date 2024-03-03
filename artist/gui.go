@@ -10,6 +10,7 @@ import (
 
 	"github.com/gotk3/gotk3/glib"
 	"github.com/gotk3/gotk3/gtk"
+	"github.com/jchilds0/chroma-hub/chroma_hub"
 )
 
 var conn map[string]*tcp.Connection
@@ -53,6 +54,18 @@ func ArtistGui(app *gtk.Application) {
 
     win.SetDefaultSize(800, 600)
     win.SetTitle("Chroma Artist")
+
+    port := 9100
+    conf := map[string]int{
+        "rect": 10,
+        "text": 10,
+        "circle": 10,
+        "graph": 10,
+        "image": 10,
+    }
+
+    chroma_hub.GenerateTemplateHub(conf, "artist/artist.json")
+    go chroma_hub.StartHub(port, -1, "artist/artist.json")
 
     editView := editor.NewEditor(func(page *shows.Page, action int) {}, SendPreview)
     editView.PropertyEditor()
@@ -153,9 +166,11 @@ func ArtistGui(app *gtk.Application) {
             log.Print("No geometry selected")
             return
         }
+        propNum := AddProp(name)
 
-        temp.model.SetValue(temp.model.Append(nil), NAME, name)
-        AddProp(name)
+        newRow := temp.model.Append(nil)
+        temp.model.SetValue(newRow, NAME, name)
+        temp.model.SetValue(newRow, PROP_NUM, propNum)
     })
 
     button2, err := gtk.ButtonNewWithLabel("Remove Geometry")
@@ -207,7 +222,7 @@ func ArtistGui(app *gtk.Application) {
     /* right */
     rightBox.PackStart(editView.Box, true, true, 0)
 
-    preview := setup_preview_window()
+    preview := setup_preview_window(port)
     rightBox.PackEnd(preview, false, false, 0)
 
     /* Lower Bar layout */
@@ -247,7 +262,8 @@ func ArtistPage() *shows.Page {
     return page
 }
 
-func AddProp(name string) {
+func AddProp(name string) (id int) {
+    id = propCount
     switch name {
     case "Rectangle":
         page.PropMap[propCount] = props.NewRectProp(name)
@@ -260,8 +276,10 @@ func AddProp(name string) {
     }
 
     propCount++
+    return
 }
 
 func RemoveProp(propID int) {
     page.PropMap[propID] = nil
 }
+

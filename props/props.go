@@ -1,7 +1,11 @@
 package props
 
 import (
+	"chroma-viz/attribute"
+	"fmt"
 	"log"
+	"strings"
+
 	"github.com/gotk3/gotk3/gtk"
 )
 
@@ -29,7 +33,6 @@ const (
     TICKER_PROP
     CLOCK_PROP
     IMAGE_PROP
-    VIDEO_PROP
     NUM_PROPS
 )
 
@@ -41,24 +44,21 @@ var StringToProp map[string]int = map[string]int{
     "ticker": TICKER_PROP,
     "clock": CLOCK_PROP,
     "image": IMAGE_PROP,
-    "video": VIDEO_PROP,
 }
 
 type PropertyEditor interface {
-    Update(Property)
     Box() *gtk.Box
+    Editors() map[string]attribute.Editor
 }
 
 type Property interface {
     Name() string
     Type() int
-    String() string
-    Encode() string
-    Decode(string)
-    Update(PropertyEditor, int)
+    Visible() map[string]bool
+    Attributes() map[string]attribute.Attribute
 }
 
-func NewPropertyEditor(typed int, animate, cont func()) PropertyEditor {
+func NewPropertyEditor(typed int, animate, cont func()) (PropertyEditor, error) {
     width := 1920
     height := 1080 
 
@@ -77,11 +77,8 @@ func NewPropertyEditor(typed int, animate, cont func()) PropertyEditor {
         return NewClockEditor(width, height, animate, cont)
     case IMAGE_PROP:
         return NewImageEditor(width, height, animate)
-    case VIDEO_PROP:
-        return NewVideoEditor(width, height, animate)
     default:
-        log.Printf("Unknown Prop %d", typed)
-        return nil
+        return nil, fmt.Errorf("Unknown Prop %d", typed)
     }
 }
 
@@ -101,71 +98,54 @@ func NewProperty(typed int, name string) Property {
         return NewClockProp(name)
     case IMAGE_PROP:
         return NewImageProp(name)
-    case VIDEO_PROP:
-        return NewVideoProp(name)
     default:
         log.Printf("Unknown Prop %d", typed)
         return nil
     }
 }
 
-
-func IntEditor(name string, spin *gtk.SpinButton, animate func()) *gtk.Box {
-    box, err := gtk.BoxNew(gtk.ORIENTATION_HORIZONTAL, 0)
-    if err != nil { 
-        log.Printf("Error creating int editor (%s)", err) 
+func PropToString(prop Property) (s string) {
+    for _, attr := range prop.Attributes() {
+        s = s + attr.String()
     }
-
-    box.SetVisible(true)
-
-    label, err := gtk.LabelNew(name)
-    if err != nil { 
-        log.Printf("Error creating int editor (%s)", err) 
-    }
-
-    label.SetVisible(true)
-    label.SetWidthChars(12)
-    box.PackStart(label, false, false, uint(padding))
-
-    spin.SetVisible(true)
-    spin.SetValue(0)
-    box.PackStart(spin, false, false, 0)
-
-    spin.Connect("value-changed", animate)
-    return box
+    return
 }
 
-func StringEditor(name string, animate func()) (*gtk.Box, *gtk.Entry) {
-    box, err := gtk.BoxNew(gtk.ORIENTATION_HORIZONTAL, 0)
-    if err != nil { 
-        log.Printf("Error creating text editor (%s)", err) 
+func EncodeProp(prop Property) (s string) {
+    for _, attr := range prop.Attributes() {
+        s = s + attr.Encode()
     }
+    return
+}
 
-    box.SetVisible(true)
+func DecodeProp(prop Property, s string) {
+    attrs := strings.Split(s, ";")
+    props := prop.Attributes()
 
-    label, err := gtk.LabelNew(name)
-    if err != nil { 
-        log.Printf("Error creating text editor (%s)", err) 
+    for _, attr := range attrs[1:] {
+        name := strings.Split(attr, " ")[0]
+        err := props[name].Decode(attr)
+
+        if err != nil {
+            log.Printf("Error decoding prop %s in %s", name, prop.Name())
+        }
     }
+}
 
-    label.SetVisible(true)
-    label.SetWidthChars(12)
-    box.PackStart(label, false, false, uint(padding))
+func UpdateEditor(propEdit PropertyEditor, prop Property) {
+    attrs := prop.Attributes()
+    visible := prop.Visible()
 
-    buf, err := gtk.EntryBufferNew("", 0)
-    if err != nil { 
-        log.Printf("Error creating text editor (%s)", err) 
+    for name, edit := range propEdit.Editors() {
+        edit.Box().SetVisible(visible[name])
+        edit.Update(attrs[name])
     }
+}
 
-    text, _ := gtk.EntryNewWithBuffer(buf)
-    if err != nil { 
-        log.Printf("Error creating text editor (%s)", err) 
+func UpdateProp(prop Property, propEdit PropertyEditor) {
+    editors := propEdit.Editors()
+
+    for name, attr := range prop.Attributes() {
+        attr.Update(editors[name])
     }
-
-    text.SetVisible(true)
-    box.PackStart(text, false, false, 0)
-
-    text.Connect("changed", animate)
-
-    return box, text
 }
