@@ -68,13 +68,12 @@ type RectProp struct {
     visible     map[string]bool
 }
 
-func NewRectProp(name string) *RectProp {
-    rect := &RectProp{name: name}
+func NewRectProp(name string, visible map[string]bool) *RectProp {
+    rect := &RectProp{name: name, visible: visible}
     rect.attrs = make(map[string]attribute.Attribute, 5)
-    rect.visible = make(map[string]bool, 5)
 
-    rect.attrs["x"] = attribute.NewIntAttribute("x")
-    rect.attrs["y"] = attribute.NewIntAttribute("y")
+    rect.attrs["x"] = attribute.NewIntAttribute("rel_x")
+    rect.attrs["y"] = attribute.NewIntAttribute("rel_y")
     rect.attrs["width"] = attribute.NewIntAttribute("width")
     rect.attrs["height"] = attribute.NewIntAttribute("height")
     rect.attrs["color"] = attribute.NewColorAttribute()

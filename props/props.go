@@ -82,22 +82,22 @@ func NewPropertyEditor(typed int, animate, cont func()) (PropertyEditor, error) 
     }
 }
 
-func NewProperty(typed int, name string) Property {
+func NewProperty(typed int, name string, visible map[string]bool) Property {
     switch (typed) {
     case RECT_PROP:
-        return NewRectProp(name)
+        return NewRectProp(name, visible)
     case TEXT_PROP:
-        return NewTextProp(name)
+        return NewTextProp(name, visible)
     case CIRCLE_PROP:
-        return NewCircleProp(name)
+        return NewCircleProp(name, visible)
     case GRAPH_PROP:
-        return NewGraphProp(name)
+        return NewGraphProp(name, visible)
     case TICKER_PROP:
-        return NewTickerProp(name)
+        return NewTickerProp(name, visible)
     case CLOCK_PROP:
-        return NewClockProp(name)
+        return NewClockProp(name, visible)
     case IMAGE_PROP:
-        return NewImageProp(name)
+        return NewImageProp(name, visible)
     default:
         log.Printf("Unknown Prop %d", typed)
         return nil
@@ -105,7 +105,11 @@ func NewProperty(typed int, name string) Property {
 }
 
 func PropToString(prop Property) (s string) {
-    for _, attr := range prop.Attributes() {
+    for name, attr := range prop.Attributes() {
+        if !prop.Visible()[name] {
+            continue
+        }
+
         s = s + attr.String()
     }
     return

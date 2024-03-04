@@ -159,8 +159,8 @@ func parseProperty(temp *Template, buf *bufio.Reader) (err error) {
                 data["name"] = "Property"
             }
 
-            temp.AddProp(data["name"], prop_id, prop_type)
-            parseAttributes(temp, buf)
+            prop := temp.AddProp(data["name"], prop_id, prop_type)
+            parseAttributes(prop, buf)
 
             matchToken(']', buf)
         }
@@ -180,7 +180,7 @@ func parseProperty(temp *Template, buf *bufio.Reader) (err error) {
     return nil
 }
 
-func parseAttributes(temp *Template, buf *bufio.Reader) (err error) {
+func parseAttributes(prop *Prop, buf *bufio.Reader) (err error) {
     data := make(map[string]string)
     matchToken('{', buf)
 
@@ -198,11 +198,18 @@ func parseAttributes(temp *Template, buf *bufio.Reader) (err error) {
         }
     }
 
+    visible, err := strconv.Atoi(data["visible"])
+    if err != nil {
+        visible = 0
+    }
+
+    prop.AddAttr(data["name"], data["value"], visible == 1)
+
     matchToken('}', buf)
 
     if (c_tok.tok == ',') {
         matchToken(',', buf)
-        parseAttributes(temp, buf)
+        parseAttributes(prop, buf)
     }
 
     return nil

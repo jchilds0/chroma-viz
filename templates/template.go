@@ -6,21 +6,39 @@ import (
 	"github.com/gotk3/gotk3/gtk"
 )
 
+type Prop struct {
+    Name        string
+    Type        int 
+    Visible     map[string]bool
+    Value       map[string]string
+}
+
+func NewProp(name string, typed int) *Prop {
+    p := &Prop{Name: name, Type: typed}
+    p.Visible = make(map[string]bool)
+    p.Value = make(map[string]string)
+
+    return p
+}
+
+func (p *Prop) AddAttr(name, value string, visible bool) {
+    p.Visible[name] = visible
+    p.Value[name] = value
+}
+
 type Template struct {
     Box         *gtk.ListBoxRow
     Title       string
     TempID      int
     NumProps    int
     Layer       int
-    PropType    map[int]int
-    PropName    map[int]string
+    Prop        map[int]*Prop
 }
 
 func NewTemplate(title string, id int, layer int, num_geo int) *Template {
     temp := &Template{Title: title, TempID: id, Layer: layer}
 
-    temp.PropType = make(map[int]int, num_geo)
-    temp.PropName = make(map[int]string, num_geo)
+    temp.Prop = make(map[int]*Prop, num_geo)
     return temp
 }
 
@@ -34,10 +52,11 @@ func (temp *Template) TemplateToListRow() *gtk.ListBoxRow {
     return row1
 }
 
-func (temp *Template) AddProp(name string, geo_id, typed int) {
-    temp.PropName[geo_id] = name
-    temp.PropType[geo_id] = typed
+func (temp *Template) AddProp(name string, geo_id, typed int) *Prop {
+    temp.Prop[geo_id] = NewProp(name, typed)
     temp.NumProps++
+
+    return temp.Prop[geo_id]
 }
 
 func TextToBuffer(text string) *gtk.TextView {

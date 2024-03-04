@@ -32,9 +32,7 @@ func (intAttr *IntAttribute) Decode(s string) (err error) {
         return fmt.Errorf("Incorrect int attr string (%s)", line)
     }
 
-    intAttr.name = line[0]
     intAttr.value, err = strconv.Atoi(line[1])
-
     return 
 }
 

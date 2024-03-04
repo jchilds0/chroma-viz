@@ -68,7 +68,7 @@ func NewClockEditor(width, height int, animate, cont func()) (clockEdit *ClockEd
     })
 
     clockEdit.edit = make(map[string]attribute.Editor, 5)
-    clockEdit.edit["time"], err = attribute.NewStringEditor("Time", animate)
+    clockEdit.edit["string"], err = attribute.NewStringEditor("Time", animate)
     if err != nil {
         return 
     }
@@ -100,7 +100,7 @@ func (clock *ClockEditor) RunClock(cont func()) {
     state := PAUSE
     tick := time.NewTicker(time.Second)
 
-    timeEdit := clock.edit["time"]
+    timeEdit := clock.edit["string"]
     if timeEdit == nil {
         log.Fatalf("Missing time editor in clock")
     } 
@@ -162,17 +162,15 @@ type ClockProp struct {
     visible         map[string]bool
 }
 
-func NewClockProp(name string) *ClockProp {
-    clock := &ClockProp{
-        name: name,
-    }
+func NewClockProp(name string, visible map[string]bool) *ClockProp {
+    clock := &ClockProp{name: name, visible: visible}
 
     clock.attrs = make(map[string]attribute.Attribute, 5)
     clock.visible = make(map[string]bool, 5)
 
-    clock.attrs["x"] = attribute.NewIntAttribute("x")
-    clock.attrs["y"] = attribute.NewIntAttribute("y")
-    clock.attrs["time"] = attribute.NewStringAttribute("text")
+    clock.attrs["x"] = attribute.NewIntAttribute("rel_x")
+    clock.attrs["y"] = attribute.NewIntAttribute("rel_y")
+    clock.attrs["string"] = attribute.NewStringAttribute("text")
     clock.attrs["color"] = attribute.NewColorAttribute()
     return clock
 }

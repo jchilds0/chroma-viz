@@ -20,12 +20,34 @@ func NewCircleEditor(width, height int, animate func()) (circleEdit *CircleEdito
         return
     }
 
-    labels := []string{"Center x", "Center y", "Inner Radius", 
-        "Outer Radius", "Start Angle", "End Angle"}
-    upper := []int{width, height, width, width, 360, 360}   
+    name := []string{
+        "x", 
+        "y", 
+        "inner_radius", 
+        "outer_radius", 
+        "start_angle", 
+        "end_angle",
+    }
+
+    labels := []string{
+        "Center x", 
+        "Center y", 
+        "Inner Radius", 
+        "Outer Radius", 
+        "Start Angle", 
+        "End Angle",
+    }
+    upper := []int{
+        width, 
+        height, 
+        width, 
+        width, 
+        360, 
+        360,
+    }   
 
     for i := range labels {
-        circleEdit.edit[labels[i]], err = attribute.NewIntEditor(labels[i], 0, float64(upper[i]), animate)
+        circleEdit.edit[name[i]], err = attribute.NewIntEditor(labels[i], 0, float64(upper[i]), animate)
 
         if err != nil { 
             return
@@ -64,10 +86,17 @@ type CircleProp struct {
     visible   map[string]bool
 }
 
-func NewCircleProp(name string) *CircleProp {
-    circle := &CircleProp{name: name}
+func NewCircleProp(name string, visible map[string]bool) *CircleProp {
+    circle := &CircleProp{name: name, visible: visible}
     circle.attrs = make(map[string]attribute.Attribute, 10)
-    circle.visible = make(map[string]bool, 10)
+
+    circle.attrs["x"] = attribute.NewIntAttribute("rel_x")
+    circle.attrs["y"] = attribute.NewIntAttribute("rel_y")
+    circle.attrs["inner_radius"] = attribute.NewIntAttribute("inner_radius")
+    circle.attrs["outer_radius"] = attribute.NewIntAttribute("outer_radius")
+    circle.attrs["start_angle"] = attribute.NewIntAttribute("start_angle")
+    circle.attrs["end_angle"] = attribute.NewIntAttribute("end_angle")
+
     return circle
 }
 

@@ -22,7 +22,7 @@ func NewImageEditor(width, height int, animate func()) (imageEdit *ImageEditor, 
     }
 
     // TODO: replace with file explorer
-    imageEdit.edit["image"], err = attribute.NewStringEditor("Image", animate)
+    imageEdit.edit["string"], err = attribute.NewStringEditor("Image", animate)
     if err != nil {
         return
     }
@@ -32,7 +32,7 @@ func NewImageEditor(width, height int, animate func()) (imageEdit *ImageEditor, 
         return
     }
 
-    imageEdit.edit["y"], err = attribute.NewIntEditor("x", 0, float64(height), animate)
+    imageEdit.edit["y"], err = attribute.NewIntEditor("y", 0, float64(height), animate)
     if err != nil { 
         return 
     }
@@ -64,15 +64,14 @@ type ImageProp struct {
     visible map[string]bool
 }
 
-func NewImageProp(name string) *ImageProp {
-    image := &ImageProp{name: name}
+func NewImageProp(name string, visible map[string]bool) *ImageProp {
+    image := &ImageProp{name: name, visible: visible}
     image.attrs = make(map[string]attribute.Attribute, 5)
-    image.visible = make(map[string]bool, 5)
 
-    image.attrs["x"] = attribute.NewIntAttribute("x")
-    image.attrs["y"] = attribute.NewIntAttribute("y")
+    image.attrs["x"] = attribute.NewIntAttribute("rel_x")
+    image.attrs["y"] = attribute.NewIntAttribute("rel_y")
     image.attrs["scale"] = attribute.NewFloatAttribute("scale")
-    image.attrs["image"] = attribute.NewStringAttribute("image")
+    image.attrs["string"] = attribute.NewStringAttribute("string")
 
     return image 
 }

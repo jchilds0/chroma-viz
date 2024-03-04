@@ -27,34 +27,8 @@ func newPage(pageNum int, title string, temp *templates.Template) *Page {
     }
     page.PropMap = make(map[int]props.Property, temp.NumProps)
 
-    for i, prop := range temp.PropType {
-        name := temp.PropName[i]
-
-        switch (prop) {
-        case props.RECT_PROP:
-            page.PropMap[i] = props.NewRectProp(name)
-
-        case props.TEXT_PROP:
-            page.PropMap[i] = props.NewTextProp(name)
-
-        case props.CIRCLE_PROP:
-            page.PropMap[i] = props.NewCircleProp(name)
-
-        case props.CLOCK_PROP:
-            page.PropMap[i] = props.NewClockProp(name)
-
-        case props.GRAPH_PROP:
-            page.PropMap[i] = props.NewGraphProp(name)
-
-        case props.TICKER_PROP:
-            page.PropMap[i] = props.NewTickerProp(name)
-
-        case props.IMAGE_PROP:
-            page.PropMap[i] = props.NewImageProp(name)
-
-        default:
-            log.Printf("Page %d: Unknown property %d", pageNum, prop)
-        }
+    for i, prop := range temp.Prop {
+        page.PropMap[i] = props.NewProperty(prop.Type, prop.Name, prop.Visible)
     }
 
     return page

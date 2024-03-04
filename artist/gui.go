@@ -263,14 +263,28 @@ func ArtistPage() *shows.Page {
 }
 
 func AddProp(name string) (id int) {
+    visible := map[string]bool{
+        "x": true,
+        "y": true,
+        "width": true,
+        "height": true,
+        "inner_radius": true,
+        "outer_radius": true,
+        "start_angle": true,
+        "end_angle": true,
+        "text": true,
+        "image": true,
+        "graph": true,
+    }
+
     id = propCount
     switch name {
     case "Rectangle":
-        page.PropMap[propCount] = props.NewRectProp(name)
+        page.PropMap[propCount] = props.NewRectProp(name, visible)
     case "Circle":
-        page.PropMap[propCount] = props.NewCircleProp(name)
+        page.PropMap[propCount] = props.NewCircleProp(name, visible)
     case "Text":
-        page.PropMap[propCount] = props.NewTextProp(name)
+        page.PropMap[propCount] = props.NewTextProp(name, visible)
     default:
         log.Printf("Unknown prop name %s", name)
     }

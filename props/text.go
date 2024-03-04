@@ -22,7 +22,7 @@ func NewTextEditor(width, height int, animate func()) (textEdit *TextEditor, err
     textEdit.box.SetVisible(true)
     textEdit.edit = make(map[string]attribute.Editor, 5)
 
-    textEdit.edit["text"], err = attribute.NewStringEditor("Text", animate)
+    textEdit.edit["string"], err = attribute.NewStringEditor("Text", animate)
     if err != nil {
         return
     }
@@ -63,14 +63,14 @@ type TextProp struct {
     visible     map[string]bool
 }
 
-func NewTextProp(name string) *TextProp {
+func NewTextProp(name string, visible map[string]bool) *TextProp {
     text := &TextProp{name: name}
     text.attrs = make(map[string]attribute.Attribute, 5)
-    text.visible = make(map[string]bool, 5)
+    text.visible = visible
 
-    text.attrs["x"] = attribute.NewIntAttribute("x")
-    text.attrs["y"] = attribute.NewIntAttribute("y")
-    text.attrs["text"] = attribute.NewStringAttribute("text")
+    text.attrs["x"] = attribute.NewIntAttribute("rel_x")
+    text.attrs["y"] = attribute.NewIntAttribute("rel_y")
+    text.attrs["string"] = attribute.NewStringAttribute("string")
     text.attrs["color"] = attribute.NewColorAttribute()
 
     return text

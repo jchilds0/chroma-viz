@@ -19,16 +19,15 @@ func NewFloatAttribute(name string) *FloatAttribute {
 }
 
 func (floatAttr *FloatAttribute) String() string {
-    return fmt.Sprintf("%s=%d#", floatAttr.name, floatAttr.value)
+    return fmt.Sprintf("%s=%f#", floatAttr.name, floatAttr.value)
 }
 
 func (floatAttr *FloatAttribute) Encode() string {
-    return fmt.Sprintf("%s %d;", floatAttr.name, floatAttr.value)
+    return fmt.Sprintf("%s %f;", floatAttr.name, floatAttr.value)
 }
 
 func (floatAttr *FloatAttribute) Decode(s string) (err error) {
     line := strings.Split(s, " ")
-    floatAttr.name = line[0]
     floatAttr.value, err = strconv.ParseFloat(line[1], 64)
 
     return 

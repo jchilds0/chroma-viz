@@ -1,5 +1,5 @@
-temp 4; title "Ticker";
-index 2;x 25;y 20;text Hello there;text world;text ;text ;text ;text ;
+emp 4; title "Ticker";
+index 2;x 25;y 20;text 1 Hello;text 2 world;
 index 0;x 0;y 0;width 1920;height 75;
 index 1;x 1700;y 25;width 400;height 100;
 temp 0; title "Teal Box";

@@ -27,7 +27,6 @@ func (stringAttr *StringAttribute) Encode() string {
 
 func (stringAttr *StringAttribute) Decode(s string) error {
     line := strings.Split(s, " ")
-    stringAttr.name = line[0]
     stringAttr.value = line[1]
 
     return nil

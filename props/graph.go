@@ -33,7 +33,7 @@ func NewGraphEditor(width, height int, animate func()) (g *GraphEditor, err erro
     }
 
     columns := []string{"x Pos", "y Pos"}
-    g.edit["graph"], err = attribute.NewListEditor("Graph", columns, animate)
+    g.edit["node"], err = attribute.NewListEditor("Graph", columns, animate)
     if err != nil {
         return
     }
@@ -60,14 +60,13 @@ type GraphProp struct {
     visible   map[string]bool
 }
 
-func NewGraphProp(name string) Property {
-    g := &GraphProp{name: name}
+func NewGraphProp(name string, visible map[string]bool) Property {
+    g := &GraphProp{name: name, visible: visible}
     g.attrs = make(map[string]attribute.Attribute, 5)
-    g.visible = make(map[string]bool, 5)
 
-    g.attrs["x"] = attribute.NewIntAttribute("x")
-    g.attrs["y"] = attribute.NewIntAttribute("y")
-    g.attrs["graph"] = attribute.NewListAttribute("graph")
+    g.attrs["x"] = attribute.NewIntAttribute("rel_x")
+    g.attrs["y"] = attribute.NewIntAttribute("rel_y")
+    g.attrs["node"] = attribute.NewListAttribute("graph")
 
     return g
 }
