@@ -8,26 +8,25 @@ import (
 )
 
 type StringAttribute struct {
-    name    string
-    value   string
+    Name    string
+    Value   string
 }
 
 func NewStringAttribute(name string) *StringAttribute {
-    stringAttr := &StringAttribute{name: name}
+    stringAttr := &StringAttribute{Name: name}
     return stringAttr
 }
 
 func (stringAttr *StringAttribute) String() string {
-    return fmt.Sprintf("%s=%s#", stringAttr.name, stringAttr.value)
+    return fmt.Sprintf("%s=%s#", stringAttr.Name, stringAttr.Value)
 }
 
 func (stringAttr *StringAttribute) Encode() string {
-    return fmt.Sprintf("%s %s;", stringAttr.name, stringAttr.value)
+    return fmt.Sprintf("%s %s;", stringAttr.Name, stringAttr.Value)
 }
 
 func (stringAttr *StringAttribute) Decode(s string) error {
-    line := strings.Split(s, " ")
-    stringAttr.value = line[1]
+    stringAttr.Value = strings.TrimPrefix(s, "string ")
 
     return nil
 }
@@ -39,7 +38,7 @@ func (stringAttr *StringAttribute) Update(edit Editor) error {
         return fmt.Errorf("StringAttribute.Update requires StringEditor") 
     }
 
-    stringAttr.value, err = stringEdit.Entry.GetText()
+    stringAttr.Value, err = stringEdit.Entry.GetText()
     return err
 }
 
@@ -88,7 +87,7 @@ func (stringEdit *StringEditor) Update(attr Attribute) error {
         return fmt.Errorf("StringEditor.Update requires StringAttribute") 
     }
 
-    stringEdit.Entry.SetText(stringAttr.value)
+    stringEdit.Entry.SetText(stringAttr.Value)
     return nil
 }
 

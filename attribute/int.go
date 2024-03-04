@@ -9,21 +9,21 @@ import (
 )
 
 type IntAttribute struct {
-	name  string
-	value int
+	Name  string
+	Value int
 }
 
 func NewIntAttribute(name string) *IntAttribute {
-    intAttr := &IntAttribute{name: name}
+    intAttr := &IntAttribute{Name: name}
     return intAttr
 }
 
 func (intAttr *IntAttribute) String() string {
-    return fmt.Sprintf("%s=%d#", intAttr.name, intAttr.value)
+    return fmt.Sprintf("%s=%d#", intAttr.Name, intAttr.Value)
 }
 
 func (intAttr *IntAttribute) Encode() string {
-    return fmt.Sprintf("%s %d;", intAttr.name, intAttr.value)
+    return fmt.Sprintf("%s %d;", intAttr.Name, intAttr.Value)
 }
 
 func (intAttr *IntAttribute) Decode(s string) (err error) {
@@ -32,7 +32,7 @@ func (intAttr *IntAttribute) Decode(s string) (err error) {
         return fmt.Errorf("Incorrect int attr string (%s)", line)
     }
 
-    intAttr.value, err = strconv.Atoi(line[1])
+    intAttr.Value, err = strconv.Atoi(line[1])
     return 
 }
 
@@ -42,7 +42,7 @@ func (intAttr *IntAttribute) Update(edit Editor) error {
         return fmt.Errorf("IntAttribute.Update requires IntEditor") 
     }
 
-    intAttr.value = intEdit.button.GetValueAsInt()
+    intAttr.Value = intEdit.button.GetValueAsInt()
     return nil
 }
 
@@ -89,7 +89,7 @@ func (intEdit *IntEditor) Update(attr Attribute) error {
         return fmt.Errorf("IntEditor.Update requires IntAttribute") 
     }
 
-    intEdit.button.SetValue(float64(intAttr.value))
+    intEdit.button.SetValue(float64(intAttr.Value))
     return nil
 }
 
