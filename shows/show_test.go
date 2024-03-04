@@ -1,6 +1,7 @@
 package shows
 
 import (
+	"chroma-viz/attribute"
 	"chroma-viz/props"
 	"chroma-viz/templates"
 	"net"
@@ -68,103 +69,106 @@ func TestImportShow(t *testing.T) {
 }
 
 func rectPropTest(t *testing.T, prop props.Property, x, y, w, h int) {
-    rect, ok := prop.(*props.RectProp)
+    _, ok := prop.(*props.RectProp)
     if !ok {
         t.Errorf("Prop %s is not a rect prop", prop.Name())
         return
     }
 
-    if rect.Value[0] != x {
-        t.Errorf("Rect prop incorrect value (rect.x = %d), expected %d", rect.Value[0], x)
-    } else if rect.Value[1] != y {
-        t.Errorf("Rect prop incorrect value (rect.y = %d), expected %d", rect.Value[1], y)
-    } else if rect.Value[2] != w {
-        t.Errorf("Rect prop incorrect value (rect.width = %d), expected %d", rect.Value[2], w)
-    } else if rect.Value[3] != h {
-        t.Errorf("Rect prop incorrect value (rect.height = %d), expected %d", rect.Value[3], h)
-    }
+    attr := prop.Attributes()
+    intAttrTest(t, attr["x"], x)
+    intAttrTest(t, attr["y"], y)
+    intAttrTest(t, attr["width"], w)
+    intAttrTest(t, attr["height"], h)
 }
 
 func textPropTest(t *testing.T, prop props.Property, x, y int, text string) {
-    textProp, ok := prop.(*props.TextProp)
+    _, ok := prop.(*props.TextProp)
     if !ok {
         t.Errorf("Prop %s is not a text prop", prop.Name())
         return
     }
 
-    if textProp.Value[0] != x {
-        t.Errorf("Text prop incorrect value (text.x = %d), expected %d", textProp.Value[0], x)
-    } else if textProp.Value[1] != y {
-        t.Errorf("Text prop incorrect value (text.y = %d), expected %d", textProp.Value[1], y)
-    } else if textProp.S != text {
-        t.Errorf("Text prop incorrect value (text.s = %s), expected %s", textProp.S, text)
-    }
+    attr := prop.Attributes()
+    intAttrTest(t, attr["x"], x)
+    intAttrTest(t, attr["y"], y)
+    stringAttrTest(t, attr["string"], text)
 }
 
 func circlePropTest(t *testing.T, prop props.Property, x, y, ir, or, sa, ea int) {
-    circ, ok := prop.(*props.CircleProp)
+    _, ok := prop.(*props.CircleProp)
     if !ok {
         t.Errorf("Prop %s is not a circle prop", prop.Name())
         return
     }
 
-    if circ.Value[0] != x {
-        t.Errorf("Circle prop incorrect value (circle.x = %d), expected %d", circ.Value[0], x)
-    } else if circ.Value[1] != y {
-        t.Errorf("Circle prop incorrect value (circle.y = %d), expected %d", circ.Value[1], y)
-    } else if circ.Value[2] != ir {
-        t.Errorf("Circle prop incorrect value (circle.inner_radius = %d), expected %d", circ.Value[2], ir)
-    } else if circ.Value[3] != or {
-        t.Errorf("Circle prop incorrect value (circle.outer_radius = %d), expected %d", circ.Value[3], or)
-    } else if circ.Value[4] != sa {
-        t.Errorf("Circle prop incorrect value (circle.start_angle = %d), expected %d", circ.Value[4], sa)
-    } else if circ.Value[5] != ea {
-        t.Errorf("Circle prop incorrect value (circle.end_angle = %d), expected %d", circ.Value[5], ea)
-    }
+    attr := prop.Attributes()
+    intAttrTest(t, attr["x"], x)
+    intAttrTest(t, attr["y"], y)
+    intAttrTest(t, attr["inner_radius"], ir)
+    intAttrTest(t, attr["outer_radius"], or)
+    intAttrTest(t, attr["start_angle"], sa)
+    intAttrTest(t, attr["end_angle"], ea)
 }
 
 func clockPropTest(t *testing.T, prop props.Property, x, y int) {
-    clock, ok := prop.(*props.ClockProp)
+    _, ok := prop.(*props.ClockProp)
     if !ok {
         t.Errorf("Prop %s is not a clock prop", prop.Name())
         return
     }
 
-    if clock.Value[0] != x {
-        t.Errorf("Clock prop incorrect value (clock.x = %d), expected %d", clock.Value[0], x)
-    } else if clock.Value[1] != y {
-        t.Errorf("Clock prop incorrect value (clock.y = %d), expected %d", clock.Value[1], y)
-    }
+    attr := prop.Attributes()
+    intAttrTest(t, attr["x"], x)
+    intAttrTest(t, attr["y"], y)
 }
 
 func tickerPropTest(t *testing.T, prop props.Property, x, y int, s ...string) {
-    tick, ok := prop.(*props.TickerProp)
+    _, ok := prop.(*props.TickerProp)
     if !ok {
         t.Errorf("Prop %s is not a ticker prop", prop.Name())
         return
     }
 
-    if tick.Value[0] != x {
-        t.Errorf("Ticker prop incorrect value (tick.x = %d), expected %d", tick.Value[0], x)
-    } else if tick.Value[1] != y {
-        t.Errorf("Ticker prop incorrect value (tick.y = %d), expected %d", tick.Value[1], y)
-    }
-
+    attr := prop.Attributes()
+    intAttrTest(t, attr["x"], x)
+    intAttrTest(t, attr["y"], y)
     // check list store values
 }
 
 func graphPropTest(t *testing.T, prop props.Property, x, y int) {
-    g, ok := prop.(*props.GraphProp)
+    _, ok := prop.(*props.GraphProp)
     if !ok {
         t.Errorf("Prop %s is not a graph prop", prop.Name())
         return
     }
 
-    if g.Value[0] != x {
-        t.Errorf("Graph prop incorrect value (g.x = %d), expected %d", g.Value[0], x)
-    } else if g.Value[1] != y {
-        t.Errorf("Graph prop incorrect value (g.y = %d), expected %d", g.Value[1], y)
+    attr := prop.Attributes()
+    intAttrTest(t, attr["x"], x)
+    intAttrTest(t, attr["y"], y)
+    // check list store values
+}
+
+func intAttrTest(t *testing.T, attr attribute.Attribute, val int) {
+    intAttr, ok := attr.(*attribute.IntAttribute)
+    if !ok {
+        t.Errorf("Attr %v is not an int attr", attr)
+        return
     }
 
-    // check list store values
+    if intAttr.Value != val {
+        t.Errorf("Int attr incorrect value (intAttr.Value = %d), expected %d", intAttr.Value, val)
+    }
+}
+
+func stringAttrTest(t *testing.T, attr attribute.Attribute, val string) {
+    stringAttr, ok := attr.(*attribute.StringAttribute)
+    if !ok {
+        t.Errorf("Attr %v is not an string attr", attr)
+        return
+    }
+
+    if stringAttr.Value != val {
+        t.Errorf("String attr incorrect value (stringAttr.Value = %s), expected %s", stringAttr.Value, val)
+    }
 }
