@@ -65,14 +65,15 @@ func TestImportTemplates(t *testing.T) {
 }
 
 func propTest(t *testing.T, template *Template, i int, name, typed string) {
-    if template.PropName[i] != name {
+    prop := template.Prop[i]
+    if prop.Name != name {
         t.Errorf("(%s) Incorrect prop name, expected %s, recieved %s", 
-            template.Title, name, template.PropName[i])
+            template.Title, name, prop.Name)
     } 
 
-    if template.PropType[i] != props.StringToProp[typed] {
+    if prop.Type != props.StringToProp[typed] {
         t.Errorf("(%s) Incorrect prop type, expected %s, recieved %d", 
-            template.Title, typed, template.PropType[i])
+            template.Title, typed, prop.Type)
     }
 }
 
