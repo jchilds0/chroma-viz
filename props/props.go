@@ -124,8 +124,12 @@ func DecodeProp(prop Property, s string) {
 
     for _, attr := range attrs[1:] {
         name := strings.Split(attr, " ")[0]
-        err := props[name].Decode(attr)
+        if props[name] == nil {
+            log.Printf("Error prop %s missing prop attr %s", prop.Name(), name)
+            continue
+        }
 
+        err := props[name].Decode(attr)
         if err != nil {
             log.Printf("Error decoding prop %s in %s", name, prop.Name())
         }

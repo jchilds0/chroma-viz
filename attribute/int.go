@@ -28,10 +28,10 @@ func (intAttr *IntAttribute) Encode() string {
 
 func (intAttr *IntAttribute) Decode(s string) (err error) {
     line := strings.Split(s, " ")
-
     if len(line) != 2 {
         return fmt.Errorf("Incorrect int attr string (%s)", line)
     }
+
     intAttr.name = line[0]
     intAttr.value, err = strconv.Atoi(line[1])
 

@@ -164,12 +164,16 @@ func (editor *Editor) PageEditor() {
         editor.propEdit[i] = make([]props.PropertyEditor, num)
 
         for j := 0; j < num; j++ {
-            editor.propEdit[i][j] = props.NewPropertyEditor(i, animate, cont)
+            editor.propEdit[i][j], err = props.NewPropertyEditor(i, animate, cont)
+            if err != nil {
+                log.Printf("Error creating prop editor %d", i)
+            }
         }
     }
 }
 
 func (editor *Editor) PropertyEditor() {
+    var err error
     // prop editors 
     editor.propEdit = make([][]props.PropertyEditor, props.NUM_PROPS)
 
@@ -189,7 +193,10 @@ func (editor *Editor) PropertyEditor() {
         editor.propEdit[i] = make([]props.PropertyEditor, num)
 
         for j := 0; j < num; j++ {
-            editor.propEdit[i][j] = props.NewPropertyEditor(i, animate, cont)
+            editor.propEdit[i][j], err = props.NewPropertyEditor(i, animate, cont)
+            if err != nil {
+                log.Printf("Error creating prop editor %d", i)
+            }
         }
     }
 }
@@ -200,7 +207,7 @@ func (edit *Editor) UpdateProps(action int) {
             continue
         }
 
-        item.prop.Update(item.editor, action)
+        props.UpdateProp(item.prop, item.editor)
     }
 }
 
@@ -240,13 +247,17 @@ func (editor *Editor) SetPage(page *shows.Page) {
         var propEdit props.PropertyEditor
         if propCount[typed] == len(editor.propEdit[typed]) {
             // we ran out of editors, add a new one
-            propEdit = props.NewPropertyEditor(typed, animate, cont)
+            propEdit, err = props.NewPropertyEditor(typed, animate, cont)
+            if err != nil {
+                log.Printf("Error creating prop editor %d", typed)
+            }
+
             editor.propEdit[typed] = append(editor.propEdit[typed], propEdit)
         } else {
             propEdit = editor.propEdit[typed][propCount[typed]]
         }
 
-        propEdit.Update(prop)
+        props.UpdateEditor(propEdit, prop)
         editor.tabs.AppendPage(propEdit.Box(), label)
         propCount[typed]++
         editor.pairs = append(editor.pairs, Pairing{prop: prop, editor: propEdit})
@@ -260,7 +271,7 @@ func (editor *Editor) SetProperty(prop props.Property) {
 
     propType := prop.Type()
     propEdit := editor.propEdit[propType][0]
-    propEdit.Update(prop)
+    props.UpdateEditor(propEdit, prop)
     editor.propBox = propEdit.Box()
     editor.pairs = []Pairing{{prop: prop, editor: propEdit}}
 

@@ -49,7 +49,7 @@ type FloatEditor struct {
     button    *gtk.SpinButton
 }
 
-func NewFloatEditor(name string, lower, upper float64, animate func()) (*FloatEditor, error) {
+func NewFloatEditor(name string, lower, upper, scale float64, animate func()) (*FloatEditor, error) {
     var err error
     floatEdit := &FloatEditor{}
 
@@ -68,7 +68,7 @@ func NewFloatEditor(name string, lower, upper float64, animate func()) (*FloatEd
     label.SetWidthChars(12)
     floatEdit.box.PackStart(label, false, false, uint(padding))
 
-    floatEdit.button, err = gtk.SpinButtonNewWithRange(lower, upper, 1)
+    floatEdit.button, err = gtk.SpinButtonNewWithRange(lower, upper, scale)
     if err != nil { 
         return nil, err
     }

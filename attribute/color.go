@@ -58,7 +58,7 @@ func (colorAttr *ColorAttribute) Decode(s string) (err error) {
 }
 
 func (colorAttr *ColorAttribute) Update(edit Editor) error {
-    colorEdit, ok := edit.(*ColorEditor)
+    _, ok := edit.(*ColorEditor)
     if !ok {
         return fmt.Errorf("ColorAttribute.Update requires ColorEditor") 
     }
@@ -92,7 +92,7 @@ func NewColorEditor(name string, animate func()) (*ColorEditor, error) {
 }
 
 func (colorEdit *ColorEditor) Update(attr Attribute) error {
-    colorAttr, ok := attr.(*ColorAttribute)
+    _, ok := attr.(*ColorAttribute)
     if !ok {
         return fmt.Errorf("ColorEditor.Update requires ColorAttribute") 
     }

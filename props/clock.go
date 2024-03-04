@@ -73,12 +73,12 @@ func NewClockEditor(width, height int, animate, cont func()) (clockEdit *ClockEd
         return 
     }
 
-    clockEdit.edit["x"], err = attribute.NewIntEditor("x", -float64(width), float64(width), animate)
+    clockEdit.edit["x"], err = attribute.NewIntEditor("x", 0, float64(width), animate)
     if err != nil {
         return
     }
 
-    clockEdit.edit["y"], err = attribute.NewIntEditor("y", -float64(width), float64(width), animate)
+    clockEdit.edit["y"], err = attribute.NewIntEditor("y", 0, float64(height), animate)
     if err != nil {
         return
     }

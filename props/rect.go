@@ -16,15 +16,24 @@ func NewRectEditor(width, height int, animate func()) (rectEdit *RectEditor, err
     rectEdit = &RectEditor{}
     rectEdit.edit = make(map[string]attribute.Editor, 5) 
 
-    labels := []string{"x", "y", "Width", "Height"}
-    upper := []int{width, height, width, height}
+    rectEdit.edit["x"], err = attribute.NewIntEditor("x", 0, float64(width), animate)
+    if err != nil {
+        return
+    }
 
-    for i := range labels {
-        rectEdit.edit[labels[i]], err = attribute.NewIntEditor(labels[i], 0, float64(upper[i]), animate)
+    rectEdit.edit["y"], err = attribute.NewIntEditor("y", 0, float64(height), animate)
+    if err != nil {
+        return
+    }
 
-        if err != nil {
-            return
-        }
+    rectEdit.edit["width"], err = attribute.NewIntEditor("Width", 0, float64(width), animate)
+    if err != nil {
+        return
+    }
+
+    rectEdit.edit["height"], err = attribute.NewIntEditor("Height", 0, float64(height), animate)
+    if err != nil {
+        return
     }
 
     rectEdit.edit["color"], err = attribute.NewColorEditor("Color", animate)
@@ -69,6 +78,11 @@ func NewRectProp(name string) *RectProp {
     rect.attrs["width"] = attribute.NewIntAttribute("width")
     rect.attrs["height"] = attribute.NewIntAttribute("height")
     rect.attrs["color"] = attribute.NewColorAttribute()
+
+    rect.visible["x"] = true
+    rect.visible["y"] = true
+    rect.visible["width"] = true
+    rect.visible["height"] = true
 
     return rect
 }
