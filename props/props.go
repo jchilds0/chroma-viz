@@ -46,16 +46,22 @@ var StringToProp map[string]int = map[string]int{
     "image": IMAGE_PROP,
 }
 
-type PropertyEditor interface {
-    Box() *gtk.Box
-    Editors() map[string]attribute.Editor
-}
+/*
+
+    
+
+*/
 
 type Property interface {
     Name() string
     Type() int
     Visible() map[string]bool
     Attributes() map[string]attribute.Attribute
+}
+
+type PropertyEditor interface {
+    Box() *gtk.Box
+    Editors() map[string]attribute.Editor
 }
 
 func NewPropertyEditor(typed int, animate, cont func()) (PropertyEditor, error) {

@@ -27,13 +27,28 @@ func NewGraphCell(i int) *graphCell {
 
 type ListAttribute struct {
     name          string
+    itemName      string
+    numCols       int
+    selected      bool
+    selectedIter  *gtk.TreeIter
     listStore     *gtk.ListStore
 }
 
-func NewListAttribute(name string) *ListAttribute {
+func NewListAttribute(name, itemName string, numCols int, selected bool) *ListAttribute {
     var err error
-    list := &ListAttribute{name: name}
-    list.listStore, err = gtk.ListStoreNew(glib.TYPE_INT, glib.TYPE_INT)
+    list := &ListAttribute{
+        name: name, 
+        itemName: itemName, 
+        numCols: numCols, 
+        selected: selected,
+    }
+
+    cols := make([]glib.Type, list.numCols)
+    for i := range cols {
+        cols[i] = glib.TYPE_STRING
+    }
+
+    list.listStore, err = gtk.ListStoreNew(cols...)
     if err != nil {
         log.Fatalf("Error creating list store")
     }
@@ -42,17 +57,62 @@ func NewListAttribute(name string) *ListAttribute {
 }
 
 func (listAttr *ListAttribute) String() (s string) {
-    // currently chroma_viz allocates 100 nodes for each graph statically
-    s = "num_node=0#" 
+    // currently chroma_engine allocates 100 nodes for each list statically
+    if listAttr.selected {
+        // send only the currently selected item from the list
+        if listAttr.selectedIter == nil {
+            return 
+        }
+
+        return listAttr.stringRow(listAttr.selectedIter)
+    }
 
     iter, ok := listAttr.listStore.GetIterFirst()
     i := 0 
     for ok {
-        // TODO: generic columns
-        xVal := getIntFromIter(listAttr.listStore, iter, 0)
-        yVal := getIntFromIter(listAttr.listStore, iter, 1)
+        s = s + listAttr.stringRow(iter)
+        ok = listAttr.listStore.IterNext(iter)
+        i++
+    }
+
+    s = fmt.Sprintf("num_node=%d#", i) + s
+    return
+}
+
+func (listAttr *ListAttribute) stringRow(iter *gtk.TreeIter) (s string) {
+    s = listAttr.itemName + "="
+    for j := 0; j < listAttr.numCols - 1; j++ {
+        item := getStringFromIter(listAttr.listStore, iter, j)
+        s = s + item + " "
+    }
+
+    item := getStringFromIter(listAttr.listStore, iter, listAttr.numCols - 1)
+    s = s + item + "#"
+    return
+}
+
+func getStringFromIter(model *gtk.ListStore, iter *gtk.TreeIter, col int) string {
+    row, err := model.GetValue(iter, col)
+    if err != nil {
+        log.Printf("Error getting graph row (%s)", err)
+        return "" 
+    }
+
+    rowVal, err := row.GoValue()
+    if err != nil {
+        log.Printf("Error converting row to go val (%s)", err)
+        return ""
+    }
         
-        s = s + fmt.Sprintf("graph_node=%d %d %d#", i, xVal, yVal)
+    return rowVal.(string)
+}
+
+func (listAttr *ListAttribute) Encode() (s string) {
+    iter, ok := listAttr.listStore.GetIterFirst()
+    i := 0 
+
+    for ok {
+        s = s + listAttr.stringRow(iter)
         ok = listAttr.listStore.IterNext(iter)
         i++
     }
@@ -60,35 +120,15 @@ func (listAttr *ListAttribute) String() (s string) {
     return
 }
 
-func getIntFromIter(model *gtk.ListStore, iter *gtk.TreeIter, col int) int {
-    row, err := model.GetValue(iter, col)
-    if err != nil {
-        log.Printf("Error getting graph row (%s)", err)
-        return 0
+func (listAttr *ListAttribute) encodeRow(iter *gtk.TreeIter) (s string) {
+    s = listAttr.itemName + " "
+    for j := 0; j < listAttr.numCols - 1; j++ {
+        item := getStringFromIter(listAttr.listStore, iter, j)
+        s = s + item + " "
     }
 
-    rowVal, err := row.GoValue()
-    if err != nil {
-        log.Printf("Error converting row to go val (%s)", err)
-        return 0
-    }
-        
-    return rowVal.(int)
-}
-
-func (listAttr *ListAttribute) Encode() (s string) {
-    iter, ok := listAttr.listStore.GetIterFirst()
-    i := 0 
-    for ok {
-        // TODO: generic columns
-        xVal := getIntFromIter(listAttr.listStore, iter, 0)
-        yVal := getIntFromIter(listAttr.listStore, iter, 1)
-        
-        s = s + fmt.Sprintf("node %d %d;", xVal, yVal)
-        ok = listAttr.listStore.IterNext(iter)
-        i++
-    }
-
+    item := getStringFromIter(listAttr.listStore, iter, listAttr.numCols - 1)
+    s = s + item + ";"
     return
 }
 
@@ -113,15 +153,30 @@ func (listAttr *ListAttribute) Decode(s string) error {
 }
 
 func (listAttr *ListAttribute) Update(edit Editor) error {
-    _, ok := edit.(*ListEditor) 
+    listEdit, ok := edit.(*ListEditor) 
     if !ok {
         return fmt.Errorf("ListAttribute.Update requires a ListEditor")
     }
 
-    /*
-        No changes required. ListEdit has a pointer to the 
-        list store in ListAttribute, which is updated
-    */
+    selected, err := listEdit.treeView.GetSelection()
+    if err != nil {
+        return err
+    }
+    _, listAttr.selectedIter, ok = selected.GetSelected()
+    if !ok {
+        return fmt.Errorf("Error getting selected iter from tree view selection")
+    }
+    // Increment selection
+    ok = listAttr.listStore.IterNext(listAttr.selectedIter)
+    if !ok {
+        // last item in the list
+        listAttr.selectedIter, ok = listAttr.listStore.GetIterFirst()
+    }
+
+    if ok {
+        selected.SelectIter(listAttr.selectedIter)
+    }
+
     return nil
 }
 
@@ -145,7 +200,6 @@ func NewListEditor(name string, columns []string, animate func()) (listEdit *Lis
     }
 
     listEdit.treeView.SetVisible(true)
-
     for i, name := range columns {
         gCell := NewGraphCell(i)
         gCell.SetProperty("editable", true)
@@ -162,13 +216,7 @@ func NewListEditor(name string, columns []string, animate func()) (listEdit *Lis
                     return
                 }
 
-                id_val, err := strconv.Atoi(text)
-                if err != nil {
-                    log.Printf("Error editing list attribute (%s)", err)
-                    return
-                }
-
-                listEdit.listStore.SetValue(iter, gCell.columnNum, id_val)
+                listEdit.listStore.SetValue(iter, gCell.columnNum, text)
                 animate()
         })
         column, err := gtk.TreeViewColumnNewWithAttribute(name, gCell, "text", i)
@@ -186,15 +234,23 @@ func NewListEditor(name string, columns []string, animate func()) (listEdit *Lis
 
     frame.Set("border-width", 2 * padding)
     frame.Add(listEdit.treeView)
-    listEdit.box.PackStart(frame, true, true, 0)
+    frame.SetVisible(true)
     
+    actionBox, err := gtk.BoxNew(gtk.ORIENTATION_HORIZONTAL, 0)
+    if err != nil {
+        return
+    }
+
+    actionBox.SetVisible(true)
+
     label, err := gtk.LabelNew("Data Rows")
     if err != nil {
         return 
     }
 
     label.SetVisible(true)
-    listEdit.box.PackStart(label, false, false, padding)
+    label.SetWidthChars(12)
+    actionBox.PackStart(label, false, false, padding)
 
     // add rows
     button, err := gtk.ButtonNewWithLabel("+")
@@ -212,7 +268,7 @@ func NewListEditor(name string, columns []string, animate func()) (listEdit *Lis
     })
 
     button.SetVisible(true)
-    listEdit.box.PackStart(button, false, false, padding)
+    actionBox.PackStart(button, false, false, padding)
 
     // remove rows
     button, err = gtk.ButtonNewWithLabel("-")
@@ -242,8 +298,10 @@ func NewListEditor(name string, columns []string, animate func()) (listEdit *Lis
     })
 
     button.SetVisible(true)
-    listEdit.box.PackStart(button, false, false, padding)
+    actionBox.PackStart(button, false, false, padding)
 
+    listEdit.box.PackStart(actionBox, true, true, 0)
+    listEdit.box.PackStart(frame, true, true, 0)
     return
 }
 

@@ -26,7 +26,7 @@ func NewTickerEditor(width, height int, animate func()) (t *TickerEditor, err er
         return
     }
 
-    columns := []string{"Num", "Text"}
+    columns := []string{"Text"}
     t.edit["text"], err = attribute.NewListEditor("Ticker", columns, animate)
     if err != nil {
         return 
@@ -70,7 +70,7 @@ func NewTickerProp(name string, visible map[string]bool) *TickerProp {
     t.attrs = make(map[string]attribute.Attribute, 5)
     t.attrs["x"] = attribute.NewIntAttribute("rel_x")
     t.attrs["y"] = attribute.NewIntAttribute("rel_y")
-    t.attrs["text"] = attribute.NewListAttribute("ticker")
+    t.attrs["text"] = attribute.NewListAttribute("ticker", "string", 1, true)
 
     return t
 }

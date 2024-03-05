@@ -66,7 +66,7 @@ func NewGraphProp(name string, visible map[string]bool) Property {
 
     g.attrs["x"] = attribute.NewIntAttribute("rel_x")
     g.attrs["y"] = attribute.NewIntAttribute("rel_y")
-    g.attrs["node"] = attribute.NewListAttribute("graph")
+    g.attrs["node"] = attribute.NewListAttribute("graph", "graph_node", 2, false)
 
     return g
 }
