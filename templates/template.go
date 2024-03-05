@@ -6,6 +6,18 @@ import (
 	"github.com/gotk3/gotk3/gtk"
 )
 
+/*
+
+    Templates form the basis of pages. Each page corresponds to 
+    one page which specifies the shape of the page, usually with
+    a number of properties that can be edited by the user.
+
+    Prop is a simple struct used for storing data as we parse the 
+    templates sent by Chroma Hub on startup. This is then used to 
+    generate a Page.
+
+*/
+
 type Prop struct {
     Name        string
     Type        int 

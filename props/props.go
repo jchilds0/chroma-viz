@@ -48,8 +48,37 @@ var StringToProp map[string]int = map[string]int{
 
 /*
 
-    
+    Templates are made up of a collection of Properties.
 
+    Property encodes the data needed by chroma engine to display a geometry.
+    Each Property has an associated PropertyEditor which generates the gtk
+    ui elements needed to edit the corresponding Property. The app generates 
+    a small set of PropertyEditor's (enough to show one template) due to the 
+    cost of creating gtk ui elements greater than the objects to store the 
+    data.
+
+    The user creates a Page from a Template, which involves creating a 
+    Property for each Property in the Template. When the user wants to edit 
+    the Properties of a Page, the editor uses the Properties of the Page to 
+    update PropertyEditor's with the corresponding type (UpdateEditor). 
+    In turn the PropertyEditor's update the data stored in Properties on 
+    change by the user (UpdateProp).
+
+    Each Property is built up from Attributes, which are simple building 
+    blocks like an integer field. We don't always want to show all 
+    Attributes so the Property keeps track of the visible Attributes with
+    a map, and updates the SetVisible of each gtk element accordingly
+
+    For synchronizing of attributes, the key of the Attributes map in a 
+    Property matches the key of the Editors map in a PropertyEditor.
+    Each Attribute has a name attribute which is the identifier used when sending 
+    the attribute to Chroma Engine. Each Editor also has a name, which is 
+    string displayed to the user when editing the attribute.
+
+    PropToString encodes the attributes in a property as a string to be 
+    sent to Chroma Engine.
+
+    EncodeProp and DecodeProp are used to import and export a show.
 */
 
 type Property interface {

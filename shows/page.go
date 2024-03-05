@@ -9,6 +9,18 @@ import (
 	"github.com/gotk3/gotk3/gtk"
 )
 
+/*
+
+    Pages are the highest object in the graphics hierarchy.
+    Pages consist of a number of Properties, which represent
+    components of the graphic such at Title, Background or Clock.
+    The Properties of a Page are defined by the template which 
+    the Page is built from.
+    
+    See props/props.go for information about Properties.
+
+*/
+
 type Page struct {
     Box         *gtk.ListBoxRow
     PageNum     int
