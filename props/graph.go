@@ -39,9 +39,10 @@ func NewGraphEditor(width, height int, animate func()) (g *GraphEditor, err erro
     }
 
     g.box.SetVisible(true)
-    for _, attr := range g.edit {
-        g.box.PackStart(attr.Box(), false, false, padding)
-    }
+
+    g.box.PackStart(g.edit["x"].Box(), false, false, padding)
+    g.box.PackStart(g.edit["y"].Box(), false, false, padding)
+    g.box.PackStart(g.edit["node"].Box(), false, false, padding)
 
     return
 }

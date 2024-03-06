@@ -88,9 +88,10 @@ func NewClockEditor(width, height int, animate, cont func()) (clockEdit *ClockEd
         return
     }
 
-    for _, attr := range clockEdit.edit {
-        clockEdit.box.PackStart(attr.Box(), false, false, padding)
-    }
+    clockEdit.box.PackStart(clockEdit.edit["x"].Box(), false, false, padding)
+    clockEdit.box.PackStart(clockEdit.edit["y"].Box(), false, false, padding)
+    clockEdit.box.PackStart(clockEdit.edit["string"].Box(), false, false, padding)
+    clockEdit.box.PackStart(clockEdit.edit["color"].Box(), false, false, padding)
 
     go clockEdit.RunClock(cont)
     return 

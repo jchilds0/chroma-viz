@@ -65,9 +65,13 @@ func NewCircleEditor(width, height int, animate func()) (circleEdit *CircleEdito
     }
 
     circleEdit.box.SetVisible(true)
-    for _, attr := range circleEdit.edit {
-        circleEdit.box.PackStart(attr.Box(), false, false, padding)
-    }
+    circleEdit.box.PackStart(circleEdit.edit["x"].Box(), false, false, padding)
+    circleEdit.box.PackStart(circleEdit.edit["y"].Box(), false, false, padding)
+    circleEdit.box.PackStart(circleEdit.edit["inner_radius"].Box(), false, false, padding)
+    circleEdit.box.PackStart(circleEdit.edit["outer_radius"].Box(), false, false, padding)
+    circleEdit.box.PackStart(circleEdit.edit["start_angle"].Box(), false, false, padding)
+    circleEdit.box.PackStart(circleEdit.edit["end_angle"].Box(), false, false, padding)
+    circleEdit.box.PackStart(circleEdit.edit["color"].Box(), false, false, padding)
 
     return 
 }

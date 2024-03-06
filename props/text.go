@@ -42,9 +42,10 @@ func NewTextEditor(width, height int, animate func()) (textEdit *TextEditor, err
         return
     }
 
-    for _, attr := range textEdit.edit {
-        textEdit.box.PackStart(attr.Box(), false, false, padding)
-    }
+    textEdit.box.PackStart(textEdit.edit["x"].Box(), false, false, padding)
+    textEdit.box.PackStart(textEdit.edit["y"].Box(), false, false, padding)
+    textEdit.box.PackStart(textEdit.edit["string"].Box(), false, false, padding)
+    textEdit.box.PackStart(textEdit.edit["color"].Box(), false, false, padding)
 
     return 
 }

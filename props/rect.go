@@ -47,9 +47,11 @@ func NewRectEditor(width, height int, animate func()) (rectEdit *RectEditor, err
     }
 
     rectEdit.box.SetVisible(true)
-    for _, attr := range rectEdit.edit {
-        rectEdit.box.PackStart(attr.Box(), false, false, padding)
-    }
+    rectEdit.box.PackStart(rectEdit.edit["x"].Box(), false, false, padding)
+    rectEdit.box.PackStart(rectEdit.edit["y"].Box(), false, false, padding)
+    rectEdit.box.PackStart(rectEdit.edit["width"].Box(), false, false, padding)
+    rectEdit.box.PackStart(rectEdit.edit["height"].Box(), false, false, padding)
+    rectEdit.box.PackStart(rectEdit.edit["color"].Box(), false, false, padding)
 
     return 
 }

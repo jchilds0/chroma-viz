@@ -43,9 +43,9 @@ func NewTickerEditor(width, height int, animate func()) (t *TickerEditor, err er
     }
 
     t.box.SetVisible(true)
-    for _, attr := range t.edit {
-        t.box.PackStart(attr.Box(), false, false, padding)
-    }
+    t.box.PackStart(t.edit["x"].Box(), false, false, padding)
+    t.box.PackStart(t.edit["y"].Box(), false, false, padding)
+    t.box.PackStart(t.edit["text"].Box(), false, false, padding)
 
     return
 }

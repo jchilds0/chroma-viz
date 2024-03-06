@@ -43,9 +43,10 @@ func NewImageEditor(width, height int, animate func()) (imageEdit *ImageEditor, 
     }
 
     imageEdit.box.SetVisible(true)
-    for _, attr := range imageEdit.edit {
-        imageEdit.box.PackStart(attr.Box(), false, false, padding)
-    }
+    imageEdit.box.PackStart(imageEdit.edit["x"].Box(), false, false, padding)
+    imageEdit.box.PackStart(imageEdit.edit["y"].Box(), false, false, padding)
+    imageEdit.box.PackStart(imageEdit.edit["string"].Box(), false, false, padding)
+    imageEdit.box.PackStart(imageEdit.edit["scale"].Box(), false, false, padding)
 
     return 
 }
