@@ -79,6 +79,7 @@ var StringToProp map[string]int = map[string]int{
     sent to Chroma Engine.
 
     EncodeProp and DecodeProp are used to import and export a show.
+
 */
 
 type Property interface {
@@ -163,6 +164,10 @@ func DecodeProp(prop Property, s string) {
 
     for _, attr := range attrs[1:] {
         name := strings.Split(attr, " ")[0]
+        if name == "" {
+            continue
+        }
+
         if props[name] == nil {
             log.Printf("Error prop %s missing prop attr %s", prop.Name(), name)
             continue
