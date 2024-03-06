@@ -180,6 +180,25 @@ func DecodeProp(prop Property, s string) {
     }
 }
 
+/*
+
+    UpdateEditor and UpdateProp are used to synchronize data between
+    the Properties and PropertyEditor's. 
+
+    UpdateEditor sends the data contained in the Property to the 
+    PropertyEditor. This is called by the Editor object when a 
+    user selects a Page.
+
+    UpdateProp sends the data contained in the PropertyEditor to the 
+    Property. This is called before any animation action, since the 
+    Property object is used to animate to Chroma Engine. As a side 
+    effect, all current Editors send an update action to the preview
+    when a value is changed. This has the effect of saving the current
+    editor state on change, removing the need to have Editor call 
+    UpdateProp.
+
+*/
+
 func UpdateEditor(propEdit PropertyEditor, prop Property) {
     attrs := prop.Attributes()
     visible := prop.Visible()

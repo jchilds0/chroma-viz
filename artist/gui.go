@@ -6,7 +6,6 @@ import (
 	"chroma-viz/shows"
 	"chroma-viz/tcp"
 	"log"
-	"strconv"
 
 	"github.com/gotk3/gotk3/glib"
 	"github.com/gotk3/gotk3/gtk"
@@ -45,6 +44,8 @@ func SendPreview(page *shows.Page, action int) {
 
 var page = ArtistPage()
 var propCount int 
+
+// TODO: Fix sending graphics to correspond to the correct geometries in Chroma Engine
 
 func ArtistGui(app *gtk.Application) {
     win, err := gtk.ApplicationWindowNew(app)
@@ -195,17 +196,20 @@ func ArtistGui(app *gtk.Application) {
         temp.model.Remove(iter)
         id, err := temp.model.GetValue(iter, PROP_NUM)
         if err != nil {
-            log.Fatalf("Error removing prop (%s)", err)
+            log.Printf("Error removing prop (%s)", err)
+            return
         }
 
         val, err := id.GoValue()
         if err != nil {
-            log.Fatalf("Error removing prop (%s)", err)
+            log.Printf("Error removing prop (%s)", err)
+            return
         }
 
-        propID, err := strconv.Atoi(val.(string))
-        if err != nil {
-            log.Fatalf("Error removing prop (%s)", err)
+        propID, ok := val.(int)
+        if !ok {
+            log.Printf("Error removing prop (%s)", err)
+            return
         }
 
         RemoveProp(propID)
@@ -275,6 +279,8 @@ func AddProp(name string) (id int) {
         "text": true,
         "image": true,
         "graph": true,
+        "string": true,
+        "color": true,
     }
 
     id = propCount

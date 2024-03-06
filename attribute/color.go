@@ -5,27 +5,30 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/gotk3/gotk3/gdk"
 	"github.com/gotk3/gotk3/gtk"
 )
 
 type ColorAttribute struct {
-    r     int
-    g     int
-    b     int
-    a     int
+    r     float64
+    g     float64
+    b     float64
+    a     float64
 }
 
 func NewColorAttribute() *ColorAttribute {
-    colorAttr := &ColorAttribute{}
+    colorAttr := &ColorAttribute{
+        r: 1.0, g: 1.0, b: 1.0, a: 1.0,
+    }
     return colorAttr
 }
 
 func (colorAttr *ColorAttribute) String() string {
-    return fmt.Sprintf("color=%d %d %d %d#", colorAttr.r, colorAttr.g, colorAttr.b, colorAttr.a)
+    return fmt.Sprintf("color=%f %f %f %f#", colorAttr.r, colorAttr.g, colorAttr.b, colorAttr.a)
 }
 
 func (colorAttr *ColorAttribute) Encode() string {
-    return fmt.Sprintf("color %d %d %d %d;", colorAttr.r, colorAttr.g, colorAttr.b, colorAttr.a)
+    return fmt.Sprintf("color %f %f %f %f;", colorAttr.r, colorAttr.g, colorAttr.b, colorAttr.a)
 }
 
 func (colorAttr *ColorAttribute) Decode(s string) (err error) {
@@ -34,22 +37,22 @@ func (colorAttr *ColorAttribute) Decode(s string) (err error) {
         return fmt.Errorf("Incorrect color attr string (%s)", line)
     }
 
-    colorAttr.r, err = strconv.Atoi(line[1])
+    colorAttr.r, err = strconv.ParseFloat(line[0], 64)
     if err != nil {
         return err
     }
 
-    colorAttr.g, err = strconv.Atoi(line[2])
+    colorAttr.g, err = strconv.ParseFloat(line[1], 64)
     if err != nil {
         return err
     }
 
-    colorAttr.b, err = strconv.Atoi(line[3])
+    colorAttr.b, err = strconv.ParseFloat(line[2], 64)
     if err != nil {
         return err
     }
 
-    colorAttr.a, err = strconv.Atoi(line[4])
+    colorAttr.a, err = strconv.ParseFloat(line[3], 64)
     if err != nil {
         return err
     }
@@ -58,44 +61,69 @@ func (colorAttr *ColorAttribute) Decode(s string) (err error) {
 }
 
 func (colorAttr *ColorAttribute) Update(edit Editor) error {
-    _, ok := edit.(*ColorEditor)
+    colorEdit, ok := edit.(*ColorEditor)
     if !ok {
         return fmt.Errorf("ColorAttribute.Update requires ColorEditor") 
     }
+
+    rgba := colorEdit.color.GetRGBA()
+    colorAttr.r = rgba.GetRed()
+    colorAttr.g = rgba.GetGreen()
+    colorAttr.b = rgba.GetBlue()
+    colorAttr.a = rgba.GetAlpha()
 
     return nil
 }
 
 type ColorEditor struct {
-    box *gtk.Box
+    box      *gtk.Box
+    color    *gtk.ColorButton
 }
 
-func NewColorEditor(name string, animate func()) (*ColorEditor, error) {
-    var err error
-    colorEdit := &ColorEditor{}
+func NewColorEditor(name string, animate func()) (colorEdit *ColorEditor, err error) {
+    colorEdit = &ColorEditor{}
 
     colorEdit.box, err = gtk.BoxNew(gtk.ORIENTATION_HORIZONTAL, 0)
     if err != nil {
-        return nil, err
+        return
     }
 
     colorEdit.box.SetVisible(true)
     label, err := gtk.LabelNew(name)
     if err != nil { 
-        return nil, err
+        return
     }
 
     label.SetVisible(true)
     label.SetWidthChars(12)
+    colorEdit.box.PackStart(label, false, false, padding)
 
-    return colorEdit, nil
+    colorEdit.color, err = gtk.ColorButtonNew()
+    if err != nil {
+        return
+    }
+
+    colorEdit.color.SetVisible(true)
+    colorEdit.color.Connect("color-set", animate)
+    colorEdit.box.PackStart(colorEdit.color, false, false, padding)
+
+    return
 }
 
 func (colorEdit *ColorEditor) Update(attr Attribute) error {
-    _, ok := attr.(*ColorAttribute)
+    colorAttr, ok := attr.(*ColorAttribute)
     if !ok {
         return fmt.Errorf("ColorEditor.Update requires ColorAttribute") 
     }
+
+    rgb := gdk.NewRGBA(
+        colorAttr.r, 
+        colorAttr.g, 
+        colorAttr.b, 
+        colorAttr.a,
+    )
+
+    colorEdit.color.SetRGBA(rgb)
 
     return nil
 }

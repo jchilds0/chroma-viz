@@ -68,7 +68,7 @@ func NewIntEditor(name string, lower, upper float64, animate func()) (*IntEditor
 
     label.SetVisible(true)
     label.SetWidthChars(12)
-    intEdit.box.PackStart(label, false, false, uint(padding))
+    intEdit.box.PackStart(label, false, false, padding)
 
     intEdit.button, err = gtk.SpinButtonNewWithRange(lower, upper, 1)
     if err != nil { 
