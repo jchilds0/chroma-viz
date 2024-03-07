@@ -269,8 +269,10 @@ func (editor *Editor) SetProperty(prop props.Property) {
         editor.Box.Remove(editor.propBox)
     }
 
+    editor.pairs = nil
     propType := prop.Type()
     propEdit := editor.propEdit[propType][0]
+
     props.UpdateEditor(propEdit, prop)
     editor.propBox = propEdit.Box()
     editor.pairs = []Pairing{{prop: prop, editor: propEdit}}

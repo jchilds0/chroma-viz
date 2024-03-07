@@ -5,6 +5,7 @@ import (
 	"chroma-viz/props"
 	"chroma-viz/shows"
 	"chroma-viz/tcp"
+	"fmt"
 	"log"
 
 	"github.com/gotk3/gotk3/glib"
@@ -43,9 +44,8 @@ func SendPreview(page *shows.Page, action int) {
 }
 
 var page = ArtistPage()
-var propCount int 
-
-// TODO: Fix sending graphics to correspond to the correct geometries in Chroma Engine
+var geo_count []int
+var geoms map[int]*geom
 
 func ArtistGui(app *gtk.Application) {
     win, err := gtk.ApplicationWindowNew(app)
@@ -57,22 +57,27 @@ func ArtistGui(app *gtk.Application) {
     win.SetTitle("Chroma Artist")
 
     port := 9100
-    conf := map[string]int{
-        "rect": 10,
-        "text": 10,
-        "circle": 10,
-        "graph": 10,
-        "image": 10,
+    geo := []string{"rect", "text", "circle", "graph", "image"}
+    geo_count = []int{10, 10, 10, 10, 10}
+    geoms = make(map[int]*geom, len(geo))
+
+    index := 0
+    for i, name := range geo {
+        geoms[props.StringToProp[name]] = newGeom(index, geo_count[i])
+        index += geo_count[i]
     }
 
-    chroma_hub.GenerateTemplateHub(conf, "artist/artist.json")
+    chroma_hub.GenerateTemplateHub(geo, geo_count, "artist/artist.json")
     go chroma_hub.StartHub(port, -1, "artist/artist.json")
 
     editView := editor.NewEditor(func(page *shows.Page, action int) {}, SendPreview)
     editView.PropertyEditor()
     editView.Page = page
 
-    temp, err := NewTempTree(func(propID int) {editView.SetProperty(page.PropMap[propID])})
+    temp, err := NewTempTree(func(propID int) {
+        editView.SetProperty(page.PropMap[propID])
+    })
+
     if err != nil {
         log.Fatalf("Error starting artist gui (%s)", err)
     }
@@ -167,11 +172,18 @@ func ArtistGui(app *gtk.Application) {
             log.Print("No geometry selected")
             return
         }
-        propNum := AddProp(name)
+
+        propNum, err := AddProp(name)
+        if err != nil {
+            log.Print(err)
+            return
+        }
 
         newRow := temp.model.Append(nil)
         temp.model.SetValue(newRow, NAME, name)
         temp.model.SetValue(newRow, PROP_NUM, propNum)
+
+        log.Printf("Added Prop %d", propNum)
     })
 
     button2, err := gtk.ButtonNewWithLabel("Remove Geometry")
@@ -266,40 +278,62 @@ func ArtistPage() *shows.Page {
     return page
 }
 
-func AddProp(name string) (id int) {
-    visible := map[string]bool{
-        "x": true,
-        "y": true,
-        "width": true,
-        "height": true,
-        "inner_radius": true,
-        "outer_radius": true,
-        "start_angle": true,
-        "end_angle": true,
-        "text": true,
-        "image": true,
-        "graph": true,
-        "string": true,
-        "color": true,
+var visible = map[string]bool{
+    "x": true,
+    "y": true,
+    "width": true,
+    "height": true,
+    "inner_radius": true,
+    "outer_radius": true,
+    "start_angle": true,
+    "end_angle": true,
+    "text": true,
+    "image": true,
+    "graph": true,
+    "string": true,
+    "color": true,
+}
+
+var geo_type = map[string]int {
+    "Rectangle": props.RECT_PROP,
+    "Circle": props.CIRCLE_PROP,
+    "Text": props.TEXT_PROP,
+}
+
+func AddProp(label string) (id int, err error) {
+    geo_typed, ok := geo_type[label]
+    if !ok {
+        return 0, fmt.Errorf("Unknown label %s", label)
     }
 
-    id = propCount
-    switch name {
-    case "Rectangle":
-        page.PropMap[propCount] = props.NewRectProp(name, visible)
-    case "Circle":
-        page.PropMap[propCount] = props.NewCircleProp(name, visible)
-    case "Text":
-        page.PropMap[propCount] = props.NewTextProp(name, visible)
-    default:
-        log.Printf("Unknown prop name %s", name)
+    geom, ok := geoms[geo_typed]
+    if !ok {
+        return 0, fmt.Errorf("Unknown geom %s", label)
     }
 
-    propCount++
+    id, err = geom.allocGeom()
+    if err != nil {
+        return 
+    }
+
+    page.PropMap[id] = props.NewProperty(geo_typed, label, visible)
     return
 }
 
 func RemoveProp(propID int) {
+    prop := page.PropMap[propID]
+    if prop == nil {
+        log.Printf("No prop with prop id %d", propID)
+        return
+    }
+
+    geom, ok := geoms[prop.Type()]
+    if !ok {
+        log.Printf("No geom with prop type %d", prop.Type())
+        return
+    }
+
+    geom.freeGeom(propID)
     page.PropMap[propID] = nil
 }
 
