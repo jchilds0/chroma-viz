@@ -69,10 +69,10 @@ func NewTextProp(name string, visible map[string]bool) *TextProp {
     text.attrs = make(map[string]attribute.Attribute, 5)
     text.visible = visible
 
-    text.attrs["x"] = attribute.NewIntAttribute("rel_x")
-    text.attrs["y"] = attribute.NewIntAttribute("rel_y")
-    text.attrs["string"] = attribute.NewStringAttribute("string")
-    text.attrs["color"] = attribute.NewColorAttribute()
+    text.attrs["x"] = attribute.NewIntAttribute("x", "rel_x")
+    text.attrs["y"] = attribute.NewIntAttribute("y", "rel_y")
+    text.attrs["string"] = attribute.NewStringAttribute("string","string")
+    text.attrs["color"] = attribute.NewColorAttribute("color", "color")
 
     return text
 }

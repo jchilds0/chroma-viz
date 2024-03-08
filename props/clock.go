@@ -134,6 +134,7 @@ func (clock *ClockEditor) RunClock(cont func()) {
 
             currentTime = currentTime.Add(time.Second)
             timeEditor.Entry.SetText(currentTime.Format(clock.timeFormat))
+            tick = time.NewTicker(time.Second)
 
             cont()
         case PAUSE:
@@ -167,12 +168,11 @@ func NewClockProp(name string, visible map[string]bool) *ClockProp {
     clock := &ClockProp{name: name, visible: visible}
 
     clock.attrs = make(map[string]attribute.Attribute, 5)
-    clock.visible = make(map[string]bool, 5)
+    clock.attrs["x"] = attribute.NewIntAttribute("x", "rel_x")
+    clock.attrs["y"] = attribute.NewIntAttribute("y", "rel_y")
+    clock.attrs["string"] = attribute.NewStringAttribute("string", "string")
+    clock.attrs["color"] = attribute.NewColorAttribute("color", "color")
 
-    clock.attrs["x"] = attribute.NewIntAttribute("rel_x")
-    clock.attrs["y"] = attribute.NewIntAttribute("rel_y")
-    clock.attrs["string"] = attribute.NewStringAttribute("text")
-    clock.attrs["color"] = attribute.NewColorAttribute()
     return clock
 }
 

@@ -68,9 +68,9 @@ func NewTickerProp(name string, visible map[string]bool) *TickerProp {
     t := &TickerProp{name: name, visible: visible}
 
     t.attrs = make(map[string]attribute.Attribute, 5)
-    t.attrs["x"] = attribute.NewIntAttribute("rel_x")
-    t.attrs["y"] = attribute.NewIntAttribute("rel_y")
-    t.attrs["text"] = attribute.NewListAttribute("ticker", "string", 1, true)
+    t.attrs["x"] = attribute.NewIntAttribute("x", "rel_x")
+    t.attrs["y"] = attribute.NewIntAttribute("y", "rel_y")
+    t.attrs["text"] = attribute.NewListAttribute("text", "string", 1, true)
 
     return t
 }

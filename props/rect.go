@@ -74,16 +74,11 @@ func NewRectProp(name string, visible map[string]bool) *RectProp {
     rect := &RectProp{name: name, visible: visible}
     rect.attrs = make(map[string]attribute.Attribute, 5)
 
-    rect.attrs["x"] = attribute.NewIntAttribute("rel_x")
-    rect.attrs["y"] = attribute.NewIntAttribute("rel_y")
-    rect.attrs["width"] = attribute.NewIntAttribute("width")
-    rect.attrs["height"] = attribute.NewIntAttribute("height")
-    rect.attrs["color"] = attribute.NewColorAttribute()
-
-    rect.visible["x"] = true
-    rect.visible["y"] = true
-    rect.visible["width"] = true
-    rect.visible["height"] = true
+    rect.attrs["x"] = attribute.NewIntAttribute("x", "rel_x")
+    rect.attrs["y"] = attribute.NewIntAttribute("y", "rel_y")
+    rect.attrs["width"] = attribute.NewIntAttribute("width", "width")
+    rect.attrs["height"] = attribute.NewIntAttribute("height", "height")
+    rect.attrs["color"] = attribute.NewColorAttribute("color", "color")
 
     return rect
 }

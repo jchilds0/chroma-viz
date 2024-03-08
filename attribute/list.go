@@ -26,19 +26,19 @@ func NewGraphCell(i int) *graphCell {
 }
 
 type ListAttribute struct {
-    name          string
-    itemName      string
+    fileName      string
+    chromaName    string
     numCols       int
     selected      bool
     selectedIter  *gtk.TreeIter
     listStore     *gtk.ListStore
 }
 
-func NewListAttribute(name, itemName string, numCols int, selected bool) *ListAttribute {
+func NewListAttribute(file, chroma string, numCols int, selected bool) *ListAttribute {
     var err error
     list := &ListAttribute{
-        name: name, 
-        itemName: itemName, 
+        fileName: file, 
+        chromaName: chroma,
         numCols: numCols, 
         selected: selected,
     }
@@ -80,7 +80,7 @@ func (listAttr *ListAttribute) String() (s string) {
 }
 
 func (listAttr *ListAttribute) stringRow(iter *gtk.TreeIter) (s string) {
-    s = listAttr.itemName + "="
+    s = listAttr.chromaName + "="
     for j := 0; j < listAttr.numCols - 1; j++ {
         item := getStringFromIter(listAttr.listStore, iter, j)
         s = s + item + " "
@@ -112,7 +112,7 @@ func (listAttr *ListAttribute) Encode() (s string) {
     i := 0 
 
     for ok {
-        s = s + listAttr.stringRow(iter)
+        s = s + listAttr.encodeRow(iter)
         ok = listAttr.listStore.IterNext(iter)
         i++
     }
@@ -121,7 +121,7 @@ func (listAttr *ListAttribute) Encode() (s string) {
 }
 
 func (listAttr *ListAttribute) encodeRow(iter *gtk.TreeIter) (s string) {
-    s = listAttr.itemName + " "
+    s = listAttr.fileName + " "
     for j := 0; j < listAttr.numCols - 1; j++ {
         item := getStringFromIter(listAttr.listStore, iter, j)
         s = s + item + " "
@@ -132,6 +132,7 @@ func (listAttr *ListAttribute) encodeRow(iter *gtk.TreeIter) (s string) {
     return
 }
 
+// TODO: handle multiple columns
 func (listAttr *ListAttribute) Decode(s string) error {
     line := strings.Split(s, " ")
     if len(line) != 3 {

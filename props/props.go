@@ -146,14 +146,14 @@ func PropToString(prop Property) (s string) {
             continue
         }
 
-        s = s + attr.String()
+        s += attr.String()
     }
     return
 }
 
 func EncodeProp(prop Property) (s string) {
     for _, attr := range prop.Attributes() {
-        s = s + attr.Encode()
+        s += attr.Encode()
     }
     return
 }
@@ -161,10 +161,15 @@ func EncodeProp(prop Property) (s string) {
 func DecodeProp(prop Property, s string) {
     attrs := strings.Split(s, ";")
     props := prop.Attributes()
+    visible := prop.Visible()
 
     for _, attr := range attrs[1:] {
         name := strings.Split(attr, " ")[0]
         if name == "" {
+            continue
+        }
+
+        if !visible[name] {
             continue
         }
 

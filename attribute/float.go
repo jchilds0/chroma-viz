@@ -9,21 +9,26 @@ import (
 )
 
 type FloatAttribute struct {
-	name  string
+    fileName    string
+	chromaName  string
 	value float64
 }
 
-func NewFloatAttribute(name string) *FloatAttribute {
-    floatAttr := &FloatAttribute{name: name}
+func NewFloatAttribute(file, chroma string) *FloatAttribute {
+    floatAttr := &FloatAttribute{
+        chromaName: chroma,
+        fileName: file,
+    }
+
     return floatAttr
 }
 
 func (floatAttr *FloatAttribute) String() string {
-    return fmt.Sprintf("%s=%f#", floatAttr.name, floatAttr.value)
+    return fmt.Sprintf("%s=%f#", floatAttr.chromaName, floatAttr.value)
 }
 
 func (floatAttr *FloatAttribute) Encode() string {
-    return fmt.Sprintf("%s %f;", floatAttr.name, floatAttr.value)
+    return fmt.Sprintf("%s %f;", floatAttr.fileName, floatAttr.value)
 }
 
 func (floatAttr *FloatAttribute) Decode(s string) (err error) {

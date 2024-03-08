@@ -69,10 +69,10 @@ func NewImageProp(name string, visible map[string]bool) *ImageProp {
     image := &ImageProp{name: name, visible: visible}
     image.attrs = make(map[string]attribute.Attribute, 5)
 
-    image.attrs["x"] = attribute.NewIntAttribute("rel_x")
-    image.attrs["y"] = attribute.NewIntAttribute("rel_y")
-    image.attrs["scale"] = attribute.NewFloatAttribute("scale")
-    image.attrs["string"] = attribute.NewStringAttribute("string")
+    image.attrs["x"] = attribute.NewIntAttribute("x", "rel_x")
+    image.attrs["y"] = attribute.NewIntAttribute("y", "rel_y")
+    image.attrs["scale"] = attribute.NewFloatAttribute("scale", "scale")
+    image.attrs["string"] = attribute.NewStringAttribute("string", "string")
 
     return image 
 }

@@ -10,25 +10,30 @@ import (
 )
 
 type ColorAttribute struct {
+    fileName    string 
+    chromaName  string
     r     float64
     g     float64
     b     float64
     a     float64
 }
 
-func NewColorAttribute() *ColorAttribute {
+func NewColorAttribute(file, chroma string) *ColorAttribute {
     colorAttr := &ColorAttribute{
+        fileName: file, chromaName: chroma,
         r: 1.0, g: 1.0, b: 1.0, a: 1.0,
     }
     return colorAttr
 }
 
 func (colorAttr *ColorAttribute) String() string {
-    return fmt.Sprintf("color=%f %f %f %f#", colorAttr.r, colorAttr.g, colorAttr.b, colorAttr.a)
+    return fmt.Sprintf("%s=%f %f %f %f#", colorAttr.chromaName, 
+        colorAttr.r, colorAttr.g, colorAttr.b, colorAttr.a)
 }
 
 func (colorAttr *ColorAttribute) Encode() string {
-    return fmt.Sprintf("color %f %f %f %f;", colorAttr.r, colorAttr.g, colorAttr.b, colorAttr.a)
+    return fmt.Sprintf("%s %f %f %f %f;", colorAttr.fileName, 
+        colorAttr.r, colorAttr.g, colorAttr.b, colorAttr.a)
 }
 
 func (colorAttr *ColorAttribute) Decode(s string) (err error) {
