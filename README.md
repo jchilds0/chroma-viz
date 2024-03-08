@@ -9,6 +9,9 @@ Communicates with [Chroma Engine][chroma-engine] over tcp to render graphics.
 - Templates can be added to the show to become pages.
 - Each page has its own set of properties, editable through the editor
 - [Chroma Engine][chroma-engine] combines the template and the data set in the editor to display the graphic
+- Shows and Pages can be exported and imported.
+
+![Chroma_Viz](data/demo.mp4)
 
 ![Chroma_Engine](data/chroma-viz.png)
 
