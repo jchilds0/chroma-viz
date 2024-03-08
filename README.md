@@ -11,7 +11,8 @@ Communicates with [Chroma Engine][chroma-engine] over tcp to render graphics.
 - [Chroma Engine][chroma-engine] combines the template and the data set in the editor to display the graphic
 - Shows and Pages can be exported and imported.
 
-[![Chroma_Viz](data/demo.png)](data/demo.mp4)
+
+https://github.com/jchilds0/chroma-viz/assets/71675740/8ead1e54-f93e-4d59-8ab7-add3e4d5e648
 
 ![Chroma_Engine](data/chroma-viz.png)
 
