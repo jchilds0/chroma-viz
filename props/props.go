@@ -83,15 +83,19 @@ var StringToProp map[string]int = map[string]int{
 */
 
 type Property interface {
-    Name() string
-    Type() int
-    Visible() map[string]bool
-    Attributes() map[string]attribute.Attribute
+    GetProp() *property
 }
 
 type PropertyEditor interface {
     Box() *gtk.Box
     Editors() map[string]attribute.Editor
+}
+
+type property struct {
+    name    string
+    type    int
+    visible map[string]bool
+    attr    map[string]attribute.Attribute
 }
 
 func NewPropertyEditor(typed int, animate, cont func()) (PropertyEditor, error) {
@@ -141,7 +145,9 @@ func NewProperty(typed int, name string, visible map[string]bool) Property {
 }
 
 func PropToString(prop Property) (s string) {
-    for name, attr := range prop.Attributes() {
+    props := prop.GetProp()
+
+    for name, attr := range prop. {
         if !prop.Visible()[name] {
             continue
         }
