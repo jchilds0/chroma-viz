@@ -66,11 +66,6 @@ var StringToProp map[string]int = map[string]int{
     the attribute to Chroma Engine. Each Editor also has a name, which is 
     string displayed to the user when editing the attribute.
 
-    PropToString encodes the attributes in a property as a string to be 
-    sent to Chroma Engine.
-
-    EncodeProp and DecodeProp are used to import and export a show.
-
 */
 
 type Property struct {
@@ -140,6 +135,9 @@ func NewProperty(typed int, name string, visible map[string]bool, cont func()) *
     return prop
 }
 
+/*
+    Convert a Property to a string to be sent to Chroma Engine
+*/
 func (prop *Property) String() (s string) {
     for name, attr := range prop.Attr {
         if !prop.visible[name] {
@@ -151,6 +149,9 @@ func (prop *Property) String() (s string) {
     return
 }
 
+/*
+    Convert a Property into the string format of a show (.show)
+*/
 func (prop *Property) Encode() (s string) {
     for _, attr := range prop.Attr {
         s += attr.Encode()
@@ -158,6 +159,9 @@ func (prop *Property) Encode() (s string) {
     return
 }
 
+/*
+    Decode a Property from a show file (.show)
+*/
 func (prop *Property) Decode(s string) {
     attrs := strings.Split(s, ";")
 
@@ -184,24 +188,8 @@ func (prop *Property) Decode(s string) {
 }
 
 /*
-
-    UpdateEditor and UpdateProp are used to synchronize data between
-    the Properties and PropertyEditor's. 
-
-    UpdateEditor sends the data contained in the Property to the 
-    PropertyEditor. This is called by the Editor object when a 
-    user selects a Page.
-
-    UpdateProp sends the data contained in the PropertyEditor to the 
-    Property. This is called before any animation action, since the 
-    Property object is used to animate to Chroma Engine. As a side 
-    effect, all current Editors send an update action to the preview
-    when a value is changed. This has the effect of saving the current
-    editor state on change, removing the need to have Editor call 
-    UpdateProp.
-
+    Update Property with the data in PropertyEditor
 */
-
 func (prop *Property) UpdateProp(propEdit *PropertyEditor) {
     editors := propEdit.editor
 

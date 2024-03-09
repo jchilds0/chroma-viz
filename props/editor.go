@@ -8,10 +8,30 @@ import (
 	"github.com/gotk3/gotk3/gtk"
 )
 
+/*
+
+    Creating PropertyEditor's has a non negligible cost due to 
+    the gtk c calls, so to speed up initialisation we use a 
+    limited number of PropertyEditor's (enough to show a Page).
+
+    PropertyEditor's consist of gtk ui elements which are used
+    to edit Properties. When a user selects a Page in the Show,
+    the Page is sent to the editor, which calls UpdateEditor. 
+    This updates the PropertyEditor with the data from the 
+    Property.
+
+    Similarly UpdateProp is used to send the updated data from 
+    the PropertyEditor's back to the Property.
+    
+    The Properties are built up from a collection of Attributes,
+    and in a similar way, PropertyEditor's are built up from a 
+    collection of AttributeEditors.
+
+*/
+
 type PropertyEditor struct {
     PropType    int
     Box         *gtk.Box
-    visible     map[string]bool
     editor      map[string]attribute.Editor
 }
 
@@ -118,6 +138,9 @@ func NewPropertyEditor(typed int, animate, cont func()) (propEdit *PropertyEdito
     return
 }
 
+/*
+    Update PropertyEditor with the data in Property
+*/
 func (propEdit *PropertyEditor) UpdateEditor(prop *Property) {
     for name, edit := range propEdit.editor {
         edit.Box().SetVisible(prop.visible[name])
