@@ -57,7 +57,7 @@ type IntEditor struct {
     button    *gtk.SpinButton
 }
 
-func NewIntEditor(name string, lower, upper float64, animate func()) *IntEditor {
+func NewIntEditor(name string, lower, upper float64) *IntEditor {
     var err error
     intEdit := &IntEditor{}
 
@@ -87,7 +87,6 @@ func NewIntEditor(name string, lower, upper float64, animate func()) *IntEditor 
     intEdit.button.SetVisible(true)
     intEdit.button.SetValue(0)
     intEdit.box.PackStart(intEdit.button, false, false, 0)
-    intEdit.button.Connect("value-changed", animate)
 
     return intEdit
 }

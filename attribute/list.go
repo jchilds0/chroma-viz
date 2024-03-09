@@ -188,7 +188,7 @@ type ListEditor struct {
     listStore   *gtk.ListStore
 }
 
-func NewListEditor(name string, columns []string, animate func()) *ListEditor {
+func NewListEditor(name string, columns []string) *ListEditor {
     var err error
     listEdit := &ListEditor{name: name}
     listEdit.box, err = gtk.BoxNew(gtk.ORIENTATION_VERTICAL, 0)
@@ -221,7 +221,6 @@ func NewListEditor(name string, columns []string, animate func()) *ListEditor {
                 }
 
                 listEdit.listStore.SetValue(iter, gCell.columnNum, text)
-                animate()
         })
         column, err := gtk.TreeViewColumnNewWithAttribute(name, gCell, "text", i)
         if err != nil {

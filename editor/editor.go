@@ -91,7 +91,6 @@ func (editor *Editor) EnginePanel() {
             return
         }
 
-        editor.UpdateProps(tcp.ANIMATE_ON)
         editor.sendEngine(editor.Page, tcp.ANIMATE_ON)
     })
 
@@ -101,7 +100,6 @@ func (editor *Editor) EnginePanel() {
             return
         }
 
-        editor.UpdateProps(tcp.CONTINUE)
         editor.sendEngine(editor.Page, tcp.CONTINUE)
     })
 
@@ -111,7 +109,6 @@ func (editor *Editor) EnginePanel() {
             return
         }
 
-        editor.UpdateProps(props.ANIMATE_OFF)
         editor.sendEngine(editor.Page, tcp.ANIMATE_OFF)
     })
 
@@ -121,6 +118,7 @@ func (editor *Editor) EnginePanel() {
             return
         }
 
+        editor.UpdateProps()
         editor.sendPreview(editor.Page, tcp.ANIMATE_ON)
     })
 }
@@ -148,13 +146,7 @@ func (editor *Editor) PageEditor() {
     // prop editors 
     editor.propEdit = make([][]*props.PropertyEditor, props.NUM_PROPS)
 
-    animate := func() { 
-        editor.UpdateProps(tcp.ANIMATE_ON)
-        editor.sendPreview(editor.Page, tcp.ANIMATE_ON)
-    }
-
     cont := func() {
-        editor.UpdateProps(tcp.CONTINUE)
         editor.sendPreview(editor.Page, tcp.CONTINUE)
         editor.sendEngine(editor.Page, tcp.CONTINUE)
     }
@@ -164,7 +156,7 @@ func (editor *Editor) PageEditor() {
         editor.propEdit[i] = make([]*props.PropertyEditor, num)
 
         for j := 0; j < num; j++ {
-            editor.propEdit[i][j], err = props.NewPropertyEditor(i, animate, cont)
+            editor.propEdit[i][j], err = props.NewPropertyEditor(i, cont)
             if err != nil {
                 log.Printf("Error creating prop editor %d", i)
             }
@@ -177,13 +169,7 @@ func (editor *Editor) PropertyEditor() {
     // prop editors 
     editor.propEdit = make([][]*props.PropertyEditor, props.NUM_PROPS)
 
-    animate := func() { 
-        editor.UpdateProps(tcp.ANIMATE_ON)
-        editor.sendPreview(editor.Page, tcp.ANIMATE_ON)
-    }
-
     cont := func() {
-        editor.UpdateProps(tcp.CONTINUE)
         editor.sendPreview(editor.Page, tcp.CONTINUE)
         editor.sendEngine(editor.Page, tcp.CONTINUE)
     }
@@ -193,7 +179,7 @@ func (editor *Editor) PropertyEditor() {
         editor.propEdit[i] = make([]*props.PropertyEditor, num)
 
         for j := 0; j < num; j++ {
-            editor.propEdit[i][j], err = props.NewPropertyEditor(i, animate, cont)
+            editor.propEdit[i][j], err = props.NewPropertyEditor(i, cont)
             if err != nil {
                 log.Printf("Error creating prop editor %d", i)
             }
@@ -201,7 +187,7 @@ func (editor *Editor) PropertyEditor() {
     }
 }
 
-func (edit *Editor) UpdateProps(action int) {
+func (edit *Editor) UpdateProps() {
     for _, item := range edit.pairs {
         if item.prop == nil {
             continue
@@ -217,13 +203,7 @@ func (editor *Editor) SetPage(page *shows.Page) {
         editor.tabs.RemovePage(0)
     }
 
-    animate := func() { 
-        editor.UpdateProps(tcp.ANIMATE_ON)
-        editor.sendPreview(editor.Page, tcp.ANIMATE_ON)
-    }
-
     cont := func() {
-        editor.UpdateProps(tcp.CONTINUE)
         editor.sendPreview(editor.Page, tcp.CONTINUE)
         editor.sendEngine(editor.Page, tcp.CONTINUE)
     }
@@ -247,7 +227,7 @@ func (editor *Editor) SetPage(page *shows.Page) {
         var propEdit *props.PropertyEditor
         if propCount[typed] == len(editor.propEdit[typed]) {
             // we ran out of editors, add a new one
-            propEdit, err = props.NewPropertyEditor(typed, animate, cont)
+            propEdit, err = props.NewPropertyEditor(typed, cont)
             if err != nil {
                 log.Printf("Error creating prop editor %d", typed)
             }

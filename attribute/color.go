@@ -86,7 +86,7 @@ type ColorEditor struct {
     color    *gtk.ColorButton
 }
 
-func NewColorEditor(name string, animate func()) *ColorEditor {
+func NewColorEditor(name string) *ColorEditor {
     var err error
     colorEdit := &ColorEditor{}
 
@@ -114,7 +114,6 @@ func NewColorEditor(name string, animate func()) *ColorEditor {
     }
 
     colorEdit.color.SetVisible(true)
-    colorEdit.color.Connect("color-set", animate)
     colorEdit.box.PackStart(colorEdit.color, false, false, padding)
 
     return colorEdit

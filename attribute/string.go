@@ -53,7 +53,7 @@ type StringEditor struct {
     Entry     *gtk.Entry
 }
 
-func NewStringEditor(name string, animate func()) *StringEditor {
+func NewStringEditor(name string) *StringEditor {
     var err error
     stringEdit := &StringEditor{}
 
@@ -88,7 +88,6 @@ func NewStringEditor(name string, animate func()) *StringEditor {
 
     stringEdit.Entry.SetVisible(true)
     stringEdit.box.PackStart(stringEdit.Entry, false, false, 0)
-    stringEdit.Entry.Connect("changed", animate)
 
     return stringEdit
 }

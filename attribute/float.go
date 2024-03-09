@@ -54,7 +54,7 @@ type FloatEditor struct {
     button    *gtk.SpinButton
 }
 
-func NewFloatEditor(name string, lower, upper, scale float64, animate func()) *FloatEditor {
+func NewFloatEditor(name string, lower, upper, scale float64) *FloatEditor {
     var err error
     floatEdit := &FloatEditor{}
 
@@ -84,7 +84,6 @@ func NewFloatEditor(name string, lower, upper, scale float64, animate func()) *F
     floatEdit.button.SetVisible(true)
     floatEdit.button.SetValue(0)
     floatEdit.box.PackStart(floatEdit.button, false, false, 0)
-    floatEdit.button.Connect("value-changed", animate)
 
     return floatEdit
 }

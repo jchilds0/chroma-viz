@@ -106,7 +106,7 @@ type ClockEditor struct {
     c      chan int
 }
 
-func NewClockEditor(name string, animate, cont func()) *ClockEditor {
+func NewClockEditor(name string, cont func()) *ClockEditor {
     var err error
     clockEdit := &ClockEditor{timeFormat: "04:05"}
 
@@ -195,7 +195,6 @@ func NewClockEditor(name string, animate, cont func()) *ClockEditor {
     }
 
     clockEdit.entry.SetVisible(true)
-    clockEdit.entry.Connect("changed", animate)
     timeBox.PackStart(clockEdit.entry, false, false, 0)
 
     return clockEdit
