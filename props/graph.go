@@ -8,8 +8,6 @@ import (
 
 type GraphEditor struct {
     box         *gtk.Box
-    treeView    *gtk.TreeView
-    listStore   *gtk.ListStore
     edit        map[string]attribute.Editor
 }
 

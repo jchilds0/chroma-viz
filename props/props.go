@@ -12,12 +12,6 @@ import (
 const padding = 10
 
 const (
-    START = iota
-    PAUSE
-    STOP
-)
-
-const (
     END_OF_CONN = iota + 1
     END_OF_MESSAGE
     ANIMATE_ON
