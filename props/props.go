@@ -112,7 +112,7 @@ func NewPropertyEditor(typed int, animate, cont func()) (PropertyEditor, error) 
     }
 }
 
-func NewProperty(typed int, name string, visible map[string]bool) *Property {
+func NewProperty(typed int, name string, visible map[string]bool, cont func()) *Property {
     prop := &Property{Name: name, PropType: typed, visible: visible}
 
     prop.Attr = make(map[string]attribute.Attribute, 10)
@@ -138,21 +138,24 @@ func NewProperty(typed int, name string, visible map[string]bool) *Property {
         prop.Attr["outer_radius"] = attribute.NewIntAttribute("outer_radius", "outer_radius")
         prop.Attr["start_angle"] = attribute.NewIntAttribute("start_angle", "start_angle")
         prop.Attr["end_angle"] = attribute.NewIntAttribute("end_angle", "end_angle")
+        prop.Attr["color"] = attribute.NewColorAttribute("color", "color")
 
     case GRAPH_PROP:
         prop.Attr["x"] = attribute.NewIntAttribute("x", "rel_x")
         prop.Attr["y"] = attribute.NewIntAttribute("y", "rel_y")
         prop.Attr["node"] = attribute.NewListAttribute("node", "graph_node", 2, false)
+        prop.Attr["color"] = attribute.NewColorAttribute("color", "color")
 
     case TICKER_PROP:
         prop.Attr["x"] = attribute.NewIntAttribute("x", "rel_x")
         prop.Attr["y"] = attribute.NewIntAttribute("y", "rel_y")
         prop.Attr["text"] = attribute.NewListAttribute("text", "string", 1, true)
+        prop.Attr["color"] = attribute.NewColorAttribute("color", "color")
 
     case CLOCK_PROP:
         prop.Attr["x"] = attribute.NewIntAttribute("x", "rel_x")
         prop.Attr["y"] = attribute.NewIntAttribute("y", "rel_y")
-        prop.Attr["string"] = attribute.NewStringAttribute("string", "string")
+        prop.Attr["clock"] = attribute.NewClockAttribute("string", "string", cont)
         prop.Attr["color"] = attribute.NewColorAttribute("color", "color")
 
     case IMAGE_PROP:

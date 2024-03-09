@@ -21,8 +21,8 @@ func NewShow() *Show {
     return show
 }
 
-func (show *Show) SetPage(pageNum int, title string, temp *templates.Template) {
-    page := newPage(pageNum, title, temp)
+func (show *Show) SetPage(pageNum int, title string, temp *templates.Template, cont func(*Page)) {
+    page := newPage(pageNum, title, temp, cont)
 
     if _, ok := show.Pages[pageNum]; ok {
         log.Printf("Page %d already exists", pageNum)
@@ -32,14 +32,14 @@ func (show *Show) SetPage(pageNum int, title string, temp *templates.Template) {
     show.Pages[pageNum] = page
 }
 
-func (show *Show) AddPage(title string, temp *templates.Template) *Page {
+func (show *Show) AddPage(title string, temp *templates.Template, cont func(*Page)) *Page {
     show.numPages++
-    show.SetPage(show.numPages, title, temp)
+    show.SetPage(show.numPages, title, temp, cont)
 
     return show.Pages[show.numPages]
 }
 
-func (show *Show) ImportShow(temps *templates.Temps, filename string) error {
+func (show *Show) ImportShow(temps *templates.Temps, filename string, cont func(*Page)) error {
     pageReg, err := regexp.Compile("temp (?P<tempID>[0-9]*); title \"(?P<title>.*)\";")
     if err != nil {
         return err
@@ -68,7 +68,7 @@ func (show *Show) ImportShow(temps *templates.Temps, filename string) error {
             }
 
             temp := temps.Temps[tempID]
-            show.AddPage(temp.Title, temp)
+            show.AddPage(temp.Title, temp, cont)
 
             page = show.Pages[show.numPages]
             page.Title = match[2]

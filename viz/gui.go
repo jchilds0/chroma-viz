@@ -109,8 +109,10 @@ func VizGui(app *gtk.Application) {
     edit.EnginePanel()
     edit.PageEditor()
 
+    cont := func(page *shows.Page) { SendEngine(page, tcp.CONTINUE) }
+
     show := NewShowTree(func(page *shows.Page) { edit.SetPage(page) })
-    temp := NewTempTree(func(temp *templates.Template) { show.ImportPage(temp.Title, temp) })
+    temp := NewTempTree(func(temp *templates.Template) { show.ImportPage(temp.Title, temp, cont) })
 
     temp.ImportTemplates(conn.hub.Conn)
 
@@ -298,6 +300,8 @@ func VizGui(app *gtk.Application) {
 }
 
 func guiImportShow(win *gtk.ApplicationWindow, show *ShowTree, temp *TempTree) error {
+    cont := func(page *shows.Page) { SendEngine(page, tcp.CONTINUE) }
+
     dialog, err := gtk.FileChooserDialogNewWith2Buttons(
         "Import Show", win, gtk.FILE_CHOOSER_ACTION_OPEN, 
         "_Cancel", gtk.RESPONSE_CANCEL, "_Open", gtk.RESPONSE_ACCEPT)
@@ -309,7 +313,7 @@ func guiImportShow(win *gtk.ApplicationWindow, show *ShowTree, temp *TempTree) e
     res := dialog.Run()
     if res == gtk.RESPONSE_ACCEPT {
         filename := dialog.GetFilename()
-        show.ImportShow(temp, filename)
+        show.ImportShow(temp, filename, cont)
     }
     
     return nil
@@ -344,6 +348,8 @@ type GuiPage struct {
 }
 
 func guiImportPage(win *gtk.ApplicationWindow, tempTree *TempTree, showTree *ShowTree) error {
+    cont := func(page *shows.Page) { SendEngine(page, tcp.CONTINUE) }
+
     dialog, err := gtk.FileChooserDialogNewWith2Buttons(
         "Import Page", win, gtk.FILE_CHOOSER_ACTION_OPEN, 
         "_Cancel", gtk.RESPONSE_CANCEL, "_Open", gtk.RESPONSE_ACCEPT)
@@ -367,7 +373,7 @@ func guiImportPage(win *gtk.ApplicationWindow, tempTree *TempTree, showTree *Sho
             return err 
         }
 
-        err = showTree.ImportPage(page.Title, tempTree.Temps.Temps[page.TempID])
+        err = showTree.ImportPage(page.Title, tempTree.Temps.Temps[page.TempID], cont)
         if err != nil {
             return err 
         }
@@ -472,6 +478,7 @@ func guiDeletePage(show *ShowTree) error {
 }
 
 func testGui(tempTree *TempTree, showTree *ShowTree) {
+    cont := func(page *shows.Page) { SendEngine(page, tcp.CONTINUE) }
     num_temps := 10000
     num_props := 100
     num_pages := 1000
@@ -495,7 +502,7 @@ func testGui(tempTree *TempTree, showTree *ShowTree) {
     for i := 0; i < num_pages; i++ {
         index := rand.Int() % (num_temps - 1) + 1
         temp := tempTree.Temps.Temps[index]
-        showTree.ImportPage(temp.Title, temp)
+        showTree.ImportPage(temp.Title, temp, cont)
     }
 
     t = time.Now()

@@ -171,20 +171,23 @@ func (showTree *ShowTree) NewShowPage(page *shows.Page) {
     )
 }
 
-func (showTree *ShowTree) ImportShow(temps *TempTree, filename string) {
-    showTree.show.ImportShow(temps.Temps, filename)
+func (showTree *ShowTree) ImportShow(temps *TempTree, filename string, cont func(*shows.Page)) {
+    err := showTree.show.ImportShow(temps.Temps, filename, cont)
+    if err != nil {
+        log.Print(err)
+    }
 
     for _, page := range showTree.show.Pages {
         showTree.NewShowPage(page)
     }
 }
 
-func (showTree *ShowTree) ImportPage(title string, temp *templates.Template) error {
+func (showTree *ShowTree) ImportPage(title string, temp *templates.Template, cont func(*shows.Page)) error {
     if temp == nil {
         return fmt.Errorf("Missing template")
     }
 
-    page := showTree.show.AddPage(title, temp)
+    page := showTree.show.AddPage(title, temp, cont)
     showTree.NewShowPage(page)
 
     return nil 

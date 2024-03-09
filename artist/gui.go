@@ -301,6 +301,8 @@ var geo_type = map[string]int {
 }
 
 func AddProp(label string) (id int, err error) {
+    cont := func() { SendPreview(page, tcp.CONTINUE) }
+
     geo_typed, ok := geo_type[label]
     if !ok {
         return 0, fmt.Errorf("Unknown label %s", label)
@@ -316,7 +318,7 @@ func AddProp(label string) (id int, err error) {
         return 
     }
 
-    page.PropMap[id] = props.NewProperty(geo_typed, label, visible)
+    page.PropMap[id] = props.NewProperty(geo_typed, label, visible, cont)
     return
 }
 

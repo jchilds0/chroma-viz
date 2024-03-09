@@ -30,7 +30,7 @@ type Page struct {
     PropMap     map[int]*props.Property
 }
 
-func newPage(pageNum int, title string, temp *templates.Template) *Page {
+func newPage(pageNum int, title string, temp *templates.Template, cont func(*Page)) *Page {
     page := &Page{
         PageNum: pageNum, 
         Title: title, 
@@ -39,8 +39,10 @@ func newPage(pageNum int, title string, temp *templates.Template) *Page {
     }
     page.PropMap = make(map[int]*props.Property, temp.NumProps)
 
+    contPage := func() { cont(page) }
+
     for i, prop := range temp.Prop {
-        page.PropMap[i] = props.NewProperty(prop.Type, prop.Name, prop.Visible)
+        page.PropMap[i] = props.NewProperty(prop.Type, prop.Name, prop.Visible, contPage)
     }
 
     return page

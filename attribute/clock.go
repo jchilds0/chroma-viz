@@ -18,28 +18,35 @@ const (
 type ClockAttribute struct {
     fileName    string
     chromaName  string 
-    Value       string
+    c           chan int
+    cont        func()
+    currentTime string
+    timeFormat  string
 }
 
-func NewClockAttribute(file, chroma string) *ClockAttribute {
+func NewClockAttribute(file, chroma string, cont func()) *ClockAttribute {
     clockAttr := &ClockAttribute{
         fileName: file,
         chromaName: chroma,
+        cont: cont,
+        timeFormat: "04:05",
+        c: make(chan int),
     }
 
+    go clockAttr.RunClock(cont)
     return clockAttr
 }
 
 func (clockAttr *ClockAttribute) String() string {
-    return fmt.Sprintf("%s=%s#", clockAttr.chromaName, clockAttr.Value)
+    return fmt.Sprintf("%s=%s#", clockAttr.chromaName, clockAttr.currentTime)
 }
 
 func (clockAttr *ClockAttribute) Encode() string {
-    return fmt.Sprintf("%s %s;", clockAttr.fileName, clockAttr.Value)
+    return fmt.Sprintf("%s %s;", clockAttr.fileName, clockAttr.currentTime)
 }
 
 func (clockAttr *ClockAttribute) Decode(s string) error {
-    clockAttr.Value = strings.TrimPrefix(s, "string ")
+    clockAttr.currentTime = strings.TrimPrefix(s, "string ")
 
     return nil
 }
@@ -48,41 +55,35 @@ func (clockAttr *ClockAttribute) Update(edit Editor) error {
     var err error
     clockEdit, ok := edit.(*ClockEditor)
     if !ok {
-        return fmt.Errorf("StringAttribute.Update requires StringEditor") 
+        return fmt.Errorf("ClockAttribute.Update requires ClockEditor") 
     }
 
-    clockAttr.Value, err = clockEdit.entry.GetText()
+    clockAttr.currentTime, err = clockEdit.entry.GetText()
     return err
 }
 
-func (clock *ClockEditor) RunClock(cont func()) {
+func (clock *ClockAttribute) RunClock(cont func()) {
     state := PAUSE
     tick := time.NewTicker(time.Second)
 
     for {
         select {
         case state = <-clock.c:
+            tick = time.NewTicker(time.Second)
         case <-tick.C:
         }    
 
         switch state {
         case START:
             // update time and animate
-            currentText, err := clock.entry.GetText()
-            if err != nil {
-                log.Println(err)
-                continue
-            }
-
-            currentTime, err := time.Parse(clock.timeFormat, currentText)
+            currentTime, err := time.Parse(clock.timeFormat, clock.currentTime)
             if err != nil {
                 log.Println(err)
                 continue
             }
 
             currentTime = currentTime.Add(time.Second)
-            clock.entry.SetText(currentTime.Format(clock.timeFormat))
-            tick = time.NewTicker(time.Second)
+            clock.currentTime = currentTime.Format(clock.timeFormat)
 
             cont()
         case PAUSE:
@@ -90,7 +91,7 @@ func (clock *ClockEditor) RunClock(cont func()) {
             state = <-clock.c
         case STOP:
             // reset the time and block
-            clock.entry.SetText("00:00")
+            clock.currentTime = "00:00"
             state = <-clock.c
         default:
             log.Printf("Clock recieved unknown value through channel %d\n", state)
@@ -156,7 +157,36 @@ func NewClockEditor(name string, animate, cont func()) (clockEdit *ClockEditor, 
         clockEdit.c <- STOP
     })
 
-    go clockEdit.RunClock(cont)
+    timeBox, err := gtk.BoxNew(gtk.ORIENTATION_HORIZONTAL, 0)
+    if err != nil {
+        return
+    }
+
+    timeBox.SetVisible(true)
+    clockEdit.box.PackStart(timeBox, false, false, padding)
+
+    label, err := gtk.LabelNew(name)
+    if err != nil { 
+        return
+    }
+
+    label.SetVisible(true)
+    label.SetWidthChars(12)
+    timeBox.PackStart(label, false, false, padding)
+
+    buf, err := gtk.EntryBufferNew("", 0)
+    if err != nil { 
+        return
+    }
+
+    clockEdit.entry, err = gtk.EntryNewWithBuffer(buf)
+    if err != nil { 
+        return
+    }
+
+    clockEdit.entry.SetVisible(true)
+    clockEdit.entry.Connect("changed", animate)
+    timeBox.PackStart(clockEdit.entry, false, false, 0)
 
     return
 }
@@ -167,7 +197,8 @@ func (clockEdit *ClockEditor) Update(attr Attribute) error {
         return fmt.Errorf("ClockEditor.Update requires ClockAttribute")
     }
 
-    clockEdit.entry.SetText(clockAttr.Value)
+    clockEdit.c = clockAttr.c
+    clockEdit.entry.SetText(clockAttr.currentTime)
     return nil
 }
 
