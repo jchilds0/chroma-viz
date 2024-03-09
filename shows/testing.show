@@ -8,7 +8,7 @@ index 5;x 230;y 0;width 10;height 65;
 index 6;string TEAM;x 20;y 15;
 index 7;string 0;x 180;y 15;
 index 8;x 230;y 0;width 10;height 65;
-index 9;string 00:00;x 110;y 15;
+index 9;clock 00:00;x 110;y 15;
 index 10;string Q1;x 30;y 15;
 temp 4; title "Ticker";
 index 0;x 0;y 0;width 1920;height 75;

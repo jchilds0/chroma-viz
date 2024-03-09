@@ -188,16 +188,19 @@ type ListEditor struct {
     listStore   *gtk.ListStore
 }
 
-func NewListEditor(name string, columns []string, animate func()) (listEdit *ListEditor, err error) {
-    listEdit = &ListEditor{name: name}
+func NewListEditor(name string, columns []string, animate func()) *ListEditor {
+    var err error
+    listEdit := &ListEditor{name: name}
     listEdit.box, err = gtk.BoxNew(gtk.ORIENTATION_VERTICAL, 0)
     if err != nil {
-        return
+        log.Print(err)
+        return nil
     }
 
     listEdit.treeView, err = gtk.TreeViewNew()
     if err != nil {
-        return 
+        log.Print(err)
+        return nil
     }
 
     listEdit.treeView.SetVisible(true)
@@ -230,7 +233,8 @@ func NewListEditor(name string, columns []string, animate func()) (listEdit *Lis
 
     frame, err := gtk.FrameNew(name)
     if err != nil {
-        return
+        log.Print(err)
+        return nil
     }
 
     frame.Set("border-width", 2 * padding)
@@ -239,14 +243,16 @@ func NewListEditor(name string, columns []string, animate func()) (listEdit *Lis
     
     actionBox, err := gtk.BoxNew(gtk.ORIENTATION_HORIZONTAL, 0)
     if err != nil {
-        return
+        log.Print(err)
+        return nil
     }
 
     actionBox.SetVisible(true)
 
     label, err := gtk.LabelNew("Data Rows")
     if err != nil {
-        return 
+        log.Print(err)
+        return nil 
     }
 
     label.SetVisible(true)
@@ -256,7 +262,8 @@ func NewListEditor(name string, columns []string, animate func()) (listEdit *Lis
     // add rows
     button, err := gtk.ButtonNewWithLabel("+")
     if err != nil {
-        return
+        log.Print(err)
+        return nil
     }
 
     button.Connect("clicked", func() { 
@@ -275,6 +282,7 @@ func NewListEditor(name string, columns []string, animate func()) (listEdit *Lis
     button, err = gtk.ButtonNewWithLabel("-")
     if err != nil {
         log.Printf("Error creating graph table (%s)", err)
+        return nil
     }
 
     button.Connect("clicked", func() {
@@ -303,7 +311,7 @@ func NewListEditor(name string, columns []string, animate func()) (listEdit *Lis
 
     listEdit.box.PackStart(actionBox, true, true, 0)
     listEdit.box.PackStart(frame, true, true, 0)
-    return
+    return listEdit
 }
 
 func (listEdit *ListEditor) Update(attr Attribute) error {

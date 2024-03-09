@@ -2,6 +2,7 @@ package attribute
 
 import (
 	"fmt"
+	"log"
 	"strings"
 
 	"github.com/gotk3/gotk3/gtk"
@@ -52,18 +53,21 @@ type StringEditor struct {
     Entry     *gtk.Entry
 }
 
-func NewStringEditor(name string, animate func()) (stringEdit *StringEditor, err error) {
-    stringEdit = &StringEditor{}
+func NewStringEditor(name string, animate func()) *StringEditor {
+    var err error
+    stringEdit := &StringEditor{}
 
     stringEdit.box, err = gtk.BoxNew(gtk.ORIENTATION_HORIZONTAL, 0)
     if err != nil {
-        return 
+        log.Print(err)
+        return nil
     }
 
     stringEdit.box.SetVisible(true)
     label, err := gtk.LabelNew(name)
     if err != nil { 
-        return
+        log.Print(err)
+        return nil
     }
 
     label.SetVisible(true)
@@ -72,18 +76,21 @@ func NewStringEditor(name string, animate func()) (stringEdit *StringEditor, err
 
     buf, err := gtk.EntryBufferNew("", 0)
     if err != nil { 
-        return
+        log.Print(err)
+        return nil
     }
 
     stringEdit.Entry, err = gtk.EntryNewWithBuffer(buf)
     if err != nil { 
-        return
+        log.Print(err)
+        return nil
     }
 
     stringEdit.Entry.SetVisible(true)
     stringEdit.box.PackStart(stringEdit.Entry, false, false, 0)
     stringEdit.Entry.Connect("changed", animate)
-    return
+
+    return stringEdit
 }
 
 func (stringEdit *StringEditor) Update(attr Attribute) error {

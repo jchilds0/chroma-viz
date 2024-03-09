@@ -29,7 +29,7 @@ func TestImportShow(t *testing.T) {
         t.Fatalf("Error importing graphics hub (%s)", err)
     }
 
-    show.ImportShow(temp, fileName)
+    show.ImportShow(temp, fileName, func(page *Page) {})
 
     if len(show.Pages) != 4 {
         t.Errorf("Incorrect number of pages (len(show.Pages) = %d)", len(show.Pages))

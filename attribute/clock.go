@@ -106,19 +106,22 @@ type ClockEditor struct {
     c      chan int
 }
 
-func NewClockEditor(name string, animate, cont func()) (clockEdit *ClockEditor, err error) {
-    clockEdit = &ClockEditor{timeFormat: "04:05"}
+func NewClockEditor(name string, animate, cont func()) *ClockEditor {
+    var err error
+    clockEdit := &ClockEditor{timeFormat: "04:05"}
 
     clockEdit.box, err = gtk.BoxNew(gtk.ORIENTATION_VERTICAL, 0)
     if err != nil { 
-        return
+        log.Print(err)
+        return nil
     }
 
     clockEdit.box.SetVisible(true)
 
     actions, err := gtk.BoxNew(gtk.ORIENTATION_HORIZONTAL, 0)
     if err != nil { 
-        return
+        log.Print(err)
+        return nil
     }
 
     clockEdit.box.PackStart(actions, false, false, padding)
@@ -126,7 +129,8 @@ func NewClockEditor(name string, animate, cont func()) (clockEdit *ClockEditor, 
 
     startButton, err := gtk.ButtonNewWithLabel("Start")
     if err != nil { 
-        return
+        log.Print(err)
+        return nil
     }
 
     actions.PackStart(startButton, false, false, padding)
@@ -137,7 +141,8 @@ func NewClockEditor(name string, animate, cont func()) (clockEdit *ClockEditor, 
 
     pauseButton, err := gtk.ButtonNewWithLabel("Pause")
     if err != nil { 
-        return
+        log.Print(err)
+        return nil
     }
 
     actions.PackStart(pauseButton, false, false, padding)
@@ -148,7 +153,8 @@ func NewClockEditor(name string, animate, cont func()) (clockEdit *ClockEditor, 
 
     stopButton, err := gtk.ButtonNewWithLabel("Stop")
     if err != nil { 
-        return
+        log.Print(err)
+        return nil
     }
 
     actions.PackStart(stopButton, false, false, padding)
@@ -159,7 +165,8 @@ func NewClockEditor(name string, animate, cont func()) (clockEdit *ClockEditor, 
 
     timeBox, err := gtk.BoxNew(gtk.ORIENTATION_HORIZONTAL, 0)
     if err != nil {
-        return
+        log.Print(err)
+        return nil
     }
 
     timeBox.SetVisible(true)
@@ -167,7 +174,8 @@ func NewClockEditor(name string, animate, cont func()) (clockEdit *ClockEditor, 
 
     label, err := gtk.LabelNew(name)
     if err != nil { 
-        return
+        log.Print(err)
+        return nil
     }
 
     label.SetVisible(true)
@@ -176,19 +184,21 @@ func NewClockEditor(name string, animate, cont func()) (clockEdit *ClockEditor, 
 
     buf, err := gtk.EntryBufferNew("", 0)
     if err != nil { 
-        return
+        log.Print(err)
+        return nil
     }
 
     clockEdit.entry, err = gtk.EntryNewWithBuffer(buf)
     if err != nil { 
-        return
+        log.Print(err)
+        return nil
     }
 
     clockEdit.entry.SetVisible(true)
     clockEdit.entry.Connect("changed", animate)
     timeBox.PackStart(clockEdit.entry, false, false, 0)
 
-    return
+    return clockEdit
 }
 
 func (clockEdit *ClockEditor) Update(attr Attribute) error {

@@ -15,7 +15,6 @@ import (
 
 var profile = flag.String("profile", "", "write profile to file")
 var mode = flag.String("mode", "", "chroma mode (artist | viz)")
-var hub = flag.String("hub", "127.0.0.1:9000", "graphics hub port")
 
 func main() {
     flag.Parse()

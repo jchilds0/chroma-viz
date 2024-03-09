@@ -2,6 +2,7 @@ package attribute
 
 import (
 	"fmt"
+	"log"
 	"strconv"
 	"strings"
 
@@ -56,19 +57,21 @@ type IntEditor struct {
     button    *gtk.SpinButton
 }
 
-func NewIntEditor(name string, lower, upper float64, animate func()) (*IntEditor, error) {
+func NewIntEditor(name string, lower, upper float64, animate func()) *IntEditor {
     var err error
     intEdit := &IntEditor{}
 
     intEdit.box, err = gtk.BoxNew(gtk.ORIENTATION_HORIZONTAL, 0)
     if err != nil {
-        return nil, err
+        log.Print(err)
+        return nil
     }
 
     intEdit.box.SetVisible(true)
     label, err := gtk.LabelNew(name)
     if err != nil { 
-        return nil, err
+        log.Print(err)
+        return nil
     }
 
     label.SetVisible(true)
@@ -77,7 +80,8 @@ func NewIntEditor(name string, lower, upper float64, animate func()) (*IntEditor
 
     intEdit.button, err = gtk.SpinButtonNewWithRange(lower, upper, 1)
     if err != nil { 
-        return nil, err
+        log.Print(err)
+        return nil
     }
 
     intEdit.button.SetVisible(true)
@@ -85,7 +89,7 @@ func NewIntEditor(name string, lower, upper float64, animate func()) (*IntEditor
     intEdit.box.PackStart(intEdit.button, false, false, 0)
     intEdit.button.Connect("value-changed", animate)
 
-    return intEdit, nil
+    return intEdit
 }
 
 func (intEdit *IntEditor) Update(attr Attribute) error {

@@ -2,6 +2,7 @@ package attribute
 
 import (
 	"fmt"
+	"log"
 	"strconv"
 	"strings"
 
@@ -85,18 +86,21 @@ type ColorEditor struct {
     color    *gtk.ColorButton
 }
 
-func NewColorEditor(name string, animate func()) (colorEdit *ColorEditor, err error) {
-    colorEdit = &ColorEditor{}
+func NewColorEditor(name string, animate func()) *ColorEditor {
+    var err error
+    colorEdit := &ColorEditor{}
 
     colorEdit.box, err = gtk.BoxNew(gtk.ORIENTATION_HORIZONTAL, 0)
     if err != nil {
-        return
+        log.Print(err)
+        return nil 
     }
 
     colorEdit.box.SetVisible(true)
     label, err := gtk.LabelNew(name)
     if err != nil { 
-        return
+        log.Print(err)
+        return nil 
     }
 
     label.SetVisible(true)
@@ -105,14 +109,15 @@ func NewColorEditor(name string, animate func()) (colorEdit *ColorEditor, err er
 
     colorEdit.color, err = gtk.ColorButtonNew()
     if err != nil {
-        return
+        log.Print(err)
+        return nil
     }
 
     colorEdit.color.SetVisible(true)
     colorEdit.color.Connect("color-set", animate)
     colorEdit.box.PackStart(colorEdit.color, false, false, padding)
 
-    return
+    return colorEdit
 }
 
 func (colorEdit *ColorEditor) Update(attr Attribute) error {

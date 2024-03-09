@@ -12,7 +12,7 @@ import (
 
 type Pairing struct {
     prop      *props.Property
-    editor    props.PropertyEditor
+    editor    *props.PropertyEditor
 }
 
 type Editor struct {
@@ -22,7 +22,7 @@ type Editor struct {
     propBox   *gtk.Box
     Page      *shows.Page
     pairs     []Pairing
-    propEdit  [][]props.PropertyEditor
+    propEdit  [][]*props.PropertyEditor
     sendEngine func(*shows.Page, int)
     sendPreview func(*shows.Page, int)
 }
@@ -146,7 +146,7 @@ func (editor *Editor) PageEditor() {
     editor.Box.PackStart(editor.tabs, true, true, 0)
 
     // prop editors 
-    editor.propEdit = make([][]props.PropertyEditor, props.NUM_PROPS)
+    editor.propEdit = make([][]*props.PropertyEditor, props.NUM_PROPS)
 
     animate := func() { 
         editor.UpdateProps(tcp.ANIMATE_ON)
@@ -161,7 +161,7 @@ func (editor *Editor) PageEditor() {
     
     for i := range editor.propEdit {
         num := 10
-        editor.propEdit[i] = make([]props.PropertyEditor, num)
+        editor.propEdit[i] = make([]*props.PropertyEditor, num)
 
         for j := 0; j < num; j++ {
             editor.propEdit[i][j], err = props.NewPropertyEditor(i, animate, cont)
@@ -175,7 +175,7 @@ func (editor *Editor) PageEditor() {
 func (editor *Editor) PropertyEditor() {
     var err error
     // prop editors 
-    editor.propEdit = make([][]props.PropertyEditor, props.NUM_PROPS)
+    editor.propEdit = make([][]*props.PropertyEditor, props.NUM_PROPS)
 
     animate := func() { 
         editor.UpdateProps(tcp.ANIMATE_ON)
@@ -190,7 +190,7 @@ func (editor *Editor) PropertyEditor() {
     
     for i := range editor.propEdit {
         num := 1
-        editor.propEdit[i] = make([]props.PropertyEditor, num)
+        editor.propEdit[i] = make([]*props.PropertyEditor, num)
 
         for j := 0; j < num; j++ {
             editor.propEdit[i][j], err = props.NewPropertyEditor(i, animate, cont)
@@ -207,7 +207,7 @@ func (edit *Editor) UpdateProps(action int) {
             continue
         }
 
-        props.UpdateProp(item.prop, item.editor)
+        item.prop.UpdateProp(item.editor)
     }
 }
 
@@ -244,7 +244,7 @@ func (editor *Editor) SetPage(page *shows.Page) {
         }
 
         // pair up with prop editor
-        var propEdit props.PropertyEditor
+        var propEdit *props.PropertyEditor
         if propCount[typed] == len(editor.propEdit[typed]) {
             // we ran out of editors, add a new one
             propEdit, err = props.NewPropertyEditor(typed, animate, cont)
@@ -257,8 +257,8 @@ func (editor *Editor) SetPage(page *shows.Page) {
             propEdit = editor.propEdit[typed][propCount[typed]]
         }
 
-        props.UpdateEditor(propEdit, prop)
-        editor.tabs.AppendPage(propEdit.Box(), label)
+        propEdit.UpdateEditor(prop)
+        editor.tabs.AppendPage(propEdit.Box, label)
         propCount[typed]++
         editor.pairs = append(editor.pairs, Pairing{prop: prop, editor: propEdit})
     }
@@ -272,8 +272,8 @@ func (editor *Editor) SetProperty(prop *props.Property) {
     editor.pairs = nil
     propEdit := editor.propEdit[prop.PropType][0]
 
-    props.UpdateEditor(propEdit, prop)
-    editor.propBox = propEdit.Box()
+    propEdit.UpdateEditor(prop)
+    editor.propBox = propEdit.Box
     editor.pairs = []Pairing{{prop: prop, editor: propEdit}}
 
     editor.Box.PackStart(editor.propBox, true, true, 0)

@@ -2,11 +2,8 @@ package props
 
 import (
 	"chroma-viz/attribute"
-	"fmt"
 	"log"
 	"strings"
-
-	"github.com/gotk3/gotk3/gtk"
 )
 
 const padding = 10
@@ -76,40 +73,11 @@ var StringToProp map[string]int = map[string]int{
 
 */
 
-type PropertyEditor interface {
-    Box() *gtk.Box
-    Editors() map[string]attribute.Editor
-}
-
 type Property struct {
     Name      string
     PropType  int
     visible   map[string]bool
     Attr      map[string]attribute.Attribute
-}
-
-func NewPropertyEditor(typed int, animate, cont func()) (PropertyEditor, error) {
-    width := 1920
-    height := 1080 
-
-    switch (typed) {
-    case RECT_PROP:
-        return NewRectEditor(width, height, animate)
-    case TEXT_PROP:
-        return NewTextEditor(width, height, animate)
-    case CIRCLE_PROP:
-        return NewCircleEditor(width, height, animate)
-    case GRAPH_PROP:
-        return NewGraphEditor(width, height, animate)
-    case TICKER_PROP:
-        return NewTickerEditor(width, height, animate)
-    case CLOCK_PROP:
-        return NewClockEditor(width, height, animate, cont)
-    case IMAGE_PROP:
-        return NewImageEditor(width, height, animate)
-    default:
-        return nil, fmt.Errorf("Unknown Prop %d", typed)
-    }
 }
 
 func NewProperty(typed int, name string, visible map[string]bool, cont func()) *Property {
@@ -234,18 +202,8 @@ func (prop *Property) Decode(s string) {
 
 */
 
-func UpdateEditor(propEdit PropertyEditor, prop *Property) {
-    for name, edit := range propEdit.Editors() {
-        edit.Box().SetVisible(prop.visible[name])
-        err := edit.Update(prop.Attr[name])
-        if err != nil {
-            log.Print(err)
-        }
-    }
-}
-
-func UpdateProp(prop *Property, propEdit PropertyEditor) {
-    editors := propEdit.Editors()
+func (prop *Property) UpdateProp(propEdit *PropertyEditor) {
+    editors := propEdit.editor
 
     for name, attr := range prop.Attr {
         err := attr.Update(editors[name])
