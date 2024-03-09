@@ -64,37 +64,3 @@ func (rectEdit *RectEditor) Editors() map[string]attribute.Editor {
     return rectEdit.edit
 }
 
-type RectProp struct {
-    name        string 
-    attrs       map[string]attribute.Attribute
-    visible     map[string]bool
-}
-
-func NewRectProp(name string, visible map[string]bool) *RectProp {
-    rect := &RectProp{name: name, visible: visible}
-    rect.attrs = make(map[string]attribute.Attribute, 5)
-
-    rect.attrs["x"] = attribute.NewIntAttribute("x", "rel_x")
-    rect.attrs["y"] = attribute.NewIntAttribute("y", "rel_y")
-    rect.attrs["width"] = attribute.NewIntAttribute("width", "width")
-    rect.attrs["height"] = attribute.NewIntAttribute("height", "height")
-    rect.attrs["color"] = attribute.NewColorAttribute("color", "color")
-
-    return rect
-}
-
-func (rect *RectProp) Name() string {
-    return rect.name
-}
-
-func (rect *RectProp) Type() int {
-    return RECT_PROP
-}
-
-func (rect *RectProp) Visible() map[string]bool {
-    return rect.visible
-}
-
-func (rect *RectProp) Attributes() map[string]attribute.Attribute {
-    return rect.attrs
-}

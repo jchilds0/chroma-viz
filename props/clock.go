@@ -158,36 +158,3 @@ func (clock *ClockEditor) Editors() map[string]attribute.Editor {
     return clock.edit
 }
 
-type ClockProp struct {
-    name            string
-    attrs           map[string]attribute.Attribute
-    visible         map[string]bool
-}
-
-func NewClockProp(name string, visible map[string]bool) *ClockProp {
-    clock := &ClockProp{name: name, visible: visible}
-
-    clock.attrs = make(map[string]attribute.Attribute, 5)
-    clock.attrs["x"] = attribute.NewIntAttribute("x", "rel_x")
-    clock.attrs["y"] = attribute.NewIntAttribute("y", "rel_y")
-    clock.attrs["string"] = attribute.NewStringAttribute("string", "string")
-    clock.attrs["color"] = attribute.NewColorAttribute("color", "color")
-
-    return clock
-}
-
-func (clock *ClockProp) Type() int {
-    return CLOCK_PROP 
-}
-
-func (clock *ClockProp) Name() string {
-    return clock.name
-}
-
-func (clock *ClockProp) Visible() map[string]bool {
-    return clock.visible
-}
-
-func (clock *ClockProp) Attributes() map[string]attribute.Attribute {
-    return clock.attrs
-}

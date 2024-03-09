@@ -273,7 +273,7 @@ func ArtistPage() *shows.Page {
         PageNum: 0,
     }
 
-    page.PropMap = make(map[int]props.Property)
+    page.PropMap = make(map[int]*props.Property)
 
     return page
 }
@@ -327,9 +327,9 @@ func RemoveProp(propID int) {
         return
     }
 
-    geom, ok := geoms[prop.Type()]
+    geom, ok := geoms[prop.PropType]
     if !ok {
-        log.Printf("No geom with prop type %d", prop.Type())
+        log.Printf("No geom with prop type %d", prop.PropType)
         return
     }
 

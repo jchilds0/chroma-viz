@@ -1,7 +1,6 @@
 package tcp
 
 import (
-	"chroma-viz/props"
 	"chroma-viz/shows"
 	"fmt"
 	"log"
@@ -83,7 +82,7 @@ func (conn *Connection) SendPage() {
 
         geo := ""
         for i, prop := range page.PropMap {
-            geo = geo + fmt.Sprintf("geo_num=%d#%s", i, props.PropToString(prop))
+            geo = geo + fmt.Sprintf("geo_num=%d#%s", i, prop.String())
         }
 
         str := header + geo + string(END_OF_MESSAGE)

@@ -82,20 +82,16 @@ var StringToProp map[string]int = map[string]int{
 
 */
 
-type Property interface {
-    GetProp() *property
-}
-
 type PropertyEditor interface {
     Box() *gtk.Box
     Editors() map[string]attribute.Editor
 }
 
-type property struct {
-    name    string
-    type    int
-    visible map[string]bool
-    attr    map[string]attribute.Attribute
+type Property struct {
+    Name      string
+    PropType  int
+    visible   map[string]bool
+    Attr      map[string]attribute.Attribute
 }
 
 func NewPropertyEditor(typed int, animate, cont func()) (PropertyEditor, error) {
@@ -122,33 +118,66 @@ func NewPropertyEditor(typed int, animate, cont func()) (PropertyEditor, error) 
     }
 }
 
-func NewProperty(typed int, name string, visible map[string]bool) Property {
+func NewProperty(typed int, name string, visible map[string]bool) *Property {
+    prop := &Property{Name: name, PropType: typed, visible: visible}
+
+    prop.Attr = make(map[string]attribute.Attribute, 10)
+
     switch (typed) {
     case RECT_PROP:
-        return NewRectProp(name, visible)
+        prop.Attr["x"] = attribute.NewIntAttribute("x", "rel_x")
+        prop.Attr["y"] = attribute.NewIntAttribute("y", "rel_y")
+        prop.Attr["width"] = attribute.NewIntAttribute("width", "width")
+        prop.Attr["height"] = attribute.NewIntAttribute("height", "height")
+        prop.Attr["color"] = attribute.NewColorAttribute("color", "color")
+
     case TEXT_PROP:
-        return NewTextProp(name, visible)
+        prop.Attr["x"] = attribute.NewIntAttribute("x", "rel_x")
+        prop.Attr["y"] = attribute.NewIntAttribute("y", "rel_y")
+        prop.Attr["string"] = attribute.NewStringAttribute("string","string")
+        prop.Attr["color"] = attribute.NewColorAttribute("color", "color")
+
     case CIRCLE_PROP:
-        return NewCircleProp(name, visible)
+        prop.Attr["x"] = attribute.NewIntAttribute("x", "rel_x")
+        prop.Attr["y"] = attribute.NewIntAttribute("y", "rel_y")
+        prop.Attr["inner_radius"] = attribute.NewIntAttribute("inner_radius", "inner_radius")
+        prop.Attr["outer_radius"] = attribute.NewIntAttribute("outer_radius", "outer_radius")
+        prop.Attr["start_angle"] = attribute.NewIntAttribute("start_angle", "start_angle")
+        prop.Attr["end_angle"] = attribute.NewIntAttribute("end_angle", "end_angle")
+
     case GRAPH_PROP:
-        return NewGraphProp(name, visible)
+        prop.Attr["x"] = attribute.NewIntAttribute("x", "rel_x")
+        prop.Attr["y"] = attribute.NewIntAttribute("y", "rel_y")
+        prop.Attr["node"] = attribute.NewListAttribute("node", "graph_node", 2, false)
+
     case TICKER_PROP:
-        return NewTickerProp(name, visible)
+        prop.Attr["x"] = attribute.NewIntAttribute("x", "rel_x")
+        prop.Attr["y"] = attribute.NewIntAttribute("y", "rel_y")
+        prop.Attr["text"] = attribute.NewListAttribute("text", "string", 1, true)
+
     case CLOCK_PROP:
-        return NewClockProp(name, visible)
+        prop.Attr["x"] = attribute.NewIntAttribute("x", "rel_x")
+        prop.Attr["y"] = attribute.NewIntAttribute("y", "rel_y")
+        prop.Attr["string"] = attribute.NewStringAttribute("string", "string")
+        prop.Attr["color"] = attribute.NewColorAttribute("color", "color")
+
     case IMAGE_PROP:
-        return NewImageProp(name, visible)
+        prop.Attr["x"] = attribute.NewIntAttribute("x", "rel_x")
+        prop.Attr["y"] = attribute.NewIntAttribute("y", "rel_y")
+        prop.Attr["scale"] = attribute.NewFloatAttribute("scale", "scale")
+        prop.Attr["string"] = attribute.NewStringAttribute("string", "string")
+
     default:
         log.Printf("Unknown Prop %d", typed)
         return nil
     }
+
+    return prop
 }
 
-func PropToString(prop Property) (s string) {
-    props := prop.GetProp()
-
-    for name, attr := range prop. {
-        if !prop.Visible()[name] {
+func (prop *Property) String() (s string) {
+    for name, attr := range prop.Attr {
+        if !prop.visible[name] {
             continue
         }
 
@@ -157,17 +186,15 @@ func PropToString(prop Property) (s string) {
     return
 }
 
-func EncodeProp(prop Property) (s string) {
-    for _, attr := range prop.Attributes() {
+func (prop *Property) Encode() (s string) {
+    for _, attr := range prop.Attr {
         s += attr.Encode()
     }
     return
 }
 
-func DecodeProp(prop Property, s string) {
+func (prop *Property) Decode(s string) {
     attrs := strings.Split(s, ";")
-    props := prop.Attributes()
-    visible := prop.Visible()
 
     for _, attr := range attrs[1:] {
         name := strings.Split(attr, " ")[0]
@@ -175,18 +202,18 @@ func DecodeProp(prop Property, s string) {
             continue
         }
 
-        if !visible[name] {
+        if !prop.visible[name] {
             continue
         }
 
-        if props[name] == nil {
-            log.Printf("Error prop %s missing prop attr %s", prop.Name(), name)
+        if prop.Attr[name] == nil {
+            log.Printf("Error prop %s missing prop attr %s", prop.Name, name)
             continue
         }
 
-        err := props[name].Decode(attr)
+        err := prop.Attr[name].Decode(attr)
         if err != nil {
-            log.Printf("Error decoding prop %s in %s", name, prop.Name())
+            log.Printf("Error decoding prop %s in %s", name, prop.Name)
         }
     }
 }
@@ -210,20 +237,23 @@ func DecodeProp(prop Property, s string) {
 
 */
 
-func UpdateEditor(propEdit PropertyEditor, prop Property) {
-    attrs := prop.Attributes()
-    visible := prop.Visible()
-
+func UpdateEditor(propEdit PropertyEditor, prop *Property) {
     for name, edit := range propEdit.Editors() {
-        edit.Box().SetVisible(visible[name])
-        edit.Update(attrs[name])
+        edit.Box().SetVisible(prop.visible[name])
+        err := edit.Update(prop.Attr[name])
+        if err != nil {
+            log.Print(err)
+        }
     }
 }
 
-func UpdateProp(prop Property, propEdit PropertyEditor) {
+func UpdateProp(prop *Property, propEdit PropertyEditor) {
     editors := propEdit.Editors()
 
-    for name, attr := range prop.Attributes() {
-        attr.Update(editors[name])
+    for name, attr := range prop.Attr {
+        err := attr.Update(editors[name])
+        if err != nil {
+            log.Print(err)
+        }
     }
 }

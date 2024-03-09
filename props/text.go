@@ -58,37 +58,3 @@ func (text *TextEditor) Editors() map[string]attribute.Editor {
     return text.edit
 }
 
-type TextProp struct {
-    name        string
-    attrs       map[string]attribute.Attribute
-    visible     map[string]bool
-}
-
-func NewTextProp(name string, visible map[string]bool) *TextProp {
-    text := &TextProp{name: name}
-    text.attrs = make(map[string]attribute.Attribute, 5)
-    text.visible = visible
-
-    text.attrs["x"] = attribute.NewIntAttribute("x", "rel_x")
-    text.attrs["y"] = attribute.NewIntAttribute("y", "rel_y")
-    text.attrs["string"] = attribute.NewStringAttribute("string","string")
-    text.attrs["color"] = attribute.NewColorAttribute("color", "color")
-
-    return text
-}
-
-func (text *TextProp) Type() int {
-    return TEXT_PROP
-}
-
-func (text *TextProp) Name() string {
-    return text.name
-}
-
-func (text *TextProp) Visible() map[string]bool {
-    return text.visible
-}
-
-func (text *TextProp) Attributes() map[string]attribute.Attribute {
-    return text.attrs
-}

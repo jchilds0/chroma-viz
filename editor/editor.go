@@ -11,7 +11,7 @@ import (
 )
 
 type Pairing struct {
-    prop      props.Property
+    prop      *props.Property
     editor    props.PropertyEditor
 }
 
@@ -237,8 +237,8 @@ func (editor *Editor) SetPage(page *shows.Page) {
             continue
         }
 
-        typed := prop.Type()
-        label, err := gtk.LabelNew(prop.Name())
+        typed := prop.PropType
+        label, err := gtk.LabelNew(prop.Name)
         if err != nil { 
             log.Fatalf("Error setting page (%s)", err) 
         }
@@ -264,14 +264,13 @@ func (editor *Editor) SetPage(page *shows.Page) {
     }
 }
 
-func (editor *Editor) SetProperty(prop props.Property) {
+func (editor *Editor) SetProperty(prop *props.Property) {
     if editor.propBox != nil {
         editor.Box.Remove(editor.propBox)
     }
 
     editor.pairs = nil
-    propType := prop.Type()
-    propEdit := editor.propEdit[propType][0]
+    propEdit := editor.propEdit[prop.PropType][0]
 
     props.UpdateEditor(propEdit, prop)
     editor.propBox = propEdit.Box()

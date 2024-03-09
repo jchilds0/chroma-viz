@@ -58,37 +58,3 @@ func (img *ImageEditor) Box() *gtk.Box {
 func (img *ImageEditor) Editors() map[string]attribute.Editor {
     return img.edit
 }
-
-type ImageProp struct {
-    name    string
-    attrs   map[string]attribute.Attribute
-    visible map[string]bool
-}
-
-func NewImageProp(name string, visible map[string]bool) *ImageProp {
-    image := &ImageProp{name: name, visible: visible}
-    image.attrs = make(map[string]attribute.Attribute, 5)
-
-    image.attrs["x"] = attribute.NewIntAttribute("x", "rel_x")
-    image.attrs["y"] = attribute.NewIntAttribute("y", "rel_y")
-    image.attrs["scale"] = attribute.NewFloatAttribute("scale", "scale")
-    image.attrs["string"] = attribute.NewStringAttribute("string", "string")
-
-    return image 
-}
-
-func (image *ImageProp) Name() string {
-    return image.name
-}
-
-func (image *ImageProp) Type() int {
-    return IMAGE_PROP 
-}
-
-func (image *ImageProp) Visible() map[string]bool {
-    return image.visible
-}
-
-func (image *ImageProp) Attributes() map[string]attribute.Attribute {
-    return image.attrs
-}

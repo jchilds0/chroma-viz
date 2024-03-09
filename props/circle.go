@@ -84,38 +84,3 @@ func (circleEdit *CircleEditor) Editors() map[string]attribute.Editor {
     return circleEdit.edit
 }
 
-type CircleProp struct {
-    name      string 
-    attrs     map[string]attribute.Attribute
-    visible   map[string]bool
-}
-
-func NewCircleProp(name string, visible map[string]bool) *CircleProp {
-    circle := &CircleProp{name: name, visible: visible}
-    circle.attrs = make(map[string]attribute.Attribute, 10)
-
-    circle.attrs["x"] = attribute.NewIntAttribute("x", "rel_x")
-    circle.attrs["y"] = attribute.NewIntAttribute("y", "rel_y")
-    circle.attrs["inner_radius"] = attribute.NewIntAttribute("inner_radius", "inner_radius")
-    circle.attrs["outer_radius"] = attribute.NewIntAttribute("outer_radius", "outer_radius")
-    circle.attrs["start_angle"] = attribute.NewIntAttribute("start_angle", "start_angle")
-    circle.attrs["end_angle"] = attribute.NewIntAttribute("end_angle", "end_angle")
-
-    return circle
-}
-
-func (circle *CircleProp) Type() int {
-    return CIRCLE_PROP
-}
-
-func (circle *CircleProp) Name() string {
-    return circle.name
-}
-
-func (circle *CircleProp) Visible() map[string]bool {
-    return circle.visible
-}
-
-func (circle *CircleProp) Attributes() map[string]attribute.Attribute {
-    return circle.attrs
-}

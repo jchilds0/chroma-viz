@@ -27,7 +27,7 @@ type Page struct {
     Title       string
     TemplateID  int
     Layer       int
-    PropMap     map[int]props.Property
+    PropMap     map[int]*props.Property
 }
 
 func newPage(pageNum int, title string, temp *templates.Template) *Page {
@@ -37,7 +37,7 @@ func newPage(pageNum int, title string, temp *templates.Template) *Page {
         TemplateID: temp.TempID,
         Layer: temp.Layer,
     }
-    page.PropMap = make(map[int]props.Property, temp.NumProps)
+    page.PropMap = make(map[int]*props.Property, temp.NumProps)
 
     for i, prop := range temp.Prop {
         page.PropMap[i] = props.NewProperty(prop.Type, prop.Name, prop.Visible)

@@ -54,36 +54,3 @@ func (g *GraphEditor) Box() *gtk.Box {
 func (g *GraphEditor) Editors() map[string]attribute.Editor {
     return g.edit
 }
-
-type GraphProp struct {
-    name      string
-    attrs     map[string]attribute.Attribute
-    visible   map[string]bool
-}
-
-func NewGraphProp(name string, visible map[string]bool) Property {
-    g := &GraphProp{name: name, visible: visible}
-    g.attrs = make(map[string]attribute.Attribute, 5)
-
-    g.attrs["x"] = attribute.NewIntAttribute("x", "rel_x")
-    g.attrs["y"] = attribute.NewIntAttribute("y", "rel_y")
-    g.attrs["node"] = attribute.NewListAttribute("node", "graph_node", 2, false)
-
-    return g
-}
-
-func (g *GraphProp) Type() int {
-    return GRAPH_PROP 
-}
-
-func (g *GraphProp) Name() string {
-    return g.name
-}
-
-func (g *GraphProp) Visible() map[string]bool {
-    return g.visible
-}
-
-func (g *GraphProp) Attributes() map[string]attribute.Attribute {
-    return g.attrs
-}

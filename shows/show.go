@@ -2,7 +2,6 @@ package shows
 
 import (
 	"bufio"
-	"chroma-viz/props"
 	"chroma-viz/templates"
 	"fmt"
 	"log"
@@ -93,7 +92,7 @@ func (show *Show) ImportShow(temps *templates.Temps, filename string) error {
                 continue
             }
 
-            props.DecodeProp(prop, line)
+            prop.Decode(line)
         }
     }
 
@@ -118,7 +117,7 @@ func (show *Show) ExportShow(filename string) {
 
             file.WriteString(fmt.Sprintf("index %d;", index))
 
-            file.WriteString(props.EncodeProp(prop))
+            file.WriteString(prop.Encode())
 
             file.WriteString("\n")
         }

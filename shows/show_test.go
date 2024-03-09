@@ -68,84 +68,72 @@ func TestImportShow(t *testing.T) {
     }
 }
 
-func rectPropTest(t *testing.T, prop props.Property, x, y, w, h int) {
-    _, ok := prop.(*props.RectProp)
-    if !ok {
-        t.Errorf("Prop %s is not a rect prop", prop.Name())
+func rectPropTest(t *testing.T, prop *props.Property, x, y, w, h int) {
+    if prop.PropType != props.RECT_PROP {
+        t.Errorf("Prop %s is not a rect prop", prop.Name)
         return
     }
 
-    attr := prop.Attributes()
-    intAttrTest(t, attr["x"], x)
-    intAttrTest(t, attr["y"], y)
-    intAttrTest(t, attr["width"], w)
-    intAttrTest(t, attr["height"], h)
+    intAttrTest(t, prop.Attr["x"], x)
+    intAttrTest(t, prop.Attr["y"], y)
+    intAttrTest(t, prop.Attr["width"], w)
+    intAttrTest(t, prop.Attr["height"], h)
 }
 
-func textPropTest(t *testing.T, prop props.Property, x, y int, text string) {
-    _, ok := prop.(*props.TextProp)
-    if !ok {
-        t.Errorf("Prop %s is not a text prop", prop.Name())
+func textPropTest(t *testing.T, prop *props.Property, x, y int, text string) {
+    if prop.PropType != props.TEXT_PROP {
+        t.Errorf("Prop %s is not a text prop", prop.Name)
         return
     }
 
-    attr := prop.Attributes()
-    intAttrTest(t, attr["x"], x)
-    intAttrTest(t, attr["y"], y)
-    stringAttrTest(t, attr["string"], text)
+    intAttrTest(t, prop.Attr["x"], x)
+    intAttrTest(t, prop.Attr["y"], y)
+    stringAttrTest(t, prop.Attr["string"], text)
 }
 
-func circlePropTest(t *testing.T, prop props.Property, x, y, ir, or, sa, ea int) {
-    _, ok := prop.(*props.CircleProp)
-    if !ok {
-        t.Errorf("Prop %s is not a circle prop", prop.Name())
+func circlePropTest(t *testing.T, prop *props.Property, x, y, ir, or, sa, ea int) {
+    if prop.PropType != props.CIRCLE_PROP {
+        t.Errorf("Prop %s is not a circle prop", prop.Name)
         return
     }
 
-    attr := prop.Attributes()
-    intAttrTest(t, attr["x"], x)
-    intAttrTest(t, attr["y"], y)
-    intAttrTest(t, attr["inner_radius"], ir)
-    intAttrTest(t, attr["outer_radius"], or)
-    intAttrTest(t, attr["start_angle"], sa)
-    intAttrTest(t, attr["end_angle"], ea)
+    intAttrTest(t, prop.Attr["x"], x)
+    intAttrTest(t, prop.Attr["y"], y)
+    intAttrTest(t, prop.Attr["inner_radius"], ir)
+    intAttrTest(t, prop.Attr["outer_radius"], or)
+    intAttrTest(t, prop.Attr["start_angle"], sa)
+    intAttrTest(t, prop.Attr["end_angle"], ea)
 }
 
-func clockPropTest(t *testing.T, prop props.Property, x, y int) {
-    _, ok := prop.(*props.ClockProp)
-    if !ok {
-        t.Errorf("Prop %s is not a clock prop", prop.Name())
+func clockPropTest(t *testing.T, prop *props.Property, x, y int) {
+    if prop.PropType != props.CLOCK_PROP {
+        t.Errorf("Prop %s is not a clock prop", prop.Name)
         return
     }
 
-    attr := prop.Attributes()
-    intAttrTest(t, attr["x"], x)
-    intAttrTest(t, attr["y"], y)
+    intAttrTest(t, prop.Attr["x"], x)
+    intAttrTest(t, prop.Attr["y"], y)
 }
 
-func tickerPropTest(t *testing.T, prop props.Property, x, y int, s ...string) {
-    _, ok := prop.(*props.TickerProp)
-    if !ok {
-        t.Errorf("Prop %s is not a ticker prop", prop.Name())
+func tickerPropTest(t *testing.T, prop *props.Property, x, y int, s ...string) {
+    if prop.PropType != props.TICKER_PROP {
+        t.Errorf("Prop %s is not a ticker prop", prop.Name)
         return
     }
 
-    attr := prop.Attributes()
-    intAttrTest(t, attr["x"], x)
-    intAttrTest(t, attr["y"], y)
+    intAttrTest(t, prop.Attr["x"], x)
+    intAttrTest(t, prop.Attr["y"], y)
     // check list store values
 }
 
-func graphPropTest(t *testing.T, prop props.Property, x, y int) {
-    _, ok := prop.(*props.GraphProp)
-    if !ok {
-        t.Errorf("Prop %s is not a graph prop", prop.Name())
+func graphPropTest(t *testing.T, prop *props.Property, x, y int) {
+    if prop.PropType != props.GRAPH_PROP {
+        t.Errorf("Prop %s is not a graph prop", prop.Name)
         return
     }
 
-    attr := prop.Attributes()
-    intAttrTest(t, attr["x"], x)
-    intAttrTest(t, attr["y"], y)
+    intAttrTest(t, prop.Attr["x"], x)
+    intAttrTest(t, prop.Attr["y"], y)
     // check list store values
 }
 

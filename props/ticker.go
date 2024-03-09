@@ -58,35 +58,3 @@ func (tickEdit *TickerEditor) Editors() map[string]attribute.Editor {
     return tickEdit.edit
 }
 
-type TickerProp struct {
-    name      string
-    attrs     map[string]attribute.Attribute
-    visible   map[string]bool
-}
-
-func NewTickerProp(name string, visible map[string]bool) *TickerProp {
-    t := &TickerProp{name: name, visible: visible}
-
-    t.attrs = make(map[string]attribute.Attribute, 5)
-    t.attrs["x"] = attribute.NewIntAttribute("x", "rel_x")
-    t.attrs["y"] = attribute.NewIntAttribute("y", "rel_y")
-    t.attrs["text"] = attribute.NewListAttribute("text", "string", 1, true)
-
-    return t
-}
-
-func (t *TickerProp) Type() int {
-    return TICKER_PROP
-}
-
-func (t *TickerProp) Name() string {
-    return t.name
-}
-
-func (t *TickerProp) Visible() map[string]bool {
-    return t.visible
-}
-
-func (t *TickerProp) Attributes() map[string]attribute.Attribute {
-    return t.attrs
-}
