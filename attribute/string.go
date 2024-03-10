@@ -9,26 +9,28 @@ import (
 )
 
 type StringAttribute struct {
-    fileName      string
-    chromaName    string
+    FileName      string
+    ChromaName    string
+    Type          int
     Value         string
 }
 
 func NewStringAttribute(file, chroma string) *StringAttribute {
     stringAttr := &StringAttribute{
-        fileName: file,
-        chromaName: chroma,
+        FileName: file,
+        ChromaName: chroma,
+        Type: STRING,
     }
 
     return stringAttr
 }
 
 func (stringAttr *StringAttribute) String() string {
-    return fmt.Sprintf("%s=%s#", stringAttr.chromaName, stringAttr.Value)
+    return fmt.Sprintf("%s=%s#", stringAttr.ChromaName, stringAttr.Value)
 }
 
 func (stringAttr *StringAttribute) Encode() string {
-    return fmt.Sprintf("%s %s;", stringAttr.fileName, stringAttr.Value)
+    return fmt.Sprintf("%s %s;", stringAttr.FileName, stringAttr.Value)
 }
 
 func (stringAttr *StringAttribute) Decode(s string) error {

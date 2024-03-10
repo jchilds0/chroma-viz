@@ -3,8 +3,6 @@ package viz
 import (
 	"chroma-viz/shows"
 	"chroma-viz/tcp"
-	"chroma-viz/templates"
-	"fmt"
 	"log"
 	"strconv"
 
@@ -182,14 +180,9 @@ func (showTree *ShowTree) ImportShow(temps *TempTree, filename string, cont func
     }
 }
 
-func (showTree *ShowTree) ImportPage(title string, temp *templates.Template, cont func(*shows.Page)) error {
-    if temp == nil {
-        return fmt.Errorf("Missing template")
-    }
-
-    page := showTree.show.AddPage(title, temp, cont)
+func (showTree *ShowTree) ImportPage(page *shows.Page) {
+    showTree.show.NumPages++
+    showTree.show.Pages[showTree.show.NumPages] = page
     showTree.NewShowPage(page)
-
-    return nil 
 }
 

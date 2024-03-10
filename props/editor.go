@@ -143,7 +143,7 @@ func NewPropertyEditor(typed int, cont func()) (propEdit *PropertyEditor, err er
 */
 func (propEdit *PropertyEditor) UpdateEditor(prop *Property) {
     for name, edit := range propEdit.editor {
-        edit.Box().SetVisible(prop.visible[name])
+        edit.Box().SetVisible(prop.Visible[name])
         err := edit.Update(prop.Attr[name])
         if err != nil {
             log.Print(err)

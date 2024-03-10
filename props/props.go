@@ -2,6 +2,7 @@ package props
 
 import (
 	"chroma-viz/attribute"
+	"encoding/json"
 	"log"
 	"strings"
 )
@@ -71,12 +72,12 @@ var StringToProp map[string]int = map[string]int{
 type Property struct {
     Name      string
     PropType  int
-    visible   map[string]bool
+    Visible   map[string]bool
     Attr      map[string]attribute.Attribute
 }
 
 func NewProperty(typed int, name string, visible map[string]bool, cont func()) *Property {
-    prop := &Property{Name: name, PropType: typed, visible: visible}
+    prop := &Property{Name: name, PropType: typed, Visible: visible}
 
     prop.Attr = make(map[string]attribute.Attribute, 10)
 
@@ -135,12 +136,39 @@ func NewProperty(typed int, name string, visible map[string]bool, cont func()) *
     return prop
 }
 
+type PropertyJSON struct {
+    Name      string
+    PropType  int
+    Visible   map[string]bool
+    Attr      map[string]attribute.AttributeJSON
+}
+
+func (prop *Property) UnmarshalJSON(b []byte) error {
+    var tempProp PropertyJSON
+
+    err := json.Unmarshal(b, &tempProp)
+    if err != nil {
+        return err
+    }
+
+    prop.Name = tempProp.Name
+    prop.PropType = tempProp.PropType
+    prop.Visible = tempProp.Visible
+    prop.Attr = make(map[string]attribute.Attribute, 10)
+
+    for name, attrJSON := range tempProp.Attr {
+        prop.Attr[name] = attrJSON.Attr()
+    }
+
+    return nil
+}
+
 /*
     Convert a Property to a string to be sent to Chroma Engine
 */
 func (prop *Property) String() (s string) {
     for name, attr := range prop.Attr {
-        if !prop.visible[name] {
+        if !prop.Visible[name] {
             continue
         }
 
@@ -171,7 +199,7 @@ func (prop *Property) Decode(s string) {
             continue
         }
 
-        if !prop.visible[name] {
+        if !prop.Visible[name] {
             continue
         }
 

@@ -3,7 +3,9 @@ package shows
 import (
 	"chroma-viz/props"
 	"chroma-viz/templates"
+	"encoding/json"
 	"log"
+	"os"
 	"strconv"
 
 	"github.com/gotk3/gotk3/gtk"
@@ -11,13 +13,13 @@ import (
 
 /*
 
-    Pages are the highest object in the graphics hierarchy.
-    Pages consist of a number of Properties, which represent
-    components of the graphic such at Title, Background or Clock.
-    The Properties of a Page are defined by the template which 
-    the Page is built from.
-    
-    See props/props.go for information about Properties.
+   Pages are the highest object in the graphics hierarchy.
+   Pages consist of a number of Properties, which represent
+   components of the graphic such at Title, Background or Clock.
+   The Properties of a Page are defined by the template which
+   the Page is built from.
+
+   See props/props.go for information about Properties.
 
 */
 
@@ -60,4 +62,52 @@ func (page *Page) PageToListRow() *gtk.ListBoxRow {
     return row1
 }
 
+func (page *Page) UnmarshalJSON(b []byte) error {
+    var tempPage struct {
+        Page
+        UnmarshalJSON struct {}
+    }
 
+    err := json.Unmarshal(b, &tempPage)
+    if err != nil {
+        return err 
+    }
+
+    page = &tempPage.Page
+
+    return nil
+}
+
+func ImportPage(filename string) (page *Page, err error) {
+    buf, err := os.ReadFile(filename)
+    if err != nil {
+        return 
+    }
+
+    page = &Page{}
+    err = json.Unmarshal(buf, page)
+    if err != nil {
+        return
+    }
+
+    return
+}
+
+func ExportPage(page *Page, filename string) (err error) {
+    file, err := os.Create(filename)
+    if err != nil {
+        return err
+    }
+    defer file.Close()
+
+    buf, err := json.Marshal(page)
+    if err != nil {
+        return err
+    }
+
+    _, err = file.Write(buf)
+    if err != nil {
+        return err
+    }
+    return
+}

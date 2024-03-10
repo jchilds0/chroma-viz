@@ -1,17 +1,14 @@
 package shows
 
 import (
-	"bufio"
 	"chroma-viz/templates"
-	"fmt"
+	"encoding/json"
 	"log"
 	"os"
-	"regexp"
-	"strconv"
 )
 
 type Show struct {
-    numPages  int
+    NumPages  int
     Pages     map[int]*Page
 }
 
@@ -33,67 +30,21 @@ func (show *Show) SetPage(pageNum int, title string, temp *templates.Template, c
 }
 
 func (show *Show) AddPage(title string, temp *templates.Template, cont func(*Page)) *Page {
-    show.numPages++
-    show.SetPage(show.numPages, title, temp, cont)
+    show.NumPages++
+    show.SetPage(show.NumPages, title, temp, cont)
 
-    return show.Pages[show.numPages]
+    return show.Pages[show.NumPages]
 }
 
 func (show *Show) ImportShow(temps *templates.Temps, filename string, cont func(*Page)) error {
-    pageReg, err := regexp.Compile("temp (?P<tempID>[0-9]*); title \"(?P<title>.*)\";")
+    buf, err := os.ReadFile(filename)
     if err != nil {
-        return err
+        return err 
     }
 
-    propReg, err := regexp.Compile("index (?P<type>[0-9]*);")
+    err = json.Unmarshal(buf, show)
     if err != nil {
-        return err
-    }
-
-    file, err := os.Open(filename)
-    if err != nil {
-        return err
-    }
-
-    scanner := bufio.NewScanner(file)
-
-    var page *Page
-    for scanner.Scan() {
-        line := scanner.Text()
-        if pageReg.Match(scanner.Bytes()) {
-            match := pageReg.FindStringSubmatch(line)
-            tempID, err := strconv.Atoi(match[1])
-            if err != nil {
-                return err
-            }
-
-            temp := temps.Temps[tempID]
-            show.AddPage(temp.Title, temp, cont)
-
-            page = show.Pages[show.numPages]
-            page.Title = match[2]
-        } else if page != nil {
-            match := propReg.FindStringSubmatch(line)
-            if len(match) < 2 {
-                log.Printf("Incorrect prop format (%s)\n", line)
-                continue
-            }
-
-            index, err := strconv.Atoi(match[1])
-
-            if err != nil {
-                return err
-            }
-
-            prop := page.PropMap[index]
-
-            if prop == nil {
-                log.Printf("Unknown property (%d)\n", index)
-                continue
-            }
-
-            prop.Decode(line)
-        }
+        return err 
     }
 
     return nil
@@ -102,24 +53,20 @@ func (show *Show) ImportShow(temps *templates.Temps, filename string, cont func(
 func (show *Show) ExportShow(filename string) {
     file, err := os.Create(filename)
     if err != nil {
-        log.Fatalf("Error importing show (%s)", err)
+        log.Printf("Error exporting show (%s)", err)
+        return
     }
     defer file.Close()
 
-    for _, page := range show.Pages {
-        pageString := fmt.Sprintf("temp %d; title \"%s\";\n", page.TemplateID, page.Title)
-        file.Write([]byte(pageString))
+    buf, err := json.Marshal(show)
+    if err != nil {
+        log.Printf("Error exporting show (%s)", err)
+        return
+    }
 
-        for index, prop := range page.PropMap {
-            if prop == nil {
-                continue
-            }
-
-            file.WriteString(fmt.Sprintf("index %d;", index))
-
-            file.WriteString(prop.Encode())
-
-            file.WriteString("\n")
-        }
+    _, err = file.Write(buf)
+    if err != nil {
+        log.Printf("Error exporting show (%s)", err)
+        return
     }
 }

@@ -11,30 +11,31 @@ import (
 )
 
 type ColorAttribute struct {
-    fileName    string 
-    chromaName  string
-    r     float64
-    g     float64
-    b     float64
-    a     float64
+    FileName    string 
+    ChromaName  string
+    Type        int
+    Red         float64
+    Green       float64
+    Blue        float64
+    Alpha       float64
 }
 
 func NewColorAttribute(file, chroma string) *ColorAttribute {
     colorAttr := &ColorAttribute{
-        fileName: file, chromaName: chroma,
-        r: 1.0, g: 1.0, b: 1.0, a: 1.0,
+        FileName: file, ChromaName: chroma, Type: COLOR,
+        Red: 1.0, Green: 1.0, Blue: 1.0, Alpha: 1.0,
     }
     return colorAttr
 }
 
 func (colorAttr *ColorAttribute) String() string {
-    return fmt.Sprintf("%s=%f %f %f %f#", colorAttr.chromaName, 
-        colorAttr.r, colorAttr.g, colorAttr.b, colorAttr.a)
+    return fmt.Sprintf("%s=%f %f %f %f#", colorAttr.ChromaName, 
+        colorAttr.Red, colorAttr.Green, colorAttr.Blue, colorAttr.Alpha)
 }
 
 func (colorAttr *ColorAttribute) Encode() string {
-    return fmt.Sprintf("%s %f %f %f %f;", colorAttr.fileName, 
-        colorAttr.r, colorAttr.g, colorAttr.b, colorAttr.a)
+    return fmt.Sprintf("%s %f %f %f %f;", colorAttr.FileName, 
+        colorAttr.Red, colorAttr.Green, colorAttr.Blue, colorAttr.Alpha)
 }
 
 func (colorAttr *ColorAttribute) Decode(s string) (err error) {
@@ -43,22 +44,22 @@ func (colorAttr *ColorAttribute) Decode(s string) (err error) {
         return fmt.Errorf("Incorrect color attr string (%s)", line)
     }
 
-    colorAttr.r, err = strconv.ParseFloat(line[0], 64)
+    colorAttr.Red, err = strconv.ParseFloat(line[0], 64)
     if err != nil {
         return err
     }
 
-    colorAttr.g, err = strconv.ParseFloat(line[1], 64)
+    colorAttr.Green, err = strconv.ParseFloat(line[1], 64)
     if err != nil {
         return err
     }
 
-    colorAttr.b, err = strconv.ParseFloat(line[2], 64)
+    colorAttr.Blue, err = strconv.ParseFloat(line[2], 64)
     if err != nil {
         return err
     }
 
-    colorAttr.a, err = strconv.ParseFloat(line[3], 64)
+    colorAttr.Alpha, err = strconv.ParseFloat(line[3], 64)
     if err != nil {
         return err
     }
@@ -73,10 +74,10 @@ func (colorAttr *ColorAttribute) Update(edit Editor) error {
     }
 
     rgba := colorEdit.color.GetRGBA()
-    colorAttr.r = rgba.GetRed()
-    colorAttr.g = rgba.GetGreen()
-    colorAttr.b = rgba.GetBlue()
-    colorAttr.a = rgba.GetAlpha()
+    colorAttr.Red = rgba.GetRed()
+    colorAttr.Green = rgba.GetGreen()
+    colorAttr.Blue = rgba.GetBlue()
+    colorAttr.Alpha = rgba.GetAlpha()
 
     return nil
 }
@@ -126,10 +127,10 @@ func (colorEdit *ColorEditor) Update(attr Attribute) error {
     }
 
     rgb := gdk.NewRGBA(
-        colorAttr.r, 
-        colorAttr.g, 
-        colorAttr.b, 
-        colorAttr.a,
+        colorAttr.Red, 
+        colorAttr.Green, 
+        colorAttr.Blue, 
+        colorAttr.Alpha,
     )
 
     colorEdit.color.SetRGBA(rgb)

@@ -1,6 +1,11 @@
 package attribute
 
-import "github.com/gotk3/gotk3/gtk"
+import (
+	"encoding/json"
+	"log"
+
+	"github.com/gotk3/gotk3/gtk"
+)
 
 const padding = 10
 
@@ -21,11 +26,87 @@ const padding = 10
 
 */
 
+const (
+    INT = iota + 1
+    STRING
+    CLOCK
+    FLOAT
+    LIST
+    COLOR
+)
+
 type Attribute interface {
     String() string
     Encode() string
     Decode(string) error 
     Update(Editor) error
+}
+
+type AttributeJSON struct {
+    FileName   string
+    ChromaName string
+    Type       int
+    attr       Attribute
+}
+
+func (attrJSON *AttributeJSON) UnmarshalJSON(b []byte) error {
+    var tempAttrJSON struct {
+        AttributeJSON
+        UnmarshalJSON  struct {}
+    }
+
+    err := json.Unmarshal(b, &tempAttrJSON)
+    if err != nil {
+        return err
+    }
+
+    attrJSON = &tempAttrJSON.AttributeJSON
+
+    switch attrJSON.Type {
+    case INT:
+        intAttr := &IntAttribute{}
+        err = json.Unmarshal(b, intAttr)
+        attrJSON.attr = intAttr
+
+    case STRING:
+        stringAttr := &StringAttribute{}
+        err = json.Unmarshal(b, stringAttr)
+        attrJSON.attr = stringAttr 
+
+    case FLOAT:
+        floatAttr := &FloatAttribute{}
+        err = json.Unmarshal(b, floatAttr)
+        attrJSON.attr = floatAttr 
+
+    case LIST:
+        listAttr := &ListAttribute{}
+        err = json.Unmarshal(b, listAttr)
+        attrJSON.attr = listAttr 
+
+    case CLOCK:
+        clockAttr := &ClockAttribute{}
+        err = json.Unmarshal(b, clockAttr)
+        attrJSON.attr = clockAttr 
+
+    case COLOR:
+        colorAttr := &ColorAttribute{}
+        err = json.Unmarshal(b, colorAttr)
+        attrJSON.attr = colorAttr 
+
+    default:
+        log.Printf("Error unknown attribute type %d", attrJSON.Type)
+    }
+
+    if err != nil {
+        attrJSON.attr = nil
+        return err
+    }
+
+    return nil
+}
+
+func (attrJSON *AttributeJSON) Attr() Attribute {
+    return attrJSON.attr
 }
 
 /* 

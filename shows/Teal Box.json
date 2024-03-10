@@ -1,1 +1,174 @@
-{"Title":"Teal Box","TempID":0}
+{
+    "Box": null,
+    "PageNum": 1,
+    "Title": "Teal Box",
+    "TemplateID": 0,
+    "Layer": 0,
+    "PropMap": {
+        "0": {
+            "Name": "Background",
+            "PropType": 0,
+            "Visible": {
+                "color": false,
+                "height": true,
+                "parent": false,
+                "rounding": false,
+                "width": true,
+                "x": true,
+                "y": true
+            },
+            "Attr": {
+                "color": {
+                    "FileName": "color",
+                    "ChromaName": "color",
+                    "Type": 6,
+                    "Red": 1,
+                    "Green": 1,
+                    "Blue": 1,
+                    "Alpha": 1
+                },
+                "height": {
+                    "FileName": "height",
+                    "ChromaName": "height",
+                    "Type": 1,
+                    "Value": 180
+                },
+                "width": {
+                    "FileName": "width",
+                    "ChromaName": "width",
+                    "Type": 1,
+                    "Value": 886
+                },
+                "x": {
+                    "FileName": "x",
+                    "ChromaName": "rel_x",
+                    "Type": 1,
+                    "Value": 50
+                },
+                "y": {
+                    "FileName": "y",
+                    "ChromaName": "rel_y",
+                    "Type": 1,
+                    "Value": 100
+                }
+            }
+        },
+        "1": {
+            "Name": "Logo",
+            "PropType": 6,
+            "Visible": {
+                "parent": false,
+                "scale": true,
+                "string": true,
+                "x": true,
+                "y": true
+            },
+            "Attr": {
+                "scale": {
+                    "FileName": "scale",
+                    "ChromaName": "scale",
+                    "Type": 4,
+                    "Value": 0.29
+                },
+                "string": {
+                    "FileName": "string",
+                    "ChromaName": "string",
+                    "Type": 2,
+                    "Value": "data/logo.png"
+                },
+                "x": {
+                    "FileName": "x",
+                    "ChromaName": "rel_x",
+                    "Type": 1,
+                    "Value": -23
+                },
+                "y": {
+                    "FileName": "y",
+                    "ChromaName": "rel_y",
+                    "Type": 1,
+                    "Value": 2
+                }
+            }
+        },
+        "2": {
+            "Name": "Title",
+            "PropType": 1,
+            "Visible": {
+                "color": false,
+                "parent": false,
+                "string": true,
+                "x": true,
+                "y": true
+            },
+            "Attr": {
+                "color": {
+                    "FileName": "color",
+                    "ChromaName": "color",
+                    "Type": 6,
+                    "Red": 1,
+                    "Green": 1,
+                    "Blue": 1,
+                    "Alpha": 1
+                },
+                "string": {
+                    "FileName": "string",
+                    "ChromaName": "string",
+                    "Type": 2,
+                    "Value": "Lower Frame"
+                },
+                "x": {
+                    "FileName": "x",
+                    "ChromaName": "rel_x",
+                    "Type": 1,
+                    "Value": 220
+                },
+                "y": {
+                    "FileName": "y",
+                    "ChromaName": "rel_y",
+                    "Type": 1,
+                    "Value": 100
+                }
+            }
+        },
+        "3": {
+            "Name": "Subtitle",
+            "PropType": 1,
+            "Visible": {
+                "color": false,
+                "parent": false,
+                "string": true,
+                "x": true,
+                "y": true
+            },
+            "Attr": {
+                "color": {
+                    "FileName": "color",
+                    "ChromaName": "color",
+                    "Type": 6,
+                    "Red": 1,
+                    "Green": 1,
+                    "Blue": 1,
+                    "Alpha": 1
+                },
+                "string": {
+                    "FileName": "string",
+                    "ChromaName": "string",
+                    "Type": 2,
+                    "Value": "A lower frame subtitle"
+                },
+                "x": {
+                    "FileName": "x",
+                    "ChromaName": "rel_x",
+                    "Type": 1,
+                    "Value": 220
+                },
+                "y": {
+                    "FileName": "y",
+                    "ChromaName": "rel_y",
+                    "Type": 1,
+                    "Value": 30
+                }
+            }
+        }
+    }
+}

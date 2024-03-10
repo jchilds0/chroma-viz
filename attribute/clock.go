@@ -16,20 +16,22 @@ const (
 )
 
 type ClockAttribute struct {
-    fileName    string
-    chromaName  string 
+    FileName    string
+    ChromaName  string 
+    Type        int
     c           chan int
     cont        func()
-    currentTime string
-    timeFormat  string
+    CurrentTime string
+    TimeFormat  string
 }
 
 func NewClockAttribute(file, chroma string, cont func()) *ClockAttribute {
     clockAttr := &ClockAttribute{
-        fileName: file,
-        chromaName: chroma,
+        FileName: file,
+        ChromaName: chroma,
+        Type: CLOCK,
         cont: cont,
-        timeFormat: "04:05",
+        TimeFormat: "04:05",
         c: make(chan int),
     }
 
@@ -38,15 +40,15 @@ func NewClockAttribute(file, chroma string, cont func()) *ClockAttribute {
 }
 
 func (clockAttr *ClockAttribute) String() string {
-    return fmt.Sprintf("%s=%s#", clockAttr.chromaName, clockAttr.currentTime)
+    return fmt.Sprintf("%s=%s#", clockAttr.ChromaName, clockAttr.CurrentTime)
 }
 
 func (clockAttr *ClockAttribute) Encode() string {
-    return fmt.Sprintf("%s %s;", clockAttr.fileName, clockAttr.currentTime)
+    return fmt.Sprintf("%s %s;", clockAttr.FileName, clockAttr.CurrentTime)
 }
 
 func (clockAttr *ClockAttribute) Decode(s string) error {
-    clockAttr.currentTime = strings.TrimPrefix(s, "string ")
+    clockAttr.CurrentTime = strings.TrimPrefix(s, "string ")
 
     return nil
 }
@@ -58,7 +60,7 @@ func (clockAttr *ClockAttribute) Update(edit Editor) error {
         return fmt.Errorf("ClockAttribute.Update requires ClockEditor") 
     }
 
-    clockAttr.currentTime, err = clockEdit.entry.GetText()
+    clockAttr.CurrentTime, err = clockEdit.entry.GetText()
     return err
 }
 
@@ -69,21 +71,21 @@ func (clock *ClockAttribute) RunClock(cont func()) {
     for {
         select {
         case state = <-clock.c:
-            tick = time.NewTicker(time.Second)
+            tick.Reset(time.Second)
         case <-tick.C:
         }    
 
         switch state {
         case START:
             // update time and animate
-            currentTime, err := time.Parse(clock.timeFormat, clock.currentTime)
+            currentTime, err := time.Parse(clock.TimeFormat, clock.CurrentTime)
             if err != nil {
                 log.Println(err)
                 continue
             }
 
             currentTime = currentTime.Add(time.Second)
-            clock.currentTime = currentTime.Format(clock.timeFormat)
+            clock.CurrentTime = currentTime.Format(clock.TimeFormat)
 
             cont()
         case PAUSE:
@@ -91,7 +93,7 @@ func (clock *ClockAttribute) RunClock(cont func()) {
             state = <-clock.c
         case STOP:
             // reset the time and block
-            clock.currentTime = "00:00"
+            clock.CurrentTime = "00:00"
             state = <-clock.c
         default:
             log.Printf("Clock recieved unknown value through channel %d\n", state)
@@ -207,7 +209,7 @@ func (clockEdit *ClockEditor) Update(attr Attribute) error {
     }
 
     clockEdit.c = clockAttr.c
-    clockEdit.entry.SetText(clockAttr.currentTime)
+    clockEdit.entry.SetText(clockAttr.CurrentTime)
     return nil
 }
 

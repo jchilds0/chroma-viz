@@ -1,6 +1,7 @@
 package attribute
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
 	"strconv"
@@ -26,29 +27,31 @@ func NewGraphCell(i int) *graphCell {
 }
 
 type ListAttribute struct {
-    fileName      string
-    chromaName    string
-    numCols       int
-    selected      bool
+    FileName      string
+    ChromaName    string
+    Type          int
+    NumCols       int
+    Selected      bool
     selectedIter  *gtk.TreeIter
-    listStore     *gtk.ListStore
+    ListStore     *gtk.ListStore
 }
 
 func NewListAttribute(file, chroma string, numCols int, selected bool) *ListAttribute {
     var err error
     list := &ListAttribute{
-        fileName: file, 
-        chromaName: chroma,
-        numCols: numCols, 
-        selected: selected,
+        FileName: file, 
+        ChromaName: chroma,
+        Type: LIST,
+        NumCols: numCols, 
+        Selected: selected,
     }
 
-    cols := make([]glib.Type, list.numCols)
+    cols := make([]glib.Type, list.NumCols)
     for i := range cols {
         cols[i] = glib.TYPE_STRING
     }
 
-    list.listStore, err = gtk.ListStoreNew(cols...)
+    list.ListStore, err = gtk.ListStoreNew(cols...)
     if err != nil {
         log.Fatalf("Error creating list store")
     }
@@ -58,7 +61,7 @@ func NewListAttribute(file, chroma string, numCols int, selected bool) *ListAttr
 
 func (listAttr *ListAttribute) String() (s string) {
     // currently chroma_engine allocates 100 nodes for each list statically
-    if listAttr.selected {
+    if listAttr.Selected {
         // send only the currently selected item from the list
         if listAttr.selectedIter == nil {
             return 
@@ -67,11 +70,11 @@ func (listAttr *ListAttribute) String() (s string) {
         return listAttr.stringRow(listAttr.selectedIter)
     }
 
-    iter, ok := listAttr.listStore.GetIterFirst()
+    iter, ok := listAttr.ListStore.GetIterFirst()
     i := 0 
     for ok {
         s = s + listAttr.stringRow(iter)
-        ok = listAttr.listStore.IterNext(iter)
+        ok = listAttr.ListStore.IterNext(iter)
         i++
     }
 
@@ -80,13 +83,13 @@ func (listAttr *ListAttribute) String() (s string) {
 }
 
 func (listAttr *ListAttribute) stringRow(iter *gtk.TreeIter) (s string) {
-    s = listAttr.chromaName + "="
-    for j := 0; j < listAttr.numCols - 1; j++ {
-        item := getStringFromIter(listAttr.listStore, iter, j)
+    s = listAttr.ChromaName + "="
+    for j := 0; j < listAttr.NumCols - 1; j++ {
+        item := getStringFromIter(listAttr.ListStore, iter, j)
         s = s + item + " "
     }
 
-    item := getStringFromIter(listAttr.listStore, iter, listAttr.numCols - 1)
+    item := getStringFromIter(listAttr.ListStore, iter, listAttr.NumCols - 1)
     s = s + item + "#"
     return
 }
@@ -107,13 +110,39 @@ func getStringFromIter(model *gtk.ListStore, iter *gtk.TreeIter, col int) string
     return rowVal.(string)
 }
 
+func (listAttr *ListAttribute) MarshalJSON() (b []byte, err error) {
+    var tempListAttr struct {
+        ListAttribute
+        MarshalJSON struct {}
+    }
+
+    b, err = json.Marshal(tempListAttr)
+    return 
+}
+
+func (listAttr *ListAttribute) UnmarshalJSON(b []byte) error {
+    var tempListAttr struct {
+        ListAttribute
+        UnmarshalJSON struct {}
+    }
+
+    err := json.Unmarshal(b, &tempListAttr)
+    if err != nil {
+        return err
+    }
+
+    listAttr = &tempListAttr.ListAttribute
+
+    return nil
+}
+
 func (listAttr *ListAttribute) Encode() (s string) {
-    iter, ok := listAttr.listStore.GetIterFirst()
+    iter, ok := listAttr.ListStore.GetIterFirst()
     i := 0 
 
     for ok {
         s = s + listAttr.encodeRow(iter)
-        ok = listAttr.listStore.IterNext(iter)
+        ok = listAttr.ListStore.IterNext(iter)
         i++
     }
 
@@ -121,13 +150,13 @@ func (listAttr *ListAttribute) Encode() (s string) {
 }
 
 func (listAttr *ListAttribute) encodeRow(iter *gtk.TreeIter) (s string) {
-    s = listAttr.fileName + " "
-    for j := 0; j < listAttr.numCols - 1; j++ {
-        item := getStringFromIter(listAttr.listStore, iter, j)
+    s = listAttr.FileName + " "
+    for j := 0; j < listAttr.NumCols - 1; j++ {
+        item := getStringFromIter(listAttr.ListStore, iter, j)
         s = s + item + " "
     }
 
-    item := getStringFromIter(listAttr.listStore, iter, listAttr.numCols - 1)
+    item := getStringFromIter(listAttr.ListStore, iter, listAttr.NumCols - 1)
     s = s + item + ";"
     return
 }
@@ -149,7 +178,7 @@ func (listAttr *ListAttribute) Decode(s string) error {
         return err
     }
 
-    listAttr.listStore.Set(listAttr.listStore.Append(), []int{0, 1}, []interface{}{x, y})
+    listAttr.ListStore.Set(listAttr.ListStore.Append(), []int{0, 1}, []interface{}{x, y})
     return nil
 }
 
@@ -168,10 +197,10 @@ func (listAttr *ListAttribute) Update(edit Editor) error {
         return fmt.Errorf("Error getting selected iter from tree view selection")
     }
     // Increment selection
-    ok = listAttr.listStore.IterNext(listAttr.selectedIter)
+    ok = listAttr.ListStore.IterNext(listAttr.selectedIter)
     if !ok {
         // last item in the list
-        listAttr.selectedIter, ok = listAttr.listStore.GetIterFirst()
+        listAttr.selectedIter, ok = listAttr.ListStore.GetIterFirst()
     }
 
     if ok {
@@ -319,7 +348,7 @@ func (listEdit *ListEditor) Update(attr Attribute) error {
         return fmt.Errorf("ListEditor.Update requires a ListAttribute")
     }
 
-    listEdit.listStore = listAttr.listStore
+    listEdit.listStore = listAttr.ListStore
     listEdit.treeView.SetModel(listEdit.listStore)
     return nil
 }

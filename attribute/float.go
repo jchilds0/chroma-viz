@@ -10,31 +10,33 @@ import (
 )
 
 type FloatAttribute struct {
-    fileName    string
-	chromaName  string
-	value float64
+    FileName    string
+	ChromaName  string
+    Type        int
+	Value       float64
 }
 
 func NewFloatAttribute(file, chroma string) *FloatAttribute {
     floatAttr := &FloatAttribute{
-        chromaName: chroma,
-        fileName: file,
+        ChromaName: chroma,
+        FileName: file,
+        Type: FLOAT,
     }
 
     return floatAttr
 }
 
 func (floatAttr *FloatAttribute) String() string {
-    return fmt.Sprintf("%s=%f#", floatAttr.chromaName, floatAttr.value)
+    return fmt.Sprintf("%s=%f#", floatAttr.ChromaName, floatAttr.Value)
 }
 
 func (floatAttr *FloatAttribute) Encode() string {
-    return fmt.Sprintf("%s %f;", floatAttr.fileName, floatAttr.value)
+    return fmt.Sprintf("%s %f;", floatAttr.FileName, floatAttr.Value)
 }
 
 func (floatAttr *FloatAttribute) Decode(s string) (err error) {
     line := strings.Split(s, " ")
-    floatAttr.value, err = strconv.ParseFloat(line[1], 64)
+    floatAttr.Value, err = strconv.ParseFloat(line[1], 64)
 
     return 
 }
@@ -45,7 +47,7 @@ func (floatAttr *FloatAttribute) Update(edit Editor) error {
         return fmt.Errorf("FloatAttribute.Update requires FloatEditor") 
     }
 
-    floatAttr.value = floatEdit.button.GetValue()
+    floatAttr.Value = floatEdit.button.GetValue()
     return nil
 }
 
@@ -94,7 +96,7 @@ func (floatEdit *FloatEditor) Update(attr Attribute) error {
         return fmt.Errorf("FloatEditor.Update requires FloatAttribute") 
     }
 
-    floatEdit.button.SetValue(floatAttr.value)
+    floatEdit.button.SetValue(floatAttr.Value)
     return nil
 }
 

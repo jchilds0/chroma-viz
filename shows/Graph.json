@@ -1,0 +1,86 @@
+{
+    "Box": null,
+    "PageNum": 2,
+    "Title": "Graph",
+    "TemplateID": 3,
+    "Layer": 0,
+    "PropMap": {
+        "0": {
+            "Name": "Background",
+            "PropType": 0,
+            "Visible": {
+                "color": false,
+                "height": true,
+                "parent": false,
+                "rounding": false,
+                "width": true,
+                "x": true,
+                "y": true
+            },
+            "Attr": {
+                "color": {},
+                "height": {
+                    "Value": 240
+                },
+                "width": {
+                    "Value": 570
+                },
+                "x": {
+                    "Value": 50
+                },
+                "y": {
+                    "Value": 100
+                }
+            }
+        },
+        "1": {
+            "Name": "Graph",
+            "PropType": 3,
+            "Visible": {
+                "color": false,
+                "graph_type": false,
+                "node": true,
+                "parent": false,
+                "x": true,
+                "y": true
+            },
+            "Attr": {
+                "color": {},
+                "node": {
+                    "ListStore": {
+                        "GObject": {}
+                    }
+                },
+                "x": {
+                    "Value": 25
+                },
+                "y": {
+                    "Value": 25
+                }
+            }
+        },
+        "2": {
+            "Name": "Title",
+            "PropType": 1,
+            "Visible": {
+                "color": false,
+                "parent": false,
+                "string": true,
+                "x": true,
+                "y": true
+            },
+            "Attr": {
+                "color": {},
+                "string": {
+                    "Value": "Step Graph"
+                },
+                "x": {
+                    "Value": 50
+                },
+                "y": {
+                    "Value": 175
+                }
+            }
+        }
+    }
+}

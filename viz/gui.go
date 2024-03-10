@@ -5,11 +5,9 @@ import (
 	"chroma-viz/shows"
 	"chroma-viz/tcp"
 	"chroma-viz/templates"
-	"encoding/json"
 	"fmt"
 	"log"
 	"math/rand"
-	"os"
 	"strconv"
 	"time"
 
@@ -112,7 +110,10 @@ func VizGui(app *gtk.Application) {
     cont := func(page *shows.Page) { SendEngine(page, tcp.CONTINUE) }
 
     show := NewShowTree(func(page *shows.Page) { edit.SetPage(page) })
-    temp := NewTempTree(func(temp *templates.Template) { show.ImportPage(temp.Title, temp, cont) })
+    temp := NewTempTree(func(temp *templates.Template) { 
+        page := show.show.AddPage(temp.Title, temp, cont)
+        show.ImportPage(page) 
+    })
 
     temp.ImportTemplates(conn.hub.Conn)
 
@@ -348,8 +349,6 @@ type GuiPage struct {
 }
 
 func guiImportPage(win *gtk.ApplicationWindow, tempTree *TempTree, showTree *ShowTree) error {
-    cont := func(page *shows.Page) { SendEngine(page, tcp.CONTINUE) }
-
     dialog, err := gtk.FileChooserDialogNewWith2Buttons(
         "Import Page", win, gtk.FILE_CHOOSER_ACTION_OPEN, 
         "_Cancel", gtk.RESPONSE_CANCEL, "_Open", gtk.RESPONSE_ACCEPT)
@@ -360,23 +359,14 @@ func guiImportPage(win *gtk.ApplicationWindow, tempTree *TempTree, showTree *Sho
 
     res := dialog.Run()
     if res == gtk.RESPONSE_ACCEPT {
-        page := &GuiPage{}
         filename := dialog.GetFilename()
 
-        buf, err := os.ReadFile(filename)
+        page, err := shows.ImportPage(filename)
         if err != nil {
             return err
         }
 
-        err = json.Unmarshal(buf, page)
-        if err != nil {
-            return err 
-        }
-
-        err = showTree.ImportPage(page.Title, tempTree.Temps.Temps[page.TempID], cont)
-        if err != nil {
-            return err 
-        }
+        showTree.ImportPage(page)
     }
 
     return nil
@@ -432,28 +422,13 @@ func guiExportPage(win *gtk.ApplicationWindow, showTree *ShowTree) error {
     res := dialog.Run()
     if res == gtk.RESPONSE_ACCEPT {
         filename := dialog.GetFilename()
-        file, err := os.Create(filename)
-        if err != nil {
-            return err
-        }
-        defer file.Close()
 
         page := showTree.show.Pages[pageNum]
         if page == nil {
             return fmt.Errorf("Page %d does not exist", pageNum)
         }
 
-        guiPage := &GuiPage{
-            Title: title, 
-            TempID: page.TemplateID,
-        }
-
-        buf, err := json.Marshal(guiPage)
-        if err != nil {
-            return err
-        }
-
-        _, err = file.Write(buf)
+        err := shows.ExportPage(page, filename)
         if err != nil {
             return err
         }
@@ -502,7 +477,8 @@ func testGui(tempTree *TempTree, showTree *ShowTree) {
     for i := 0; i < num_pages; i++ {
         index := rand.Int() % (num_temps - 1) + 1
         temp := tempTree.Temps.Temps[index]
-        showTree.ImportPage(temp.Title, temp, cont)
+        page := showTree.show.AddPage(temp.Title, temp, cont)
+        showTree.ImportPage(page)
     }
 
     t = time.Now()

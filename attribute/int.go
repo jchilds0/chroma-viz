@@ -10,26 +10,28 @@ import (
 )
 
 type IntAttribute struct {
-    fileName    string
-	chromaName  string
-	Value int
+    FileName    string
+	ChromaName  string
+    Type        int
+	Value       int
 }
 
 func NewIntAttribute(file, chroma string) *IntAttribute {
     intAttr := &IntAttribute{
-        fileName: file, 
-        chromaName: chroma,
+        FileName: file, 
+        ChromaName: chroma,
+        Type: INT,
     }
 
     return intAttr
 }
 
 func (intAttr *IntAttribute) String() string {
-    return fmt.Sprintf("%s=%d#", intAttr.chromaName, intAttr.Value)
+    return fmt.Sprintf("%s=%d#", intAttr.ChromaName, intAttr.Value)
 }
 
 func (intAttr *IntAttribute) Encode() string {
-    return fmt.Sprintf("%s %d;", intAttr.fileName, intAttr.Value)
+    return fmt.Sprintf("%s %d;", intAttr.FileName, intAttr.Value)
 }
 
 func (intAttr *IntAttribute) Decode(s string) (err error) {
