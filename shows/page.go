@@ -77,19 +77,18 @@ func (page *Page) UnmarshalJSON(b []byte) error {
     return nil
 }
 
-func ImportPage(filename string) (page *Page, err error) {
+func (page *Page) ImportPage(filename string) error {
     buf, err := os.ReadFile(filename)
     if err != nil {
-        return 
+        return err
     }
 
-    page = &Page{}
     err = json.Unmarshal(buf, page)
     if err != nil {
-        return
+        return err
     }
 
-    return
+    return nil
 }
 
 func ExportPage(page *Page, filename string) (err error) {

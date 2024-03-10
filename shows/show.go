@@ -36,7 +36,7 @@ func (show *Show) AddPage(title string, temp *templates.Template, cont func(*Pag
     return show.Pages[show.NumPages]
 }
 
-func (show *Show) ImportShow(temps *templates.Temps, filename string, cont func(*Page)) error {
+func (show *Show) ImportShow(filename string, cont func(*Page)) error {
     buf, err := os.ReadFile(filename)
     if err != nil {
         return err 

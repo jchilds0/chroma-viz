@@ -109,13 +109,13 @@ func VizGui(app *gtk.Application) {
 
     cont := func(page *shows.Page) { SendEngine(page, tcp.CONTINUE) }
 
-    show := NewShowTree(func(page *shows.Page) { edit.SetPage(page) })
-    temp := NewTempTree(func(temp *templates.Template) { 
-        page := show.show.AddPage(temp.Title, temp, cont)
-        show.ImportPage(page) 
+    showTree := NewShowTree(func(page *shows.Page) { edit.SetPage(page) })
+    tempTree := NewTempTree(func(temp *templates.Template) { 
+        page := showTree.show.AddPage(temp.Title, temp, cont)
+        showTree.ImportPage(page) 
     })
 
-    temp.ImportTemplates(conn.hub.Conn)
+    tempTree.ImportTemplates(conn.hub.Conn)
 
     //testGui(tempView, showView)
 
@@ -141,7 +141,7 @@ func VizGui(app *gtk.Application) {
 
     importShow := glib.SimpleActionNew("import_show", nil)
     importShow.Connect("activate", func() { 
-        err := guiImportShow(win, show, temp) 
+        err := guiImportShow(win, showTree) 
         if err != nil {
             log.Printf("Error importing show (%s)", err)
         }
@@ -150,7 +150,7 @@ func VizGui(app *gtk.Application) {
 
     exportShow := glib.SimpleActionNew("export_show", nil)
     exportShow.Connect("activate", func() { 
-        err := guiExportShow(win, show) 
+        err := guiExportShow(win, showTree) 
         if err != nil {
             log.Printf("Error exporting show (%s)", err)
         }
@@ -159,7 +159,7 @@ func VizGui(app *gtk.Application) {
 
     importPage := glib.SimpleActionNew("import_page", nil)
     importPage.Connect("activate", func() { 
-        err := guiImportPage(win, show) 
+        err := guiImportPage(win, showTree) 
         if err != nil {
             log.Printf("Error importing page (%s)", err)
         }
@@ -168,7 +168,7 @@ func VizGui(app *gtk.Application) {
 
     exportPage := glib.SimpleActionNew("export_page", nil)
     exportPage.Connect("activate", func() { 
-        err := guiExportPage(win, show) 
+        err := guiExportPage(win, showTree) 
         if err != nil {
             log.Printf("Error exporting page (%s)", err)
         }
@@ -177,7 +177,7 @@ func VizGui(app *gtk.Application) {
 
     deletePage := glib.SimpleActionNew("delete_page", nil)
     deletePage.Connect("activate", func() { 
-        err := guiDeletePage(show) 
+        err := guiDeletePage(showTree) 
         if err != nil {
             log.Printf("Error deleting page (%s)", err)
         }
@@ -230,7 +230,7 @@ func VizGui(app *gtk.Application) {
     }
 
     templates.PackStart(scroll1, true, true, 0)
-    scroll1.Add(temp.treeView)
+    scroll1.Add(tempTree.treeView)
 
     /* show */
     shows, err := gtk.BoxNew(gtk.ORIENTATION_VERTICAL, 0)
@@ -253,7 +253,7 @@ func VizGui(app *gtk.Application) {
     }
 
     shows.PackStart(scroll2, true, true, 0)
-    scroll2.Add(show.treeView)
+    scroll2.Add(showTree.treeView)
 
     /* right */
     rightBox.PackStart(edit.Box, true, true, 0)
@@ -300,7 +300,7 @@ func VizGui(app *gtk.Application) {
 
 }
 
-func guiImportShow(win *gtk.ApplicationWindow, show *ShowTree, temp *TempTree) error {
+func guiImportShow(win *gtk.ApplicationWindow, show *ShowTree) error {
     cont := func(page *shows.Page) { SendEngine(page, tcp.CONTINUE) }
 
     dialog, err := gtk.FileChooserDialogNewWith2Buttons(
@@ -314,7 +314,7 @@ func guiImportShow(win *gtk.ApplicationWindow, show *ShowTree, temp *TempTree) e
     res := dialog.Run()
     if res == gtk.RESPONSE_ACCEPT {
         filename := dialog.GetFilename()
-        show.ImportShow(temp, filename, cont)
+        show.ImportShow(filename, cont)
     }
     
     return nil
@@ -361,7 +361,8 @@ func guiImportPage(win *gtk.ApplicationWindow, showTree *ShowTree) error {
     if res == gtk.RESPONSE_ACCEPT {
         filename := dialog.GetFilename()
 
-        page, err := shows.ImportPage(filename)
+        page := &shows.Page{}
+        err := page.ImportPage(filename)
         if err != nil {
             return err
         }
@@ -449,6 +450,22 @@ func guiDeletePage(show *ShowTree) error {
     }
 
     show.treeList.Remove(iter)
+    id, err := show.treeList.GetValue(iter, PAGENUM)
+    if err != nil { 
+        return err 
+    }
+
+    val, err := id.GoValue()
+    if err != nil { 
+        return err 
+    }
+
+    pageNum, err := strconv.Atoi(val.(string))
+    if err != nil { 
+        return err 
+    }
+
+    show.show.Pages[pageNum] = nil
     return nil
 }
 

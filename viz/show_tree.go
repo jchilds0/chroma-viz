@@ -157,7 +157,11 @@ func NewShowTree(pageToEditor func(*shows.Page)) *ShowTree {
     return showTree 
 }
 
-func (showTree *ShowTree) NewShowPage(page *shows.Page) {
+func (showTree *ShowTree) ImportPage(page *shows.Page) {
+    showTree.show.NumPages++
+    showTree.show.Pages[showTree.show.NumPages] = page
+    page.PageNum = showTree.show.NumPages
+
     if page == nil {
         log.Print("Missing template")
         return
@@ -178,20 +182,15 @@ func (showTree *ShowTree) NewShowPage(page *shows.Page) {
     )
 }
 
-func (showTree *ShowTree) ImportShow(temps *TempTree, filename string, cont func(*shows.Page)) {
-    err := showTree.show.ImportShow(temps.Temps, filename, cont)
+func (showTree *ShowTree) ImportShow(filename string, cont func(*shows.Page)) {
+    var show shows.Show
+    err := show.ImportShow(filename, cont)
     if err != nil {
         log.Print(err)
     }
 
-    for _, page := range showTree.show.Pages {
-       showTree.NewShowPage(page)
+    for _, page := range show.Pages {
+        showTree.ImportPage(page)
     }
-}
-
-func (showTree *ShowTree) ImportPage(page *shows.Page) {
-    showTree.show.NumPages++
-    showTree.show.Pages[showTree.show.NumPages] = page
-    showTree.NewShowPage(page)
 }
 
