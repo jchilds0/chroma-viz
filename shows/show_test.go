@@ -3,33 +3,13 @@ package shows
 import (
 	"chroma-viz/attribute"
 	"chroma-viz/props"
-	"chroma-viz/templates"
-	"net"
 	"testing"
-	"time"
-
-	"github.com/jchilds0/chroma-hub/chroma_hub"
 )
 
 func TestImportShow(t *testing.T) {
-    fileName := "testing.show"
-    temp := templates.NewTemps()
+    fileName := "testing.json"
     show := NewShow()
-
-    go chroma_hub.StartHub(9000, 2, "test.json")
-
-    time.Sleep(1 * time.Second)
-    conn, err := net.Dial("tcp", "127.0.0.1:9000")
-    if err != nil {
-        t.Fatalf("Error connecting to graphics hub (%s)", err)
-    }
-
-    err = temp.ImportTemplates(conn)
-    if err != nil {
-        t.Fatalf("Error importing graphics hub (%s)", err)
-    }
-
-    show.ImportShow(temp, fileName, func(page *Page) {})
+    show.ImportShow(fileName, func(page *Page) {})
 
     if len(show.Pages) != 4 {
         t.Errorf("Incorrect number of pages (len(show.Pages) = %d)", len(show.Pages))
@@ -37,7 +17,7 @@ func TestImportShow(t *testing.T) {
 
     for _, page := range show.Pages {
         switch page.Title {
-        case "Blue Box":
+        case "Teal Box":
             rectPropTest(t, page.PropMap[0], 50, 100, 850, 180)
             circlePropTest(t, page.PropMap[1], 99, 90, 30, 75, 45, 315)
             textPropTest(t, page.PropMap[2], 190, 100, "Lower Frame")
