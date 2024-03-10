@@ -12,7 +12,7 @@ import (
 func TestImportTemplates(t *testing.T) {
     temp := NewTemps()
 
-    go chroma_hub.StartHub(9000, 2, "test.json")
+    go chroma_hub.StartHub(9000, 2, "test_archive.json")
 
     time.Sleep(1 * time.Second)
     conn, err := net.Dial("tcp", "127.0.0.1:9000")
