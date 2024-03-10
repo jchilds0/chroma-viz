@@ -159,7 +159,7 @@ func VizGui(app *gtk.Application) {
 
     importPage := glib.SimpleActionNew("import_page", nil)
     importPage.Connect("activate", func() { 
-        err := guiImportPage(win, temp, show) 
+        err := guiImportPage(win, show) 
         if err != nil {
             log.Printf("Error importing page (%s)", err)
         }
@@ -348,7 +348,7 @@ type GuiPage struct {
     TempID    int
 }
 
-func guiImportPage(win *gtk.ApplicationWindow, tempTree *TempTree, showTree *ShowTree) error {
+func guiImportPage(win *gtk.ApplicationWindow, showTree *ShowTree) error {
     dialog, err := gtk.FileChooserDialogNewWith2Buttons(
         "Import Page", win, gtk.FILE_CHOOSER_ACTION_OPEN, 
         "_Cancel", gtk.RESPONSE_CANCEL, "_Open", gtk.RESPONSE_ACCEPT)

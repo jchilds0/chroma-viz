@@ -73,12 +73,7 @@ func (page *Page) UnmarshalJSON(b []byte) error {
         return err 
     }
 
-    page.Title = tempPage.Title
-    page.PageNum = tempPage.PageNum
-    page.TemplateID = tempPage.TemplateID
-    page.Layer = tempPage.Layer
-    page.PropMap = tempPage.PropMap
-
+    *page = tempPage.Page
     return nil
 }
 

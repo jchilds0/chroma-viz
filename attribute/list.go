@@ -139,11 +139,7 @@ func (listAttr *ListAttribute) UnmarshalJSON(b []byte) error {
         return err
     }
 
-    listAttr.FileName = listAttrJSON.FileName
-    listAttr.ChromaName = listAttrJSON.ChromaName
-    listAttr.Type = listAttrJSON.Type
-    listAttr.NumCols = listAttrJSON.NumCols
-    listAttr.Selected = listAttrJSON.Selected
+    *listAttr = listAttrJSON.ListAttribute
 
     cols := make([]glib.Type, listAttr.NumCols)
     for i := range cols {

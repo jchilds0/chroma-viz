@@ -1,6 +1,8 @@
 package viz
 
 import (
+	"chroma-viz/attribute"
+	"chroma-viz/props"
 	"chroma-viz/shows"
 	"chroma-viz/tcp"
 	"log"
@@ -161,6 +163,14 @@ func (showTree *ShowTree) NewShowPage(page *shows.Page) {
         return
     }
 
+    for _, prop := range page.PropMap {
+        if prop.PropType != props.CLOCK_PROP {
+            continue
+        }
+
+        prop.Attr["clock"].(*attribute.ClockAttribute).SetClock(func() { SendEngine(page, tcp.CONTINUE) })
+    }
+
     showTree.treeList.Set(
         showTree.treeList.Append(), 
         []int{PAGENUM, TITLE, TEMPLATEID}, 
@@ -175,7 +185,7 @@ func (showTree *ShowTree) ImportShow(temps *TempTree, filename string, cont func
     }
 
     for _, page := range showTree.show.Pages {
-        showTree.NewShowPage(page)
+       showTree.NewShowPage(page)
     }
 }
 

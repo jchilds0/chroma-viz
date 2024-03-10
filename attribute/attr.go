@@ -58,9 +58,7 @@ func (attrJSON *AttributeJSON) UnmarshalJSON(b []byte) error {
         return err
     }
 
-    attrJSON.FileName = tempAttrJSON.FileName
-    attrJSON.ChromaName = tempAttrJSON.ChromaName
-    attrJSON.Type = tempAttrJSON.Type
+    *attrJSON = tempAttrJSON.AttributeJSON
 
     switch attrJSON.Type {
     case INT:

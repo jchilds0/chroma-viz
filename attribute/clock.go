@@ -1,6 +1,7 @@
 package attribute
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
 	"time"
@@ -19,7 +20,6 @@ type ClockAttribute struct {
     ChromaName  string 
     Type        int
     c           chan int
-    cont        func()
     CurrentTime string
     TimeFormat  string
 }
@@ -29,13 +29,32 @@ func NewClockAttribute(file, chroma string, cont func()) *ClockAttribute {
         FileName: file,
         ChromaName: chroma,
         Type: CLOCK,
-        cont: cont,
         TimeFormat: "04:05",
         c: make(chan int),
     }
 
     go clockAttr.RunClock(cont)
     return clockAttr
+}
+
+func (clockAttr *ClockAttribute) UnmarshalJSON(b []byte) error {
+    var clockAttrJSON struct {
+        ClockAttribute
+        UnmarshalJSON struct {}
+    }
+
+    err := json.Unmarshal(b, &clockAttrJSON)
+    if err != nil {
+        return err
+    }
+
+    *clockAttr = clockAttrJSON.ClockAttribute
+    clockAttr.c = make(chan int)
+    return nil
+}
+
+func (clockAttr *ClockAttribute) SetClock(cont func()) {
+    go clockAttr.RunClock(cont)
 }
 
 func (clockAttr *ClockAttribute) String() string {
@@ -75,7 +94,6 @@ func (clock *ClockAttribute) RunClock(cont func()) {
 
             currentTime = currentTime.Add(time.Second)
             clock.CurrentTime = currentTime.Format(clock.TimeFormat)
-
             cont()
         case PAUSE:
             // block until we recieve an instruction
