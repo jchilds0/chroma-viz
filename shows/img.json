@@ -257,9 +257,22 @@
                             "Type": 5,
                             "NumCols": 2,
                             "Selected": false,
-                            "ListStore": {
-                                "GObject": {}
-                            }
+                            "ListStore": [
+                                [
+                                    "0",
+                                    "0"
+                                ],
+                                [
+                                    "100",
+                                    "50"
+                                ],
+                                [
+                                    "70",
+                                    "10"
+                                ]
+                            ],
+                            "MarshalJSON": {},
+                            "UnmarshalJSON": {}
                         },
                         "x": {
                             "FileName": "x",

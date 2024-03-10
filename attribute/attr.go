@@ -37,8 +37,6 @@ const (
 
 type Attribute interface {
     String() string
-    Encode() string
-    Decode(string) error 
     Update(Editor) error
 }
 
@@ -60,7 +58,9 @@ func (attrJSON *AttributeJSON) UnmarshalJSON(b []byte) error {
         return err
     }
 
-    attrJSON = &tempAttrJSON.AttributeJSON
+    attrJSON.FileName = tempAttrJSON.FileName
+    attrJSON.ChromaName = tempAttrJSON.ChromaName
+    attrJSON.Type = tempAttrJSON.Type
 
     switch attrJSON.Type {
     case INT:

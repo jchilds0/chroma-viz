@@ -3,7 +3,6 @@ package attribute
 import (
 	"fmt"
 	"log"
-	"strings"
 	"time"
 
 	"github.com/gotk3/gotk3/gtk"
@@ -41,16 +40,6 @@ func NewClockAttribute(file, chroma string, cont func()) *ClockAttribute {
 
 func (clockAttr *ClockAttribute) String() string {
     return fmt.Sprintf("%s=%s#", clockAttr.ChromaName, clockAttr.CurrentTime)
-}
-
-func (clockAttr *ClockAttribute) Encode() string {
-    return fmt.Sprintf("%s %s;", clockAttr.FileName, clockAttr.CurrentTime)
-}
-
-func (clockAttr *ClockAttribute) Decode(s string) error {
-    clockAttr.CurrentTime = strings.TrimPrefix(s, "string ")
-
-    return nil
 }
 
 func (clockAttr *ClockAttribute) Update(edit Editor) error {

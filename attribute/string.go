@@ -3,7 +3,6 @@ package attribute
 import (
 	"fmt"
 	"log"
-	"strings"
 
 	"github.com/gotk3/gotk3/gtk"
 )
@@ -27,16 +26,6 @@ func NewStringAttribute(file, chroma string) *StringAttribute {
 
 func (stringAttr *StringAttribute) String() string {
     return fmt.Sprintf("%s=%s#", stringAttr.ChromaName, stringAttr.Value)
-}
-
-func (stringAttr *StringAttribute) Encode() string {
-    return fmt.Sprintf("%s %s;", stringAttr.FileName, stringAttr.Value)
-}
-
-func (stringAttr *StringAttribute) Decode(s string) error {
-    stringAttr.Value = strings.TrimPrefix(s, "string ")
-
-    return nil
 }
 
 func (stringAttr *StringAttribute) Update(edit Editor) error {

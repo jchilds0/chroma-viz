@@ -3,8 +3,6 @@ package attribute
 import (
 	"fmt"
 	"log"
-	"strconv"
-	"strings"
 
 	"github.com/gotk3/gotk3/gtk"
 )
@@ -28,17 +26,6 @@ func NewFloatAttribute(file, chroma string) *FloatAttribute {
 
 func (floatAttr *FloatAttribute) String() string {
     return fmt.Sprintf("%s=%f#", floatAttr.ChromaName, floatAttr.Value)
-}
-
-func (floatAttr *FloatAttribute) Encode() string {
-    return fmt.Sprintf("%s %f;", floatAttr.FileName, floatAttr.Value)
-}
-
-func (floatAttr *FloatAttribute) Decode(s string) (err error) {
-    line := strings.Split(s, " ")
-    floatAttr.Value, err = strconv.ParseFloat(line[1], 64)
-
-    return 
 }
 
 func (floatAttr *FloatAttribute) Update(edit Editor) error {

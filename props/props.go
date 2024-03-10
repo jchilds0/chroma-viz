@@ -4,7 +4,6 @@ import (
 	"chroma-viz/attribute"
 	"encoding/json"
 	"log"
-	"strings"
 )
 
 const padding = 10
@@ -175,44 +174,6 @@ func (prop *Property) String() (s string) {
         s += attr.String()
     }
     return
-}
-
-/*
-    Convert a Property into the string format of a show (.show)
-*/
-func (prop *Property) Encode() (s string) {
-    for _, attr := range prop.Attr {
-        s += attr.Encode()
-    }
-    return
-}
-
-/*
-    Decode a Property from a show file (.show)
-*/
-func (prop *Property) Decode(s string) {
-    attrs := strings.Split(s, ";")
-
-    for _, attr := range attrs[1:] {
-        name := strings.Split(attr, " ")[0]
-        if name == "" {
-            continue
-        }
-
-        if !prop.Visible[name] {
-            continue
-        }
-
-        if prop.Attr[name] == nil {
-            log.Printf("Error prop %s missing prop attr %s", prop.Name, name)
-            continue
-        }
-
-        err := prop.Attr[name].Decode(attr)
-        if err != nil {
-            log.Printf("Error decoding prop %s in %s", name, prop.Name)
-        }
-    }
 }
 
 /*

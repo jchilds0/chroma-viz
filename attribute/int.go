@@ -3,8 +3,6 @@ package attribute
 import (
 	"fmt"
 	"log"
-	"strconv"
-	"strings"
 
 	"github.com/gotk3/gotk3/gtk"
 )
@@ -28,20 +26,6 @@ func NewIntAttribute(file, chroma string) *IntAttribute {
 
 func (intAttr *IntAttribute) String() string {
     return fmt.Sprintf("%s=%d#", intAttr.ChromaName, intAttr.Value)
-}
-
-func (intAttr *IntAttribute) Encode() string {
-    return fmt.Sprintf("%s %d;", intAttr.FileName, intAttr.Value)
-}
-
-func (intAttr *IntAttribute) Decode(s string) (err error) {
-    line := strings.Split(s, " ")
-    if len(line) != 2 {
-        return fmt.Errorf("Incorrect int attr string (%s)", line)
-    }
-
-    intAttr.Value, err = strconv.Atoi(line[1])
-    return 
 }
 
 func (intAttr *IntAttribute) Update(edit Editor) error {

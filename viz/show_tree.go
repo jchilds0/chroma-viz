@@ -26,7 +26,6 @@ var KEYTITLE = map[int]string{
 type ShowTree struct {
     treeView  *gtk.TreeView
     treeList  *gtk.ListStore
-    // pages     map[int]*shows.Page
     show      *shows.Show
     columns   [NUMCOL]bool
 }

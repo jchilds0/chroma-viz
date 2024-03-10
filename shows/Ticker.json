@@ -1,0 +1,161 @@
+{
+    "Box": null,
+    "PageNum": 1,
+    "Title": "Ticker",
+    "TemplateID": 4,
+    "Layer": 1,
+    "PropMap": {
+        "0": {
+            "Name": "Background",
+            "PropType": 0,
+            "Visible": {
+                "color": false,
+                "height": true,
+                "parent": false,
+                "width": true,
+                "x": true,
+                "y": true
+            },
+            "Attr": {
+                "color": {
+                    "FileName": "color",
+                    "ChromaName": "color",
+                    "Type": 6,
+                    "Red": 1,
+                    "Green": 1,
+                    "Blue": 1,
+                    "Alpha": 1
+                },
+                "height": {
+                    "FileName": "height",
+                    "ChromaName": "height",
+                    "Type": 1,
+                    "Value": 0
+                },
+                "width": {
+                    "FileName": "width",
+                    "ChromaName": "width",
+                    "Type": 1,
+                    "Value": 0
+                },
+                "x": {
+                    "FileName": "x",
+                    "ChromaName": "rel_x",
+                    "Type": 1,
+                    "Value": 0
+                },
+                "y": {
+                    "FileName": "y",
+                    "ChromaName": "rel_y",
+                    "Type": 1,
+                    "Value": 0
+                }
+            }
+        },
+        "1": {
+            "Name": "Box",
+            "PropType": 0,
+            "Visible": {
+                "color": false,
+                "height": true,
+                "parent": false,
+                "rounding": false,
+                "width": true,
+                "x": true,
+                "y": true
+            },
+            "Attr": {
+                "color": {
+                    "FileName": "color",
+                    "ChromaName": "color",
+                    "Type": 6,
+                    "Red": 1,
+                    "Green": 1,
+                    "Blue": 1,
+                    "Alpha": 1
+                },
+                "height": {
+                    "FileName": "height",
+                    "ChromaName": "height",
+                    "Type": 1,
+                    "Value": 0
+                },
+                "width": {
+                    "FileName": "width",
+                    "ChromaName": "width",
+                    "Type": 1,
+                    "Value": 0
+                },
+                "x": {
+                    "FileName": "x",
+                    "ChromaName": "rel_x",
+                    "Type": 1,
+                    "Value": 0
+                },
+                "y": {
+                    "FileName": "y",
+                    "ChromaName": "rel_y",
+                    "Type": 1,
+                    "Value": 0
+                }
+            }
+        },
+        "2": {
+            "Name": "Ticker",
+            "PropType": 4,
+            "Visible": {
+                "color": false,
+                "parent": false,
+                "text": true,
+                "x": true,
+                "y": true
+            },
+            "Attr": {
+                "color": {
+                    "FileName": "color",
+                    "ChromaName": "color",
+                    "Type": 6,
+                    "Red": 1,
+                    "Green": 1,
+                    "Blue": 1,
+                    "Alpha": 1
+                },
+                "text": {
+                    "FileName": "text",
+                    "ChromaName": "string",
+                    "Type": 5,
+                    "NumCols": 1,
+                    "Selected": true,
+                    "ListStore": [
+                        [
+                            "Hello"
+                        ],
+                        [
+                            "World"
+                        ],
+                        [
+                            "a ticker"
+                        ],
+                        [
+                            "another row"
+                        ]
+                    ],
+                    "MarshalJSON": {},
+                    "UnmarshalJSON": {}
+                },
+                "x": {
+                    "FileName": "x",
+                    "ChromaName": "rel_x",
+                    "Type": 1,
+                    "Value": 0
+                },
+                "y": {
+                    "FileName": "y",
+                    "ChromaName": "rel_y",
+                    "Type": 1,
+                    "Value": 0
+                }
+            }
+        }
+    }
+}

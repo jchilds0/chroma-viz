@@ -3,8 +3,6 @@ package attribute
 import (
 	"fmt"
 	"log"
-	"strconv"
-	"strings"
 
 	"github.com/gotk3/gotk3/gdk"
 	"github.com/gotk3/gotk3/gtk"
@@ -31,40 +29,6 @@ func NewColorAttribute(file, chroma string) *ColorAttribute {
 func (colorAttr *ColorAttribute) String() string {
     return fmt.Sprintf("%s=%f %f %f %f#", colorAttr.ChromaName, 
         colorAttr.Red, colorAttr.Green, colorAttr.Blue, colorAttr.Alpha)
-}
-
-func (colorAttr *ColorAttribute) Encode() string {
-    return fmt.Sprintf("%s %f %f %f %f;", colorAttr.FileName, 
-        colorAttr.Red, colorAttr.Green, colorAttr.Blue, colorAttr.Alpha)
-}
-
-func (colorAttr *ColorAttribute) Decode(s string) (err error) {
-    line := strings.Split(s, " ")
-    if len(line) != 5 {
-        return fmt.Errorf("Incorrect color attr string (%s)", line)
-    }
-
-    colorAttr.Red, err = strconv.ParseFloat(line[0], 64)
-    if err != nil {
-        return err
-    }
-
-    colorAttr.Green, err = strconv.ParseFloat(line[1], 64)
-    if err != nil {
-        return err
-    }
-
-    colorAttr.Blue, err = strconv.ParseFloat(line[2], 64)
-    if err != nil {
-        return err
-    }
-
-    colorAttr.Alpha, err = strconv.ParseFloat(line[3], 64)
-    if err != nil {
-        return err
-    }
-
-    return 
 }
 
 func (colorAttr *ColorAttribute) Update(edit Editor) error {

@@ -4,8 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
-	"strconv"
-	"strings"
 
 	"github.com/gotk3/gotk3/glib"
 	"github.com/gotk3/gotk3/gtk"
@@ -110,82 +108,87 @@ func getStringFromIter(model *gtk.ListStore, iter *gtk.TreeIter, col int) string
     return rowVal.(string)
 }
 
+type ListAttributeJSON struct {
+    ListAttribute
+    ListStore       [][]string
+    MarshalJSON     struct {}
+    UnmarshalJSON   struct {}
+}
+
 func (listAttr *ListAttribute) MarshalJSON() (b []byte, err error) {
-    var tempListAttr struct {
-        ListAttribute
-        MarshalJSON struct {}
+    listAttrJSON := &ListAttributeJSON{
+        ListAttribute: *listAttr,
+        ListStore: make([][]string, 0, 10),
     }
 
-    b, err = json.Marshal(tempListAttr)
-    return 
+    iter, ok := listAttr.ListStore.GetIterFirst()
+    for ok {
+        row := listAttr.encodeRow(iter)
+        ok = listAttr.ListStore.IterNext(iter)
+        listAttrJSON.ListStore = append(listAttrJSON.ListStore, row)
+    }
+
+    return json.Marshal(listAttrJSON)
 }
 
 func (listAttr *ListAttribute) UnmarshalJSON(b []byte) error {
-    var tempListAttr struct {
-        ListAttribute
-        UnmarshalJSON struct {}
-    }
+    var listAttrJSON ListAttributeJSON
 
-    err := json.Unmarshal(b, &tempListAttr)
+    err := json.Unmarshal(b, &listAttrJSON)
     if err != nil {
         return err
     }
 
-    listAttr = &tempListAttr.ListAttribute
+    listAttr.FileName = listAttrJSON.FileName
+    listAttr.ChromaName = listAttrJSON.ChromaName
+    listAttr.Type = listAttrJSON.Type
+    listAttr.NumCols = listAttrJSON.NumCols
+    listAttr.Selected = listAttrJSON.Selected
+
+    cols := make([]glib.Type, listAttr.NumCols)
+    for i := range cols {
+        cols[i] = glib.TYPE_STRING
+    }
+
+    listAttr.ListStore, err = gtk.ListStoreNew(cols...)
+    if err != nil {
+        log.Fatalf("Error creating list store")
+    }
+
+    colIdx := make([]int, listAttr.NumCols)
+    for i := range colIdx {
+        colIdx[i] = i
+    }
+
+    rowInterface := make([]interface{}, listAttr.NumCols)
+    for _, row := range listAttrJSON.ListStore {
+        for i, col := range row {
+            rowInterface[i] = interface{}(col)
+        }
+
+        listAttr.ListStore.Set(listAttr.ListStore.Append(), colIdx, rowInterface)
+    }
 
     return nil
 }
 
-func (listAttr *ListAttribute) Encode() (s string) {
-    iter, ok := listAttr.ListStore.GetIterFirst()
-    i := 0 
-
-    for ok {
-        s = s + listAttr.encodeRow(iter)
-        ok = listAttr.ListStore.IterNext(iter)
-        i++
+func (listAttr *ListAttribute) encodeRow(iter *gtk.TreeIter) []string {
+    row := make([]string, listAttr.NumCols)
+    for j := 0; j < listAttr.NumCols; j++ {
+        row[j] = getStringFromIter(listAttr.ListStore, iter, j)
     }
 
-    return
-}
-
-func (listAttr *ListAttribute) encodeRow(iter *gtk.TreeIter) (s string) {
-    s = listAttr.FileName + " "
-    for j := 0; j < listAttr.NumCols - 1; j++ {
-        item := getStringFromIter(listAttr.ListStore, iter, j)
-        s = s + item + " "
-    }
-
-    item := getStringFromIter(listAttr.ListStore, iter, listAttr.NumCols - 1)
-    s = s + item + ";"
-    return
-}
-
-// TODO: handle multiple columns
-func (listAttr *ListAttribute) Decode(s string) error {
-    line := strings.Split(s, " ")
-    if len(line) != 3 {
-        return fmt.Errorf("Incorrect list attr string (%s)", line)
-    }
-
-    x, err := strconv.Atoi(line[1])
-    if err != nil { 
-        return err
-    }
-
-    y, err := strconv.Atoi(line[2])
-    if err != nil { 
-        return err
-    }
-
-    listAttr.ListStore.Set(listAttr.ListStore.Append(), []int{0, 1}, []interface{}{x, y})
-    return nil
+    return row
 }
 
 func (listAttr *ListAttribute) Update(edit Editor) error {
     listEdit, ok := edit.(*ListEditor) 
     if !ok {
         return fmt.Errorf("ListAttribute.Update requires a ListEditor")
+    }
+
+    if !listAttr.Selected {
+        return nil
     }
 
     selected, err := listEdit.treeView.GetSelection()
