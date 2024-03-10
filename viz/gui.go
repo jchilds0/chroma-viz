@@ -339,15 +339,6 @@ func guiExportShow(win *gtk.ApplicationWindow, showTree *ShowTree) error {
     return nil
 }
 
-/*
-    Simple struct for encoding/decoding json format of a page
-    TODO: change the property format to facilitate direct encoding
-*/
-type GuiPage struct {
-    Title     string
-    TempID    int
-}
-
 func guiImportPage(win *gtk.ApplicationWindow, showTree *ShowTree) error {
     dialog, err := gtk.FileChooserDialogNewWith2Buttons(
         "Import Page", win, gtk.FILE_CHOOSER_ACTION_OPEN, 
