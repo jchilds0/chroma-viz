@@ -1,6 +1,7 @@
 package artist
 
 import (
+	"chroma-viz/attribute"
 	"chroma-viz/editor"
 	"chroma-viz/props"
 	"chroma-viz/shows"
@@ -83,9 +84,14 @@ func ArtistGui(app *gtk.Application) {
     editView.PropertyEditor()
     editView.Page = page
 
-    temp, err := NewTempTree(func(propID int) {
-        editView.SetProperty(page.PropMap[propID])
-    })
+    temp, err := NewTempTree(
+        func(propID int) { 
+            editView.SetProperty(page.PropMap[propID]) 
+        },
+        func(propID, parentID int) {
+            page.PropMap[propID].Attr["parent"].(*attribute.IntAttribute).Value = parentID
+        },
+    )
 
     if err != nil {
         log.Fatalf("Error starting artist gui (%s)", err)
@@ -288,6 +294,7 @@ func ArtistPage() *shows.Page {
 var visible = map[string]bool{
     "x": true,
     "y": true,
+    "parent": true,
     "width": true,
     "height": true,
     "inner_radius": true,
@@ -326,6 +333,7 @@ func AddProp(label string) (id int, err error) {
     }
 
     page.PropMap[id] = props.NewProperty(geo_typed, label, visible, cont)
+    page.PropMap[id].Attr["parent"] = attribute.NewIntAttribute("parent", "parent")
     return
 }
 

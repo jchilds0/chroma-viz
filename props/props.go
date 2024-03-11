@@ -183,6 +183,10 @@ func (prop *Property) UpdateProp(propEdit *PropertyEditor) {
     editors := propEdit.editor
 
     for name, attr := range prop.Attr {
+        if _, ok := editors[name]; !ok{
+            continue
+        }
+
         err := attr.Update(editors[name])
         if err != nil {
             log.Print(err)
