@@ -50,7 +50,7 @@ func NewEditor(sendEngine, sendPreview func(*shows.Page, int)) *Editor {
     return editor
 }
 
-func (editor *Editor) EnginePanel() {
+func (editor *Editor) VizPanel() {
     var err error
 
     actions, err := gtk.BoxNew(gtk.ORIENTATION_HORIZONTAL, 0)
@@ -164,11 +164,37 @@ func (editor *Editor) PageEditor() {
     }
 }
 
+func (editor *Editor) ArtistEditor() {
+    var err error
+
+    actions, err := gtk.BoxNew(gtk.ORIENTATION_HORIZONTAL, 0)
+    if err != nil { 
+        log.Fatalf("Error creating editor (%s)", err) 
+    }
+
+    editor.Box.PackStart(actions, false, false, 10)
+
+    save, err := gtk.ButtonNewWithLabel("Save")
+    if err != nil { 
+        log.Fatalf("Error creating editor (%s)", err) 
+    }
+
+    actions.PackStart(save, false, false, 10)
+    save.Connect("clicked", func() {
+        if editor.Page == nil {
+            log.Printf("No page selected")
+            return
+        }
+
+        editor.UpdateProps()
+        editor.sendPreview(editor.Page, tcp.ANIMATE_ON)
+    })
+}
+
 func (editor *Editor) PropertyEditor() {
     var err error
     // prop editors 
     editor.propEdit = make([][]*props.PropertyEditor, props.NUM_PROPS)
-
     cont := func() {
         editor.sendPreview(editor.Page, tcp.CONTINUE)
         editor.sendEngine(editor.Page, tcp.CONTINUE)

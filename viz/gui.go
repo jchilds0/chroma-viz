@@ -104,7 +104,7 @@ func VizGui(app *gtk.Application) {
     win.SetTitle("Chroma Viz")
 
     edit := editor.NewEditor(SendEngine, SendPreview)
-    edit.EnginePanel()
+    edit.VizPanel()
     edit.PageEditor()
 
     cont := func(page *shows.Page) { SendEngine(page, tcp.CONTINUE) }

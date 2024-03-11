@@ -71,6 +71,7 @@ func ArtistGui(app *gtk.Application) {
     go chroma_hub.StartHub(port, -1, "artist/artist.json")
 
     editView := editor.NewEditor(func(page *shows.Page, action int) {}, SendPreview)
+    editView.ArtistEditor()
     editView.PropertyEditor()
     editView.Page = page
 
@@ -182,8 +183,6 @@ func ArtistGui(app *gtk.Application) {
         newRow := temp.model.Append(nil)
         temp.model.SetValue(newRow, NAME, name)
         temp.model.SetValue(newRow, PROP_NUM, propNum)
-
-        log.Printf("Added Prop %d", propNum)
     })
 
     button2, err := gtk.ButtonNewWithLabel("Remove Geometry")
