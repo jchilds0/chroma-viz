@@ -33,6 +33,11 @@ func CloseConn() {
 }
 
 func SendPreview(page *shows.Page, action int) {
+    if page == nil {
+        log.Println("SendPreview recieved nil page")
+        return
+    }
+
     for _, c := range conn{
         if c == nil {
             continue
@@ -71,7 +76,10 @@ func ArtistGui(app *gtk.Application) {
     go chroma_hub.StartHub(port, -1, "artist/artist.json")
 
     editView := editor.NewEditor(func(page *shows.Page, action int) {}, SendPreview)
-    editView.ArtistEditor()
+    editView.AddAction("Save", true, func() { 
+        editView.UpdateProps()
+        SendPreview(editView.Page, tcp.ANIMATE_ON) 
+    })
     editView.PropertyEditor()
     editView.Page = page
 

@@ -35,7 +35,7 @@ type PropertyEditor struct {
     editor      map[string]attribute.Editor
 }
 
-func NewPropertyEditor(typed int, cont func()) (propEdit *PropertyEditor, err error) {
+func NewPropertyEditor(typed int) (propEdit *PropertyEditor, err error) {
     propEdit = &PropertyEditor{PropType: typed}
     width := 1920
     height := 1080 
@@ -114,7 +114,7 @@ func NewPropertyEditor(typed int, cont func()) (propEdit *PropertyEditor, err er
     case CLOCK_PROP:
         propEdit.editor["x"] = attribute.NewIntEditor("Center x", 0, float64(width))
         propEdit.editor["y"] = attribute.NewIntEditor("Center y", 0, float64(height))
-        propEdit.editor["clock"] = attribute.NewClockEditor("Time", cont)
+        propEdit.editor["clock"] = attribute.NewClockEditor("Time")
         propEdit.editor["color"] = attribute.NewColorEditor("Color")
 
         propEdit.Box.PackStart(propEdit.editor["x"].Box(), false, false, padding)

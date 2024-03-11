@@ -49,6 +49,11 @@ func AddConnection(name, conn_type, ip string, port int) error {
 }
 
 func SendPreview(page *shows.Page, action int) {
+    if page == nil {
+        log.Println("SendPreview recieved nil page")
+        return
+    }
+
     for _, c := range conn.prev {
         if c == nil {
             continue
@@ -60,6 +65,11 @@ func SendPreview(page *shows.Page, action int) {
 }
 
 func SendEngine(page *shows.Page, action int) {
+    if page == nil {
+        log.Println("SendEngine recieved nil page")
+        return
+    }
+
     for _, c := range conn.eng {
         if c == nil {
             continue
@@ -104,7 +114,13 @@ func VizGui(app *gtk.Application) {
     win.SetTitle("Chroma Viz")
 
     edit := editor.NewEditor(SendEngine, SendPreview)
-    edit.VizPanel()
+    edit.AddAction("Take On", true, func() { SendEngine(edit.Page, tcp.ANIMATE_ON) })
+    edit.AddAction("Continue", true, func() { SendEngine(edit.Page, tcp.CONTINUE) })
+    edit.AddAction("Take Off", true, func() { SendEngine(edit.Page, tcp.ANIMATE_OFF) })
+    edit.AddAction("Save", false, func() { 
+        edit.UpdateProps()
+        SendPreview(edit.Page, tcp.ANIMATE_ON) 
+    })
     edit.PageEditor()
 
     cont := func(page *shows.Page) { SendEngine(page, tcp.CONTINUE) }

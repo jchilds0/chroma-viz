@@ -3,8 +3,6 @@ package editor
 import (
 	"chroma-viz/props"
 	"chroma-viz/shows"
-	"chroma-viz/tcp"
-	"fmt"
 	"log"
 
 	"github.com/gotk3/gotk3/gtk"
@@ -19,19 +17,16 @@ type Editor struct {
     Box       *gtk.Box
     tabs      *gtk.Notebook
     header    *gtk.HeaderBar
+    actions   *gtk.Box
     propBox   *gtk.Box
     Page      *shows.Page
     pairs     []Pairing
     propEdit  [][]*props.PropertyEditor
-    sendEngine func(*shows.Page, int)
-    sendPreview func(*shows.Page, int)
 }
 
 func NewEditor(sendEngine, sendPreview func(*shows.Page, int)) *Editor {
     var err error
     editor := &Editor{
-        sendEngine: sendEngine,
-        sendPreview: sendPreview,
     }
 
     editor.Box, err = gtk.BoxNew(gtk.ORIENTATION_VERTICAL, 0)
@@ -47,80 +42,28 @@ func NewEditor(sendEngine, sendPreview func(*shows.Page, int)) *Editor {
     editor.header.SetTitle("Editor")
     editor.Box.PackStart(editor.header, false, false, 0)
 
+    editor.actions, err = gtk.BoxNew(gtk.ORIENTATION_HORIZONTAL, 0)
+    if err != nil { 
+        log.Fatalf("Error creating editor (%s)", err) 
+    }
+
+    editor.Box.PackStart(editor.actions, false, false, 10)
     return editor
 }
 
-func (editor *Editor) VizPanel() {
-    var err error
-
-    actions, err := gtk.BoxNew(gtk.ORIENTATION_HORIZONTAL, 0)
+func (editor *Editor) AddAction(label string, start bool, action func()) {
+    button, err := gtk.ButtonNewWithLabel(label)
     if err != nil { 
         log.Fatalf("Error creating editor (%s)", err) 
     }
 
-    editor.Box.PackStart(actions, false, false, 10)
+    button.Connect("clicked", action)
 
-    take1, err := gtk.ButtonNewWithLabel("Take On")
-    if err != nil { 
-        log.Fatalf("Error creating editor (%s)", err) 
+    if start {
+        editor.actions.PackStart(button, false, false, 10)
+    } else {
+        editor.actions.PackEnd(button, false, false, 10)
     }
-
-    take2, err := gtk.ButtonNewWithLabel("Continue")
-    if err != nil { 
-        log.Fatalf("Error creating editor (%s)", err) 
-    }
-
-    take3, err := gtk.ButtonNewWithLabel("Take Off")
-    if err != nil { 
-        log.Fatalf("Error creating editor (%s)", err) 
-    }
-
-    save, err := gtk.ButtonNewWithLabel("Save")
-    if err != nil { 
-        log.Fatalf("Error creating editor (%s)", err) 
-    }
-
-    actions.PackStart(take1, false, false, 10)
-    actions.PackStart(take2, false, false, 0)
-    actions.PackStart(take3, false, false, 10)
-    actions.PackEnd(save, false, false, 10)
-
-    take1.Connect("clicked", func() { 
-        if editor.Page == nil { 
-            fmt.Println("No page selected")
-            return
-        }
-
-        editor.sendEngine(editor.Page, tcp.ANIMATE_ON)
-    })
-
-    take2.Connect("clicked", func() { 
-        if editor.Page == nil { 
-            fmt.Println("No page selected")
-            return
-        }
-
-        editor.sendEngine(editor.Page, tcp.CONTINUE)
-    })
-
-    take3.Connect("clicked", func() { 
-        if editor.Page == nil { 
-            log.Printf("No page selected")
-            return
-        }
-
-        editor.sendEngine(editor.Page, tcp.ANIMATE_OFF)
-    })
-
-    save.Connect("clicked", func() {
-        if editor.Page == nil {
-            log.Printf("No page selected")
-            return
-        }
-
-        editor.UpdateProps()
-        editor.sendPreview(editor.Page, tcp.ANIMATE_ON)
-    })
 }
 
 func (editor *Editor) PageEditor() {
@@ -146,17 +89,12 @@ func (editor *Editor) PageEditor() {
     // prop editors 
     editor.propEdit = make([][]*props.PropertyEditor, props.NUM_PROPS)
 
-    cont := func() {
-        editor.sendPreview(editor.Page, tcp.CONTINUE)
-        editor.sendEngine(editor.Page, tcp.CONTINUE)
-    }
-    
     for i := range editor.propEdit {
         num := 10
         editor.propEdit[i] = make([]*props.PropertyEditor, num)
 
         for j := 0; j < num; j++ {
-            editor.propEdit[i][j], err = props.NewPropertyEditor(i, cont)
+            editor.propEdit[i][j], err = props.NewPropertyEditor(i)
             if err != nil {
                 log.Printf("Error creating prop editor %d", i)
             }
@@ -164,48 +102,17 @@ func (editor *Editor) PageEditor() {
     }
 }
 
-func (editor *Editor) ArtistEditor() {
-    var err error
-
-    actions, err := gtk.BoxNew(gtk.ORIENTATION_HORIZONTAL, 0)
-    if err != nil { 
-        log.Fatalf("Error creating editor (%s)", err) 
-    }
-
-    editor.Box.PackStart(actions, false, false, 10)
-
-    save, err := gtk.ButtonNewWithLabel("Save")
-    if err != nil { 
-        log.Fatalf("Error creating editor (%s)", err) 
-    }
-
-    actions.PackStart(save, false, false, 10)
-    save.Connect("clicked", func() {
-        if editor.Page == nil {
-            log.Printf("No page selected")
-            return
-        }
-
-        editor.UpdateProps()
-        editor.sendPreview(editor.Page, tcp.ANIMATE_ON)
-    })
-}
-
 func (editor *Editor) PropertyEditor() {
     var err error
     // prop editors 
     editor.propEdit = make([][]*props.PropertyEditor, props.NUM_PROPS)
-    cont := func() {
-        editor.sendPreview(editor.Page, tcp.CONTINUE)
-        editor.sendEngine(editor.Page, tcp.CONTINUE)
-    }
     
     for i := range editor.propEdit {
         num := 1
         editor.propEdit[i] = make([]*props.PropertyEditor, num)
 
         for j := 0; j < num; j++ {
-            editor.propEdit[i][j], err = props.NewPropertyEditor(i, cont)
+            editor.propEdit[i][j], err = props.NewPropertyEditor(i)
             if err != nil {
                 log.Printf("Error creating prop editor %d", i)
             }
@@ -229,11 +136,6 @@ func (editor *Editor) SetPage(page *shows.Page) {
         editor.tabs.RemovePage(0)
     }
 
-    cont := func() {
-        editor.sendPreview(editor.Page, tcp.CONTINUE)
-        editor.sendEngine(editor.Page, tcp.CONTINUE)
-    }
-
     editor.Page = page
     editor.pairs = make([]Pairing, 0, 10)
     propCount := make([]int, props.NUM_PROPS)
@@ -253,7 +155,7 @@ func (editor *Editor) SetPage(page *shows.Page) {
         var propEdit *props.PropertyEditor
         if propCount[typed] == len(editor.propEdit[typed]) {
             // we ran out of editors, add a new one
-            propEdit, err = props.NewPropertyEditor(typed, cont)
+            propEdit, err = props.NewPropertyEditor(typed)
             if err != nil {
                 log.Printf("Error creating prop editor %d", typed)
             }

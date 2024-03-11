@@ -111,13 +111,12 @@ func (clock *ClockAttribute) RunClock(cont func()) {
 type ClockEditor struct {
     box    *gtk.Box
     entry  *gtk.Entry
-    timeFormat   string
     c      chan int
 }
 
-func NewClockEditor(name string, cont func()) *ClockEditor {
+func NewClockEditor(name string) *ClockEditor {
     var err error
-    clockEdit := &ClockEditor{timeFormat: "04:05"}
+    clockEdit := &ClockEditor{}
 
     clockEdit.box, err = gtk.BoxNew(gtk.ORIENTATION_VERTICAL, 0)
     if err != nil { 
