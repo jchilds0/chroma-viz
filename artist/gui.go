@@ -344,7 +344,7 @@ func AddProp(label string) (id int, err error) {
     }
 
     page.PropMap[id] = props.NewProperty(geo_typed, label, visible, cont)
-    page.PropMap[id].Attr["parent"] = attribute.NewIntAttribute("parent", "parent")
+    page.PropMap[id].Attr["parent"] = attribute.NewIntAttribute("parent")
     return
 }
 

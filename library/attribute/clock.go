@@ -16,18 +16,16 @@ const (
 )
 
 type ClockAttribute struct {
-    FileName    string
-    ChromaName  string 
+    Name        string 
     Type        int
     c           chan int
     CurrentTime string
     TimeFormat  string
 }
 
-func NewClockAttribute(file, chroma string, cont func()) *ClockAttribute {
+func NewClockAttribute(name string, cont func()) *ClockAttribute {
     clockAttr := &ClockAttribute{
-        FileName: file,
-        ChromaName: chroma,
+        Name: name,
         Type: CLOCK,
         TimeFormat: "04:05",
         c: make(chan int),
@@ -58,7 +56,11 @@ func (clockAttr *ClockAttribute) SetClock(cont func()) {
 }
 
 func (clockAttr *ClockAttribute) String() string {
-    return fmt.Sprintf("%s=%s#", clockAttr.ChromaName, clockAttr.CurrentTime)
+    return fmt.Sprintf("%s=%s#", clockAttr.Name, clockAttr.CurrentTime)
+}
+
+func (clockAttr *ClockAttribute) Encode() string {
+    return fmt.Sprintf("{'name': '%s', 'value': '%s'}", clockAttr.Name, clockAttr.CurrentTime)
 }
 
 func (clockAttr *ClockAttribute) Update(edit Editor) error {

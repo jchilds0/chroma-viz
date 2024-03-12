@@ -8,7 +8,6 @@ func GenerateTemplateHub(geo []string, geo_count []int, filename string) {
     for i := range geo {
         for j := 0; j < geo_count[i]; j++ {
             hub.AddGeometry(0, total, geo[i])
-            hub.AddAttr(0, total, "parent", "0")
             total++
         }
     }

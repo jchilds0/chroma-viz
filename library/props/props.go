@@ -3,6 +3,7 @@ package props
 import (
 	"chroma-viz/library/attribute"
 	"encoding/json"
+	"fmt"
 	"log"
 )
 
@@ -37,6 +38,15 @@ var StringToProp map[string]int = map[string]int{
     "image": IMAGE_PROP,
 }
 
+var PropToString map[int]string = map[int]string{
+    RECT_PROP: "rect",
+    TEXT_PROP: "text",
+    CIRCLE_PROP: "circle",
+    GRAPH_PROP: "graph",
+    TICKER_PROP: "ticker",
+    CLOCK_PROP: "clock",
+    IMAGE_PROP: "image",
+}
 /*
 
     Templates are made up of a collection of Properties.
@@ -82,50 +92,50 @@ func NewProperty(typed int, name string, visible map[string]bool, cont func()) *
 
     switch (typed) {
     case RECT_PROP:
-        prop.Attr["x"] = attribute.NewIntAttribute("x", "rel_x")
-        prop.Attr["y"] = attribute.NewIntAttribute("y", "rel_y")
-        prop.Attr["width"] = attribute.NewIntAttribute("width", "width")
-        prop.Attr["height"] = attribute.NewIntAttribute("height", "height")
-        prop.Attr["color"] = attribute.NewColorAttribute("color", "color")
+        prop.Attr["x"] = attribute.NewIntAttribute("rel_x")
+        prop.Attr["y"] = attribute.NewIntAttribute("rel_y")
+        prop.Attr["width"] = attribute.NewIntAttribute("width")
+        prop.Attr["height"] = attribute.NewIntAttribute("height")
+        prop.Attr["color"] = attribute.NewColorAttribute("color")
 
     case TEXT_PROP:
-        prop.Attr["x"] = attribute.NewIntAttribute("x", "rel_x")
-        prop.Attr["y"] = attribute.NewIntAttribute("y", "rel_y")
-        prop.Attr["string"] = attribute.NewStringAttribute("string","string")
-        prop.Attr["color"] = attribute.NewColorAttribute("color", "color")
+        prop.Attr["x"] = attribute.NewIntAttribute("rel_x")
+        prop.Attr["y"] = attribute.NewIntAttribute("rel_y")
+        prop.Attr["string"] = attribute.NewStringAttribute("string")
+        prop.Attr["color"] = attribute.NewColorAttribute("color")
 
     case CIRCLE_PROP:
-        prop.Attr["x"] = attribute.NewIntAttribute("x", "rel_x")
-        prop.Attr["y"] = attribute.NewIntAttribute("y", "rel_y")
-        prop.Attr["inner_radius"] = attribute.NewIntAttribute("inner_radius", "inner_radius")
-        prop.Attr["outer_radius"] = attribute.NewIntAttribute("outer_radius", "outer_radius")
-        prop.Attr["start_angle"] = attribute.NewIntAttribute("start_angle", "start_angle")
-        prop.Attr["end_angle"] = attribute.NewIntAttribute("end_angle", "end_angle")
-        prop.Attr["color"] = attribute.NewColorAttribute("color", "color")
+        prop.Attr["x"] = attribute.NewIntAttribute("rel_x")
+        prop.Attr["y"] = attribute.NewIntAttribute("rel_y")
+        prop.Attr["inner_radius"] = attribute.NewIntAttribute("inner_radius")
+        prop.Attr["outer_radius"] = attribute.NewIntAttribute("outer_radius")
+        prop.Attr["start_angle"] = attribute.NewIntAttribute("start_angle")
+        prop.Attr["end_angle"] = attribute.NewIntAttribute("end_angle")
+        prop.Attr["color"] = attribute.NewColorAttribute("color")
 
     case GRAPH_PROP:
-        prop.Attr["x"] = attribute.NewIntAttribute("x", "rel_x")
-        prop.Attr["y"] = attribute.NewIntAttribute("y", "rel_y")
-        prop.Attr["node"] = attribute.NewListAttribute("node", "graph_node", 2, false)
-        prop.Attr["color"] = attribute.NewColorAttribute("color", "color")
+        prop.Attr["x"] = attribute.NewIntAttribute("rel_x")
+        prop.Attr["y"] = attribute.NewIntAttribute("rel_y")
+        prop.Attr["node"] = attribute.NewListAttribute("graph_node", 2, false)
+        prop.Attr["color"] = attribute.NewColorAttribute("color")
 
     case TICKER_PROP:
-        prop.Attr["x"] = attribute.NewIntAttribute("x", "rel_x")
-        prop.Attr["y"] = attribute.NewIntAttribute("y", "rel_y")
-        prop.Attr["text"] = attribute.NewListAttribute("text", "string", 1, true)
-        prop.Attr["color"] = attribute.NewColorAttribute("color", "color")
+        prop.Attr["x"] = attribute.NewIntAttribute("rel_x")
+        prop.Attr["y"] = attribute.NewIntAttribute("rel_y")
+        prop.Attr["text"] = attribute.NewListAttribute("string", 1, true)
+        prop.Attr["color"] = attribute.NewColorAttribute("color")
 
     case CLOCK_PROP:
-        prop.Attr["x"] = attribute.NewIntAttribute("x", "rel_x")
-        prop.Attr["y"] = attribute.NewIntAttribute("y", "rel_y")
-        prop.Attr["clock"] = attribute.NewClockAttribute("string", "string", cont)
-        prop.Attr["color"] = attribute.NewColorAttribute("color", "color")
+        prop.Attr["x"] = attribute.NewIntAttribute("rel_x")
+        prop.Attr["y"] = attribute.NewIntAttribute("rel_y")
+        prop.Attr["clock"] = attribute.NewClockAttribute("string", cont)
+        prop.Attr["color"] = attribute.NewColorAttribute("color")
 
     case IMAGE_PROP:
-        prop.Attr["x"] = attribute.NewIntAttribute("x", "rel_x")
-        prop.Attr["y"] = attribute.NewIntAttribute("y", "rel_y")
-        prop.Attr["scale"] = attribute.NewFloatAttribute("scale", "scale")
-        prop.Attr["string"] = attribute.NewStringAttribute("string", "string")
+        prop.Attr["x"] = attribute.NewIntAttribute("rel_x")
+        prop.Attr["y"] = attribute.NewIntAttribute("rel_y")
+        prop.Attr["scale"] = attribute.NewFloatAttribute("scale")
+        prop.Attr["string"] = attribute.NewStringAttribute("string")
 
     default:
         log.Printf("Unknown Prop %d", typed)
@@ -174,6 +184,29 @@ func (prop *Property) String() (s string) {
         s += attr.String()
     }
     return
+}
+
+// G -> {'id': num, 'type': string, 'attr': [A]} | G, G 
+func (prop *Property) Encode(geo_id int) string {
+    first := true 
+    attrs := ""
+
+    for name, attr := range prop.Attr {
+        if prop.Visible[name] {
+            continue
+        }
+
+        if first {
+            attrs = attr.Encode()
+            first = false 
+            continue
+        }
+
+        attrs = fmt.Sprintf("%s,%s", attrs, attr.Encode())
+    }
+
+    return fmt.Sprintf("{'id': %d, 'type': '%s', 'geometry': [%s]}", 
+        geo_id, PropToString[prop.PropType], attrs)
 }
 
 /*

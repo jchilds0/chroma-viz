@@ -24,7 +24,6 @@ import (
 */
 
 type Page struct {
-    Box         *gtk.ListBoxRow
     PageNum     int
     Title       string
     TemplateID  int
@@ -43,8 +42,8 @@ func newPage(pageNum int, title string, temp *templates.Template, cont func(*Pag
 
     contPage := func() { cont(page) }
 
-    for i, prop := range temp.Prop {
-        page.PropMap[i] = props.NewProperty(prop.Type, prop.Name, prop.Visible, contPage)
+    for i, geo := range temp.Geometry {
+        page.PropMap[i] = props.NewProperty(geo.PropType, geo.Name, geo.Visible, contPage)
     }
 
     return page

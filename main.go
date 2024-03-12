@@ -2,6 +2,7 @@ package main
 
 import (
 	"chroma-viz/artist"
+	"chroma-viz/hub"
 	"chroma-viz/viz"
 	"encoding/json"
 	"flag"
@@ -14,7 +15,7 @@ import (
 )
 
 var profile = flag.String("profile", "", "write profile to file")
-var mode = flag.String("mode", "", "chroma mode (artist | viz)")
+var mode = flag.String("mode", "", "chroma mode (artist | viz | hub)")
 
 func main() {
 	flag.Parse()
@@ -63,6 +64,8 @@ func main() {
 		}
 
 		app.Connect("activate", viz.VizGui)
+    } else if *mode == "hub" {
+        hub.StartHub(9000, -1, "hub/archive.json")
 	} else {
 		flag.PrintDefaults()
 		return

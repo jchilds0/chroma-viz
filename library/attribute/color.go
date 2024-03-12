@@ -9,8 +9,7 @@ import (
 )
 
 type ColorAttribute struct {
-    FileName    string 
-    ChromaName  string
+    Name  string
     Type        int
     Red         float64
     Green       float64
@@ -18,16 +17,21 @@ type ColorAttribute struct {
     Alpha       float64
 }
 
-func NewColorAttribute(file, chroma string) *ColorAttribute {
+func NewColorAttribute(name string) *ColorAttribute {
     colorAttr := &ColorAttribute{
-        FileName: file, ChromaName: chroma, Type: COLOR,
+        Name: name, Type: COLOR,
         Red: 1.0, Green: 1.0, Blue: 1.0, Alpha: 1.0,
     }
     return colorAttr
 }
 
 func (colorAttr *ColorAttribute) String() string {
-    return fmt.Sprintf("%s=%f %f %f %f#", colorAttr.ChromaName, 
+    return fmt.Sprintf("%s=%f %f %f %f#", colorAttr.Name, 
+        colorAttr.Red, colorAttr.Green, colorAttr.Blue, colorAttr.Alpha)
+}
+
+func (colorAttr *ColorAttribute) Encode() string {
+    return fmt.Sprintf("{'name': '%s', 'value': '%f %f %f %f'}", colorAttr.Name, 
         colorAttr.Red, colorAttr.Green, colorAttr.Blue, colorAttr.Alpha)
 }
 

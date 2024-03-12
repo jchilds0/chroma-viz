@@ -180,7 +180,7 @@ func parseProperty(temp *Template, buf *bufio.Reader) (err error) {
     return nil
 }
 
-func parseAttributes(prop *Prop, buf *bufio.Reader) (err error) {
+func parseAttributes(prop *props.Property, buf *bufio.Reader) (err error) {
     data := make(map[string]string)
     matchToken('{', buf)
 
@@ -203,7 +203,7 @@ func parseAttributes(prop *Prop, buf *bufio.Reader) (err error) {
         visible = 0
     }
 
-    prop.AddAttr(data["name"], data["value"], visible == 1)
+    prop.Visible[data["name"]] = (visible == 1)
 
     matchToken('}', buf)
 

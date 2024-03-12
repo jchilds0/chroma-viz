@@ -8,16 +8,14 @@ import (
 )
 
 type StringAttribute struct {
-    FileName      string
-    ChromaName    string
-    Type          int
-    Value         string
+    Name    string
+    Type    int
+    Value   string
 }
 
-func NewStringAttribute(file, chroma string) *StringAttribute {
+func NewStringAttribute(name string) *StringAttribute {
     stringAttr := &StringAttribute{
-        FileName: file,
-        ChromaName: chroma,
+        Name: name,
         Type: STRING,
     }
 
@@ -25,7 +23,11 @@ func NewStringAttribute(file, chroma string) *StringAttribute {
 }
 
 func (stringAttr *StringAttribute) String() string {
-    return fmt.Sprintf("%s=%s#", stringAttr.ChromaName, stringAttr.Value)
+    return fmt.Sprintf("%s=%s#", stringAttr.Name, stringAttr.Value)
+}
+
+func (stringAttr *StringAttribute) Encode() string {
+    return fmt.Sprintf("{'name': '%s', 'value': '%s'}", stringAttr.Name, stringAttr.Value)
 }
 
 func (stringAttr *StringAttribute) Update(edit Editor) error {

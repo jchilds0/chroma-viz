@@ -1,60 +1,55 @@
 package hub
 
 import (
+	"chroma-viz/library/props"
+	"chroma-viz/library/templates"
 	"fmt"
 	"log"
 )
 
 type DataBase struct {
-    Array map[int]*graphics.Template
+    Templates map[int]*templates.Template
 }
 
 func NewDataBase() *DataBase {
     db := &DataBase{}
-    db.Array = make(map[int]*graphics.Template)
+    db.Templates = make(map[int]*templates.Template)
 
     return db
 }
 
-func (db *DataBase) String() string {
+// S -> {'num_temp': num, 'templates': [T]}
+func (db *DataBase) EncodeDB() string {
     first := true 
     templates := ""
-    for _, temp := range db.Array {
+    for _, temp := range db.Templates {
         if first {
-            templates = temp.String()
+            templates = temp.Encode()
             first = false 
             continue
         }
 
-        templates = fmt.Sprintf("%s,%s", templates, temp.String())
+        templates = fmt.Sprintf("%s,%s", templates, temp.Encode())
     }
 
-    return fmt.Sprintf("{'num_temp': %d, 'templates': [%s]}", len(db.Array), templates)
+    return fmt.Sprintf("{'num_temp': %d, 'templates': [%s]}", len(db.Templates), templates)
 }
 
 func (db *DataBase) AddTemplate(id int, anim_on, anim_cont, anim_off string) {
-    if db.Array[id] != nil {
+    if db.Templates[id] != nil {
         log.Printf("Template %d already exists", id)
         return
     }
 
-    db.Array[id] = graphics.NewTemplate(id, anim_on, anim_cont, anim_off)
+    db.Templates[id] = templates.NewTemplate("", id, 0, 10)
 }
 
 func (db *DataBase) AddGeometry(temp_id, geo_id int, geo_type string) {
-    if db.Array[temp_id] == nil {
+    if db.Templates[temp_id] == nil {
         log.Printf("Template %d does not exist", temp_id)
     }
 
-    temp := db.Array[temp_id]
-    temp.AddGeometry(geo_id, geo_type)
+    temp := db.Templates[temp_id]
+    temp.AddProp("", geo_id, props.StringToProp[geo_type])
 }
 
-func (db *DataBase) AddAttr(temp_id, geo_id int, name, attr string) {
-    if db.Array[temp_id] == nil {
-        log.Printf("Template %d does not exist", temp_id)
-        return
-    }
-
-    db.Array[temp_id].AddAttr(geo_id, name, attr)
-}

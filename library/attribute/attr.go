@@ -38,11 +38,13 @@ const (
 type Attribute interface {
     String() string
     Update(Editor) error
+
+    // A -> {'name': string, 'value': string} | A, A
+    Encode() string
 }
 
 type AttributeJSON struct {
-    FileName   string
-    ChromaName string
+    Name       string
     Type       int
     attr       Attribute
 }

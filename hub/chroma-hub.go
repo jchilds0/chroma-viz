@@ -49,19 +49,19 @@ func StartHub(port, count int, fileName string) {
 
     S -> {'num_temp': num, 'templates': [T]}
     T -> {'id': num, 'num_geo': num, 'geometry': [G]} | T, T 
-    G -> {'id': num, 'type': string, 'parent': num, 'attr': [A]} | G, G 
+    G -> {'id': num, 'type': string, 'attr': [A]} | G, G 
     A -> {'name': string, 'value': string} | A, A
 
  */
 
-func handleConnection(hub *db.DataBase, conn net.Conn) {
-    _, err := conn.Write([]byte(hub.String()))
+func handleConnection(hub *DataBase, conn net.Conn) {
+    _, err := conn.Write([]byte(hub.EncodeDB()))
     if err != nil {
         log.Printf("Error sending hub (%s)", err)
     }
 }
 
-func ImportArchive(hub *db.DataBase, fileName string) error {
+func ImportArchive(hub *DataBase, fileName string) error {
     buf, err := os.ReadFile(fileName)
     if err != nil {
         return err
@@ -72,15 +72,15 @@ func ImportArchive(hub *db.DataBase, fileName string) error {
         return err
     }
 
-    for _, temp := range hub.Array {
-        log.Printf("Loaded Template %d (%s)", temp.Id, temp.Name)
+    for _, temp := range hub.Templates {
+        log.Printf("Loaded Template %d (%s)", temp.TempID, temp.Title)
     }
 
     log.Printf("Imported Hub")
     return nil
 }
 
-func ExportArchive(hub *db.DataBase, fileName string) {
+func ExportArchive(hub *DataBase, fileName string) {
     file, err := os.Create(fileName)
     if err != nil {
         log.Fatalf("Couldn't open file (%s)", err)

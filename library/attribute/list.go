@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"strings"
 
 	"github.com/gotk3/gotk3/glib"
 	"github.com/gotk3/gotk3/gtk"
@@ -25,8 +26,7 @@ func NewGraphCell(i int) *graphCell {
 }
 
 type ListAttribute struct {
-    FileName      string
-    ChromaName    string
+    Name          string
     Type          int
     NumCols       int
     Selected      bool
@@ -34,11 +34,10 @@ type ListAttribute struct {
     ListStore     *gtk.ListStore
 }
 
-func NewListAttribute(file, chroma string, numCols int, selected bool) *ListAttribute {
+func NewListAttribute(name string, numCols int, selected bool) *ListAttribute {
     var err error
     list := &ListAttribute{
-        FileName: file, 
-        ChromaName: chroma,
+        Name: name,
         Type: LIST,
         NumCols: numCols, 
         Selected: selected,
@@ -81,7 +80,7 @@ func (listAttr *ListAttribute) String() (s string) {
 }
 
 func (listAttr *ListAttribute) stringRow(iter *gtk.TreeIter) (s string) {
-    s = listAttr.ChromaName + "="
+    s = listAttr.Name + "="
     for j := 0; j < listAttr.NumCols - 1; j++ {
         item := getStringFromIter(listAttr.ListStore, iter, j)
         s = s + item + " "
@@ -89,6 +88,32 @@ func (listAttr *ListAttribute) stringRow(iter *gtk.TreeIter) (s string) {
 
     item := getStringFromIter(listAttr.ListStore, iter, listAttr.NumCols - 1)
     s = s + item + "#"
+    return
+}
+
+func (listAttr *ListAttribute) Encode() (s string) {
+    // currently chroma_engine allocates 100 nodes for each list statically
+    if listAttr.Selected {
+        // send only the currently selected item from the list
+        if listAttr.selectedIter == nil {
+            return 
+        }
+
+        row := listAttr.encodeRow(listAttr.selectedIter)
+        return fmt.Sprintf("{'name': '%s', 'value': '%s'}", 
+            listAttr.Name, strings.Join(row, " "))
+    }
+
+    s = fmt.Sprintf("{'name': 'num_node', 'value': '%d'}", listAttr.NumCols - 1)
+    iter, ok := listAttr.ListStore.GetIterFirst()
+    for ok {
+        row := listAttr.encodeRow(iter)
+        s += fmt.Sprint(",{'name': '%s', 'value': '%s'}", 
+            listAttr.Name, strings.Join(row, " "))
+
+        ok = listAttr.ListStore.IterNext(iter)
+    }
+
     return
 }
 

@@ -1,6 +1,8 @@
-package templates 
+package templates
 
 import (
+	"chroma-viz/library/props"
+	"fmt"
 	"log"
 
 	"github.com/gotk3/gotk3/gtk"
@@ -8,13 +10,13 @@ import (
 
 /*
 
-    Templates form the basis of pages. Each page corresponds to 
-    one page which specifies the shape of the page, usually with
-    a number of properties that can be edited by the user.
+   Templates form the basis of pages. Each page corresponds to
+   one page which specifies the shape of the page, usually with
+   a number of properties that can be edited by the user.
 
-    Prop is a simple struct used for storing data as we parse the 
-    templates sent by Chroma Hub on startup. This is then used to 
-    generate a Page.
+   Prop is a simple struct used for storing data as we parse the
+   templates sent by Chroma Hub on startup. This is then used to
+   generate a Page.
 
 */
 
@@ -44,13 +46,13 @@ type Template struct {
     TempID      int
     NumProps    int
     Layer       int
-    Prop        map[int]*Prop
+    Geometry    map[int]*props.Property
 }
 
 func NewTemplate(title string, id int, layer int, num_geo int) *Template {
     temp := &Template{Title: title, TempID: id, Layer: layer}
 
-    temp.Prop = make(map[int]*Prop, num_geo)
+    temp.Geometry = make(map[int]*props.Property, num_geo)
     return temp
 }
 
@@ -64,11 +66,11 @@ func (temp *Template) TemplateToListRow() *gtk.ListBoxRow {
     return row1
 }
 
-func (temp *Template) AddProp(name string, geo_id, typed int) *Prop {
-    temp.Prop[geo_id] = NewProp(name, typed)
+func (temp *Template) AddProp(name string, geo_id, typed int) *props.Property {
+    temp.Geometry[geo_id] = props.NewProperty(typed, name, nil, func(){})
     temp.NumProps++
 
-    return temp.Prop[geo_id]
+    return temp.Geometry[geo_id]
 }
 
 func TextToBuffer(text string) *gtk.TextView {
@@ -84,5 +86,23 @@ func TextToBuffer(text string) *gtk.TextView {
 
     buffer.SetText(text)
     return text1
+}
+
+// T -> {'id': num, 'num_geo': num, 'geometry': [G]} | T, T 
+func (temp *Template) Encode() string {
+    first := true 
+    templates := ""
+    for geo_id, prop := range temp.Geometry {
+        if first {
+            templates = prop.Encode(geo_id)
+            first = false 
+            continue
+        }
+
+        templates = fmt.Sprintf("%s,%s", templates, prop.Encode(geo_id))
+    }
+
+    return fmt.Sprintf("{'id': %d, 'num_geo': %d, 'geometry': [%s]}", 
+        temp.TempID, len(temp.Geometry), templates)
 }
 

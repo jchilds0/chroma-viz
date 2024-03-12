@@ -1,0 +1,1051 @@
+{
+    "Templates": {
+        "1": {
+            "Title": "Teal Box",
+            "TemplateID": 0,
+            "Layer": 0,
+            "PropMap": {
+                "0": {
+                    "Name": "Background",
+                    "PropType": 0,
+                    "Visible": {
+                        "color": false,
+                        "height": true,
+                        "parent": false,
+                        "rounding": false,
+                        "width": true,
+                        "x": true,
+                        "y": true
+                    },
+                    "Attr": {
+                        "color": {
+                            "FileName": "color",
+                            "ChromaName": "color",
+                            "Type": 6,
+                            "Red": 1,
+                            "Green": 1,
+                            "Blue": 1,
+                            "Alpha": 1
+                        },
+                        "height": {
+                            "FileName": "height",
+                            "ChromaName": "height",
+                            "Type": 1,
+                            "Value": 180
+                        },
+                        "width": {
+                            "FileName": "width",
+                            "ChromaName": "width",
+                            "Type": 1,
+                            "Value": 886
+                        },
+                        "x": {
+                            "FileName": "x",
+                            "ChromaName": "rel_x",
+                            "Type": 1,
+                            "Value": 50
+                        },
+                        "y": {
+                            "FileName": "y",
+                            "ChromaName": "rel_y",
+                            "Type": 1,
+                            "Value": 100
+                        }
+                    }
+                },
+                "1": {
+                    "Name": "Logo",
+                    "PropType": 6,
+                    "Visible": {
+                        "parent": false,
+                        "scale": true,
+                        "string": true,
+                        "x": true,
+                        "y": true
+                    },
+                    "Attr": {
+                        "scale": {
+                            "FileName": "scale",
+                            "ChromaName": "scale",
+                            "Type": 4,
+                            "Value": 0.29
+                        },
+                        "string": {
+                            "FileName": "string",
+                            "ChromaName": "string",
+                            "Type": 2,
+                            "Value": "data/logo.png"
+                        },
+                        "x": {
+                            "FileName": "x",
+                            "ChromaName": "rel_x",
+                            "Type": 1,
+                            "Value": -23
+                        },
+                        "y": {
+                            "FileName": "y",
+                            "ChromaName": "rel_y",
+                            "Type": 1,
+                            "Value": 2
+                        }
+                    }
+                },
+                "2": {
+                    "Name": "Title",
+                    "PropType": 1,
+                    "Visible": {
+                        "color": false,
+                        "parent": false,
+                        "string": true,
+                        "x": true,
+                        "y": true
+                    },
+                    "Attr": {
+                        "color": {
+                            "FileName": "color",
+                            "ChromaName": "color",
+                            "Type": 6,
+                            "Red": 1,
+                            "Green": 1,
+                            "Blue": 1,
+                            "Alpha": 1
+                        },
+                        "string": {
+                            "FileName": "string",
+                            "ChromaName": "string",
+                            "Type": 2,
+                            "Value": "Lower Frame"
+                        },
+                        "x": {
+                            "FileName": "x",
+                            "ChromaName": "rel_x",
+                            "Type": 1,
+                            "Value": 220
+                        },
+                        "y": {
+                            "FileName": "y",
+                            "ChromaName": "rel_y",
+                            "Type": 1,
+                            "Value": 100
+                        }
+                    }
+                },
+                "3": {
+                    "Name": "Subtitle",
+                    "PropType": 1,
+                    "Visible": {
+                        "color": false,
+                        "parent": false,
+                        "string": true,
+                        "x": true,
+                        "y": true
+                    },
+                    "Attr": {
+                        "color": {
+                            "FileName": "color",
+                            "ChromaName": "color",
+                            "Type": 6,
+                            "Red": 1,
+                            "Green": 1,
+                            "Blue": 1,
+                            "Alpha": 1
+                        },
+                        "string": {
+                            "FileName": "string",
+                            "ChromaName": "string",
+                            "Type": 2,
+                            "Value": "A lower frame subtitle"
+                        },
+                        "x": {
+                            "FileName": "x",
+                            "ChromaName": "rel_x",
+                            "Type": 1,
+                            "Value": 220
+                        },
+                        "y": {
+                            "FileName": "y",
+                            "ChromaName": "rel_y",
+                            "Type": 1,
+                            "Value": 30
+                        }
+                    }
+                }
+            }
+        },
+        "2": {
+            "Box": null,
+            "PageNum": 2,
+            "Title": "Graph",
+            "TemplateID": 3,
+            "Layer": 0,
+            "PropMap": {
+                "0": {
+                    "Name": "Background",
+                    "PropType": 0,
+                    "Visible": {
+                        "color": false,
+                        "height": true,
+                        "parent": false,
+                        "rounding": false,
+                        "width": true,
+                        "x": true,
+                        "y": true
+                    },
+                    "Attr": {
+                        "color": {
+                            "FileName": "color",
+                            "ChromaName": "color",
+                            "Type": 6,
+                            "Red": 1,
+                            "Green": 1,
+                            "Blue": 1,
+                            "Alpha": 1
+                        },
+                        "height": {
+                            "FileName": "height",
+                            "ChromaName": "height",
+                            "Type": 1,
+                            "Value": 240
+                        },
+                        "width": {
+                            "FileName": "width",
+                            "ChromaName": "width",
+                            "Type": 1,
+                            "Value": 570
+                        },
+                        "x": {
+                            "FileName": "x",
+                            "ChromaName": "rel_x",
+                            "Type": 1,
+                            "Value": 50
+                        },
+                        "y": {
+                            "FileName": "y",
+                            "ChromaName": "rel_y",
+                            "Type": 1,
+                            "Value": 100
+                        }
+                    }
+                },
+                "1": {
+                    "Name": "Graph",
+                    "PropType": 3,
+                    "Visible": {
+                        "color": false,
+                        "graph_type": false,
+                        "node": true,
+                        "parent": false,
+                        "x": true,
+                        "y": true
+                    },
+                    "Attr": {
+                        "color": {
+                            "FileName": "color",
+                            "ChromaName": "color",
+                            "Type": 6,
+                            "Red": 1,
+                            "Green": 1,
+                            "Blue": 1,
+                            "Alpha": 1
+                        },
+                        "node": {
+                            "FileName": "node",
+                            "ChromaName": "graph_node",
+                            "Type": 5,
+                            "NumCols": 2,
+                            "Selected": false,
+                            "ListStore": [
+                                [
+                                    "0",
+                                    "0"
+                                ],
+                                [
+                                    "100",
+                                    "50"
+                                ],
+                                [
+                                    "70",
+                                    "10"
+                                ]
+                            ],
+                            "MarshalJSON": {},
+                            "UnmarshalJSON": {}
+                        },
+                        "x": {
+                            "FileName": "x",
+                            "ChromaName": "rel_x",
+                            "Type": 1,
+                            "Value": 25
+                        },
+                        "y": {
+                            "FileName": "y",
+                            "ChromaName": "rel_y",
+                            "Type": 1,
+                            "Value": 25
+                        }
+                    }
+                },
+                "2": {
+                    "Name": "Title",
+                    "PropType": 1,
+                    "Visible": {
+                        "color": false,
+                        "parent": false,
+                        "string": true,
+                        "x": true,
+                        "y": true
+                    },
+                    "Attr": {
+                        "color": {
+                            "FileName": "color",
+                            "ChromaName": "color",
+                            "Type": 6,
+                            "Red": 1,
+                            "Green": 1,
+                            "Blue": 1,
+                            "Alpha": 1
+                        },
+                        "string": {
+                            "FileName": "string",
+                            "ChromaName": "string",
+                            "Type": 2,
+                            "Value": "Step Graph"
+                        },
+                        "x": {
+                            "FileName": "x",
+                            "ChromaName": "rel_x",
+                            "Type": 1,
+                            "Value": 50
+                        },
+                        "y": {
+                            "FileName": "y",
+                            "ChromaName": "rel_y",
+                            "Type": 1,
+                            "Value": 175
+                        }
+                    }
+                }
+            }
+        },
+        "3": {
+            "Box": null,
+            "PageNum": 3,
+            "Title": "Image",
+            "TemplateID": 5,
+            "Layer": 0,
+            "PropMap": {
+                "0": {
+                    "Name": "Image",
+                    "PropType": 6,
+                    "Visible": {
+                        "parent": false,
+                        "scale": false,
+                        "string": true,
+                        "x": true,
+                        "y": true
+                    },
+                    "Attr": {
+                        "scale": {
+                            "FileName": "scale",
+                            "ChromaName": "scale",
+                            "Type": 4,
+                            "Value": 0
+                        },
+                        "string": {
+                            "FileName": "string",
+                            "ChromaName": "string",
+                            "Type": 2,
+                            "Value": "build/afl.png"
+                        },
+                        "x": {
+                            "FileName": "x",
+                            "ChromaName": "rel_x",
+                            "Type": 1,
+                            "Value": 0
+                        },
+                        "y": {
+                            "FileName": "y",
+                            "ChromaName": "rel_y",
+                            "Type": 1,
+                            "Value": 0
+                        }
+                    }
+                }
+            }
+        },
+        "4": {
+            "Box": null,
+            "PageNum": 4,
+            "Title": "Score",
+            "TemplateID": 0,
+            "Layer": 0,
+            "PropMap": {
+                "0": {
+                    "Name": "Background",
+                    "PropType": 0,
+                    "Visible": {
+                        "color": false,
+                        "height": true,
+                        "parent": false,
+                        "rounding": false,
+                        "width": true,
+                        "x": true,
+                        "y": true
+                    },
+                    "Attr": {
+                        "color": {
+                            "FileName": "color",
+                            "ChromaName": "color",
+                            "Type": 6,
+                            "Red": 1,
+                            "Green": 1,
+                            "Blue": 1,
+                            "Alpha": 1
+                        },
+                        "height": {
+                            "FileName": "height",
+                            "ChromaName": "height",
+                            "Type": 1,
+                            "Value": 100
+                        },
+                        "width": {
+                            "FileName": "width",
+                            "ChromaName": "width",
+                            "Type": 1,
+                            "Value": 325
+                        },
+                        "x": {
+                            "FileName": "x",
+                            "ChromaName": "rel_x",
+                            "Type": 1,
+                            "Value": 50
+                        },
+                        "y": {
+                            "FileName": "y",
+                            "ChromaName": "rel_y",
+                            "Type": 1,
+                            "Value": 930
+                        }
+                    }
+                },
+                "1": {
+                    "Name": "Logo",
+                    "PropType": 6,
+                    "Visible": {
+                        "parent": false,
+                        "scale": true,
+                        "string": true,
+                        "x": true,
+                        "y": true
+                    },
+                    "Attr": {
+                        "scale": {
+                            "FileName": "scale",
+                            "ChromaName": "scale",
+                            "Type": 4,
+                            "Value": 1
+                        },
+                        "string": {
+                            "FileName": "string",
+                            "ChromaName": "string",
+                            "Type": 2,
+                            "Value": ""
+                        },
+                        "x": {
+                            "FileName": "x",
+                            "ChromaName": "rel_x",
+                            "Type": 1,
+                            "Value": 30
+                        },
+                        "y": {
+                            "FileName": "y",
+                            "ChromaName": "rel_y",
+                            "Type": 1,
+                            "Value": 30
+                        }
+                    }
+                },
+                "2": {
+                    "Name": "Title",
+                    "PropType": 1,
+                    "Visible": {
+                        "color": false,
+                        "parent": false,
+                        "string": true,
+                        "x": true,
+                        "y": true
+                    },
+                    "Attr": {
+                        "color": {
+                            "FileName": "color",
+                            "ChromaName": "color",
+                            "Type": 6,
+                            "Red": 1,
+                            "Green": 1,
+                            "Blue": 1,
+                            "Alpha": 1
+                        },
+                        "string": {
+                            "FileName": "string",
+                            "ChromaName": "string",
+                            "Type": 2,
+                            "Value": ""
+                        },
+                        "x": {
+                            "FileName": "x",
+                            "ChromaName": "rel_x",
+                            "Type": 1,
+                            "Value": 0
+                        },
+                        "y": {
+                            "FileName": "y",
+                            "ChromaName": "rel_y",
+                            "Type": 1,
+                            "Value": 0
+                        }
+                    }
+                },
+                "3": {
+                    "Name": "Subtitle",
+                    "PropType": 1,
+                    "Visible": {
+                        "color": false,
+                        "parent": false,
+                        "string": true,
+                        "x": true,
+                        "y": true
+                    },
+                    "Attr": {
+                        "color": {
+                            "FileName": "color",
+                            "ChromaName": "color",
+                            "Type": 6,
+                            "Red": 1,
+                            "Green": 1,
+                            "Blue": 1,
+                            "Alpha": 1
+                        },
+                        "string": {
+                            "FileName": "string",
+                            "ChromaName": "string",
+                            "Type": 2,
+                            "Value": ""
+                        },
+                        "x": {
+                            "FileName": "x",
+                            "ChromaName": "rel_x",
+                            "Type": 1,
+                            "Value": 0
+                        },
+                        "y": {
+                            "FileName": "y",
+                            "ChromaName": "rel_y",
+                            "Type": 1,
+                            "Value": 0
+                        }
+                    }
+                }
+            }
+        },
+        "5": {
+            "Box": null,
+            "PageNum": 5,
+            "Title": "Clock Box",
+            "TemplateID": 1,
+            "Layer": 2,
+            "PropMap": {
+                "0": {
+                    "Name": "Background",
+                    "PropType": 0,
+                    "Visible": {
+                        "color": false,
+                        "height": true,
+                        "parent": false,
+                        "rounding": false,
+                        "width": true,
+                        "x": true,
+                        "y": true
+                    },
+                    "Attr": {
+                        "color": {
+                            "FileName": "color",
+                            "ChromaName": "color",
+                            "Type": 6,
+                            "Red": 1,
+                            "Green": 1,
+                            "Blue": 1,
+                            "Alpha": 1
+                        },
+                        "height": {
+                            "FileName": "height",
+                            "ChromaName": "height",
+                            "Type": 1,
+                            "Value": 65
+                        },
+                        "width": {
+                            "FileName": "width",
+                            "ChromaName": "width",
+                            "Type": 1,
+                            "Value": 810
+                        },
+                        "x": {
+                            "FileName": "x",
+                            "ChromaName": "rel_x",
+                            "Type": 1,
+                            "Value": 50
+                        },
+                        "y": {
+                            "FileName": "y",
+                            "ChromaName": "rel_y",
+                            "Type": 1,
+                            "Value": 965
+                        }
+                    }
+                },
+                "1": {
+                    "Name": "Circle",
+                    "PropType": 2,
+                    "Visible": {
+                        "color": false,
+                        "end_angle": true,
+                        "inner_radius": true,
+                        "outer_radius": true,
+                        "parent": false,
+                        "start_angle": true,
+                        "x": true,
+                        "y": true
+                    },
+                    "Attr": {
+                        "color": {
+                            "FileName": "color",
+                            "ChromaName": "color",
+                            "Type": 6,
+                            "Red": 1,
+                            "Green": 1,
+                            "Blue": 1,
+                            "Alpha": 1
+                        },
+                        "end_angle": {
+                            "FileName": "end_angle",
+                            "ChromaName": "end_angle",
+                            "Type": 1,
+                            "Value": 360
+                        },
+                        "inner_radius": {
+                            "FileName": "inner_radius",
+                            "ChromaName": "inner_radius",
+                            "Type": 1,
+                            "Value": 0
+                        },
+                        "outer_radius": {
+                            "FileName": "outer_radius",
+                            "ChromaName": "outer_radius",
+                            "Type": 1,
+                            "Value": 25
+                        },
+                        "start_angle": {
+                            "FileName": "start_angle",
+                            "ChromaName": "start_angle",
+                            "Type": 1,
+                            "Value": 0
+                        },
+                        "x": {
+                            "FileName": "x",
+                            "ChromaName": "rel_x",
+                            "Type": 1,
+                            "Value": 35
+                        },
+                        "y": {
+                            "FileName": "y",
+                            "ChromaName": "rel_y",
+                            "Type": 1,
+                            "Value": 32
+                        }
+                    }
+                },
+                "10": {
+                    "Name": "Period",
+                    "PropType": 1,
+                    "Visible": {
+                        "color": false,
+                        "parent": false,
+                        "string": true,
+                        "x": true,
+                        "y": true
+                    },
+                    "Attr": {
+                        "color": {
+                            "FileName": "color",
+                            "ChromaName": "color",
+                            "Type": 6,
+                            "Red": 1,
+                            "Green": 1,
+                            "Blue": 1,
+                            "Alpha": 1
+                        },
+                        "string": {
+                            "FileName": "string",
+                            "ChromaName": "string",
+                            "Type": 2,
+                            "Value": "Q1"
+                        },
+                        "x": {
+                            "FileName": "x",
+                            "ChromaName": "rel_x",
+                            "Type": 1,
+                            "Value": 30
+                        },
+                        "y": {
+                            "FileName": "y",
+                            "ChromaName": "rel_y",
+                            "Type": 1,
+                            "Value": 15
+                        }
+                    }
+                },
+                "2": {
+                    "Name": "Left Split",
+                    "PropType": 0,
+                    "Visible": {
+                        "color": false,
+                        "height": true,
+                        "parent": false,
+                        "width": true,
+                        "x": true,
+                        "y": true
+                    },
+                    "Attr": {
+                        "color": {
+                            "FileName": "color",
+                            "ChromaName": "color",
+                            "Type": 6,
+                            "Red": 1,
+                            "Green": 1,
+                            "Blue": 1,
+                            "Alpha": 1
+                        },
+                        "height": {
+                            "FileName": "height",
+                            "ChromaName": "height",
+                            "Type": 1,
+                            "Value": 65
+                        },
+                        "width": {
+                            "FileName": "width",
+                            "ChromaName": "width",
+                            "Type": 1,
+                            "Value": 10
+                        },
+                        "x": {
+                            "FileName": "x",
+                            "ChromaName": "rel_x",
+                            "Type": 1,
+                            "Value": 76
+                        },
+                        "y": {
+                            "FileName": "y",
+                            "ChromaName": "rel_y",
+                            "Type": 1,
+                            "Value": 0
+                        }
+                    }
+                },
+                "3": {
+                    "Name": "Team 1",
+                    "PropType": 1,
+                    "Visible": {
+                        "color": false,
+                        "parent": false,
+                        "string": true,
+                        "x": true,
+                        "y": true
+                    },
+                    "Attr": {
+                        "color": {
+                            "FileName": "color",
+                            "ChromaName": "color",
+                            "Type": 6,
+                            "Red": 1,
+                            "Green": 1,
+                            "Blue": 1,
+                            "Alpha": 1
+                        },
+                        "string": {
+                            "FileName": "string",
+                            "ChromaName": "string",
+                            "Type": 2,
+                            "Value": "TEAM"
+                        },
+                        "x": {
+                            "FileName": "x",
+                            "ChromaName": "rel_x",
+                            "Type": 1,
+                            "Value": 20
+                        },
+                        "y": {
+                            "FileName": "y",
+                            "ChromaName": "rel_y",
+                            "Type": 1,
+                            "Value": 15
+                        }
+                    }
+                },
+                "4": {
+                    "Name": "Score 1",
+                    "PropType": 1,
+                    "Visible": {
+                        "color": false,
+                        "parent": false,
+                        "string": true,
+                        "x": true,
+                        "y": true
+                    },
+                    "Attr": {
+                        "color": {
+                            "FileName": "color",
+                            "ChromaName": "color",
+                            "Type": 6,
+                            "Red": 1,
+                            "Green": 1,
+                            "Blue": 1,
+                            "Alpha": 1
+                        },
+                        "string": {
+                            "FileName": "string",
+                            "ChromaName": "string",
+                            "Type": 2,
+                            "Value": "0"
+                        },
+                        "x": {
+                            "FileName": "x",
+                            "ChromaName": "rel_x",
+                            "Type": 1,
+                            "Value": 180
+                        },
+                        "y": {
+                            "FileName": "y",
+                            "ChromaName": "rel_y",
+                            "Type": 1,
+                            "Value": 15
+                        }
+                    }
+                },
+                "5": {
+                    "Name": "Mid Split",
+                    "PropType": 0,
+                    "Visible": {
+                        "color": false,
+                        "height": true,
+                        "parent": false,
+                        "width": true,
+                        "x": true,
+                        "y": true
+                    },
+                    "Attr": {
+                        "color": {
+                            "FileName": "color",
+                            "ChromaName": "color",
+                            "Type": 6,
+                            "Red": 1,
+                            "Green": 1,
+                            "Blue": 1,
+                            "Alpha": 1
+                        },
+                        "height": {
+                            "FileName": "height",
+                            "ChromaName": "height",
+                            "Type": 1,
+                            "Value": 65
+                        },
+                        "width": {
+                            "FileName": "width",
+                            "ChromaName": "width",
+                            "Type": 1,
+                            "Value": 10
+                        },
+                        "x": {
+                            "FileName": "x",
+                            "ChromaName": "rel_x",
+                            "Type": 1,
+                            "Value": 230
+                        },
+                        "y": {
+                            "FileName": "y",
+                            "ChromaName": "rel_y",
+                            "Type": 1,
+                            "Value": 0
+                        }
+                    }
+                },
+                "6": {
+                    "Name": "Team 2",
+                    "PropType": 1,
+                    "Visible": {
+                        "color": false,
+                        "parent": false,
+                        "string": true,
+                        "x": true,
+                        "y": true
+                    },
+                    "Attr": {
+                        "color": {
+                            "FileName": "color",
+                            "ChromaName": "color",
+                            "Type": 6,
+                            "Red": 1,
+                            "Green": 1,
+                            "Blue": 1,
+                            "Alpha": 1
+                        },
+                        "string": {
+                            "FileName": "string",
+                            "ChromaName": "string",
+                            "Type": 2,
+                            "Value": "TEAM"
+                        },
+                        "x": {
+                            "FileName": "x",
+                            "ChromaName": "rel_x",
+                            "Type": 1,
+                            "Value": 20
+                        },
+                        "y": {
+                            "FileName": "y",
+                            "ChromaName": "rel_y",
+                            "Type": 1,
+                            "Value": 15
+                        }
+                    }
+                },
+                "7": {
+                    "Name": "Score 2",
+                    "PropType": 1,
+                    "Visible": {
+                        "color": false,
+                        "parent": false,
+                        "string": true,
+                        "x": true,
+                        "y": true
+                    },
+                    "Attr": {
+                        "color": {
+                            "FileName": "color",
+                            "ChromaName": "color",
+                            "Type": 6,
+                            "Red": 1,
+                            "Green": 1,
+                            "Blue": 1,
+                            "Alpha": 1
+                        },
+                        "string": {
+                            "FileName": "string",
+                            "ChromaName": "string",
+                            "Type": 2,
+                            "Value": "0"
+                        },
+                        "x": {
+                            "FileName": "x",
+                            "ChromaName": "rel_x",
+                            "Type": 1,
+                            "Value": 180
+                        },
+                        "y": {
+                            "FileName": "y",
+                            "ChromaName": "rel_y",
+                            "Type": 1,
+                            "Value": 15
+                        }
+                    }
+                },
+                "8": {
+                    "Name": "Right Split",
+                    "PropType": 0,
+                    "Visible": {
+                        "color": false,
+                        "height": true,
+                        "parent": false,
+                        "width": true,
+                        "x": true,
+                        "y": true
+                    },
+                    "Attr": {
+                        "color": {
+                            "FileName": "color",
+                            "ChromaName": "color",
+                            "Type": 6,
+                            "Red": 1,
+                            "Green": 1,
+                            "Blue": 1,
+                            "Alpha": 1
+                        },
+                        "height": {
+                            "FileName": "height",
+                            "ChromaName": "height",
+                            "Type": 1,
+                            "Value": 65
+                        },
+                        "width": {
+                            "FileName": "width",
+                            "ChromaName": "width",
+                            "Type": 1,
+                            "Value": 10
+                        },
+                        "x": {
+                            "FileName": "x",
+                            "ChromaName": "rel_x",
+                            "Type": 1,
+                            "Value": 230
+                        },
+                        "y": {
+                            "FileName": "y",
+                            "ChromaName": "rel_y",
+                            "Type": 1,
+                            "Value": 0
+                        }
+                    }
+                },
+                "9": {
+                    "Name": "Clock",
+                    "PropType": 5,
+                    "Visible": {
+                        "clock": true,
+                        "color": false,
+                        "parent": false,
+                        "x": true,
+                        "y": true
+                    },
+                    "Attr": {
+                        "clock": {
+                            "FileName": "string",
+                            "ChromaName": "string",
+                            "Type": 3,
+                            "CurrentTime": "",
+                            "TimeFormat": "04:05"
+                        },
+                        "color": {
+                            "FileName": "color",
+                            "ChromaName": "color",
+                            "Type": 6,
+                            "Red": 1,
+                            "Green": 1,
+                            "Blue": 1,
+                            "Alpha": 1
+                        },
+                        "x": {
+                            "FileName": "x",
+                            "ChromaName": "rel_x",
+                            "Type": 1,
+                            "Value": 110
+                        },
+                        "y": {
+                            "FileName": "y",
+                            "ChromaName": "rel_y",
+                            "Type": 1,
+                            "Value": 15
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

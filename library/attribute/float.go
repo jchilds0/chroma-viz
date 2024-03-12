@@ -8,16 +8,14 @@ import (
 )
 
 type FloatAttribute struct {
-    FileName    string
-	ChromaName  string
-    Type        int
-	Value       float64
+	Name  string
+    Type  int
+	Value float64
 }
 
-func NewFloatAttribute(file, chroma string) *FloatAttribute {
+func NewFloatAttribute(name string) *FloatAttribute {
     floatAttr := &FloatAttribute{
-        ChromaName: chroma,
-        FileName: file,
+        Name: name,
         Type: FLOAT,
     }
 
@@ -25,7 +23,11 @@ func NewFloatAttribute(file, chroma string) *FloatAttribute {
 }
 
 func (floatAttr *FloatAttribute) String() string {
-    return fmt.Sprintf("%s=%f#", floatAttr.ChromaName, floatAttr.Value)
+    return fmt.Sprintf("%s=%f#", floatAttr.Name, floatAttr.Value)
+}
+
+func (floatAttr *FloatAttribute) Encode() string {
+    return fmt.Sprintf("{'name': '%s', 'value': '%f'", floatAttr.Name, floatAttr.Value)
 }
 
 func (floatAttr *FloatAttribute) Update(edit Editor) error {
