@@ -65,7 +65,8 @@ func main() {
 
 		app.Connect("activate", viz.VizGui)
     } else if *mode == "hub" {
-        hub.StartHub(9000, -1, "hub/archive.json")
+        hub.HubApp(9000)
+        //hub.StartHub(9000, -1, "hub/archive.json")
 	} else {
 		flag.PrintDefaults()
 		return

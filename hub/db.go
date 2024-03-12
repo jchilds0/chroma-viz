@@ -5,6 +5,7 @@ import (
 	"chroma-viz/library/templates"
 	"fmt"
 	"log"
+	"net"
 )
 
 type DataBase struct {
@@ -53,3 +54,29 @@ func (db *DataBase) AddGeometry(temp_id, geo_id int, geo_type string) {
     temp.AddProp("", geo_id, props.StringToProp[geo_type])
 }
 
+func (db *DataBase) SendHub(ln net.Listener) {
+    // upperLimit := (count != -1)
+    // count = 2 * count
+    defer ln.Close()
+
+    for {
+        // if upperLimit && count == 0 {
+        //     break
+        // }
+
+        conn, err := ln.Accept()
+        if err != nil {
+            log.Printf("Error accepting connection (%s)", err)
+        }
+
+        _, err = conn.Write([]byte(hub.EncodeDB()))
+        if err != nil {
+            log.Printf("Error sending hub (%s)", err)
+        }
+
+        log.Printf("Sent Hub to %s", conn.RemoteAddr())
+        // if upperLimit {
+        //     count--
+        // }
+    }
+}

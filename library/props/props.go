@@ -88,6 +88,10 @@ type Property struct {
 func NewProperty(typed int, name string, visible map[string]bool, cont func()) *Property {
     prop := &Property{Name: name, PropType: typed, Visible: visible}
 
+    if visible == nil {
+        prop.Visible = make(map[string]bool)
+    }
+
     prop.Attr = make(map[string]attribute.Attribute, 10)
 
     switch (typed) {
@@ -186,7 +190,7 @@ func (prop *Property) String() (s string) {
     return
 }
 
-// G -> {'id': num, 'type': string, 'attr': [A]} | G, G 
+// G -> {'id': 123, 'name': 'abc', 'type': 'abc', 'attr': [A]} | G, G
 func (prop *Property) Encode(geo_id int) string {
     first := true 
     attrs := ""
@@ -205,8 +209,8 @@ func (prop *Property) Encode(geo_id int) string {
         attrs = fmt.Sprintf("%s,%s", attrs, attr.Encode())
     }
 
-    return fmt.Sprintf("{'id': %d, 'type': '%s', 'geometry': [%s]}", 
-        geo_id, PropToString[prop.PropType], attrs)
+    return fmt.Sprintf("{'id': %d, 'name': '%s', 'type': '%s', 'attr': [%s]}", 
+        geo_id, prop.Name, PropToString[prop.PropType], attrs)
 }
 
 /*

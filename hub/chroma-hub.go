@@ -1,47 +1,57 @@
 package hub
 
 import (
+	"bufio"
+	"chroma-viz/library/templates"
 	"encoding/json"
 	"fmt"
 	"log"
 	"net"
 	"os"
 	"strconv"
+	"strings"
 )
 
-func StartHub(port, count int, fileName string) {
-    hub := NewDataBase()
+var hub = NewDataBase()
+var usage = "Usage: {import, export} {archive, template} <filename>.json"
+
+func HubApp(port int) {
+    ok := true
+
+    StartHub(port, -1)
+    ImportTemplate("artist/test_template.json")
+
+    read := bufio.NewScanner(os.Stdin)
+    for ok {
+        fmt.Printf("[Chroma Hub - %d]: ", port)
+        read.Scan()
+        input := strings.Split(read.Text(), " ")
+
+        if len(input) != 3 {
+            fmt.Println(usage)
+            continue
+        }
+
+        switch input[0] {
+        case "import":
+            fmt.Printf("Importing %s\n", input[2])
+            Import(input[1], input[2])
+        case "export":
+            fmt.Printf("Exporting %s\n", input[2])
+            Export(input[1], input[2])
+        default:
+            fmt.Println(usage)
+        }
+    }
+}
+
+func StartHub(port, count int) {
     ln, err := net.Listen("tcp", ":" + strconv.Itoa(port))
     if err != nil {
         log.Fatalf("Error creating server (%s)", err)
     }
-    defer ln.Close()
 
-    err = ImportArchive(hub, fileName)
-    if err != nil {
-        log.Printf("Error importing archive (%s)", err)
-    }
-
-    upperLimit := (count != -1)
-    count = 2 * count
-
-    for {
-        if upperLimit && count == 0 {
-            break
-        }
-
-        conn, err := ln.Accept()
-        if err != nil {
-            log.Printf("Error accepting connection (%s)", err)
-        }
-
-        handleConnection(hub, conn)
-
-        log.Printf("Sent Hub to %s", conn.RemoteAddr())
-        if upperLimit {
-            count--
-        }
-    }
+    go hub.SendHub(ln)
 }
 
 /*
@@ -54,25 +64,46 @@ func StartHub(port, count int, fileName string) {
 
  */
 
-func handleConnection(hub *DataBase, conn net.Conn) {
-    _, err := conn.Write([]byte(hub.EncodeDB()))
-    if err != nil {
-        log.Printf("Error sending hub (%s)", err)
+func Import(typed, file string) {
+    switch typed {
+    case "archive":
+        ImportArchive(file)
+    case "template":
+        ImportTemplate(file)
+    default:
+        fmt.Println(usage)
     }
 }
 
-func ImportArchive(hub *DataBase, fileName string) error {
+func Export(typed, file string) {
+    switch typed {
+    case "archive":
+        ExportArchive(file)
+    case "template":
+        ExportTemplate(file)
+    default:
+        fmt.Println(usage)
+    }
+}
+
+func ImportArchive(fileName string) error {
     buf, err := os.ReadFile(fileName)
     if err != nil {
         return err
     }
 
-    err = json.Unmarshal(buf, hub)
+    var archive DataBase
+    err = json.Unmarshal(buf, &archive)
     if err != nil {
         return err
     }
 
-    for _, temp := range hub.Templates {
+    for _, temp := range archive.Templates {
+        if _, ok := hub.Templates[temp.TempID]; ok {
+            return fmt.Errorf("Template ID %d already exists", temp.TempID)
+        }
+
+        hub.Templates[temp.TempID] = temp
         log.Printf("Loaded Template %d (%s)", temp.TempID, temp.Title)
     }
 
@@ -80,7 +111,7 @@ func ImportArchive(hub *DataBase, fileName string) error {
     return nil
 }
 
-func ExportArchive(hub *DataBase, fileName string) {
+func ExportArchive(fileName string) {
     file, err := os.Create(fileName)
     if err != nil {
         log.Fatalf("Couldn't open file (%s)", err)
@@ -100,3 +131,26 @@ func ExportArchive(hub *DataBase, fileName string) {
     fmt.Printf("Exported Hub\n")
 }
 
+func ImportTemplate(fileName string) error {
+    buf, err := os.ReadFile(fileName)
+    if err != nil {
+        return err
+    }
+
+    var temp templates.Template
+    err = json.Unmarshal(buf, &temp)
+    if err != nil {
+        return err
+    }
+
+    if _, ok := hub.Templates[temp.TempID]; ok {
+        return fmt.Errorf("Template ID %d already exists", temp.TempID)
+    }
+
+    hub.Templates[temp.TempID] = &temp
+    return nil
+}
+
+func ExportTemplate(fileName string) error {
+    return fmt.Errorf("Not implemented")
+}

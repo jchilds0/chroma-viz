@@ -41,7 +41,6 @@ func (p *Prop) AddAttr(name, value string, visible bool) {
 }
 
 type Template struct {
-    Box         *gtk.ListBoxRow
     Title       string
     TempID      int
     NumProps    int
@@ -88,11 +87,14 @@ func TextToBuffer(text string) *gtk.TextView {
     return text1
 }
 
-// T -> {'id': num, 'num_geo': num, 'geometry': [G]} | T, T 
+// T -> {'id': num, 'num_geo': num, 'layer': num, 'geometry': [G]} | T, T 
 func (temp *Template) Encode() string {
     first := true 
     templates := ""
     for geo_id, prop := range temp.Geometry {
+        // TODO: Pull visible attrs from editor
+        prop.Visible = make(map[string]bool)
+
         if first {
             templates = prop.Encode(geo_id)
             first = false 
@@ -102,7 +104,7 @@ func (temp *Template) Encode() string {
         templates = fmt.Sprintf("%s,%s", templates, prop.Encode(geo_id))
     }
 
-    return fmt.Sprintf("{'id': %d, 'num_geo': %d, 'geometry': [%s]}", 
-        temp.TempID, len(temp.Geometry), templates)
+    return fmt.Sprintf("{'id': %d, 'num_geo': %d, 'layer': %d, 'geometry': [%s]}", 
+        temp.TempID, temp.Layer, len(temp.Geometry), templates)
 }
 

@@ -1,7 +1,6 @@
 package hub
 
 func GenerateTemplateHub(geo []string, geo_count []int, filename string) {
-    hub := NewDataBase()
     hub.AddTemplate(0, "left_to_right", "", "left_to_right")
     
     var total int 
@@ -12,5 +11,5 @@ func GenerateTemplateHub(geo []string, geo_count []int, filename string) {
         }
     }
 
-    ExportArchive(hub, filename)
+    ExportArchive(filename)
 }

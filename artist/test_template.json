@@ -1,0 +1,172 @@
+{
+    "Title": "test_template",
+    "TemplateID": 0,
+    "Layer": 0,
+    "Geometry": {
+        "0": {
+            "Name": "Rectangle",
+            "PropType": 0,
+            "Visible": {
+                "color": true,
+                "end_angle": true,
+                "graph": true,
+                "height": true,
+                "image": true,
+                "inner_radius": true,
+                "outer_radius": true,
+                "parent": true,
+                "start_angle": true,
+                "string": true,
+                "text": true,
+                "width": true,
+                "x": true,
+                "y": true
+            },
+            "Attr": {
+                "color": {
+                    "Name": "color",
+                    "Type": 6,
+                    "Red": 1,
+                    "Green": 1,
+                    "Blue": 1,
+                    "Alpha": 1
+                },
+                "height": {
+                    "Name": "height",
+                    "Type": 1,
+                    "Value": 100
+                },
+                "parent": {
+                    "Name": "parent",
+                    "Type": 1,
+                    "Value": 0
+                },
+                "width": {
+                    "Name": "width",
+                    "Type": 1,
+                    "Value": 100
+                },
+                "x": {
+                    "Name": "rel_x",
+                    "Type": 1,
+                    "Value": 100
+                },
+                "y": {
+                    "Name": "rel_y",
+                    "Type": 1,
+                    "Value": 100
+                }
+            }
+        },
+        "1": {
+            "Name": "Rectangle",
+            "PropType": 0,
+            "Visible": {
+                "color": true,
+                "end_angle": true,
+                "graph": true,
+                "height": true,
+                "image": true,
+                "inner_radius": true,
+                "outer_radius": true,
+                "parent": true,
+                "start_angle": true,
+                "string": true,
+                "text": true,
+                "width": true,
+                "x": true,
+                "y": true
+            },
+            "Attr": {
+                "color": {
+                    "Name": "color",
+                    "Type": 6,
+                    "Red": 1,
+                    "Green": 1,
+                    "Blue": 1,
+                    "Alpha": 1
+                },
+                "height": {
+                    "Name": "height",
+                    "Type": 1,
+                    "Value": 0
+                },
+                "parent": {
+                    "Name": "parent",
+                    "Type": 1,
+                    "Value": 0
+                },
+                "width": {
+                    "Name": "width",
+                    "Type": 1,
+                    "Value": 0
+                },
+                "x": {
+                    "Name": "rel_x",
+                    "Type": 1,
+                    "Value": 0
+                },
+                "y": {
+                    "Name": "rel_y",
+                    "Type": 1,
+                    "Value": 0
+                }
+            }
+        },
+        "2": {
+            "Name": "Rectangle",
+            "PropType": 0,
+            "Visible": {
+                "color": true,
+                "end_angle": true,
+                "graph": true,
+                "height": true,
+                "image": true,
+                "inner_radius": true,
+                "outer_radius": true,
+                "parent": true,
+                "start_angle": true,
+                "string": true,
+                "text": true,
+                "width": true,
+                "x": true,
+                "y": true
+            },
+            "Attr": {
+                "color": {
+                    "Name": "color",
+                    "Type": 6,
+                    "Red": 1,
+                    "Green": 1,
+                    "Blue": 1,
+                    "Alpha": 1
+                },
+                "height": {
+                    "Name": "height",
+                    "Type": 1,
+                    "Value": 0
+                },
+                "parent": {
+                    "Name": "parent",
+                    "Type": 1,
+                    "Value": 0
+                },
+                "width": {
+                    "Name": "width",
+                    "Type": 1,
+                    "Value": 0
+                },
+                "x": {
+                    "Name": "rel_x",
+                    "Type": 1,
+                    "Value": 0
+                },
+                "y": {
+                    "Name": "rel_y",
+                    "Type": 1,
+                    "Value": 0
+                }
+            }
+        }
+    }
+}

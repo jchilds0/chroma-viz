@@ -124,6 +124,26 @@ func ArtistGui(app *gtk.Application) {
 
     exportPage := glib.SimpleActionNew("export_page", nil)
     exportPage.Connect("activate", func() { 
+        dialog, err := gtk.FileChooserDialogNewWith2Buttons(
+        "Save Template", win, gtk.FILE_CHOOSER_ACTION_SAVE, 
+        "_Cancel", gtk.RESPONSE_CANCEL, "_Save", gtk.RESPONSE_ACCEPT)
+        if err != nil {
+            log.Print(err)
+            return 
+        }
+        defer dialog.Destroy()
+
+        dialog.SetCurrentName(page.Title + ".json")
+        res := dialog.Run()
+        if res == gtk.RESPONSE_ACCEPT {
+            filename := dialog.GetFilename()
+
+            err := shows.ExportPage(page, filename)
+            if err != nil {
+                log.Print(err)
+                return
+            }
+        }
     })
     app.AddAction(exportPage)
 

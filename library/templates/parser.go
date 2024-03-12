@@ -32,6 +32,14 @@ func (temp *Temps) ImportTemplates(conn net.Conn) error {
     }
 
     buf := bufio.NewReader(conn)
+
+    // var line rune 
+    // var err error
+    // for err == nil {
+    //     line, _, err = buf.ReadRune()
+    //     fmt.Printf("%c", line)
+    // }
+    
     nextToken(buf)
     matchToken('{', buf)
 
@@ -55,7 +63,10 @@ func (temp *Temps) ImportTemplates(conn net.Conn) error {
             matchToken(':', buf)
             matchToken('[', buf)
 
-            temp.parseTemplate(buf)
+            err := temp.parseTemplate(buf)
+            if err != nil {
+                return err
+            }
 
             matchToken(']', buf)
         }
@@ -68,7 +79,7 @@ func (temp *Temps) ImportTemplates(conn net.Conn) error {
     return nil
 }
 
-// T -> {'id': 123, 'num_geo': 123, 'geometry': [G]} | T, T
+// T -> {'id': 123, 'num_geo': 123, 'layer': 123, 'geometry': [G]} | T, T
 func (temp *Temps) parseTemplate(buf *bufio.Reader) (err error) {
     data := make(map[string]string)
     matchToken('{', buf)
@@ -89,15 +100,18 @@ func (temp *Temps) parseTemplate(buf *bufio.Reader) (err error) {
             var num_geo, temp_id, layer int
             num_geo, err = strconv.Atoi(data["num_geo"])
             if err != nil {
-                return
+                return fmt.Errorf("Error reading num geo from template (%s)", err)
             }
 
             temp_id, err = strconv.Atoi(data["id"])
             if err != nil {
-                return
+                return fmt.Errorf("Error reading temp id from template (%s)", err)
             }
 
             layer, err = strconv.Atoi(data["layer"])
+            if err != nil {
+                return fmt.Errorf("Error reading layer from template (%s)", err)
+            }
 
             if data["name"] == "" {
                 data["name"] = "Template"
@@ -105,10 +119,6 @@ func (temp *Temps) parseTemplate(buf *bufio.Reader) (err error) {
 
             temp.SetTemplate(temp_id, layer, num_geo, data["name"])
             template := temp.Temps[temp_id]
-
-            if err != nil {
-                return
-            }
 
             parseProperty(template, buf)
 
@@ -130,7 +140,7 @@ func (temp *Temps) parseTemplate(buf *bufio.Reader) (err error) {
     return
 }
 
-// G -> {'id': 123, 'prop_type': 'abc', 'parent': 123, 'attr': [A]} | G, G
+// G -> {'id': 123, 'name': string, 'type': 'abc', 'attr': [A]} | G, G
 func parseProperty(temp *Template, buf *bufio.Reader) (err error) {
     data := make(map[string]string)
     matchToken('{', buf)
@@ -149,10 +159,10 @@ func parseProperty(temp *Template, buf *bufio.Reader) (err error) {
             matchToken('[', buf)
 
             var prop_id int
-            prop_type := props.StringToProp[data["prop_type"]]
+            prop_type := props.StringToProp[data["type"]]
             prop_id, err = strconv.Atoi(data["id"])
             if err != nil {
-                return
+                return fmt.Errorf("Error reading prop id from property (%s)", err)
             }
 
             if data["name"] == "" {
@@ -198,12 +208,7 @@ func parseAttributes(prop *props.Property, buf *bufio.Reader) (err error) {
         }
     }
 
-    visible, err := strconv.Atoi(data["visible"])
-    if err != nil {
-        visible = 0
-    }
-
-    prop.Visible[data["name"]] = (visible == 1)
+    prop.Visible[data["name"]] = (data["visible"] == "1")
 
     matchToken('}', buf)
 
@@ -217,7 +222,7 @@ func parseAttributes(prop *props.Property, buf *bufio.Reader) (err error) {
 
 func matchToken(tok int, buf *bufio.Reader) {
     if tok != c_tok.tok {
-        log.Printf("Incorrect token in graphics hub parsing (%d)", tok)
+        log.Printf("Incorrect token %s, expected %c", c_tok.value, tok)
         return
     }
 
