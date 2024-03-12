@@ -1,7 +1,7 @@
 package artist
 
 import (
-	"chroma-viz/tcp"
+	"chroma-viz/library/tcp"
 	"log"
 
 	"github.com/gotk3/gotk3/cairo"

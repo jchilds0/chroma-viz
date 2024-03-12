@@ -1,8 +1,8 @@
 package shows
 
 import (
-	"chroma-viz/props"
-	"chroma-viz/templates"
+	"chroma-viz/library/props"
+	"chroma-viz/library/templates"
 	"encoding/json"
 	"log"
 	"os"

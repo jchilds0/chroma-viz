@@ -1,7 +1,7 @@
 package tcp
 
 import (
-	"chroma-viz/shows"
+	"chroma-viz/library/shows"
 	"fmt"
 	"log"
 	"net"

@@ -1,7 +1,7 @@
 package props
 
 import (
-	"chroma-viz/attribute"
+	"chroma-viz/library/attribute"
 	"fmt"
 	"log"
 

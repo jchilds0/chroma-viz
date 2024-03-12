@@ -1,7 +1,7 @@
 package viz
 
 import (
-	"chroma-viz/templates"
+	"chroma-viz/library/templates"
 	"log"
 	"net"
 	"strconv"

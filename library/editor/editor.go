@@ -1,8 +1,8 @@
 package editor
 
 import (
-	"chroma-viz/props"
-	"chroma-viz/shows"
+	"chroma-viz/library/props"
+	"chroma-viz/library/shows"
 	"log"
 
 	"github.com/gotk3/gotk3/gtk"

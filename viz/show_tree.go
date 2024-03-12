@@ -1,10 +1,10 @@
 package viz
 
 import (
-	"chroma-viz/attribute"
-	"chroma-viz/props"
-	"chroma-viz/shows"
-	"chroma-viz/tcp"
+	"chroma-viz/library/attribute"
+	"chroma-viz/library/props"
+	"chroma-viz/library/shows"
+	"chroma-viz/library/tcp"
 	"log"
 	"strconv"
 

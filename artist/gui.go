@@ -1,11 +1,11 @@
 package artist
 
 import (
-	"chroma-viz/attribute"
-	"chroma-viz/editor"
-	"chroma-viz/props"
-	"chroma-viz/shows"
-	"chroma-viz/tcp"
+	"chroma-viz/library/attribute"
+	"chroma-viz/library/editor"
+	"chroma-viz/library/props"
+	"chroma-viz/library/shows"
+	"chroma-viz/library/tcp"
 	"fmt"
 	"log"
 
@@ -16,7 +16,7 @@ import (
 
 var conn map[string]*tcp.Connection
 
-func InitConnections(){
+func InitConnections() {
     conn = make(map[string]*tcp.Connection)
 }
 
@@ -116,6 +116,17 @@ func ArtistGui(app *gtk.Application) {
     }
 
     app.SetMenubar(menu.(*glib.MenuModel))
+
+    importPage := glib.SimpleActionNew("import_page", nil)
+    importPage.Connect("activate", func() { 
+    })
+    app.AddAction(importPage)
+
+    exportPage := glib.SimpleActionNew("export_page", nil)
+    exportPage.Connect("activate", func() { 
+    })
+    app.AddAction(exportPage)
+
 
     /* Body layout */
     bodyBox, err := gtk.PanedNew(gtk.ORIENTATION_HORIZONTAL)

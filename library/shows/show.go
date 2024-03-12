@@ -1,7 +1,7 @@
 package shows
 
 import (
-	"chroma-viz/templates"
+	"chroma-viz/library/templates"
 	"encoding/json"
 	"log"
 	"os"

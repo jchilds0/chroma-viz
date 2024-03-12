@@ -1,10 +1,10 @@
 package viz
 
 import (
-	"chroma-viz/editor"
-	"chroma-viz/shows"
-	"chroma-viz/tcp"
-	"chroma-viz/templates"
+	"chroma-viz/library/editor"
+	"chroma-viz/library/shows"
+	"chroma-viz/library/tcp"
+	"chroma-viz/library/templates"
 	"fmt"
 	"log"
 	"math/rand"

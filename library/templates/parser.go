@@ -2,7 +2,7 @@ package templates
 
 import (
 	"bufio"
-	"chroma-viz/props"
+	"chroma-viz/library/props"
 	"fmt"
 	"log"
 	"net"
