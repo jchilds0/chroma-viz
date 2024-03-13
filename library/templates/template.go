@@ -105,6 +105,6 @@ func (temp *Template) Encode() string {
     }
 
     return fmt.Sprintf("{'id': %d, 'num_geo': %d, 'layer': %d, 'geometry': [%s]}", 
-        temp.TempID, temp.Layer, len(temp.Geometry), templates)
+        temp.TempID, len(temp.Geometry), temp.Layer, templates)
 }
 

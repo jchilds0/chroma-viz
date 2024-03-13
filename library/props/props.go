@@ -38,6 +38,50 @@ var StringToProp map[string]int = map[string]int{
     "image": IMAGE_PROP,
 }
 
+func PropType(prop int) string {
+    switch prop {
+    case RECT_PROP:
+        return "rect"
+    case TEXT_PROP:
+        return "text"
+    case CIRCLE_PROP:
+        return "circle"
+    case GRAPH_PROP:
+        return "graph"
+    case TICKER_PROP:
+        return "ticker"
+    case CLOCK_PROP:
+        return "clock"
+    case IMAGE_PROP:
+        return "image"
+    default:
+        log.Printf("Unknown prop type %d", prop)
+        return ""
+    }
+}
+
+func GeoType(prop int) string {
+    switch prop {
+    case RECT_PROP:
+        return "rect"
+    case TEXT_PROP:
+        return "text"
+    case CIRCLE_PROP:
+        return "circle"
+    case GRAPH_PROP:
+        return "graph"
+    case TICKER_PROP:
+        return "text"
+    case CLOCK_PROP:
+        return "text"
+    case IMAGE_PROP:
+        return "image"
+    default:
+        log.Printf("Unknown geo type %d", prop)
+        return ""
+    }
+}
+
 var PropToString map[int]string = map[int]string{
     RECT_PROP: "rect",
     TEXT_PROP: "text",
@@ -209,8 +253,8 @@ func (prop *Property) Encode(geo_id int) string {
         attrs = fmt.Sprintf("%s,%s", attrs, attr.Encode())
     }
 
-    return fmt.Sprintf("{'id': %d, 'name': '%s', 'type': '%s', 'attr': [%s]}", 
-        geo_id, prop.Name, PropToString[prop.PropType], attrs)
+    return fmt.Sprintf("{'id': %d, 'name': '%s', 'prop_type': '%s', 'geo_type': '%s', 'attr': [%s]}", 
+        geo_id, prop.Name, PropType(prop.PropType), GeoType(prop.PropType), attrs)
 }
 
 /*
