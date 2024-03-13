@@ -26,8 +26,9 @@ func (intAttr *IntAttribute) String() string {
     return fmt.Sprintf("%s=%d#", intAttr.Name, intAttr.Value)
 }
 
-func (intAttr *IntAttribute) Encode() string {
-    return fmt.Sprintf("{'name': '%s', 'value': '%d'}", intAttr.Name, intAttr.Value)
+func (intAttr *IntAttribute) Encode(visible bool) string {
+    return fmt.Sprintf("{'name': '%s', 'visible': '%v', 'value': '%d'}", 
+        intAttr.Name, visible, intAttr.Value)
 }
 
 

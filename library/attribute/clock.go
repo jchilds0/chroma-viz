@@ -59,8 +59,9 @@ func (clockAttr *ClockAttribute) String() string {
     return fmt.Sprintf("%s=%s#", clockAttr.Name, clockAttr.CurrentTime)
 }
 
-func (clockAttr *ClockAttribute) Encode() string {
-    return fmt.Sprintf("{'name': '%s', 'value': '%s'}", clockAttr.Name, clockAttr.CurrentTime)
+func (clockAttr *ClockAttribute) Encode(visible bool) string {
+    return fmt.Sprintf("{'name': '%s', 'visible': '%v', 'value': '%s'}", 
+        clockAttr.Name, visible, clockAttr.CurrentTime)
 }
 
 func (clockAttr *ClockAttribute) Update(edit Editor) error {

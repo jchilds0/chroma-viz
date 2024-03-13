@@ -155,3 +155,16 @@ func (propEdit *PropertyEditor) UpdateEditor(prop *Property) {
     }
 }
 
+func (propEdit *PropertyEditor) UpdateEditorAllProp(prop *Property) {
+    for name, edit := range propEdit.editor {
+        if _, ok := prop.Attr[name]; !ok {
+            continue
+        }
+
+        edit.Box().SetVisible(true)
+        err := edit.Update(prop.Attr[name])
+        if err != nil {
+            log.Print(err)
+        }
+    }
+}

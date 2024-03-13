@@ -40,7 +40,7 @@ type Attribute interface {
     Update(Editor) error
 
     // A -> {'name': string, 'value': string} | A, A
-    Encode() string
+    Encode(bool) string
 }
 
 type AttributeJSON struct {

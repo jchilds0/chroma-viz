@@ -240,17 +240,13 @@ func (prop *Property) Encode(geo_id int) string {
     attrs := ""
 
     for name, attr := range prop.Attr {
-        if prop.Visible[name] {
-            continue
-        }
-
         if first {
-            attrs = attr.Encode()
+            attrs = attr.Encode(prop.Visible[name])
             first = false 
             continue
         }
 
-        attrs = fmt.Sprintf("%s,%s", attrs, attr.Encode())
+        attrs = fmt.Sprintf("%s,%s", attrs, attr.Encode(prop.Visible[name]))
     }
 
     return fmt.Sprintf("{'id': %d, 'name': '%s', 'prop_type': '%s', 'geo_type': '%s', 'attr': [%s]}", 

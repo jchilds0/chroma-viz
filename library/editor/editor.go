@@ -180,7 +180,7 @@ func (editor *Editor) SetProperty(prop *props.Property) {
     editor.pairs = nil
     propEdit := editor.propEdit[prop.PropType][0]
 
-    propEdit.UpdateEditor(prop)
+    propEdit.UpdateEditorAllProp(prop)
     editor.propBox = propEdit.Box
     editor.pairs = []Pairing{{prop: prop, editor: propEdit}}
 

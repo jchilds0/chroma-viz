@@ -19,7 +19,10 @@ func HubApp(port int) {
     ok := true
 
     StartHub(port, -1)
-    ImportTemplate("artist/test_template.json")
+    err := ImportTemplate("artist/test_template.json")
+    if err != nil {
+        log.Print(err)
+    }
 
     read := bufio.NewScanner(os.Stdin)
     for ok {

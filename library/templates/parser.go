@@ -208,7 +208,7 @@ func parseAttributes(prop *props.Property, buf *bufio.Reader) (err error) {
         }
     }
 
-    prop.Visible[data["name"]] = (data["visible"] == "1")
+    prop.Visible[data["name"]] = (data["visible"] == "true")
 
     matchToken('}', buf)
 

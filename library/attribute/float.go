@@ -26,8 +26,9 @@ func (floatAttr *FloatAttribute) String() string {
     return fmt.Sprintf("%s=%f#", floatAttr.Name, floatAttr.Value)
 }
 
-func (floatAttr *FloatAttribute) Encode() string {
-    return fmt.Sprintf("{'name': '%s', 'value': '%f'", floatAttr.Name, floatAttr.Value)
+func (floatAttr *FloatAttribute) Encode(visible bool) string {
+    return fmt.Sprintf("{'name': '%s', 'visible': '%v', 'value': '%f'}", 
+        floatAttr.Name, visible, floatAttr.Value)
 }
 
 func (floatAttr *FloatAttribute) Update(edit Editor) error {

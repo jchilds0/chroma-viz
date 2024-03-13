@@ -30,9 +30,9 @@ func (colorAttr *ColorAttribute) String() string {
         colorAttr.Red, colorAttr.Green, colorAttr.Blue, colorAttr.Alpha)
 }
 
-func (colorAttr *ColorAttribute) Encode() string {
-    return fmt.Sprintf("{'name': '%s', 'value': '%f %f %f %f'}", colorAttr.Name, 
-        colorAttr.Red, colorAttr.Green, colorAttr.Blue, colorAttr.Alpha)
+func (colorAttr *ColorAttribute) Encode(visible bool) string {
+    return fmt.Sprintf("{'name': '%s', 'visible': '%v', 'value': '%f %f %f %f'}", 
+        colorAttr.Name, visible, colorAttr.Red, colorAttr.Green, colorAttr.Blue, colorAttr.Alpha)
 }
 
 func (colorAttr *ColorAttribute) Update(edit Editor) error {

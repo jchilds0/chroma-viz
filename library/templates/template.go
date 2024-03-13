@@ -14,31 +14,7 @@ import (
    one page which specifies the shape of the page, usually with
    a number of properties that can be edited by the user.
 
-   Prop is a simple struct used for storing data as we parse the
-   templates sent by Chroma Hub on startup. This is then used to
-   generate a Page.
-
 */
-
-type Prop struct {
-    Name        string
-    Type        int 
-    Visible     map[string]bool
-    Value       map[string]string
-}
-
-func NewProp(name string, typed int) *Prop {
-    p := &Prop{Name: name, Type: typed}
-    p.Visible = make(map[string]bool)
-    p.Value = make(map[string]string)
-
-    return p
-}
-
-func (p *Prop) AddAttr(name, value string, visible bool) {
-    p.Visible[name] = visible
-    p.Value[name] = value
-}
 
 type Template struct {
     Title       string
@@ -93,8 +69,6 @@ func (temp *Template) Encode() string {
     templates := ""
     for geo_id, prop := range temp.Geometry {
         // TODO: Pull visible attrs from editor
-        prop.Visible = make(map[string]bool)
-
         if first {
             templates = prop.Encode(geo_id)
             first = false 

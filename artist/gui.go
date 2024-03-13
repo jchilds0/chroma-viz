@@ -1,6 +1,7 @@
 package artist
 
 import (
+	"chroma-viz/hub"
 	"chroma-viz/library/attribute"
 	"chroma-viz/library/editor"
 	"chroma-viz/library/props"
@@ -11,7 +12,6 @@ import (
 
 	"github.com/gotk3/gotk3/glib"
 	"github.com/gotk3/gotk3/gtk"
-	"github.com/jchilds0/chroma-hub/chroma_hub"
 )
 
 var conn map[string]*tcp.Connection
@@ -73,8 +73,9 @@ func ArtistGui(app *gtk.Application) {
         index += geo_count[i]
     }
 
-    chroma_hub.GenerateTemplateHub(geo, geo_count, "artist/artist.json")
-    go chroma_hub.StartHub(port, -1, "artist/artist.json")
+    hub.GenerateTemplateHub(geo, geo_count, "artist/artist.json")
+    hub.ImportArchive("artist/artist.json")
+    go hub.StartHub(port, -1)
 
     editView := editor.NewEditor(func(page *shows.Page, action int) {}, SendPreview)
     editView.AddAction("Save", true, func() { 
@@ -322,23 +323,6 @@ func ArtistPage() *shows.Page {
     return page
 }
 
-var visible = map[string]bool{
-    "x": true,
-    "y": true,
-    "parent": true,
-    "width": true,
-    "height": true,
-    "inner_radius": true,
-    "outer_radius": true,
-    "start_angle": true,
-    "end_angle": true,
-    "text": true,
-    "image": true,
-    "graph": true,
-    "string": true,
-    "color": true,
-}
-
 var geo_type = map[string]int {
     "Rectangle": props.RECT_PROP,
     "Circle": props.CIRCLE_PROP,
@@ -363,7 +347,7 @@ func AddProp(label string) (id int, err error) {
         return 
     }
 
-    page.PropMap[id] = props.NewProperty(geo_typed, label, visible, cont)
+    page.PropMap[id] = props.NewProperty(geo_typed, label, nil, cont)
     page.PropMap[id].Attr["parent"] = attribute.NewIntAttribute("parent")
     return
 }
