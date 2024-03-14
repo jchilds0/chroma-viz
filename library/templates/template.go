@@ -68,7 +68,6 @@ func (temp *Template) Encode() string {
     first := true 
     templates := ""
     for geo_id, prop := range temp.Geometry {
-        // TODO: Pull visible attrs from editor
         if first {
             templates = prop.Encode(geo_id)
             first = false 
@@ -78,7 +77,7 @@ func (temp *Template) Encode() string {
         templates = fmt.Sprintf("%s,%s", templates, prop.Encode(geo_id))
     }
 
-    return fmt.Sprintf("{'id': %d, 'num_geo': %d, 'layer': %d, 'geometry': [%s]}", 
-        temp.TempID, len(temp.Geometry), temp.Layer, templates)
+    return fmt.Sprintf("{'id': %d, 'num_geo': %d, 'layer': %d, 'anim_on': '%s', 'anim_cont': '%s', 'anim_off': '%s', 'geometry': [%s]}", 
+        temp.TempID, len(temp.Geometry), temp.Layer, "left_to_right", "", "left_to_right", templates)
 }
 
