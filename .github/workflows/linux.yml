@@ -29,10 +29,10 @@ jobs:
           sudo apt-get install libgtk-3-dev 
 
     - name: Test Templates 
-      working-directory: ${{github.workspace}}/templates
+      working-directory: ${{github.workspace}}/hub
       run: go test
 
     - name: Test Show
-      working-directory: ${{github.workspace}}/shows
+      working-directory: ${{github.workspace}}/library/shows
       run: go test
 

@@ -1,8 +1,8 @@
 package shows
 
 import (
-	"chroma-viz/attribute"
-	"chroma-viz/props"
+	"chroma-viz/library/attribute"
+	"chroma-viz/library/props"
 	"testing"
 )
 

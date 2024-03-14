@@ -1,18 +1,21 @@
-package templates
+package hub
 
 import (
-	"chroma-viz/props"
+	"chroma-viz/library/props"
+	"chroma-viz/library/templates"
 	"net"
 	"testing"
 	"time"
-
-	"github.com/jchilds0/chroma-hub/chroma_hub"
 )
 
 func TestImportTemplates(t *testing.T) {
-    temp := NewTemps()
+    temp := templates.NewTemps()
 
-    go chroma_hub.StartHub(9000, 2, "test_archive.json")
+    err := ImportArchive("test_archive.json")
+    if err != nil {
+        t.Errorf("Error importing test archive (%s)", err)
+    }
+    go StartHub(9000, 2)
 
     time.Sleep(1 * time.Second)
     conn, err := net.Dial("tcp", "127.0.0.1:9000")
@@ -64,18 +67,15 @@ func TestImportTemplates(t *testing.T) {
     }
 }
 
-func propTest(t *testing.T, template *Template, i int, name, typed string) {
-    prop := template.Prop[i]
-    if prop.Name != name {
+func propTest(t *testing.T, template *templates.Template, i int, name, typed string) {
+    geo := template.Geometry[i]
+    if geo.Name != name {
         t.Errorf("(%s) Incorrect prop name, expected %s, recieved %s", 
-            template.Title, name, prop.Name)
+            template.Title, name, geo.Name)
     } 
 
-    if prop.Type != props.StringToProp[typed] {
+    if geo.PropType != props.StringToProp[typed] {
         t.Errorf("(%s) Incorrect prop type, expected %s, recieved %d", 
-            template.Title, typed, prop.Type)
+            template.Title, typed, geo.PropType)
     }
-}
-
-func propTypeTest(t *testing.T, prop int, typed string) {
 }
