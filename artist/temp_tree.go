@@ -53,12 +53,14 @@ func NewTempTree(propToEditor func(propID int), updateParent func(propId, parent
         func(tree *gtk.TreeView) { 
             selection, err := tree.GetSelection()
             if err != nil {
-                log.Fatalf("Error sending prop to editor (%s)", err)
+                log.Printf("Error sending prop to editor (%s)", err)
+                return
             }
 
             _, iter, ok := selection.GetSelected()
             if !ok {
-                log.Fatalf("Error sending prop to editor (%s)", err)
+                log.Printf("Error sending prop to editor (%s)", err)
+                return
             }
 
             propID := getIntFromModel(temp.model, iter, PROP_NUM)
@@ -77,7 +79,8 @@ func NewTempTree(propToEditor func(propID int), updateParent func(propId, parent
         func(tree *gtk.TreeView, path *gtk.TreePath, column *gtk.TreeViewColumn) {
             iter, err := temp.model.GetIter(path)
             if err != nil {
-                log.Fatalf("Error sending prop to editor (%s)", err)
+                log.Printf("Error sending prop to editor (%s)", err)
+                return
             }
 
             propID := getIntFromModel(temp.model, iter, PROP_NUM)

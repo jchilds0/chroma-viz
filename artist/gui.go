@@ -7,8 +7,11 @@ import (
 	"chroma-viz/library/props"
 	"chroma-viz/library/shows"
 	"chroma-viz/library/tcp"
+	"chroma-viz/library/templates"
+	"encoding/json"
 	"fmt"
 	"log"
+	"os"
 
 	"github.com/gotk3/gotk3/glib"
 	"github.com/gotk3/gotk3/gtk"
@@ -120,6 +123,62 @@ func ArtistGui(app *gtk.Application) {
 
     importPage := glib.SimpleActionNew("import_page", nil)
     importPage.Connect("activate", func() { 
+        dialog, err := gtk.FileChooserDialogNewWith2Buttons(
+            "Import Page", win, gtk.FILE_CHOOSER_ACTION_OPEN, 
+            "_Cancel", gtk.RESPONSE_CANCEL, "_Open", gtk.RESPONSE_ACCEPT)
+        if err != nil {
+            log.Print(err)
+            return 
+        }
+        defer dialog.Destroy()
+
+        res := dialog.Run()
+        if res == gtk.RESPONSE_ACCEPT {
+            filename := dialog.GetFilename()
+
+            buf, err := os.ReadFile(filename)
+            if err != nil {
+                log.Print(err)
+                return 
+            }
+
+            var template templates.Template
+
+            err = json.Unmarshal(buf, &template)
+            if err != nil {
+                log.Print(err)
+                return 
+            }
+
+            temp.model, err = gtk.TreeStoreNew(glib.TYPE_OBJECT, glib.TYPE_STRING, glib.TYPE_OBJECT, glib.TYPE_INT)
+            temp.view.SetModel(temp.model)
+
+            page.TemplateID = template.TempID
+            page.Layer = template.Layer
+            page.Title = template.Title
+
+            for _, geo := range template.Geometry {
+                geom, ok := geoms[geo.PropType]
+                if !ok {
+                    log.Printf("Missing Geom %s", props.PropType(geo.PropType))
+                    continue
+                }
+
+                id, err := geom.allocGeom()
+                if err != nil {
+                    log.Print(err)
+                    continue
+                }
+
+                page.PropMap[id] = geo
+
+                newRow := temp.model.Append(nil)
+                temp.model.SetValue(newRow, NAME, geo.Name)
+                temp.model.SetValue(newRow, PROP_NUM, id)
+            }
+
+            return
+        }
     })
     app.AddAction(importPage)
 
@@ -138,8 +197,15 @@ func ArtistGui(app *gtk.Application) {
         res := dialog.Run()
         if res == gtk.RESPONSE_ACCEPT {
             filename := dialog.GetFilename()
+            temp := templates.NewTemplate(page.Title, page.TemplateID, page.Layer, len(page.PropMap))
 
-            err := shows.ExportPage(page, filename)
+            i := 0
+            for _, prop := range page.PropMap {
+                temp.Geometry[i] = prop
+                i++
+            }
+
+            err := templates.ExportTemplate(temp, filename)
             if err != nil {
                 log.Print(err)
                 return

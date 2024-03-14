@@ -38,7 +38,7 @@ func newPage(pageNum int, title string, temp *templates.Template, cont func(*Pag
         TemplateID: temp.TempID,
         Layer: temp.Layer,
     }
-    page.PropMap = make(map[int]*props.Property, temp.NumProps)
+    page.PropMap = make(map[int]*props.Property, temp.NumGeo)
 
     contPage := func() { cont(page) }
 

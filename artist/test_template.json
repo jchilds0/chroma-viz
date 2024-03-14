@@ -1,15 +1,13 @@
 {
-    "PageNum": 0,
     "Title": "",
     "TempID": 0,
+    "NumGeo": 4,
     "Layer": 0,
     "Geometry": {
         "0": {
             "Name": "Rectangle",
             "PropType": 0,
             "Visible": {
-                "x": true,
-                "y": true,
                 "width": true,
                 "height": true
             },
@@ -25,7 +23,7 @@
                 "height": {
                     "Name": "height",
                     "Type": 1,
-                    "Value": 100
+                    "Value": 300
                 },
                 "parent": {
                     "Name": "parent",
@@ -35,7 +33,7 @@
                 "width": {
                     "Name": "width",
                     "Type": 1,
-                    "Value": 100
+                    "Value": 500
                 },
                 "x": {
                     "Name": "rel_x",
@@ -50,13 +48,11 @@
             }
         },
         "1": {
-            "Name": "Rectangle",
-            "PropType": 0,
+            "Name": "Circle",
+            "PropType": 2,
             "Visible": {
                 "x": true,
-                "y": true,
-                "width": true,
-                "height": true
+                "y": true
             },
             "Attr": {
                 "color": {
@@ -67,30 +63,116 @@
                     "Blue": 1,
                     "Alpha": 1
                 },
-                "height": {
-                    "Name": "height",
+                "end_angle": {
+                    "Name": "end_angle",
+                    "Type": 1,
+                    "Value": 360
+                },
+                "inner_radius": {
+                    "Name": "inner_radius",
                     "Type": 1,
                     "Value": 0
+                },
+                "outer_radius": {
+                    "Name": "outer_radius",
+                    "Type": 1,
+                    "Value": 50
                 },
                 "parent": {
                     "Name": "parent",
                     "Type": 1,
                     "Value": 0
                 },
-                "width": {
-                    "Name": "width",
+                "start_angle": {
+                    "Name": "start_angle",
                     "Type": 1,
                     "Value": 0
                 },
                 "x": {
                     "Name": "rel_x",
                     "Type": 1,
-                    "Value": 0
+                    "Value": 50
                 },
                 "y": {
                     "Name": "rel_y",
                     "Type": 1,
+                    "Value": 50
+                }
+            }
+        },
+        "2": {
+            "Name": "Text",
+            "PropType": 1,
+            "Visible": {
+                "x": true,
+                "y": true
+            },
+            "Attr": {
+                "color": {
+                    "Name": "color",
+                    "Type": 6,
+                    "Red": 1,
+                    "Green": 1,
+                    "Blue": 1,
+                    "Alpha": 1
+                },
+                "parent": {
+                    "Name": "parent",
+                    "Type": 1,
                     "Value": 0
+                },
+                "string": {
+                    "Name": "string",
+                    "Type": 2,
+                    "Value": "Hello"
+                },
+                "x": {
+                    "Name": "rel_x",
+                    "Type": 1,
+                    "Value": 100
+                },
+                "y": {
+                    "Name": "rel_y",
+                    "Type": 1,
+                    "Value": 150
+                }
+            }
+        },
+        "3": {
+            "Name": "Text",
+            "PropType": 1,
+            "Visible": {
+                "x": true,
+                "y": true
+            },
+            "Attr": {
+                "color": {
+                    "Name": "color",
+                    "Type": 6,
+                    "Red": 1,
+                    "Green": 1,
+                    "Blue": 1,
+                    "Alpha": 1
+                },
+                "parent": {
+                    "Name": "parent",
+                    "Type": 1,
+                    "Value": 0
+                },
+                "string": {
+                    "Name": "string",
+                    "Type": 2,
+                    "Value": "World"
+                },
+                "x": {
+                    "Name": "rel_x",
+                    "Type": 1,
+                    "Value": 100
+                },
+                "y": {
+                    "Name": "rel_y",
+                    "Type": 1,
+                    "Value": 50
                 }
             }
         }

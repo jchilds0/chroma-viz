@@ -2,8 +2,10 @@ package templates
 
 import (
 	"chroma-viz/library/props"
+	"encoding/json"
 	"fmt"
 	"log"
+	"os"
 
 	"github.com/gotk3/gotk3/gtk"
 )
@@ -19,13 +21,13 @@ import (
 type Template struct {
     Title       string
     TempID      int
-    NumProps    int
+    NumGeo      int
     Layer       int
     Geometry    map[int]*props.Property
 }
 
 func NewTemplate(title string, id int, layer int, num_geo int) *Template {
-    temp := &Template{Title: title, TempID: id, Layer: layer}
+    temp := &Template{Title: title, TempID: id, Layer: layer, NumGeo: num_geo}
 
     temp.Geometry = make(map[int]*props.Property, num_geo)
     return temp
@@ -43,7 +45,7 @@ func (temp *Template) TemplateToListRow() *gtk.ListBoxRow {
 
 func (temp *Template) AddProp(name string, geo_id, typed int, visible map[string]bool) *props.Property {
     temp.Geometry[geo_id] = props.NewProperty(typed, name, visible, func(){})
-    temp.NumProps++
+    temp.NumGeo++
 
     return temp.Geometry[geo_id]
 }
@@ -81,3 +83,22 @@ func (temp *Template) Encode() string {
         temp.TempID, len(temp.Geometry), temp.Layer, "left_to_right", "", "left_to_right", templates)
 }
 
+func ExportTemplate(temp *Template, filename string) error {
+    file, err := os.Create(filename)
+    if err != nil {
+        return err
+    }
+    defer file.Close()
+
+    buf, err := json.Marshal(temp)
+    if err != nil {
+        return err
+    }
+
+    _, err = file.Write(buf)
+    if err != nil {
+        return err
+    }
+
+    return nil
+}
