@@ -91,7 +91,7 @@ func (listAttr *ListAttribute) stringRow(iter *gtk.TreeIter) (s string) {
     return
 }
 
-func (listAttr *ListAttribute) Encode(visible bool) (s string) {
+func (listAttr *ListAttribute) Encode() (s string) {
     // currently chroma_engine allocates 100 nodes for each list statically
     if listAttr.Selected {
         // send only the currently selected item from the list
@@ -100,11 +100,11 @@ func (listAttr *ListAttribute) Encode(visible bool) (s string) {
         }
 
         row := listAttr.encodeRow(listAttr.selectedIter)
-        return fmt.Sprintf("{'name': '%s', 'visible': '%v', 'value': '%s'}", 
-            listAttr.Name, visible, strings.Join(row, " "))
+        return fmt.Sprintf("{'name': '%s', 'value': '%s'}", 
+            listAttr.Name, strings.Join(row, " "))
     }
 
-    s = fmt.Sprintf("{'name': 'num_node', 'visible': '%v', 'value': '%d'}", visible, listAttr.NumCols - 1)
+    s = fmt.Sprintf("{'name': 'num_node', 'value': '%d'}", listAttr.NumCols - 1)
     iter, ok := listAttr.ListStore.GetIterFirst()
     for ok {
         row := listAttr.encodeRow(iter)

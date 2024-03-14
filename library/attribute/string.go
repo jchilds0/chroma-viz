@@ -26,9 +26,9 @@ func (stringAttr *StringAttribute) String() string {
     return fmt.Sprintf("%s=%s#", stringAttr.Name, stringAttr.Value)
 }
 
-func (stringAttr *StringAttribute) Encode(visible bool) string {
-    return fmt.Sprintf("{'name': '%s', 'visible': '%v', 'value': '%s'}", 
-        stringAttr.Name, visible, stringAttr.Value)
+func (stringAttr *StringAttribute) Encode() string {
+    return fmt.Sprintf("{'name': '%s', 'value': '%s'}", 
+        stringAttr.Name, stringAttr.Value)
 }
 
 func (stringAttr *StringAttribute) Update(edit Editor) error {

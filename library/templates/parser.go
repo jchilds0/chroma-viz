@@ -140,9 +140,10 @@ func (temp *Temps) parseTemplate(buf *bufio.Reader) (err error) {
     return
 }
 
-// G -> {'id': 123, 'name': string, 'type': 'abc', 'attr': [A]} | G, G
+// G -> {'id': 123, 'name': 'abc', 'prop_type': 'abc', 'geo_type': 'abc', 'visible': [...], 'attr': [A]} | G, G
 func parseProperty(temp *Template, buf *bufio.Reader) (err error) {
     data := make(map[string]string)
+    visible := make(map[string]bool)
     matchToken('{', buf)
 
     for c_tok.tok == STRING {
@@ -151,11 +152,7 @@ func parseProperty(temp *Template, buf *bufio.Reader) (err error) {
         matchToken(STRING, buf)
         matchToken(':', buf)
 
-        if name != "attr" {
-            data[name] = c_tok.value 
-
-            nextToken(buf)
-        } else {
+        if name == "attr" {
             matchToken('[', buf)
 
             var prop_id int
@@ -169,10 +166,31 @@ func parseProperty(temp *Template, buf *bufio.Reader) (err error) {
                 data["name"] = "Property"
             }
 
-            prop := temp.AddProp(data["name"], prop_id, prop_type)
+            prop := temp.AddProp(data["name"], prop_id, prop_type, visible)
             parseAttributes(prop, buf)
 
             matchToken(']', buf)
+        } else if name == "visible" {
+            matchToken('[', buf)
+
+            for c_tok.tok == STRING {
+                attr := c_tok.value
+                matchToken(STRING, buf)
+                matchToken(':', buf)
+
+                visible[attr] = (c_tok.value == "true")
+                nextToken(buf)
+
+                if (c_tok.tok == ',') {
+                    matchToken(',', buf)
+                }
+            }
+
+            matchToken(']', buf)
+        } else {
+            data[name] = c_tok.value 
+
+            nextToken(buf)
         }
 
         if c_tok.tok == ',' {
@@ -207,8 +225,6 @@ func parseAttributes(prop *props.Property, buf *bufio.Reader) (err error) {
             matchToken(',', buf)
         }
     }
-
-    prop.Visible[data["name"]] = (data["visible"] == "true")
 
     matchToken('}', buf)
 

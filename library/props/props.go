@@ -234,23 +234,35 @@ func (prop *Property) String() (s string) {
     return
 }
 
-// G -> {'id': 123, 'name': 'abc', 'type': 'abc', 'attr': [A]} | G, G
+// G -> {'id': 123, 'name': 'abc', 'prop_type': 'abc', 'geo_type': 'abc', 'visible': [...], 'attr': [A]} | G, G
 func (prop *Property) Encode(geo_id int) string {
     first := true 
     attrs := ""
 
-    for name, attr := range prop.Attr {
+    for _, attr := range prop.Attr {
         if first {
-            attrs = attr.Encode(prop.Visible[name])
+            attrs = attr.Encode()
             first = false 
             continue
         }
 
-        attrs = fmt.Sprintf("%s,%s", attrs, attr.Encode(prop.Visible[name]))
+        attrs = fmt.Sprintf("%s,%s", attrs, attr.Encode())
     }
 
-    return fmt.Sprintf("{'id': %d, 'name': '%s', 'prop_type': '%s', 'geo_type': '%s', 'attr': [%s]}", 
-        geo_id, prop.Name, PropType(prop.PropType), GeoType(prop.PropType), attrs)
+    visible := ""
+    first = true
+    for name, vis := range prop.Visible {
+        if first {
+            visible = fmt.Sprintf("'%s': '%v'", name, vis)
+            first = false
+            continue
+        }
+
+        visible += fmt.Sprintf(",'%s': '%v'", name, vis)
+    }
+
+    return fmt.Sprintf("{'id': %d, 'name': '%s', 'prop_type': '%s', 'geo_type': '%s', 'visible': [%s], 'attr': [%s]}", 
+        geo_id, prop.Name, PropType(prop.PropType), GeoType(prop.PropType), visible, attrs)
 }
 
 /*

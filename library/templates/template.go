@@ -41,8 +41,8 @@ func (temp *Template) TemplateToListRow() *gtk.ListBoxRow {
     return row1
 }
 
-func (temp *Template) AddProp(name string, geo_id, typed int) *props.Property {
-    temp.Geometry[geo_id] = props.NewProperty(typed, name, nil, func(){})
+func (temp *Template) AddProp(name string, geo_id, typed int, visible map[string]bool) *props.Property {
+    temp.Geometry[geo_id] = props.NewProperty(typed, name, visible, func(){})
     temp.NumProps++
 
     return temp.Geometry[geo_id]
