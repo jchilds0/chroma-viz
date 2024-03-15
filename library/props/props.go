@@ -240,13 +240,18 @@ func (prop *Property) Encode(geo_id int) string {
     attrs := ""
 
     for _, attr := range prop.Attr {
+        encode := attr.Encode()
+        if encode == "" {
+            continue
+        }
+
         if first {
-            attrs = attr.Encode()
+            attrs = encode
             first = false 
             continue
         }
 
-        attrs = fmt.Sprintf("%s,%s", attrs, attr.Encode())
+        attrs = fmt.Sprintf("%s,%s", attrs, encode)
     }
 
     visible := ""

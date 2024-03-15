@@ -23,6 +23,7 @@ func NewDataBase() *DataBase {
 func (db *DataBase) EncodeDB() string {
     first := true 
     templates := ""
+    maxTempID := 0
     for _, temp := range db.Templates {
         if first {
             templates = temp.Encode()
@@ -31,9 +32,10 @@ func (db *DataBase) EncodeDB() string {
         }
 
         templates = fmt.Sprintf("%s,%s", templates, temp.Encode())
+        maxTempID = max(maxTempID, temp.TempID)
     }
 
-    return fmt.Sprintf("{'num_temp': %d, 'templates': [%s]}", len(db.Templates), templates)
+    return fmt.Sprintf("{'num_temp': %d, 'templates': [%s]}", maxTempID + 2, templates)
 }
 
 func (db *DataBase) AddTemplate(id int, anim_on, anim_cont, anim_off string) {

@@ -1,1 +1,165 @@
-{"Title":"Lower Frame","TempID":1,"NumGeo":4,"Layer":0,"Geometry":{"0":{"Name":"Rectangle","PropType":0,"Visible":{},"Attr":{"color":{"Name":"color","Type":6,"Red":1,"Green":1,"Blue":1,"Alpha":1},"height":{"Name":"height","Type":1,"Value":0},"parent":{"Name":"parent","Type":1,"Value":0},"width":{"Name":"width","Type":1,"Value":0},"x":{"Name":"rel_x","Type":1,"Value":0},"y":{"Name":"rel_y","Type":1,"Value":0}}},"1":{"Name":"Circle","PropType":2,"Visible":{},"Attr":{"color":{"Name":"color","Type":6,"Red":1,"Green":1,"Blue":1,"Alpha":1},"end_angle":{"Name":"end_angle","Type":1,"Value":0},"inner_radius":{"Name":"inner_radius","Type":1,"Value":0},"outer_radius":{"Name":"outer_radius","Type":1,"Value":0},"parent":{"Name":"parent","Type":1,"Value":0},"start_angle":{"Name":"start_angle","Type":1,"Value":0},"x":{"Name":"rel_x","Type":1,"Value":0},"y":{"Name":"rel_y","Type":1,"Value":0}}},"2":{"Name":"Text","PropType":1,"Visible":{},"Attr":{"color":{"Name":"color","Type":6,"Red":1,"Green":1,"Blue":1,"Alpha":1},"parent":{"Name":"parent","Type":1,"Value":0},"string":{"Name":"string","Type":2,"Value":""},"x":{"Name":"rel_x","Type":1,"Value":0},"y":{"Name":"rel_y","Type":1,"Value":0}}},"3":{"Name":"Text","PropType":1,"Visible":{},"Attr":{"color":{"Name":"color","Type":6,"Red":1,"Green":1,"Blue":1,"Alpha":1},"parent":{"Name":"parent","Type":1,"Value":0},"string":{"Name":"string","Type":2,"Value":""},"x":{"Name":"rel_x","Type":1,"Value":0},"y":{"Name":"rel_y","Type":1,"Value":0}}}}}
+{
+    "Title": "Lower Frame",
+    "TempID": 1,
+    "NumGeo": 4,
+    "Layer": 0,
+    "Geometry": {
+        "3": {
+            "Name": "Text",
+            "PropType": 1,
+            "Visible": {
+                "string": true,
+                "x": true,
+                "y": true
+            },
+            "Attr": {
+                "color": {
+                    "Name": "color",
+                    "Type": 6,
+                    "Red": 1,
+                    "Green": 1,
+                    "Blue": 1,
+                    "Alpha": 1
+                },
+                "parent": {
+                    "Name": "parent",
+                    "Type": 1,
+                    "Value": 0
+                },
+                "string": {
+                    "Name": "string",
+                    "Type": 2,
+                    "Value": "subtitle"
+                },
+                "x": {
+                    "Name": "rel_x",
+                    "Type": 1,
+                    "Value": 250
+                },
+                "y": {
+                    "Name": "rel_y",
+                    "Type": 1,
+                    "Value": 40
+                }
+            }
+        },
+        "0": {
+            "Name": "Rectangle",
+            "PropType": 0,
+            "Visible": {
+                "height": true,
+                "width": true
+            },
+            "Attr": {
+                "color": {
+                    "Name": "color",
+                    "Type": 6,
+                    "Red": 0.10980392156862745,
+                    "Green": 0.44313725490196076,
+                    "Blue": 0.8470588235294118,
+                    "Alpha": 1
+                },
+                "height": {
+                    "Name": "height",
+                    "Type": 1,
+                    "Value": 200
+                },
+                "parent": {
+                    "Name": "parent",
+                    "Type": 1,
+                    "Value": 0
+                },
+                "width": {
+                    "Name": "width",
+                    "Type": 1,
+                    "Value": 700
+                },
+                "x": {
+                    "Name": "rel_x",
+                    "Type": 1,
+                    "Value": 100
+                },
+                "y": {
+                    "Name": "rel_y",
+                    "Type": 1,
+                    "Value": 100
+                }
+            }
+        },
+        "1": {
+            "Name": "Image",
+            "PropType": 6,
+            "Visible": {
+                "scale": true,
+                "x": true,
+                "y": true
+            },
+            "Attr": {
+                "parent": {
+                    "Name": "parent",
+                    "Type": 1,
+                    "Value": 0
+                },
+                "scale": {
+                    "Name": "scale",
+                    "Type": 4,
+                    "Value": 0.3
+                },
+                "string": {
+                    "Name": "string",
+                    "Type": 2,
+                    "Value": "data/logo.png"
+                },
+                "x": {
+                    "Name": "rel_x",
+                    "Type": 1,
+                    "Value": 0
+                },
+                "y": {
+                    "Name": "rel_y",
+                    "Type": 1,
+                    "Value": 10
+                }
+            }
+        },
+        "2": {
+            "Name": "Text",
+            "PropType": 1,
+            "Visible": {
+                "string": true,
+                "x": true,
+                "y": true
+            },
+            "Attr": {
+                "color": {
+                    "Name": "color",
+                    "Type": 6,
+                    "Red": 1,
+                    "Green": 1,
+                    "Blue": 1,
+                    "Alpha": 1
+                },
+                "parent": {
+                    "Name": "parent",
+                    "Type": 1,
+                    "Value": 0
+                },
+                "string": {
+                    "Name": "string",
+                    "Type": 2,
+                    "Value": "Lower Frame"
+                },
+                "x": {
+                    "Name": "rel_x",
+                    "Type": 1,
+                    "Value": 250
+                },
+                "y": {
+                    "Name": "rel_y",
+                    "Type": 1,
+                    "Value": 110
+                }
+            }
+        }
+    }
+}

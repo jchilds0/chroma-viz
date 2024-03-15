@@ -94,7 +94,17 @@ func ArtistGui(app *gtk.Application) {
             editView.SetProperty(page.PropMap[propID]) 
         },
         func(propID, parentID int) {
-            page.PropMap[propID].Attr["parent"].(*attribute.IntAttribute).Value = parentID
+            prop := page.PropMap[propID]
+            if prop == nil {
+                return
+            }
+
+            parentAttr := prop.Attr["parent"]
+            if parentAttr == nil {
+                return
+            }
+
+            parentAttr.(*attribute.IntAttribute).Value = parentID
         },
     )
 
@@ -198,7 +208,7 @@ func ArtistGui(app *gtk.Application) {
         res := dialog.Run()
         if res == gtk.RESPONSE_ACCEPT {
             filename := dialog.GetFilename()
-            temp := templates.NewTemplate(page.Title, page.TemplateID, page.Layer, len(page.PropMap))
+            temp := templates.NewTemplate(page.Title, page.PageNum, page.Layer, len(page.PropMap))
 
             i := 0
             for _, prop := range page.PropMap {
@@ -288,7 +298,7 @@ func ArtistGui(app *gtk.Application) {
             return
         }
 
-        page.TemplateID = id
+        page.PageNum = id
     })
 
     pageActions.PackStart(tempid, false, false, 10)
@@ -419,6 +429,24 @@ func ArtistGui(app *gtk.Application) {
     win.ShowAll()
 }
 
+var visible = map[string]bool {
+    "x": true,
+    "y": true, 
+    "width": true,
+    "height": true,
+    "inner_radius": true,
+    "outer_radius": true,
+    "start_angle": true,
+    "end_angle": true,
+    "color": true,
+    "string": true,
+    "node": true,
+    "text": true,
+    "clock": true,
+    "scale": true,
+    "parent": true,
+}
+
 func ArtistPage() *shows.Page {
     page := &shows.Page{
         Layer: 0,
@@ -459,7 +487,7 @@ func AddProp(label string) (id int, err error) {
         return 
     }
 
-    page.PropMap[id] = props.NewProperty(geo_typed, label, nil, cont)
+    page.PropMap[id] = props.NewProperty(geo_typed, label, visible, cont)
     page.PropMap[id].Attr["parent"] = attribute.NewIntAttribute("parent")
     return
 }
