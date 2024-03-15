@@ -12,6 +12,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"strconv"
 
 	"github.com/gotk3/gotk3/glib"
 	"github.com/gotk3/gotk3/gtk"
@@ -66,8 +67,8 @@ func ArtistGui(app *gtk.Application) {
     win.SetTitle("Chroma Artist")
 
     port := 9100
-    geo := []string{"rect", "text", "circle", "graph", "image"}
-    geo_count = []int{10, 10, 10, 10, 10}
+    geo := []string{"rect", "text", "circle", "graph", "image", "ticker", "clock"}
+    geo_count = []int{10, 10, 10, 10, 10, 10, 10}
     geoms = make(map[int]*geom, len(geo))
 
     index := 0
@@ -255,6 +256,43 @@ func ArtistGui(app *gtk.Application) {
     header1.SetTitle("Template")
     templates.PackStart(header1, false, false, 0)
 
+    pageActions, err := gtk.BoxNew(gtk.ORIENTATION_HORIZONTAL, 0)
+    if err != nil {
+        log.Fatalf("Error starting artist gui (%s)", err)
+    }
+
+    templates.PackStart(pageActions, false, false, 10)
+
+    title := stringEditor("Title", func(entry *gtk.Entry) {
+        text, err := entry.GetText()
+        if err != nil {
+            log.Print(err)
+            return
+        }
+
+        page.Title = text
+    })
+
+    pageActions.PackStart(title, false, false, 10)
+
+    tempid := stringEditor("Template ID", func(entry *gtk.Entry) {
+        text, err := entry.GetText()
+        if err != nil {
+            log.Print(err)
+            return
+        }
+
+        id, err := strconv.Atoi(text)
+        if err != nil {
+            log.Print(err)
+            return
+        }
+
+        page.TemplateID = id
+    })
+
+    pageActions.PackStart(tempid, false, false, 10)
+
     tempActions, err := gtk.BoxNew(gtk.ORIENTATION_HORIZONTAL, 0)
     if err != nil {
         log.Fatalf("Error starting artist gui (%s)", err)
@@ -271,6 +309,10 @@ func ArtistGui(app *gtk.Application) {
     geoBox.AppendText("Rectangle")
     geoBox.AppendText("Circle")
     geoBox.AppendText("Text")
+    geoBox.AppendText("Graph")
+    geoBox.AppendText("Ticker")
+    geoBox.AppendText("Clock")
+    geoBox.AppendText("Image")
 
     button1, err := gtk.ButtonNewWithLabel("Add Geometry")
     if err != nil {
@@ -393,6 +435,10 @@ var geo_type = map[string]int {
     "Rectangle": props.RECT_PROP,
     "Circle": props.CIRCLE_PROP,
     "Text": props.TEXT_PROP,
+    "Graph": props.GRAPH_PROP,
+    "Ticker": props.TICKER_PROP,
+    "Clock": props.CLOCK_PROP,
+    "Image": props.IMAGE_PROP,
 }
 
 func AddProp(label string) (id int, err error) {
@@ -435,3 +481,36 @@ func RemoveProp(propID int) {
     page.PropMap[propID] = nil
 }
 
+func stringEditor(name string, update func(*gtk.Entry)) *gtk.Box {
+    titleBox, err := gtk.BoxNew(gtk.ORIENTATION_HORIZONTAL, 0)
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    titleBox.SetVisible(true)
+    label, err := gtk.LabelNew(name)
+    if err != nil { 
+        log.Fatal(err)
+    }
+
+    label.SetVisible(true)
+    label.SetWidthChars(12)
+    titleBox.PackStart(label, false, false, 10)
+
+    buf, err := gtk.EntryBufferNew("", 0)
+    if err != nil { 
+        log.Fatal(err)
+    }
+
+    entry, err := gtk.EntryNewWithBuffer(buf)
+    if err != nil { 
+        log.Fatal(err)
+    }
+
+    entry.Connect("changed", update)
+
+    entry.SetVisible(true)
+    titleBox.PackStart(entry, false, false, 0)
+
+    return titleBox
+}

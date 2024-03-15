@@ -56,22 +56,11 @@ func NewPropertyEditor(typed int) (propEdit *PropertyEditor, err error) {
         propEdit.editor["height"] = attribute.NewIntEditor("Height", 0, float64(height))
         propEdit.editor["color"] = attribute.NewColorEditor("Color")
 
-        propEdit.Box.PackStart(propEdit.editor["x"].Box(), false, false, padding)
-        propEdit.Box.PackStart(propEdit.editor["y"].Box(), false, false, padding)
-        propEdit.Box.PackStart(propEdit.editor["width"].Box(), false, false, padding)
-        propEdit.Box.PackStart(propEdit.editor["height"].Box(), false, false, padding)
-        propEdit.Box.PackStart(propEdit.editor["color"].Box(), false, false, padding)
-    
     case TEXT_PROP:
         propEdit.editor["x"] = attribute.NewIntEditor("Center x", 0, float64(width))
         propEdit.editor["y"] = attribute.NewIntEditor("Center y", 0, float64(height))
         propEdit.editor["string"] = attribute.NewStringEditor("Text")
         propEdit.editor["color"] = attribute.NewColorEditor("Color")
-
-        propEdit.Box.PackStart(propEdit.editor["x"].Box(), false, false, padding)
-        propEdit.Box.PackStart(propEdit.editor["y"].Box(), false, false, padding)
-        propEdit.Box.PackStart(propEdit.editor["string"].Box(), false, false, padding)
-        propEdit.Box.PackStart(propEdit.editor["color"].Box(), false, false, padding)
 
     case CIRCLE_PROP:
         propEdit.editor["x"] = attribute.NewIntEditor("Center x", 0, float64(width))
@@ -82,6 +71,54 @@ func NewPropertyEditor(typed int) (propEdit *PropertyEditor, err error) {
         propEdit.editor["end_angle"] = attribute.NewIntEditor("End Angle", 0, 360)
         propEdit.editor["color"] = attribute.NewColorEditor("Color")
 
+    case GRAPH_PROP:
+        propEdit.editor["x"] = attribute.NewIntEditor("Center x", 0, float64(width))
+        propEdit.editor["y"] = attribute.NewIntEditor("Center y", 0, float64(height))
+        propEdit.editor["node"] = attribute.NewListEditor("Graph", []string{"x Pos", "y Pos"})
+        propEdit.editor["color"] = attribute.NewColorEditor("Color")
+
+    case TICKER_PROP:
+        propEdit.editor["x"] = attribute.NewIntEditor("Center x", 0, float64(width))
+        propEdit.editor["y"] = attribute.NewIntEditor("Center y", 0, float64(height))
+        propEdit.editor["color"] = attribute.NewColorEditor("Color")
+        propEdit.editor["text"] = attribute.NewListEditor("Ticker", []string{"Text"})
+    
+    case CLOCK_PROP:
+        propEdit.editor["x"] = attribute.NewIntEditor("Center x", 0, float64(width))
+        propEdit.editor["y"] = attribute.NewIntEditor("Center y", 0, float64(height))
+        propEdit.editor["clock"] = attribute.NewClockEditor("Time")
+        propEdit.editor["color"] = attribute.NewColorEditor("Color")
+
+    case IMAGE_PROP:
+        propEdit.editor["x"] = attribute.NewIntEditor("Center x", 0, float64(width))
+        propEdit.editor["y"] = attribute.NewIntEditor("Center y", 0, float64(height))
+        propEdit.editor["string"] = attribute.NewStringEditor("Image")
+        propEdit.editor["scale"] = attribute.NewFloatEditor("Scale", 0.01, 10, 0.01)
+
+    default:
+        return nil, fmt.Errorf("Unknown Prop %d", typed)
+    }
+
+    propEdit.AddEditors()
+    return
+}
+
+func (propEdit *PropertyEditor) AddEditors() {
+    switch (propEdit.PropType) {
+    case RECT_PROP:
+        propEdit.Box.PackStart(propEdit.editor["x"].Box(), false, false, padding)
+        propEdit.Box.PackStart(propEdit.editor["y"].Box(), false, false, padding)
+        propEdit.Box.PackStart(propEdit.editor["width"].Box(), false, false, padding)
+        propEdit.Box.PackStart(propEdit.editor["height"].Box(), false, false, padding)
+        propEdit.Box.PackStart(propEdit.editor["color"].Box(), false, false, padding)
+    
+    case TEXT_PROP:
+        propEdit.Box.PackStart(propEdit.editor["x"].Box(), false, false, padding)
+        propEdit.Box.PackStart(propEdit.editor["y"].Box(), false, false, padding)
+        propEdit.Box.PackStart(propEdit.editor["color"].Box(), false, false, padding)
+        propEdit.Box.PackStart(propEdit.editor["string"].Box(), false, false, padding)
+
+    case CIRCLE_PROP:
         propEdit.Box.PackStart(propEdit.editor["x"].Box(), false, false, padding)
         propEdit.Box.PackStart(propEdit.editor["y"].Box(), false, false, padding)
         propEdit.Box.PackStart(propEdit.editor["inner_radius"].Box(), false, false, padding)
@@ -91,51 +128,32 @@ func NewPropertyEditor(typed int) (propEdit *PropertyEditor, err error) {
         propEdit.Box.PackStart(propEdit.editor["color"].Box(), false, false, padding)
 
     case GRAPH_PROP:
-        propEdit.editor["x"] = attribute.NewIntEditor("Center x", 0, float64(width))
-        propEdit.editor["y"] = attribute.NewIntEditor("Center y", 0, float64(height))
-        propEdit.editor["node"] = attribute.NewListEditor("Graph", []string{"x Pos", "y Pos"})
-        propEdit.editor["color"] = attribute.NewColorEditor("Color")
-
         propEdit.Box.PackStart(propEdit.editor["x"].Box(), false, false, padding)
         propEdit.Box.PackStart(propEdit.editor["y"].Box(), false, false, padding)
-        propEdit.Box.PackStart(propEdit.editor["node"].Box(), false, false, padding)
         propEdit.Box.PackStart(propEdit.editor["color"].Box(), false, false, padding)
+        propEdit.Box.PackStart(propEdit.editor["node"].Box(), false, false, padding)
 
     case TICKER_PROP:
-        propEdit.editor["x"] = attribute.NewIntEditor("Center x", 0, float64(width))
-        propEdit.editor["y"] = attribute.NewIntEditor("Center y", 0, float64(height))
-        propEdit.editor["color"] = attribute.NewColorEditor("Color")
-        propEdit.editor["text"] = attribute.NewListEditor("Ticker", []string{"Text"})
-    
         propEdit.Box.PackStart(propEdit.editor["x"].Box(), false, false, padding)
         propEdit.Box.PackStart(propEdit.editor["y"].Box(), false, false, padding)
+        propEdit.Box.PackStart(propEdit.editor["color"].Box(), false, false, padding)
         propEdit.Box.PackStart(propEdit.editor["text"].Box(), false, false, padding)
 
     case CLOCK_PROP:
-        propEdit.editor["x"] = attribute.NewIntEditor("Center x", 0, float64(width))
-        propEdit.editor["y"] = attribute.NewIntEditor("Center y", 0, float64(height))
-        propEdit.editor["clock"] = attribute.NewClockEditor("Time")
-        propEdit.editor["color"] = attribute.NewColorEditor("Color")
-
         propEdit.Box.PackStart(propEdit.editor["x"].Box(), false, false, padding)
         propEdit.Box.PackStart(propEdit.editor["y"].Box(), false, false, padding)
-        propEdit.Box.PackStart(propEdit.editor["clock"].Box(), false, false, padding)
         propEdit.Box.PackStart(propEdit.editor["color"].Box(), false, false, padding)
-    case IMAGE_PROP:
-        propEdit.editor["x"] = attribute.NewIntEditor("Center x", 0, float64(width))
-        propEdit.editor["y"] = attribute.NewIntEditor("Center y", 0, float64(height))
-        propEdit.editor["string"] = attribute.NewStringEditor("Image")
-        propEdit.editor["scale"] = attribute.NewFloatEditor("Scale", 0.01, 10, 0.01)
+        propEdit.Box.PackStart(propEdit.editor["clock"].Box(), false, false, padding)
 
+    case IMAGE_PROP:
         propEdit.Box.PackStart(propEdit.editor["x"].Box(), false, false, padding)
         propEdit.Box.PackStart(propEdit.editor["y"].Box(), false, false, padding)
-        propEdit.Box.PackStart(propEdit.editor["string"].Box(), false, false, padding)
         propEdit.Box.PackStart(propEdit.editor["scale"].Box(), false, false, padding)
-    default:
-        return nil, fmt.Errorf("Unknown Prop %d", typed)
-    }
+        propEdit.Box.PackStart(propEdit.editor["string"].Box(), false, false, padding)
 
-    return
+    default:
+        log.Printf("Unknown Prop %d", propEdit.PropType)
+    }
 }
 
 /*
