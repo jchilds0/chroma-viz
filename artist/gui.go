@@ -211,7 +211,21 @@ func ArtistGui(app *gtk.Application) {
             temp := templates.NewTemplate(page.Title, page.PageNum, page.Layer, len(page.PropMap))
 
             i := 0
-            for _, prop := range page.PropMap {
+            for index, prop := range page.PropMap {
+                for _, child := range page.PropMap {
+                    parentAttr := child.Attr["parent"]
+                    if parentAttr == nil {
+                        continue
+                    }
+
+                    attr := parentAttr.(*attribute.IntAttribute)
+                    if attr.Value != index {
+                        continue
+                    }
+
+                    attr.Value = i
+                }
+
                 temp.Geometry[i] = prop
                 i++
             }
