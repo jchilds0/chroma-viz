@@ -43,7 +43,7 @@ func (temp *Template) TemplateToListRow() *gtk.ListBoxRow {
     return row1
 }
 
-func (temp *Template) AddProp(name string, geo_id, typed int, visible map[string]bool) *props.Property {
+func (temp *Template) AddGeometry(name string, geo_id, typed int, visible map[string]bool) *props.Property {
     temp.Geometry[geo_id] = props.NewProperty(typed, name, visible, func(){})
     temp.NumGeo++
 
@@ -101,4 +101,16 @@ func ExportTemplate(temp *Template, filename string) error {
     }
 
     return nil
+}
+
+func (temp *Template) GetTemplateID() int {
+    return temp.TempID
+}
+
+func (temp *Template) GetLayer() int {
+    return temp.Layer 
+}
+
+func (temp *Template) GetPropMap() map[int]*props.Property {
+    return temp.Geometry
 }

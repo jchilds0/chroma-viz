@@ -108,3 +108,16 @@ func ExportPage(page *Page, filename string) (err error) {
     }
     return
 }
+
+func (page *Page) GetTemplateID() int {
+    return page.TemplateID
+}
+
+func (page *Page) GetLayer() int {
+    return page.Layer
+}
+
+func (page *Page) GetPropMap() map[int]*props.Property {
+    return page.PropMap
+}
+

@@ -166,7 +166,7 @@ func parseProperty(temp *Template, buf *bufio.Reader) (err error) {
                 data["name"] = "Property"
             }
 
-            prop := temp.AddProp(data["name"], prop_id, prop_type, visible)
+            prop := temp.AddGeometry(data["name"], prop_id, prop_type, visible)
             parseAttributes(prop, buf)
 
             matchToken(']', buf)

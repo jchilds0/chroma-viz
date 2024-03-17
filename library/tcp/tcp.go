@@ -1,13 +1,19 @@
 package tcp
 
 import (
-	"chroma-viz/library/shows"
+	"chroma-viz/library/props"
 	"fmt"
 	"log"
 	"net"
 	"strconv"
 	"time"
 )
+
+type Animator interface {
+    GetTemplateID() int
+    GetLayer() int
+    GetPropMap() map[int]*props.Property
+}
 
 const (
     END_OF_CONN = iota + 1
@@ -23,13 +29,13 @@ type Connection struct {
     port        int
     connected   bool
     Conn        net.Conn
-    SetPage     chan *shows.Page
+    SetPage     chan Animator
     SetAction   chan int
 }
 
 func NewConnection(name, addr string, port int) *Connection {
     conn := &Connection{Name: name, addr: addr, port: port}
-    conn.SetPage = make(chan *shows.Page, 1)
+    conn.SetPage = make(chan Animator, 1)
     conn.SetAction = make(chan int, 1)
 
     go conn.SendPage()
@@ -56,7 +62,7 @@ func (conn *Connection) Connect() {
     P -> attr=%s#val=%s# P
 */
 func (conn *Connection) SendPage() {
-    var page *shows.Page
+    var page Animator
 
     for {
         action := <-conn.SetAction
@@ -78,10 +84,10 @@ func (conn *Connection) SendPage() {
         version := [...]int{1, 4}
 
         header := fmt.Sprintf("ver=%d,%d#layer=%d#action=%d#temp=%d#", 
-            version[0], version[1], page.Layer, action, page.TemplateID)
+            version[0], version[1], page.GetLayer(), action, page.GetTemplateID())
 
         geo := ""
-        for i, prop := range page.PropMap {
+        for i, prop := range page.GetPropMap() {
             geo = geo + fmt.Sprintf("geo_num=%d#%s", i, prop.String())
         }
 

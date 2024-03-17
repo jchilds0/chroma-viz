@@ -48,7 +48,7 @@ func AddConnection(name, conn_type, ip string, port int) error {
     return fmt.Errorf("Unknown connection type %s", conn_type)
 }
 
-func SendPreview(page *shows.Page, action int) {
+func SendPreview(page tcp.Animator, action int) {
     if page == nil {
         log.Println("SendPreview recieved nil page")
         return
@@ -64,7 +64,7 @@ func SendPreview(page *shows.Page, action int) {
     }
 }
 
-func SendEngine(page *shows.Page, action int) {
+func SendEngine(page tcp.Animator, action int) {
     if page == nil {
         log.Println("SendEngine recieved nil page")
         return

@@ -53,7 +53,7 @@ func (db *DataBase) AddGeometry(temp_id, geo_id int, geo_type string) {
     }
 
     temp := db.Templates[temp_id]
-    temp.AddProp("", geo_id, props.StringToProp[geo_type], nil)
+    temp.AddGeometry("", geo_id, props.StringToProp[geo_type], nil)
 }
 
 func (db *DataBase) SendHub(ln net.Listener) {

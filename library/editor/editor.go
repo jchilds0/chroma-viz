@@ -3,6 +3,7 @@ package editor
 import (
 	"chroma-viz/library/props"
 	"chroma-viz/library/shows"
+	"chroma-viz/library/tcp"
 	"log"
 
 	"github.com/gotk3/gotk3/gtk"
@@ -19,12 +20,12 @@ type Editor struct {
     header    *gtk.HeaderBar
     actions   *gtk.Box
     propBox   *gtk.Box
-    Page      *shows.Page
+    Page      tcp.Animator
     pairs     []Pairing
     propEdit  [][]*props.PropertyEditor
 }
 
-func NewEditor(sendEngine, sendPreview func(*shows.Page, int)) *Editor {
+func NewEditor(sendEngine, sendPreview func(tcp.Animator, int)) *Editor {
     var err error
     editor := &Editor{
     }
@@ -139,7 +140,7 @@ func (editor *Editor) SetPage(page *shows.Page) {
     editor.Page = page
     editor.pairs = make([]Pairing, 0, 10)
     propCount := make([]int, props.NUM_PROPS)
-    for _, prop := range editor.Page.PropMap {
+    for _, prop := range editor.Page.GetPropMap() {
         if prop == nil {
             log.Print("Editor recieved nil prop")
             continue

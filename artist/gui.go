@@ -5,7 +5,6 @@ import (
 	"chroma-viz/library/attribute"
 	"chroma-viz/library/editor"
 	"chroma-viz/library/props"
-	"chroma-viz/library/shows"
 	"chroma-viz/library/tcp"
 	"chroma-viz/library/templates"
 	"encoding/json"
@@ -37,7 +36,7 @@ func CloseConn() {
     }
 }
 
-func SendPreview(page *shows.Page, action int) {
+func SendPreview(page tcp.Animator, action int) {
     if page == nil {
         log.Println("SendPreview recieved nil page")
         return
@@ -53,7 +52,7 @@ func SendPreview(page *shows.Page, action int) {
     }
 }
 
-var page = ArtistPage()
+var template = ArtistPage()
 var geo_count []int
 var geoms map[int]*geom
 
@@ -81,20 +80,21 @@ func ArtistGui(app *gtk.Application) {
     hub.ImportArchive("artist/artist.json")
     go hub.StartHub(port, -1)
 
-    editView := editor.NewEditor(func(page *shows.Page, action int) {}, SendPreview)
+    editView := editor.NewEditor(func(page tcp.Animator, action int) {}, SendPreview)
     editView.AddAction("Save", true, func() { 
         editView.UpdateProps()
         SendPreview(editView.Page, tcp.ANIMATE_ON) 
     })
     editView.PropertyEditor()
-    editView.Page = page
+    editView.Page = template
 
     temp, err := NewTempTree(
         func(propID int) { 
-            editView.SetProperty(page.PropMap[propID]) 
+            prop := template.GetPropMap()[propID]
+            editView.SetProperty(prop) 
         },
         func(propID, parentID int) {
-            prop := page.PropMap[propID]
+            prop := template.GetPropMap()[propID]
             if prop == nil {
                 return
             }
@@ -153,9 +153,7 @@ func ArtistGui(app *gtk.Application) {
                 return 
             }
 
-            var template templates.Template
-
-            err = json.Unmarshal(buf, &template)
+            err = json.Unmarshal(buf, template)
             if err != nil {
                 log.Print(err)
                 return 
@@ -164,28 +162,43 @@ func ArtistGui(app *gtk.Application) {
             temp.model, err = gtk.TreeStoreNew(glib.TYPE_OBJECT, glib.TYPE_STRING, glib.TYPE_OBJECT, glib.TYPE_INT)
             temp.view.SetModel(temp.model)
 
-            page.TemplateID = template.TempID
-            page.Layer = template.Layer
-            page.Title = template.Title
+            // build a map of json geo id's to new geo id's
+            geoRename := make(map[int]int, len(template.Geometry))
+            newGeoMap := make(map[int]*props.Property, len(template.Geometry))
 
-            for _, geo := range template.Geometry {
+            for id, geo := range template.Geometry {
                 geom, ok := geoms[geo.PropType]
                 if !ok {
                     log.Printf("Missing Geom %s", props.PropType(geo.PropType))
                     continue
                 }
 
-                id, err := geom.allocGeom()
+                newID, err := geom.allocGeom()
                 if err != nil {
                     log.Print(err)
                     continue
                 }
 
-                page.PropMap[id] = geo
+                newGeoMap[newID] = geo
+                geoRename[id] = newID
 
                 newRow := temp.model.Append(nil)
                 temp.model.SetValue(newRow, NAME, geo.Name)
-                temp.model.SetValue(newRow, PROP_NUM, id)
+                temp.model.SetValue(newRow, PROP_NUM, newID)
+            }
+
+            template.Geometry = newGeoMap
+
+            // update parent geo id's using geoRename
+            for _, geo := range template.Geometry {
+                parentAttr := geo.Attr["parent"]
+                if parentAttr == nil {
+                    log.Printf("Missing parent attr for geo %s", geo.Name)
+                    continue
+                }
+
+                parent := parentAttr.(*attribute.IntAttribute).Value
+                parentAttr.(*attribute.IntAttribute).Value = geoRename[parent]
             }
 
             return
@@ -204,33 +217,40 @@ func ArtistGui(app *gtk.Application) {
         }
         defer dialog.Destroy()
 
-        dialog.SetCurrentName(page.Title + ".json")
+        dialog.SetCurrentName(template.Title + ".json")
         res := dialog.Run()
         if res == gtk.RESPONSE_ACCEPT {
             filename := dialog.GetFilename()
-            temp := templates.NewTemplate(page.Title, page.PageNum, page.Layer, len(page.PropMap))
+
+            // build geo id map 
+            geoRename := make(map[int]int, len(template.Geometry))
+            newGeoMap := make(map[int]*props.Property, len(template.Geometry))
 
             i := 0
-            for index, prop := range page.PropMap {
-                for _, child := range page.PropMap {
-                    parentAttr := child.Attr["parent"]
-                    if parentAttr == nil {
-                        continue
-                    }
-
-                    attr := parentAttr.(*attribute.IntAttribute)
-                    if attr.Value != index {
-                        continue
-                    }
-
-                    attr.Value = i
-                }
-
-                temp.Geometry[i] = prop
+            for id, geo := range template.Geometry {
+                newGeoMap[i] = geo
+                geoRename[id] = i 
                 i++
             }
 
-            err := templates.ExportTemplate(temp, filename)
+            template.Geometry = newGeoMap
+
+            // update parent geo id's
+            for id, geo := range template.Geometry {
+                parentAttr := geo.Attr["parent"]
+                if parentAttr == nil {
+                    continue
+                }
+
+                attr := parentAttr.(*attribute.IntAttribute)
+                if attr.Value != index {
+                    continue
+                }
+
+                attr.Value = geoRename[id]
+            }
+
+            err := templates.ExportTemplate(template, filename)
             if err != nil {
                 log.Print(err)
                 return
@@ -294,7 +314,7 @@ func ArtistGui(app *gtk.Application) {
             return
         }
 
-        page.Title = text
+        template.Title = text
     })
 
     pageActions.PackStart(title, false, false, 10)
@@ -312,7 +332,7 @@ func ArtistGui(app *gtk.Application) {
             return
         }
 
-        page.PageNum = id
+        template.TempID = id
     })
 
     pageActions.PackStart(tempid, false, false, 10)
@@ -461,14 +481,13 @@ var visible = map[string]bool {
     "parent": true,
 }
 
-func ArtistPage() *shows.Page {
-    page := &shows.Page{
+func ArtistPage() *templates.Template {
+    page := &templates.Template{
         Layer: 0,
-        TemplateID: 0,
-        PageNum: 0,
+        TempID: 0,
     }
 
-    page.PropMap = make(map[int]*props.Property)
+    page.Geometry = make(map[int]*props.Property)
 
     return page
 }
@@ -484,7 +503,7 @@ var geo_type = map[string]int {
 }
 
 func AddProp(label string) (id int, err error) {
-    cont := func() { SendPreview(page, tcp.CONTINUE) }
+    cont := func() { SendPreview(template, tcp.CONTINUE) }
 
     geo_typed, ok := geo_type[label]
     if !ok {
@@ -501,13 +520,13 @@ func AddProp(label string) (id int, err error) {
         return 
     }
 
-    page.PropMap[id] = props.NewProperty(geo_typed, label, visible, cont)
-    page.PropMap[id].Attr["parent"] = attribute.NewIntAttribute("parent")
+    template.Geometry[id] = props.NewProperty(geo_typed, label, visible, cont)
+    template.Geometry[id].Attr["parent"] = attribute.NewIntAttribute("parent")
     return
 }
 
 func RemoveProp(propID int) {
-    prop := page.PropMap[propID]
+    prop := template.Geometry[propID]
     if prop == nil {
         log.Printf("No prop with prop id %d", propID)
         return
@@ -520,7 +539,7 @@ func RemoveProp(propID int) {
     }
 
     geom.freeGeom(propID)
-    page.PropMap[propID] = nil
+    template.Geometry[propID] = nil
 }
 
 func stringEditor(name string, update func(*gtk.Entry)) *gtk.Box {
