@@ -1,400 +1,1260 @@
 {
-    "Array": {
+    "Templates": {
         "0": {
-            "Id": 0,
-            "Name": "Teal Box",
+            "Title": "Teal Box",
+            "TempID": 0,
+            "NumGeo": 0,
             "Layer": 0,
-            "Geo": {
+            "Geometry": {
                 "0": {
-                    "Id": 0,
                     "Name": "Background",
-                    "Parent": 0,
-                    "GeoType": "rect",
-                    "PropType": "rect",
-                    "Attrs": [
-                        {
+                    "PropType": 0,
+                    "Visible": {
+                        "clock": true,
+                        "color": true,
+                        "end_angle": true,
+                        "height": true,
+                        "inner_radius": true,
+                        "node": true,
+                        "outer_radius": true,
+                        "parent": true,
+                        "scale": true,
+                        "start_angle": true,
+                        "string": true,
+                        "text": true,
+                        "width": true,
+                        "x": true,
+                        "y": true
+                    },
+                    "Attr": {
+                        "color": {
                             "Name": "color",
-                            "Value": "2 132 130 255"
+                            "Type": 6,
+                            "Red": 1,
+                            "Green": 1,
+                            "Blue": 1,
+                            "Alpha": 1
                         },
-                        {
-                            "Name": "rounding",
-                            "Value": "20"
+                        "height": {
+                            "Name": "height",
+                            "Type": 1,
+                            "Value": 0
+                        },
+                        "parent": {
+                            "Name": "parent",
+                            "Type": 1,
+                            "Value": 0
+                        },
+                        "width": {
+                            "Name": "width",
+                            "Type": 1,
+                            "Value": 0
+                        },
+                        "x": {
+                            "Name": "rel_x",
+                            "Type": 1,
+                            "Value": 0
+                        },
+                        "y": {
+                            "Name": "rel_y",
+                            "Type": 1,
+                            "Value": 0
                         }
-                    ]
+                    }
                 },
                 "1": {
-                    "Id": 1,
                     "Name": "Circle",
-                    "Parent": 0,
-                    "GeoType": "circle",
-                    "PropType": "circle",
-                    "Attrs": [
-                        {
+                    "PropType": 2,
+                    "Visible": {
+                        "clock": true,
+                        "color": true,
+                        "end_angle": true,
+                        "height": true,
+                        "inner_radius": true,
+                        "node": true,
+                        "outer_radius": true,
+                        "parent": true,
+                        "scale": true,
+                        "start_angle": true,
+                        "string": true,
+                        "text": true,
+                        "width": true,
+                        "x": true,
+                        "y": true
+                    },
+                    "Attr": {
+                        "color": {
                             "Name": "color",
-                            "Value": "255 255 255 255"
+                            "Type": 6,
+                            "Red": 1,
+                            "Green": 1,
+                            "Blue": 1,
+                            "Alpha": 1
+                        },
+                        "end_angle": {
+                            "Name": "end_angle",
+                            "Type": 1,
+                            "Value": 0
+                        },
+                        "inner_radius": {
+                            "Name": "inner_radius",
+                            "Type": 1,
+                            "Value": 0
+                        },
+                        "outer_radius": {
+                            "Name": "outer_radius",
+                            "Type": 1,
+                            "Value": 0
+                        },
+                        "parent": {
+                            "Name": "parent",
+                            "Type": 1,
+                            "Value": 0
+                        },
+                        "start_angle": {
+                            "Name": "start_angle",
+                            "Type": 1,
+                            "Value": 0
+                        },
+                        "x": {
+                            "Name": "rel_x",
+                            "Type": 1,
+                            "Value": 0
+                        },
+                        "y": {
+                            "Name": "rel_y",
+                            "Type": 1,
+                            "Value": 0
                         }
-                    ]
+                    }
                 },
                 "2": {
-                    "Id": 2,
                     "Name": "Title",
-                    "Parent": 0,
-                    "GeoType": "text",
-                    "PropType": "text",
-                    "Attrs": [
-                        {
+                    "PropType": 1,
+                    "Visible": {
+                        "clock": true,
+                        "color": true,
+                        "end_angle": true,
+                        "height": true,
+                        "inner_radius": true,
+                        "node": true,
+                        "outer_radius": true,
+                        "parent": true,
+                        "scale": true,
+                        "start_angle": true,
+                        "string": true,
+                        "text": true,
+                        "width": true,
+                        "x": true,
+                        "y": true
+                    },
+                    "Attr": {
+                        "color": {
                             "Name": "color",
-                            "Value": "255 255 255 255"
+                            "Type": 6,
+                            "Red": 1,
+                            "Green": 1,
+                            "Blue": 1,
+                            "Alpha": 1
                         },
-                        {
-                            "Name": "scale",
-                            "Value": "1.0"
+                        "parent": {
+                            "Name": "parent",
+                            "Type": 1,
+                            "Value": 0
+                        },
+                        "string": {
+                            "Name": "string",
+                            "Type": 2,
+                            "Value": ""
+                        },
+                        "x": {
+                            "Name": "rel_x",
+                            "Type": 1,
+                            "Value": 0
+                        },
+                        "y": {
+                            "Name": "rel_y",
+                            "Type": 1,
+                            "Value": 0
                         }
-                    ]
+                    }
                 },
                 "3": {
-                    "Id": 3,
                     "Name": "Subtitle",
-                    "Parent": 0,
-                    "GeoType": "text",
-                    "PropType": "text",
-                    "Attrs": [
-                        {
+                    "PropType": 1,
+                    "Visible": {
+                        "clock": true,
+                        "color": true,
+                        "end_angle": true,
+                        "height": true,
+                        "inner_radius": true,
+                        "node": true,
+                        "outer_radius": true,
+                        "parent": true,
+                        "scale": true,
+                        "start_angle": true,
+                        "string": true,
+                        "text": true,
+                        "width": true,
+                        "x": true,
+                        "y": true
+                    },
+                    "Attr": {
+                        "color": {
                             "Name": "color",
-                            "Value": "255 255 255 255"
+                            "Type": 6,
+                            "Red": 1,
+                            "Green": 1,
+                            "Blue": 1,
+                            "Alpha": 1
                         },
-                        {
-                            "Name": "scale",
-                            "Value": "1.0"
+                        "parent": {
+                            "Name": "parent",
+                            "Type": 1,
+                            "Value": 0
+                        },
+                        "string": {
+                            "Name": "string",
+                            "Type": 2,
+                            "Value": ""
+                        },
+                        "x": {
+                            "Name": "rel_x",
+                            "Type": 1,
+                            "Value": 0
+                        },
+                        "y": {
+                            "Name": "rel_y",
+                            "Type": 1,
+                            "Value": 0
                         }
-                    ]
+                    }
                 }
-            },
-            "Animate_on": "left_to_right",
-            "Animate_cont": "",
-            "Animate_off": "left_to_right"
+            }
         },
         "1": {
-            "Id": 1,
-            "Name": "Clock",
+            "Title": "Clock",
+            "TempID": 1,
+            "NumGeo": 0,
             "Layer": 0,
-            "Geo": {
+            "Geometry": {
                 "0": {
-                    "Id": 0,
-                    "Name": "Background",
-                    "Parent": 0,
-                    "GeoType": "rect",
-                    "PropType": "rect",
-                    "Attrs": [
-                        {
+                    "Name": "Team 2",
+                    "PropType": 1,
+                    "Visible": {
+                        "clock": true,
+                        "color": true,
+                        "end_angle": true,
+                        "height": true,
+                        "inner_radius": true,
+                        "node": true,
+                        "outer_radius": true,
+                        "parent": true,
+                        "scale": true,
+                        "start_angle": true,
+                        "string": true,
+                        "text": true,
+                        "width": true,
+                        "x": true,
+                        "y": true
+                    },
+                    "Attr": {
+                        "color": {
                             "Name": "color",
-                            "Value": "5 68 94 255"
+                            "Type": 6,
+                            "Red": 1,
+                            "Green": 1,
+                            "Blue": 1,
+                            "Alpha": 1
                         },
-                        {
-                            "Name": "rounding",
-                            "Value": "10"
+                        "parent": {
+                            "Name": "parent",
+                            "Type": 1,
+                            "Value": 0
+                        },
+                        "string": {
+                            "Name": "string",
+                            "Type": 2,
+                            "Value": ""
+                        },
+                        "x": {
+                            "Name": "rel_x",
+                            "Type": 1,
+                            "Value": 0
+                        },
+                        "y": {
+                            "Name": "rel_y",
+                            "Type": 1,
+                            "Value": 0
                         }
-                    ]
+                    }
                 },
                 "1": {
-                    "Id": 1,
-                    "Name": "Circle",
-                    "Parent": 0,
-                    "GeoType": "circle",
-                    "PropType": "circle",
-                    "Attrs": [
-                        {
+                    "Name": "Background",
+                    "PropType": 0,
+                    "Visible": {
+                        "clock": true,
+                        "color": true,
+                        "end_angle": true,
+                        "height": true,
+                        "inner_radius": true,
+                        "node": true,
+                        "outer_radius": true,
+                        "parent": true,
+                        "scale": true,
+                        "start_angle": true,
+                        "string": true,
+                        "text": true,
+                        "width": true,
+                        "x": true,
+                        "y": true
+                    },
+                    "Attr": {
+                        "color": {
                             "Name": "color",
-                            "Value": "255 255 255 255"
+                            "Type": 6,
+                            "Red": 1,
+                            "Green": 1,
+                            "Blue": 1,
+                            "Alpha": 1
+                        },
+                        "height": {
+                            "Name": "height",
+                            "Type": 1,
+                            "Value": 0
+                        },
+                        "parent": {
+                            "Name": "parent",
+                            "Type": 1,
+                            "Value": 0
+                        },
+                        "width": {
+                            "Name": "width",
+                            "Type": 1,
+                            "Value": 0
+                        },
+                        "x": {
+                            "Name": "rel_x",
+                            "Type": 1,
+                            "Value": 0
+                        },
+                        "y": {
+                            "Name": "rel_y",
+                            "Type": 1,
+                            "Value": 0
                         }
-                    ]
+                    }
                 },
                 "10": {
-                    "Id": 10,
                     "Name": "Period",
-                    "Parent": 8,
-                    "GeoType": "text",
-                    "PropType": "text",
-                    "Attrs": [
-                        {
+                    "PropType": 1,
+                    "Visible": {
+                        "clock": true,
+                        "color": true,
+                        "end_angle": true,
+                        "height": true,
+                        "inner_radius": true,
+                        "node": true,
+                        "outer_radius": true,
+                        "parent": true,
+                        "scale": true,
+                        "start_angle": true,
+                        "string": true,
+                        "text": true,
+                        "width": true,
+                        "x": true,
+                        "y": true
+                    },
+                    "Attr": {
+                        "color": {
                             "Name": "color",
-                            "Value": "255 255 255 255"
+                            "Type": 6,
+                            "Red": 1,
+                            "Green": 1,
+                            "Blue": 1,
+                            "Alpha": 1
                         },
-                        {
-                            "Name": "scale",
-                            "Value": "1.0"
+                        "parent": {
+                            "Name": "parent",
+                            "Type": 1,
+                            "Value": 0
+                        },
+                        "string": {
+                            "Name": "string",
+                            "Type": 2,
+                            "Value": ""
+                        },
+                        "x": {
+                            "Name": "rel_x",
+                            "Type": 1,
+                            "Value": 0
+                        },
+                        "y": {
+                            "Name": "rel_y",
+                            "Type": 1,
+                            "Value": 0
                         }
-                    ]
+                    }
                 },
                 "2": {
-                    "Id": 2,
-                    "Name": "Left Split",
-                    "Parent": 0,
-                    "GeoType": "rect",
-                    "PropType": "rect",
-                    "Attrs": [
-                        {
+                    "Name": "Circle",
+                    "PropType": 2,
+                    "Visible": {
+                        "clock": true,
+                        "color": true,
+                        "end_angle": true,
+                        "height": true,
+                        "inner_radius": true,
+                        "node": true,
+                        "outer_radius": true,
+                        "parent": true,
+                        "scale": true,
+                        "start_angle": true,
+                        "string": true,
+                        "text": true,
+                        "width": true,
+                        "x": true,
+                        "y": true
+                    },
+                    "Attr": {
+                        "color": {
                             "Name": "color",
-                            "Value": "255 255 255 255"
+                            "Type": 6,
+                            "Red": 1,
+                            "Green": 1,
+                            "Blue": 1,
+                            "Alpha": 1
+                        },
+                        "end_angle": {
+                            "Name": "end_angle",
+                            "Type": 1,
+                            "Value": 0
+                        },
+                        "inner_radius": {
+                            "Name": "inner_radius",
+                            "Type": 1,
+                            "Value": 0
+                        },
+                        "outer_radius": {
+                            "Name": "outer_radius",
+                            "Type": 1,
+                            "Value": 0
+                        },
+                        "parent": {
+                            "Name": "parent",
+                            "Type": 1,
+                            "Value": 0
+                        },
+                        "start_angle": {
+                            "Name": "start_angle",
+                            "Type": 1,
+                            "Value": 0
+                        },
+                        "x": {
+                            "Name": "rel_x",
+                            "Type": 1,
+                            "Value": 0
+                        },
+                        "y": {
+                            "Name": "rel_y",
+                            "Type": 1,
+                            "Value": 0
                         }
-                    ]
+                    }
                 },
                 "3": {
-                    "Id": 3,
-                    "Name": "Team 1",
-                    "Parent": 2,
-                    "GeoType": "text",
-                    "PropType": "text",
-                    "Attrs": [
-                        {
+                    "Name": "Left Split",
+                    "PropType": 0,
+                    "Visible": {
+                        "clock": true,
+                        "color": true,
+                        "end_angle": true,
+                        "height": true,
+                        "inner_radius": true,
+                        "node": true,
+                        "outer_radius": true,
+                        "parent": true,
+                        "scale": true,
+                        "start_angle": true,
+                        "string": true,
+                        "text": true,
+                        "width": true,
+                        "x": true,
+                        "y": true
+                    },
+                    "Attr": {
+                        "color": {
                             "Name": "color",
-                            "Value": "255 255 255 255"
+                            "Type": 6,
+                            "Red": 1,
+                            "Green": 1,
+                            "Blue": 1,
+                            "Alpha": 1
                         },
-                        {
-                            "Name": "scale",
-                            "Value": "1.0"
+                        "height": {
+                            "Name": "height",
+                            "Type": 1,
+                            "Value": 0
+                        },
+                        "parent": {
+                            "Name": "parent",
+                            "Type": 1,
+                            "Value": 0
+                        },
+                        "width": {
+                            "Name": "width",
+                            "Type": 1,
+                            "Value": 0
+                        },
+                        "x": {
+                            "Name": "rel_x",
+                            "Type": 1,
+                            "Value": 0
+                        },
+                        "y": {
+                            "Name": "rel_y",
+                            "Type": 1,
+                            "Value": 0
                         }
-                    ]
+                    }
                 },
                 "4": {
-                    "Id": 4,
-                    "Name": "Score 1",
-                    "Parent": 2,
-                    "GeoType": "text",
-                    "PropType": "text",
-                    "Attrs": [
-                        {
+                    "Name": "Team 1",
+                    "PropType": 1,
+                    "Visible": {
+                        "clock": true,
+                        "color": true,
+                        "end_angle": true,
+                        "height": true,
+                        "inner_radius": true,
+                        "node": true,
+                        "outer_radius": true,
+                        "parent": true,
+                        "scale": true,
+                        "start_angle": true,
+                        "string": true,
+                        "text": true,
+                        "width": true,
+                        "x": true,
+                        "y": true
+                    },
+                    "Attr": {
+                        "color": {
                             "Name": "color",
-                            "Value": "255 255 255 255"
+                            "Type": 6,
+                            "Red": 1,
+                            "Green": 1,
+                            "Blue": 1,
+                            "Alpha": 1
                         },
-                        {
-                            "Name": "scale",
-                            "Value": "1.0"
+                        "parent": {
+                            "Name": "parent",
+                            "Type": 1,
+                            "Value": 0
+                        },
+                        "string": {
+                            "Name": "string",
+                            "Type": 2,
+                            "Value": ""
+                        },
+                        "x": {
+                            "Name": "rel_x",
+                            "Type": 1,
+                            "Value": 0
+                        },
+                        "y": {
+                            "Name": "rel_y",
+                            "Type": 1,
+                            "Value": 0
                         }
-                    ]
+                    }
                 },
                 "5": {
-                    "Id": 5,
-                    "Name": "Mid Split",
-                    "Parent": 2,
-                    "GeoType": "rect",
-                    "PropType": "rect",
-                    "Attrs": [
-                        {
+                    "Name": "Score 1",
+                    "PropType": 1,
+                    "Visible": {
+                        "clock": true,
+                        "color": true,
+                        "end_angle": true,
+                        "height": true,
+                        "inner_radius": true,
+                        "node": true,
+                        "outer_radius": true,
+                        "parent": true,
+                        "scale": true,
+                        "start_angle": true,
+                        "string": true,
+                        "text": true,
+                        "width": true,
+                        "x": true,
+                        "y": true
+                    },
+                    "Attr": {
+                        "color": {
                             "Name": "color",
-                            "Value": "255 255 255 255"
+                            "Type": 6,
+                            "Red": 1,
+                            "Green": 1,
+                            "Blue": 1,
+                            "Alpha": 1
+                        },
+                        "parent": {
+                            "Name": "parent",
+                            "Type": 1,
+                            "Value": 0
+                        },
+                        "string": {
+                            "Name": "string",
+                            "Type": 2,
+                            "Value": ""
+                        },
+                        "x": {
+                            "Name": "rel_x",
+                            "Type": 1,
+                            "Value": 0
+                        },
+                        "y": {
+                            "Name": "rel_y",
+                            "Type": 1,
+                            "Value": 0
                         }
-                    ]
+                    }
                 },
                 "6": {
-                    "Id": 6,
-                    "Name": "Team 2",
-                    "Parent": 5,
-                    "GeoType": "text",
-                    "PropType": "text",
-                    "Attrs": [
-                        {
+                    "Name": "Mid Split",
+                    "PropType": 0,
+                    "Visible": {
+                        "clock": true,
+                        "color": true,
+                        "end_angle": true,
+                        "height": true,
+                        "inner_radius": true,
+                        "node": true,
+                        "outer_radius": true,
+                        "parent": true,
+                        "scale": true,
+                        "start_angle": true,
+                        "string": true,
+                        "text": true,
+                        "width": true,
+                        "x": true,
+                        "y": true
+                    },
+                    "Attr": {
+                        "color": {
                             "Name": "color",
-                            "Value": "255 255 255 255"
+                            "Type": 6,
+                            "Red": 1,
+                            "Green": 1,
+                            "Blue": 1,
+                            "Alpha": 1
                         },
-                        {
-                            "Name": "scale",
-                            "Value": "1.0"
+                        "height": {
+                            "Name": "height",
+                            "Type": 1,
+                            "Value": 0
+                        },
+                        "parent": {
+                            "Name": "parent",
+                            "Type": 1,
+                            "Value": 0
+                        },
+                        "width": {
+                            "Name": "width",
+                            "Type": 1,
+                            "Value": 0
+                        },
+                        "x": {
+                            "Name": "rel_x",
+                            "Type": 1,
+                            "Value": 0
+                        },
+                        "y": {
+                            "Name": "rel_y",
+                            "Type": 1,
+                            "Value": 0
                         }
-                    ]
+                    }
                 },
                 "7": {
-                    "Id": 7,
                     "Name": "Score 2",
-                    "Parent": 5,
-                    "GeoType": "text",
-                    "PropType": "text",
-                    "Attrs": [
-                        {
+                    "PropType": 1,
+                    "Visible": {
+                        "clock": true,
+                        "color": true,
+                        "end_angle": true,
+                        "height": true,
+                        "inner_radius": true,
+                        "node": true,
+                        "outer_radius": true,
+                        "parent": true,
+                        "scale": true,
+                        "start_angle": true,
+                        "string": true,
+                        "text": true,
+                        "width": true,
+                        "x": true,
+                        "y": true
+                    },
+                    "Attr": {
+                        "color": {
                             "Name": "color",
-                            "Value": "255 255 255 255"
+                            "Type": 6,
+                            "Red": 1,
+                            "Green": 1,
+                            "Blue": 1,
+                            "Alpha": 1
                         },
-                        {
-                            "Name": "scale",
-                            "Value": "1.0"
+                        "parent": {
+                            "Name": "parent",
+                            "Type": 1,
+                            "Value": 0
+                        },
+                        "string": {
+                            "Name": "string",
+                            "Type": 2,
+                            "Value": ""
+                        },
+                        "x": {
+                            "Name": "rel_x",
+                            "Type": 1,
+                            "Value": 0
+                        },
+                        "y": {
+                            "Name": "rel_y",
+                            "Type": 1,
+                            "Value": 0
                         }
-                    ]
+                    }
                 },
                 "8": {
-                    "Id": 8,
                     "Name": "Right Split",
-                    "Parent": 5,
-                    "GeoType": "rect",
-                    "PropType": "rect",
-                    "Attrs": [
-                        {
+                    "PropType": 0,
+                    "Visible": {
+                        "clock": true,
+                        "color": true,
+                        "end_angle": true,
+                        "height": true,
+                        "inner_radius": true,
+                        "node": true,
+                        "outer_radius": true,
+                        "parent": true,
+                        "scale": true,
+                        "start_angle": true,
+                        "string": true,
+                        "text": true,
+                        "width": true,
+                        "x": true,
+                        "y": true
+                    },
+                    "Attr": {
+                        "color": {
                             "Name": "color",
-                            "Value": "255 255 255 255"
+                            "Type": 6,
+                            "Red": 1,
+                            "Green": 1,
+                            "Blue": 1,
+                            "Alpha": 1
+                        },
+                        "height": {
+                            "Name": "height",
+                            "Type": 1,
+                            "Value": 0
+                        },
+                        "parent": {
+                            "Name": "parent",
+                            "Type": 1,
+                            "Value": 0
+                        },
+                        "width": {
+                            "Name": "width",
+                            "Type": 1,
+                            "Value": 0
+                        },
+                        "x": {
+                            "Name": "rel_x",
+                            "Type": 1,
+                            "Value": 0
+                        },
+                        "y": {
+                            "Name": "rel_y",
+                            "Type": 1,
+                            "Value": 0
                         }
-                    ]
+                    }
                 },
                 "9": {
-                    "Id": 9,
                     "Name": "Clock",
-                    "Parent": 8,
-                    "GeoType": "text",
-                    "PropType": "clock",
-                    "Attrs": [
-                        {
-                            "Name": "color",
-                            "Value": "255 255 255 255"
+                    "PropType": 5,
+                    "Visible": {
+                        "clock": true,
+                        "color": true,
+                        "end_angle": true,
+                        "height": true,
+                        "inner_radius": true,
+                        "node": true,
+                        "outer_radius": true,
+                        "parent": true,
+                        "scale": true,
+                        "start_angle": true,
+                        "string": true,
+                        "text": true,
+                        "width": true,
+                        "x": true,
+                        "y": true
+                    },
+                    "Attr": {
+                        "clock": {
+                            "Name": "string",
+                            "Type": 3,
+                            "CurrentTime": "",
+                            "TimeFormat": "04:05"
                         },
-                        {
-                            "Name": "scale",
-                            "Value": "1.0"
+                        "color": {
+                            "Name": "color",
+                            "Type": 6,
+                            "Red": 1,
+                            "Green": 1,
+                            "Blue": 1,
+                            "Alpha": 1
+                        },
+                        "parent": {
+                            "Name": "parent",
+                            "Type": 1,
+                            "Value": 0
+                        },
+                        "x": {
+                            "Name": "rel_x",
+                            "Type": 1,
+                            "Value": 0
+                        },
+                        "y": {
+                            "Name": "rel_y",
+                            "Type": 1,
+                            "Value": 0
                         }
-                    ]
+                    }
                 }
-            },
-            "Animate_on": "left_to_right",
-            "Animate_cont": "clock_tick",
-            "Animate_off": "left_to_right"
+            }
         },
         "2": {
-            "Id": 2,
-            "Name": "White Circle",
+            "Title": "White Circle",
+            "TempID": 2,
+            "NumGeo": 0,
             "Layer": 0,
-            "Geo": {
+            "Geometry": {
                 "0": {
-                    "Id": 0,
                     "Name": "Circle",
-                    "Parent": 0,
-                    "GeoType": "circle",
-                    "PropType": "circle",
-                    "Attrs": [
-                        {
+                    "PropType": 2,
+                    "Visible": {
+                        "clock": true,
+                        "color": true,
+                        "end_angle": true,
+                        "height": true,
+                        "inner_radius": true,
+                        "node": true,
+                        "outer_radius": true,
+                        "parent": true,
+                        "scale": true,
+                        "start_angle": true,
+                        "string": true,
+                        "text": true,
+                        "width": true,
+                        "x": true,
+                        "y": true
+                    },
+                    "Attr": {
+                        "color": {
                             "Name": "color",
-                            "Value": "255 255 255 255"
+                            "Type": 6,
+                            "Red": 1,
+                            "Green": 1,
+                            "Blue": 1,
+                            "Alpha": 1
+                        },
+                        "end_angle": {
+                            "Name": "end_angle",
+                            "Type": 1,
+                            "Value": 0
+                        },
+                        "inner_radius": {
+                            "Name": "inner_radius",
+                            "Type": 1,
+                            "Value": 0
+                        },
+                        "outer_radius": {
+                            "Name": "outer_radius",
+                            "Type": 1,
+                            "Value": 0
+                        },
+                        "parent": {
+                            "Name": "parent",
+                            "Type": 1,
+                            "Value": 0
+                        },
+                        "start_angle": {
+                            "Name": "start_angle",
+                            "Type": 1,
+                            "Value": 0
+                        },
+                        "x": {
+                            "Name": "rel_x",
+                            "Type": 1,
+                            "Value": 0
+                        },
+                        "y": {
+                            "Name": "rel_y",
+                            "Type": 1,
+                            "Value": 0
                         }
-                    ]
+                    }
                 }
-            },
-            "Animate_on": "",
-            "Animate_cont": "",
-            "Animate_off": ""
+            }
         },
         "3": {
-            "Id": 3,
-            "Name": "Graph",
+            "Title": "Graph",
+            "TempID": 3,
+            "NumGeo": 0,
             "Layer": 0,
-            "Geo": {
+            "Geometry": {
                 "0": {
-                    "Id": 0,
                     "Name": "Background",
-                    "Parent": 0,
-                    "GeoType": "rect",
-                    "PropType": "rect",
-                    "Attrs": [
-                        {
+                    "PropType": 0,
+                    "Visible": {
+                        "clock": true,
+                        "color": true,
+                        "end_angle": true,
+                        "height": true,
+                        "inner_radius": true,
+                        "node": true,
+                        "outer_radius": true,
+                        "parent": true,
+                        "scale": true,
+                        "start_angle": true,
+                        "string": true,
+                        "text": true,
+                        "width": true,
+                        "x": true,
+                        "y": true
+                    },
+                    "Attr": {
+                        "color": {
                             "Name": "color",
-                            "Value": "2 132 130 255"
+                            "Type": 6,
+                            "Red": 1,
+                            "Green": 1,
+                            "Blue": 1,
+                            "Alpha": 1
                         },
-                        {
-                            "Name": "rounding",
-                            "Value": "20"
+                        "height": {
+                            "Name": "height",
+                            "Type": 1,
+                            "Value": 0
+                        },
+                        "parent": {
+                            "Name": "parent",
+                            "Type": 1,
+                            "Value": 0
+                        },
+                        "width": {
+                            "Name": "width",
+                            "Type": 1,
+                            "Value": 0
+                        },
+                        "x": {
+                            "Name": "rel_x",
+                            "Type": 1,
+                            "Value": 0
+                        },
+                        "y": {
+                            "Name": "rel_y",
+                            "Type": 1,
+                            "Value": 0
                         }
-                    ]
+                    }
                 },
                 "1": {
-                    "Id": 1,
                     "Name": "Graph",
-                    "Parent": 0,
-                    "GeoType": "graph",
-                    "PropType": "graph",
-                    "Attrs": [
-                        {
-                            "Name": "graph_type",
-                            "Value": "step"
-                        },
-                        {
+                    "PropType": 3,
+                    "Visible": {
+                        "clock": true,
+                        "color": true,
+                        "end_angle": true,
+                        "height": true,
+                        "inner_radius": true,
+                        "node": true,
+                        "outer_radius": true,
+                        "parent": true,
+                        "scale": true,
+                        "start_angle": true,
+                        "string": true,
+                        "text": true,
+                        "width": true,
+                        "x": true,
+                        "y": true
+                    },
+                    "Attr": {
+                        "color": {
                             "Name": "color",
-                            "Value": "255 255 255 255"
+                            "Type": 6,
+                            "Red": 1,
+                            "Green": 1,
+                            "Blue": 1,
+                            "Alpha": 1
+                        },
+                        "node": {
+                            "Name": "graph_node",
+                            "Type": 5,
+                            "NumCols": 2,
+                            "Selected": false,
+                            "ListStore": [],
+                            "MarshalJSON": {},
+                            "UnmarshalJSON": {}
+                        },
+                        "parent": {
+                            "Name": "parent",
+                            "Type": 1,
+                            "Value": 0
+                        },
+                        "x": {
+                            "Name": "rel_x",
+                            "Type": 1,
+                            "Value": 0
+                        },
+                        "y": {
+                            "Name": "rel_y",
+                            "Type": 1,
+                            "Value": 0
                         }
-                    ]
+                    }
                 },
                 "2": {
-                    "Id": 2,
                     "Name": "Title",
-                    "Parent": 0,
-                    "GeoType": "text",
-                    "PropType": "text",
-                    "Attrs": [
-                        {
+                    "PropType": 1,
+                    "Visible": {
+                        "clock": true,
+                        "color": true,
+                        "end_angle": true,
+                        "height": true,
+                        "inner_radius": true,
+                        "node": true,
+                        "outer_radius": true,
+                        "parent": true,
+                        "scale": true,
+                        "start_angle": true,
+                        "string": true,
+                        "text": true,
+                        "width": true,
+                        "x": true,
+                        "y": true
+                    },
+                    "Attr": {
+                        "color": {
                             "Name": "color",
-                            "Value": "255 255 255 255"
+                            "Type": 6,
+                            "Red": 1,
+                            "Green": 1,
+                            "Blue": 1,
+                            "Alpha": 1
                         },
-                        {
-                            "Name": "scale",
-                            "Value": "1.0"
+                        "parent": {
+                            "Name": "parent",
+                            "Type": 1,
+                            "Value": 0
+                        },
+                        "string": {
+                            "Name": "string",
+                            "Type": 2,
+                            "Value": ""
+                        },
+                        "x": {
+                            "Name": "rel_x",
+                            "Type": 1,
+                            "Value": 0
+                        },
+                        "y": {
+                            "Name": "rel_y",
+                            "Type": 1,
+                            "Value": 0
                         }
-                    ]
+                    }
                 }
-            },
-            "Animate_on": "left_to_right",
-            "Animate_cont": "",
-            "Animate_off": "left_to_right"
+            }
         },
         "4": {
-            "Id": 4,
-            "Name": "Ticker",
+            "Title": "Ticker",
+            "TempID": 4,
+            "NumGeo": 0,
             "Layer": 0,
-            "Geo": {
+            "Geometry": {
                 "0": {
-                    "Id": 0,
                     "Name": "Background",
-                    "Parent": 0,
-                    "GeoType": "rect",
-                    "PropType": "rect",
-                    "Attrs": [
-                        {
+                    "PropType": 0,
+                    "Visible": {
+                        "clock": true,
+                        "color": true,
+                        "end_angle": true,
+                        "height": true,
+                        "inner_radius": true,
+                        "node": true,
+                        "outer_radius": true,
+                        "parent": true,
+                        "scale": true,
+                        "start_angle": true,
+                        "string": true,
+                        "text": true,
+                        "width": true,
+                        "x": true,
+                        "y": true
+                    },
+                    "Attr": {
+                        "color": {
                             "Name": "color",
-                            "Value": "2 132 130 255"
+                            "Type": 6,
+                            "Red": 1,
+                            "Green": 1,
+                            "Blue": 1,
+                            "Alpha": 1
+                        },
+                        "height": {
+                            "Name": "height",
+                            "Type": 1,
+                            "Value": 0
+                        },
+                        "parent": {
+                            "Name": "parent",
+                            "Type": 1,
+                            "Value": 0
+                        },
+                        "width": {
+                            "Name": "width",
+                            "Type": 1,
+                            "Value": 0
+                        },
+                        "x": {
+                            "Name": "rel_x",
+                            "Type": 1,
+                            "Value": 0
+                        },
+                        "y": {
+                            "Name": "rel_y",
+                            "Type": 1,
+                            "Value": 0
                         }
-                    ]
+                    }
                 },
                 "1": {
-                    "Id": 1,
                     "Name": "Box",
-                    "Parent": 0,
-                    "GeoType": "rect",
-                    "PropType": "rect",
-                    "Attrs": [
-                        {
+                    "PropType": 0,
+                    "Visible": {
+                        "clock": true,
+                        "color": true,
+                        "end_angle": true,
+                        "height": true,
+                        "inner_radius": true,
+                        "node": true,
+                        "outer_radius": true,
+                        "parent": true,
+                        "scale": true,
+                        "start_angle": true,
+                        "string": true,
+                        "text": true,
+                        "width": true,
+                        "x": true,
+                        "y": true
+                    },
+                    "Attr": {
+                        "color": {
                             "Name": "color",
-                            "Value": "5 68 94 255"
+                            "Type": 6,
+                            "Red": 1,
+                            "Green": 1,
+                            "Blue": 1,
+                            "Alpha": 1
                         },
-                        {
-                            "Name": "rounding",
-                            "Value": "50"
+                        "height": {
+                            "Name": "height",
+                            "Type": 1,
+                            "Value": 0
+                        },
+                        "parent": {
+                            "Name": "parent",
+                            "Type": 1,
+                            "Value": 0
+                        },
+                        "width": {
+                            "Name": "width",
+                            "Type": 1,
+                            "Value": 0
+                        },
+                        "x": {
+                            "Name": "rel_x",
+                            "Type": 1,
+                            "Value": 0
+                        },
+                        "y": {
+                            "Name": "rel_y",
+                            "Type": 1,
+                            "Value": 0
                         }
-                    ]
+                    }
                 },
                 "2": {
-                    "Id": 2,
                     "Name": "Ticker",
-                    "Parent": 0,
-                    "GeoType": "text",
-                    "PropType": "ticker",
-                    "Attrs": [
-                        {
+                    "PropType": 4,
+                    "Visible": {
+                        "clock": true,
+                        "color": true,
+                        "end_angle": true,
+                        "height": true,
+                        "inner_radius": true,
+                        "node": true,
+                        "outer_radius": true,
+                        "parent": true,
+                        "scale": true,
+                        "start_angle": true,
+                        "string": true,
+                        "text": true,
+                        "width": true,
+                        "x": true,
+                        "y": true
+                    },
+                    "Attr": {
+                        "color": {
                             "Name": "color",
-                            "Value": "255 255 255 255"
+                            "Type": 6,
+                            "Red": 1,
+                            "Green": 1,
+                            "Blue": 1,
+                            "Alpha": 1
                         },
-                        {
-                            "Name": "scale",
-                            "Value": "1.0"
+                        "parent": {
+                            "Name": "parent",
+                            "Type": 1,
+                            "Value": 0
+                        },
+                        "text": {
+                            "Name": "string",
+                            "Type": 5,
+                            "NumCols": 1,
+                            "Selected": true,
+                            "ListStore": [],
+                            "MarshalJSON": {},
+                            "UnmarshalJSON": {}
+                        },
+                        "x": {
+                            "Name": "rel_x",
+                            "Type": 1,
+                            "Value": 0
+                        },
+                        "y": {
+                            "Name": "rel_y",
+                            "Type": 1,
+                            "Value": 0
                         }
-                    ]
+                    }
                 }
-            },
-            "Animate_on": "up",
-            "Animate_cont": "",
-            "Animate_off": "up"
+            }
         }
     }
 }

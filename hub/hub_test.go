@@ -40,13 +40,13 @@ func TestImportTemplates(t *testing.T) {
             propTest(t, template, 2, "Title", "text")
             propTest(t, template, 3, "Subtitle", "text")
         case "Clock":
-            propTest(t, template, 0, "Background", "rect")
-            propTest(t, template, 1, "Circle", "circle")
-            propTest(t, template, 2, "Left Split", "rect")
-            propTest(t, template, 3, "Team 1", "text")
-            propTest(t, template, 4, "Score 1", "text")
-            propTest(t, template, 5, "Mid Split", "rect")
-            propTest(t, template, 6, "Team 2", "text")
+            propTest(t, template, 1, "Background", "rect")
+            propTest(t, template, 2, "Circle", "circle")
+            propTest(t, template, 3, "Left Split", "rect")
+            propTest(t, template, 4, "Team 1", "text")
+            propTest(t, template, 5, "Score 1", "text")
+            propTest(t, template, 6, "Mid Split", "rect")
+            propTest(t, template, 0, "Team 2", "text")
             propTest(t, template, 7, "Score 2", "text")
             propTest(t, template, 8, "Right Split", "rect")
             propTest(t, template, 9, "Clock", "clock")
@@ -74,8 +74,8 @@ func propTest(t *testing.T, template *templates.Template, i int, name, typed str
             template.Title, name, geo.Name)
     } 
 
-    if geo.PropType != props.StringToProp[typed] {
-        t.Errorf("(%s) Incorrect prop type, expected %s, recieved %d", 
-            template.Title, typed, geo.PropType)
+    if props.PropType(geo.PropType) != typed {
+        t.Errorf("(%s) Incorrect prop type, expected %s, recieved %s", 
+            template.Title, typed, props.PropType(geo.PropType))
     }
 }

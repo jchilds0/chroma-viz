@@ -36,6 +36,42 @@ func NewTempTree(propToEditor func(propID int), updateParent func(propId, parent
         return nil, err
     }
 
+    cell.SetProperty("editable", true)
+    cell.Connect("edited", func(cell *gtk.CellRendererText, path, text string) {
+        iter, err := temp.model.GetIterFromString(path)
+        if err != nil {
+            log.Printf("Error editing geometry (%s)", err)
+            return
+        }
+
+        id, err := temp.model.GetValue(iter, PROP_NUM)
+        if err != nil {
+            log.Printf("Error editing geometry (%s)", err)
+            return
+        }
+
+        val, err := id.GoValue()
+        if err != nil {
+            log.Printf("Error editing geometry (%s)", err)
+            return
+        }
+
+        geoID, ok := val.(int)
+        if !ok {
+            log.Printf("Error editing geometry (%s)", err)
+            return
+        }
+
+        geo := template.Geometry[geoID]
+        if geo == nil { 
+            log.Printf("Error getting geometry %d", geoID)
+            return
+        }
+
+        geo.Name = text
+        temp.model.SetValue(iter, NAME, text)
+    })
+
     column, err := gtk.TreeViewColumnNewWithAttribute("Name", cell, "text", NAME)
     if err != nil {
         return nil, err

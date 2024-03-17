@@ -201,6 +201,11 @@ func ArtistGui(app *gtk.Application) {
                 parentAttr.(*attribute.IntAttribute).Value = geoRename[parent]
             }
 
+            // set props to visible
+            for _, geo := range template.Geometry {
+                geo.Visible = visible
+            }
+
             return
         }
     })
@@ -249,6 +254,8 @@ func ArtistGui(app *gtk.Application) {
 
                 attr.Value = geoRename[id]
             }
+
+            // TODO: sync visible attrs to template
 
             err := templates.ExportTemplate(template, filename)
             if err != nil {

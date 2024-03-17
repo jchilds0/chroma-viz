@@ -82,15 +82,6 @@ func GeoType(prop int) string {
     }
 }
 
-var PropToString map[int]string = map[int]string{
-    RECT_PROP: "rect",
-    TEXT_PROP: "text",
-    CIRCLE_PROP: "circle",
-    GRAPH_PROP: "graph",
-    TICKER_PROP: "ticker",
-    CLOCK_PROP: "clock",
-    IMAGE_PROP: "image",
-}
 /*
 
     Templates are made up of a collection of Properties.
