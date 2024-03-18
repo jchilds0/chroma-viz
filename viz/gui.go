@@ -374,6 +374,7 @@ func guiImportPage(win *gtk.ApplicationWindow, showTree *ShowTree) error {
             return err
         }
 
+        showTree.show.NumPages++
         showTree.ImportPage(page)
     }
 

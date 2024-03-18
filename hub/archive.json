@@ -56,6 +56,11 @@
                             "Name": "rel_y",
                             "Type": 1,
                             "Value": 0
+                        },
+                        "rounding": {
+                            "Name": "rounding",
+                            "Type": 1,
+                            "Value": 10 
                         }
                     }
                 },
@@ -272,7 +277,7 @@
                         "rounding": {
                             "Name": "rounding",
                             "Type": 1,
-                            "Value": 20 
+                            "Value": 10 
                         }
                     }
                 },
@@ -778,6 +783,11 @@
                             "Name": "rel_y",
                             "Type": 1,
                             "Value": 0
+                        },
+                        "rounding": {
+                            "Name": "rounding",
+                            "Type": 1,
+                            "Value": 10 
                         }
                     }
                 },
@@ -992,6 +1002,11 @@
                             "Name": "rel_y",
                             "Type": 1,
                             "Value": 0
+                        },
+                        "rounding": {
+                            "Name": "rounding",
+                            "Type": 1,
+                            "Value": 50 
                         }
                     }
                 },
@@ -1097,6 +1112,11 @@
                             "Name": "rel_y",
                             "Type": 1,
                             "Value": 100
+                        },
+                        "rounding": {
+                            "Name": "rounding",
+                            "Type": 1,
+                            "Value": 10 
                         }
                     }
                 },
