@@ -156,7 +156,7 @@ func parseProperty(temp *Template, buf *bufio.Reader) (err error) {
             matchToken('[', buf)
 
             var prop_id int
-            prop_type := props.StringToProp[data["type"]]
+            prop_type := props.StringToProp[data["prop_type"]]
             prop_id, err = strconv.Atoi(data["id"])
             if err != nil {
                 return fmt.Errorf("Error reading prop id from property (%s)", err)
