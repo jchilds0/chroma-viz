@@ -26,11 +26,11 @@
                     "Attr": {
                         "color": {
                             "Name": "color",
-                            "Type": 6,
-                            "Red": 1,
-                            "Green": 1,
-                            "Blue": 1,
-                            "Alpha": 1
+                            "Type": 6, 
+                            "Red": 0.00784,
+                            "Green": 0.51765,
+                            "Blue": 0.50980,
+                            "Alpha": 1.0
                         },
                         "height": {
                             "Name": "height",
@@ -239,10 +239,10 @@
                         "color": {
                             "Name": "color",
                             "Type": 6,
-                            "Red": 0.10980392156862745,
-                            "Green": 0.44313725490196076,
-                            "Blue": 0.8470588235294118,
-                            "Alpha": 1
+                            "Red": 0.01961,
+                            "Green": 0.26667,
+                            "Blue": 0.36863,
+                            "Alpha": 1.0
                         },
                         "height": {
                             "Name": "height",
@@ -749,10 +749,10 @@
                         "color": {
                             "Name": "color",
                             "Type": 6,
-                            "Red": 1,
-                            "Green": 1,
-                            "Blue": 1,
-                            "Alpha": 1
+                            "Red": 0.00784,
+                            "Green": 0.51765,
+                            "Blue": 0.50980,
+                            "Alpha": 1.0
                         },
                         "height": {
                             "Name": "height",
@@ -910,10 +910,10 @@
                         "color": {
                             "Name": "color",
                             "Type": 6,
-                            "Red": 1,
-                            "Green": 1,
-                            "Blue": 1,
-                            "Alpha": 1
+                            "Red": 0.00784,
+                            "Green": 0.51765,
+                            "Blue": 0.50980,
+                            "Alpha": 1.0
                         },
                         "height": {
                             "Name": "height",
@@ -1068,10 +1068,10 @@
                         "color": {
                             "Name": "color",
                             "Type": 6,
-                            "Red": 0.10980392156862745,
-                            "Green": 0.44313725490196076,
-                            "Blue": 0.8470588235294118,
-                            "Alpha": 1
+                            "Red": 0.00784,
+                            "Green": 0.51765,
+                            "Blue": 0.50980,
+                            "Alpha": 1.0
                         },
                         "height": {
                             "Name": "height",
