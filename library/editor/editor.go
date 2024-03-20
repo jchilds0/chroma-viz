@@ -35,14 +35,6 @@ func NewEditor(sendEngine, sendPreview func(tcp.Animator, int)) *Editor {
         log.Fatalf("Error creating editor (%s)", err) 
     }
 
-    editor.header, err = gtk.HeaderBarNew()
-    if err != nil { 
-        log.Fatalf("Error creating editor (%s)", err) 
-    }
-
-    editor.header.SetTitle("Editor")
-    editor.Box.PackStart(editor.header, false, false, 0)
-
     editor.actions, err = gtk.BoxNew(gtk.ORIENTATION_HORIZONTAL, 0)
     if err != nil { 
         log.Fatalf("Error creating editor (%s)", err) 

@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <object class="GtkPaned" id="body">
+    <property name="orientation">horizontal</property>
+    <child>
+      <object class="GtkPaned" id="left">
+        <property name="orientation">vertical</property>
+        <child>
+          <object class="GtkBox" id="templates">
+            <property name="orientation">vertical</property>
+            <child>
+              <object class="GtkHeaderBar">
+                <property name="title">Templates</property>
+              </object>
+            </child>
+          </object>
+          </child>
+          <child>
+            <object class="GtkBox" id="show">
+              <property name="orientation">vertical</property>
+              <child>
+                <object class="GtkHeaderBar">
+                  <property name="title">Show</property>
+                </object>
+              </child>
+            </object>
+          </child>
+        </object>
+      </child>
+      <child>
+        <object class="GtkPaned" id="right">
+          <property name="orientation">vertical</property>
+          <child> 
+            <object class="GtkBox" id="edit">
+            <property name="orientation">vertical</property>
+              <child>
+                <object class="GtkHeaderBar">
+                  <property name="title">Editor</property>
+                </object>
+              </child>
+            </object>
+          </child>
+          <child> 
+            <object class="GtkBox" id="preview">
+            <property name="orientation">vertical</property>
+            <child>
+              <object class="GtkHeaderBar">
+                <property name="title">Preview</property>
+              </object>
+            </child>
+          </object>
+        </child>
+      </object>
+    </child>
+  </object>
+</interface>

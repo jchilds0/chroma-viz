@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"log"
 	"math/rand"
+	"reflect"
 	"strconv"
 	"time"
 
@@ -133,6 +134,8 @@ func VizGui(app *gtk.Application) {
 
     tempTree.ImportTemplates(conn.hub.Conn)
 
+    preview := setup_preview_window()
+
     //testGui(tempView, showView)
 
     box, err := gtk.BoxNew(gtk.ORIENTATION_VERTICAL, 0)
@@ -201,81 +204,62 @@ func VizGui(app *gtk.Application) {
     app.AddAction(deletePage)
 
     /* Body layout */
-    bodyBox, err := gtk.PanedNew(gtk.ORIENTATION_HORIZONTAL)
+    builder, err = gtk.BuilderNew()
+    if err := builder.AddFromFile("./gtk/viz-gui.ui"); err != nil {
+        log.Fatal(err)
+    }
+
+    body, err := builder.GetObject("body")
     if err != nil {
         log.Fatal(err)
+    }
+    
+    bodyBox, ok := body.(*gtk.Paned)
+    if !ok {
+        log.Fatal("viz-gui.ui object 'body' is not a gtk.Paned")
     }
 
     box.PackStart(bodyBox, true, true, 0)
 
-    leftBox, err := gtk.PanedNew(gtk.ORIENTATION_VERTICAL)
+    tempWin, err := gtkGetObject[*gtk.Box](builder, "templates")
     if err != nil {
         log.Fatal(err)
     }
 
-    rightBox, err := gtk.BoxNew(gtk.ORIENTATION_VERTICAL, 0)
+    tempScroll, err := gtk.ScrolledWindowNew(nil, nil)
     if err != nil {
         log.Fatal(err)
     }
 
-    bodyBox.Pack1(leftBox, true, true)
-    bodyBox.Pack2(rightBox, true, true)
+    tempScroll.Add(tempTree.treeView)
+    tempWin.PackStart(tempScroll, true, true, 0)
 
-    /* left */
-    leftBox.SetHExpand(true)
-
-    /* templates */
-    templates, err := gtk.BoxNew(gtk.ORIENTATION_VERTICAL, 0)
-    if err != nil {
-        log.Print(err)
-    }
-
-    leftBox.Pack1(templates, true, true)
-
-    header1, err := gtk.HeaderBarNew()
+    showWin, err := gtkGetObject[*gtk.Box](builder, "show")
     if err != nil {
         log.Fatal(err)
     }
 
-    header1.SetTitle("Templates")
-    templates.PackStart(header1, false, false, 0)
-
-    scroll1, err := gtk.ScrolledWindowNew(nil, nil)
+    showScroll, err := gtk.ScrolledWindowNew(nil, nil)
     if err != nil {
         log.Fatal(err)
     }
 
-    templates.PackStart(scroll1, true, true, 0)
-    scroll1.Add(tempTree.treeView)
+    showWin.Add(showTree.treeView)
+    showWin.PackStart(showScroll, true, true, 0)
 
-    /* show */
-    shows, err := gtk.BoxNew(gtk.ORIENTATION_VERTICAL, 0)
+    editBox, err := gtkGetObject[*gtk.Box](builder, "edit")
     if err != nil {
         log.Fatal(err)
     }
 
-    leftBox.Pack2(shows, true, true)
+    editBox.PackStart(edit.Box, true, true, 0)
 
-    header2, err := gtk.HeaderBarNew()
+    prevBox, err := gtkGetObject[*gtk.Box](builder, "preview")
     if err != nil {
         log.Fatal(err)
     }
 
-    header2.SetTitle("Show")
-    shows.PackStart(header2, false, false, 0)
-    scroll2, err := gtk.ScrolledWindowNew(nil, nil)
-    if err != nil {
-        log.Fatal(err)
-    }
-
-    shows.PackStart(scroll2, true, true, 0)
-    scroll2.Add(showTree.treeView)
-
-    /* right */
-    rightBox.PackStart(edit.Box, true, true, 0)
-
-    preview := setup_preview_window()
-    rightBox.PackEnd(preview, false, false, 0)
+    prevBox.PackStart(preview, true, true, 0)
 
     /* Lower Bar layout */
     lowerBox, err := gtk.ActionBarNew()
@@ -509,4 +493,19 @@ func testGui(tempTree *TempTree, showTree *ShowTree) {
     t = time.Now()
     elapsed = t.Sub(start)
     log.Printf("Built Show in %s\n", elapsed)
+}
+
+func gtkGetObject[T any](builder *gtk.Builder, name string) (obj T, err error) {
+    gtkObject, err := builder.GetObject(name)
+    if err != nil {
+        return 
+    }
+
+    goObj, ok := gtkObject.(T)
+    if !ok {
+        err = fmt.Errorf("viz-gui.ui object '%s' is type %v", name, reflect.TypeOf(goObj))
+        return 
+    }
+
+    return goObj, nil
 }
