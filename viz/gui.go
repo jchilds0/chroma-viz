@@ -221,31 +221,19 @@ func VizGui(app *gtk.Application) {
 
     box.PackStart(bodyBox, true, true, 0)
 
-    tempWin, err := gtkGetObject[*gtk.Box](builder, "templates")
-    if err != nil {
-        log.Fatal(err)
-    }
-
-    tempScroll, err := gtk.ScrolledWindowNew(nil, nil)
+    tempScroll, err := gtkGetObject[*gtk.ScrolledWindow](builder, "templates-win")
     if err != nil {
         log.Fatal(err)
     }
 
     tempScroll.Add(tempTree.treeView)
-    tempWin.PackStart(tempScroll, true, true, 0)
 
-    showWin, err := gtkGetObject[*gtk.Box](builder, "show")
+    showScroll, err := gtkGetObject[*gtk.ScrolledWindow](builder, "show-win")
     if err != nil {
         log.Fatal(err)
     }
 
-    showScroll, err := gtk.ScrolledWindowNew(nil, nil)
-    if err != nil {
-        log.Fatal(err)
-    }
-
-    showWin.Add(showTree.treeView)
-    showWin.PackStart(showScroll, true, true, 0)
+    showScroll.Add(showTree.treeView)
 
     editBox, err := gtkGetObject[*gtk.Box](builder, "edit")
     if err != nil {

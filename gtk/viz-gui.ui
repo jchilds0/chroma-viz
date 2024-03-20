@@ -13,14 +13,24 @@
                 <property name="title">Templates</property>
               </object>
             </child>
+            <child>
+              <object class="GtkScrolledWindow" id="templates-win">
+                <property name="vexpand">TRUE</property>
+              </object>
+            </child>
           </object>
-          </child>
-          <child>
-            <object class="GtkBox" id="show">
-              <property name="orientation">vertical</property>
+        </child>
+        <child>
+          <object class="GtkBox" id="show">
+            <property name="orientation">vertical</property>
               <child>
                 <object class="GtkHeaderBar">
                   <property name="title">Show</property>
+                </object>
+              </child>
+              <child>
+                <object class="GtkScrolledWindow" id="show-win">
+                    <property name="vexpand">TRUE</property>
                 </object>
               </child>
             </object>
