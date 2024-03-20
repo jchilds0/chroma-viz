@@ -144,7 +144,7 @@ func VizGui(app *gtk.Application) {
 
     /* Menu layout */
     builder, err := gtk.BuilderNew()
-    if err := builder.AddFromFile("./gtk/menus.ui"); err != nil {
+    if err := builder.AddFromFile("./gtk/viz-menu.ui"); err != nil {
         log.Fatal(err)
     }
 

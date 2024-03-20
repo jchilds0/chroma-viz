@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <menu id="menubar">
+    <submenu id="submenu">
+      <attribute name="label">File</attribute>
+      <section>
+        <item>
+          <attribute name="label">New Show</attribute>
+          <attribute name="action">app.new_show</attribute>
+        </item>
+        <item>
+          <attribute name ="label">Import Show</attribute>
+          <attribute name="action">app.import_show</attribute>
+        </item>
+        <item>
+          <attribute name ="label">Export Show</attribute>
+          <attribute name="action">app.export_show</attribute>
+        </item>
+      </section>
+    </submenu>
+    <submenu id="submenu">
+      <attribute name="label">Edit</attribute>
+      <section>
+        <item>
+          <attribute name="label">Copy</attribute>
+          <attribute name="action">app.copy</attribute>
+        </item>
+        <item>
+          <attribute name="label">Paste</attribute>
+          <attribute name="action">app.paste</attribute>
+        </item>
+      </section>
+    </submenu>
+    <submenu id="submenu">
+      <attribute name="label">Page</attribute>
+      <section>
+        <item>
+          <attribute name="label">Import Page</attribute>
+          <attribute name="action">app.import_page</attribute>
+        </item>
+        <item>
+          <attribute name="label">Export Page</attribute>
+          <attribute name="action">app.export_page</attribute>
+        </item>
+        <item>
+          <attribute name="label">Delete Page</attribute>
+          <attribute name="action">app.delete_page</attribute>
+        </item>
+      </section>
+    </submenu>
+    <submenu id="submenu">
+      <attribute name="label">Help</attribute>
+      <section>
+        <item>
+          <attribute name="label">About</attribute>
+        </item>
+      </section>
+    </submenu>
+  </menu>
+</interface>

@@ -121,7 +121,7 @@ func ArtistGui(app *gtk.Application) {
 
     /* Menu layout */
     builder, err := gtk.BuilderNew()
-    if err := builder.AddFromFile("/home/josh/Documents/projects/chroma-viz/gtk/menus.ui"); err != nil {
+    if err := builder.AddFromFile("./gtk/artist-menu.ui"); err != nil {
         log.Fatalf("Error starting artist gui (%s)", err)
     }
 
