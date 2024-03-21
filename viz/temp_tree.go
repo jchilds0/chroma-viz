@@ -1,10 +1,10 @@
 package viz
 
 import (
+	"chroma-viz/library/gtk_utils"
 	"chroma-viz/library/templates"
 	"log"
 	"net"
-	"strconv"
 
 	"github.com/gotk3/gotk3/glib"
 	"github.com/gotk3/gotk3/gtk"
@@ -54,7 +54,7 @@ func NewTempTree(templateToShow func(*templates.Template)) *TempTree {
 
     temp.treeView.AppendColumn(column)
 
-    temp.treeList, err = gtk.ListStoreNew(glib.TYPE_STRING, glib.TYPE_STRING)
+    temp.treeList, err = gtk.ListStoreNew(glib.TYPE_STRING, glib.TYPE_INT)
     if err != nil {
         log.Fatalf("Error creating temp list (%s)", err)
     }
@@ -69,17 +69,8 @@ func NewTempTree(templateToShow func(*templates.Template)) *TempTree {
                 log.Fatalf("Error sending template to show (%s)", err)
             }
 
-            id, err := temp.treeList.GetValue(iter, 1)
-            if err != nil {
-                log.Fatalf("Error sending template to show (%s)", err)
-            }
-
-            val, err := id.GoValue()
-            if err != nil {
-                log.Fatalf("Error sending template to show (%s)", err)
-            }
-
-            tempID, err := strconv.Atoi(val.(string))
+            model := &temp.treeList.TreeModel
+            tempID, err := gtk_utils.ModelGetValue[int](model, iter, 1)
             if err != nil {
                 log.Fatalf("Error sending template to show (%s)", err)
             }

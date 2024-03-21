@@ -2,14 +2,13 @@ package viz
 
 import (
 	"chroma-viz/library/editor"
+	"chroma-viz/library/gtk_utils"
 	"chroma-viz/library/shows"
 	"chroma-viz/library/tcp"
 	"chroma-viz/library/templates"
 	"fmt"
 	"log"
 	"math/rand"
-	"reflect"
-	"strconv"
 	"time"
 
 	"github.com/gotk3/gotk3/glib"
@@ -209,35 +208,35 @@ func VizGui(app *gtk.Application) {
         log.Fatal(err)
     }
 
-    body, err := gtkGetObject[*gtk.Paned](builder, "body")
+    body, err := gtk_utils.BuilderGetObject[*gtk.Paned](builder, "body")
     if err != nil {
         log.Fatal(err)
     }
     
     box.PackStart(body, true, true, 0)
 
-    tempScroll, err := gtkGetObject[*gtk.ScrolledWindow](builder, "templates-win")
+    tempScroll, err := gtk_utils.BuilderGetObject[*gtk.ScrolledWindow](builder, "templates-win")
     if err != nil {
         log.Fatal(err)
     }
 
     tempScroll.Add(tempTree.treeView)
 
-    showScroll, err := gtkGetObject[*gtk.ScrolledWindow](builder, "show-win")
+    showScroll, err := gtk_utils.BuilderGetObject[*gtk.ScrolledWindow](builder, "show-win")
     if err != nil {
         log.Fatal(err)
     }
 
     showScroll.Add(showTree.treeView)
 
-    editBox, err := gtkGetObject[*gtk.Box](builder, "edit")
+    editBox, err := gtk_utils.BuilderGetObject[*gtk.Box](builder, "edit")
     if err != nil {
         log.Fatal(err)
     }
 
     editBox.PackStart(edit.Box, true, true, 0)
 
-    prevBox, err := gtkGetObject[*gtk.Box](builder, "preview")
+    prevBox, err := gtk_utils.BuilderGetObject[*gtk.Box](builder, "preview")
     if err != nil {
         log.Fatal(err)
     }
@@ -359,31 +358,15 @@ func guiExportPage(win *gtk.ApplicationWindow, showTree *ShowTree) error {
         return fmt.Errorf("Error getting selected iter") 
     }
 
-    id, err := showTree.treeList.GetValue(iter, TITLE)
-    if err != nil { 
-        return err 
+    model := &showTree.treeList.TreeModel
+    title, err := gtk_utils.ModelGetValue[string](model, iter, TITLE)
+    if err != nil {
+        return err
     }
 
-    val, err := id.GoValue()
-    if err != nil { 
-        return err 
-    }
-
-    title := val.(string)
-
-    id, err = showTree.treeList.GetValue(iter, PAGENUM)
-    if err != nil { 
-        return err 
-    }
-
-    val, err = id.GoValue()
-    if err != nil { 
-        return err 
-    }
-
-    pageNum, err := strconv.Atoi(val.(string))
-    if err != nil { 
-        return err 
+    pageNum, err := gtk_utils.ModelGetValue[int](model, iter, PAGENUM)
+    if err != nil {
+        return err
     }
 
     dialog, err := gtk.FileChooserDialogNewWith2Buttons(
@@ -424,22 +407,13 @@ func guiDeletePage(show *ShowTree) error {
         return fmt.Errorf("Error getting selection iter")
     }
 
+    model := &show.treeList.TreeModel
+    pageNum, err := gtk_utils.ModelGetValue[int](model, iter, PAGENUM)
+    if err != nil {
+        return err
+    }
+
     show.treeList.Remove(iter)
-    id, err := show.treeList.GetValue(iter, PAGENUM)
-    if err != nil { 
-        return err 
-    }
-
-    val, err := id.GoValue()
-    if err != nil { 
-        return err 
-    }
-
-    pageNum, err := strconv.Atoi(val.(string))
-    if err != nil { 
-        return err 
-    }
-
     show.show.Pages[pageNum] = nil
     return nil
 }
@@ -478,17 +452,3 @@ func testGui(tempTree *TempTree, showTree *ShowTree) {
     log.Printf("Built Show in %s\n", elapsed)
 }
 
-func gtkGetObject[T any](builder *gtk.Builder, name string) (obj T, err error) {
-    gtkObject, err := builder.GetObject(name)
-    if err != nil {
-        return 
-    }
-
-    goObj, ok := gtkObject.(T)
-    if !ok {
-        err = fmt.Errorf("viz-gui.ui object '%s' is type %v", name, reflect.TypeOf(goObj))
-        return 
-    }
-
-    return goObj, nil
-}

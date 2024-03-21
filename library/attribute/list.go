@@ -1,6 +1,7 @@
 package attribute
 
 import (
+	"chroma-viz/library/gtk_utils"
 	"encoding/json"
 	"fmt"
 	"log"
@@ -80,13 +81,25 @@ func (listAttr *ListAttribute) String() (s string) {
 }
 
 func (listAttr *ListAttribute) stringRow(iter *gtk.TreeIter) (s string) {
+    model := &listAttr.ListStore.TreeModel
     s = listAttr.Name + "="
+
     for j := 0; j < listAttr.NumCols - 1; j++ {
-        item := getStringFromIter(listAttr.ListStore, iter, j)
+        item, err := gtk_utils.ModelGetValue[string](model, iter, j)
+        if err != nil {
+            log.Print("Error getting list attr entry (%s)", err)
+            return ""
+        }
+
         s = s + item + " "
     }
 
-    item := getStringFromIter(listAttr.ListStore, iter, listAttr.NumCols - 1)
+    item, err := gtk_utils.ModelGetValue[string](model, iter, listAttr.NumCols - 1)
+    if err != nil {
+        log.Print("Error getting list attr entry (%s)", err)
+        return ""
+    }
+
     s = s + item + "#"
     return
 }
@@ -115,22 +128,6 @@ func (listAttr *ListAttribute) Encode() (s string) {
     }
 
     return
-}
-
-func getStringFromIter(model *gtk.ListStore, iter *gtk.TreeIter, col int) string {
-    row, err := model.GetValue(iter, col)
-    if err != nil {
-        log.Printf("Error getting graph row (%s)", err)
-        return "" 
-    }
-
-    rowVal, err := row.GoValue()
-    if err != nil {
-        log.Printf("Error converting row to go val (%s)", err)
-        return ""
-    }
-        
-    return rowVal.(string)
 }
 
 type ListAttributeJSON struct {
@@ -194,9 +191,15 @@ func (listAttr *ListAttribute) UnmarshalJSON(b []byte) error {
 }
 
 func (listAttr *ListAttribute) encodeRow(iter *gtk.TreeIter) []string {
+    var err error
     row := make([]string, listAttr.NumCols)
+    model := &listAttr.ListStore.TreeModel
+
     for j := 0; j < listAttr.NumCols; j++ {
-        row[j] = getStringFromIter(listAttr.ListStore, iter, j)
+        row[j], err = gtk_utils.ModelGetValue[string](model, iter, j)
+        if err != nil {
+            log.Printf("Error encoding list attr row (%s)", err)
+        }
     }
 
     return row

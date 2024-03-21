@@ -1,6 +1,7 @@
 package artist
 
 import (
+	"chroma-viz/library/gtk_utils"
 	"log"
 
 	"github.com/gotk3/gotk3/glib"
@@ -44,20 +45,9 @@ func NewTempTree(propToEditor func(propID int), updateParent func(propId, parent
             return
         }
 
-        id, err := temp.model.GetValue(iter, PROP_NUM)
+        model := &temp.model.TreeModel
+        geoID, err := gtk_utils.ModelGetValue[int](model, iter, PROP_NUM)
         if err != nil {
-            log.Printf("Error editing geometry (%s)", err)
-            return
-        }
-
-        val, err := id.GoValue()
-        if err != nil {
-            log.Printf("Error editing geometry (%s)", err)
-            return
-        }
-
-        geoID, ok := val.(int)
-        if !ok {
             log.Printf("Error editing geometry (%s)", err)
             return
         }
@@ -99,13 +89,22 @@ func NewTempTree(propToEditor func(propID int), updateParent func(propId, parent
                 return
             }
 
-            propID := getIntFromModel(temp.model, iter, PROP_NUM)
+            model := &temp.model.TreeModel
+            propID, err := gtk_utils.ModelGetValue[int](model, iter, PROP_NUM)
+            if err != nil {
+                log.Printf("Error sending prop to editor (%s)", err)
+                return
+            }
 
             var parentID int
             var parent gtk.TreeIter
             ok = temp.model.IterParent(&parent, iter)
             if ok {
-                parentID = getIntFromModel(temp.model, &parent, PROP_NUM)
+                parentID, err = gtk_utils.ModelGetValue[int](model, &parent, PROP_NUM)
+                if err != nil {
+                    log.Printf("Error sending prop to editor (%s)", err)
+                    return
+                }
             }
 
             updateParent(propID, parentID)
@@ -119,28 +118,15 @@ func NewTempTree(propToEditor func(propID int), updateParent func(propId, parent
                 return
             }
 
-            propID := getIntFromModel(temp.model, iter, PROP_NUM)
+            model := &temp.model.TreeModel
+            propID, err := gtk_utils.ModelGetValue[int](model, iter, PROP_NUM)
+            if err != nil {
+                log.Printf("Error sending prop to editor (%s)", err)
+                return
+            }
+
             propToEditor(propID)
     })
 
     return temp, nil
-}
-
-func getIntFromModel(model *gtk.TreeStore, iter *gtk.TreeIter, col int) int {
-    id, err := model.GetValue(iter, col)
-    if err != nil {
-        log.Fatalf("Error sending prop to editor (%s)", err)
-    }
-
-    val, err := id.GoValue()
-    if err != nil {
-        log.Fatalf("Error sending prop to editor (%s)", err)
-    }
-
-    integer, ok := val.(int)
-    if !ok {
-        log.Fatalf("Error sending prop to editor (value not int)")
-    }
-
-    return integer
 }

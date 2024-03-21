@@ -2,11 +2,11 @@ package viz
 
 import (
 	"chroma-viz/library/attribute"
+	"chroma-viz/library/gtk_utils"
 	"chroma-viz/library/props"
 	"chroma-viz/library/shows"
 	"chroma-viz/library/tcp"
 	"log"
-	"strconv"
 
 	"github.com/gotk3/gotk3/glib"
 	"github.com/gotk3/gotk3/gtk"
@@ -68,19 +68,8 @@ func NewShowTree(pageToEditor func(*shows.Page)) *ShowTree {
                         return
                     }
 
-                    id, err := showTree.treeList.GetValue(iter, PAGENUM)
-                    if err != nil {
-                        log.Printf("Error editing page (%s)", err)
-                        return
-                    }
-
-                    val, err := id.GoValue()
-                    if err != nil {
-                        log.Printf("Error editing page (%s)", err)
-                        return
-                    }
-
-                    pageNum, err := strconv.Atoi(val.(string))
+                    model := &showTree.treeList.TreeModel
+                    pageNum, err := gtk_utils.ModelGetValue[int](model, iter, PAGENUM)
                     if err != nil {
                         log.Printf("Error editing page (%s)", err)
                         return
@@ -116,7 +105,7 @@ func NewShowTree(pageToEditor func(*shows.Page)) *ShowTree {
         showTree.treeView.AppendColumn(column)
     }
 
-    showTree.treeList, err = gtk.ListStoreNew(glib.TYPE_STRING, glib.TYPE_STRING, glib.TYPE_STRING)
+    showTree.treeList, err = gtk.ListStoreNew(glib.TYPE_INT, glib.TYPE_STRING, glib.TYPE_INT)
     if err != nil {
         log.Fatalf("Error creating show (%s)", err)
     }
@@ -132,21 +121,10 @@ func NewShowTree(pageToEditor func(*shows.Page)) *ShowTree {
                 return
             }
 
-            id, err := showTree.treeList.GetValue(iter, PAGENUM)
+            model := &showTree.treeList.TreeModel
+            pageNum, err := gtk_utils.ModelGetValue[int](model, iter, PAGENUM)
             if err != nil {
-                log.Printf("Error sending page to editor (%s)", err)
-                return
-            }
-
-            val, err := id.GoValue()
-            if err != nil {
-                log.Printf("Error sending page to editor (%s)", err)
-                return
-            }
-
-            pageNum, err := strconv.Atoi(val.(string))
-            if err != nil {
-                log.Printf("Error sending page to editor (%s)", err)
+                log.Printf("Error editing page (%s)", err)
                 return
             }
 

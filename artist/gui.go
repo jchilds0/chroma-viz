@@ -4,6 +4,7 @@ import (
 	"chroma-viz/hub"
 	"chroma-viz/library/attribute"
 	"chroma-viz/library/editor"
+	"chroma-viz/library/gtk_utils"
 	"chroma-viz/library/props"
 	"chroma-viz/library/tcp"
 	"chroma-viz/library/templates"
@@ -11,7 +12,6 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"reflect"
 	"strconv"
 
 	"github.com/gotk3/gotk3/glib"
@@ -137,134 +137,18 @@ func ArtistGui(app *gtk.Application) {
 
     importPage := glib.SimpleActionNew("import_page", nil)
     importPage.Connect("activate", func() { 
-        dialog, err := gtk.FileChooserDialogNewWith2Buttons(
-            "Import Page", win, gtk.FILE_CHOOSER_ACTION_OPEN, 
-            "_Cancel", gtk.RESPONSE_CANCEL, "_Open", gtk.RESPONSE_ACCEPT)
+        err := guiImportPage(win, temp)
         if err != nil {
             log.Print(err)
-            return 
-        }
-        defer dialog.Destroy()
-
-        res := dialog.Run()
-        if res == gtk.RESPONSE_ACCEPT {
-            filename := dialog.GetFilename()
-
-            buf, err := os.ReadFile(filename)
-            if err != nil {
-                log.Print(err)
-                return 
-            }
-
-            err = json.Unmarshal(buf, template)
-            if err != nil {
-                log.Print(err)
-                return 
-            }
-
-            temp.model, err = gtk.TreeStoreNew(glib.TYPE_OBJECT, glib.TYPE_STRING, glib.TYPE_OBJECT, glib.TYPE_INT)
-            temp.view.SetModel(temp.model)
-
-            // build a map of json geo id's to new geo id's
-            geoRename := make(map[int]int, len(template.Geometry))
-            newGeoMap := make(map[int]*props.Property, len(template.Geometry))
-
-            for id, geo := range template.Geometry {
-                geom, ok := geoms[geo.PropType]
-                if !ok {
-                    log.Printf("Missing Geom %s", props.PropType(geo.PropType))
-                    continue
-                }
-
-                newID, err := geom.allocGeom()
-                if err != nil {
-                    log.Print(err)
-                    continue
-                }
-
-                newGeoMap[newID] = geo
-                geoRename[id] = newID
-
-                newRow := temp.model.Append(nil)
-                temp.model.SetValue(newRow, NAME, geo.Name)
-                temp.model.SetValue(newRow, PROP_NUM, newID)
-            }
-
-            template.Geometry = newGeoMap
-
-            // update parent geo id's using geoRename
-            for _, geo := range template.Geometry {
-                parentAttr := geo.Attr["parent"]
-                if parentAttr == nil {
-                    log.Printf("Missing parent attr for geo %s", geo.Name)
-                    continue
-                }
-
-                parent := parentAttr.(*attribute.IntAttribute).Value
-                parentAttr.(*attribute.IntAttribute).Value = geoRename[parent]
-            }
-
-            // set props to visible
-            for _, geo := range template.Geometry {
-                geo.Visible = visible
-            }
-
-            return
         }
     })
     app.AddAction(importPage)
 
     exportPage := glib.SimpleActionNew("export_page", nil)
     exportPage.Connect("activate", func() { 
-        dialog, err := gtk.FileChooserDialogNewWith2Buttons(
-        "Save Template", win, gtk.FILE_CHOOSER_ACTION_SAVE, 
-        "_Cancel", gtk.RESPONSE_CANCEL, "_Save", gtk.RESPONSE_ACCEPT)
+        err := guiExportPage(win)
         if err != nil {
             log.Print(err)
-            return 
-        }
-        defer dialog.Destroy()
-
-        dialog.SetCurrentName(template.Title + ".json")
-        res := dialog.Run()
-        if res == gtk.RESPONSE_ACCEPT {
-            filename := dialog.GetFilename()
-
-            // build geo id map 
-            geoRename := make(map[int]int, len(template.Geometry))
-            newGeoMap := make(map[int]*props.Property, len(template.Geometry))
-
-            i := 0
-            for id, geo := range template.Geometry {
-                newGeoMap[i] = geo
-                geoRename[id] = i 
-                i++
-            }
-
-            template.Geometry = newGeoMap
-
-            // update parent geo id's
-            for id, geo := range template.Geometry {
-                parentAttr := geo.Attr["parent"]
-                if parentAttr == nil {
-                    continue
-                }
-
-                attr := parentAttr.(*attribute.IntAttribute)
-                if attr.Value != index {
-                    continue
-                }
-
-                attr.Value = geoRename[id]
-            }
-
-            // TODO: sync visible attrs to template
-
-            err := templates.ExportTemplate(template, filename)
-            if err != nil {
-                log.Print(err)
-                return
-            }
         }
     })
     app.AddAction(exportPage)
@@ -276,14 +160,14 @@ func ArtistGui(app *gtk.Application) {
         log.Fatal(err)
     }
 
-    body, err := gtkGetObject[*gtk.Paned](builder, "body")
+    body, err := gtk_utils.BuilderGetObject[*gtk.Paned](builder, "body")
     if err != nil {
         log.Fatal(err)
     }
 
     box.PackStart(body, true, true, 0)
 
-    title, err := gtkGetObject[*gtk.Entry](builder, "title")
+    title, err := gtk_utils.BuilderGetObject[*gtk.Entry](builder, "title")
     if err != nil {
         log.Fatal(err)
     }
@@ -298,7 +182,7 @@ func ArtistGui(app *gtk.Application) {
         template.Title = text
     })
 
-    tempid, err := gtkGetObject[*gtk.Entry](builder, "tempid")
+    tempid, err := gtk_utils.BuilderGetObject[*gtk.Entry](builder, "tempid")
     if err != nil {
         log.Fatal(err)
     }
@@ -319,12 +203,12 @@ func ArtistGui(app *gtk.Application) {
         template.TempID = id
     })
 
-    geoSelector, err := gtkGetObject[*gtk.ComboBoxText](builder, "geo-selector")
+    geoSelector, err := gtk_utils.BuilderGetObject[*gtk.ComboBoxText](builder, "geo-selector")
     if err != nil {
         log.Fatal(err)
     }
 
-    addGeo, err := gtkGetObject[*gtk.Button](builder, "add-geo")
+    addGeo, err := gtk_utils.BuilderGetObject[*gtk.Button](builder, "add-geo")
     if err != nil {
         log.Fatal(err)
     }
@@ -347,7 +231,7 @@ func ArtistGui(app *gtk.Application) {
         temp.model.SetValue(newRow, PROP_NUM, propNum)
     })
 
-    removeGeo, err := gtkGetObject[*gtk.Button](builder, "remove-geo")
+    removeGeo, err := gtk_utils.BuilderGetObject[*gtk.Button](builder, "remove-geo")
     if err != nil {
         log.Fatal(err)
     }
@@ -364,44 +248,34 @@ func ArtistGui(app *gtk.Application) {
             log.Printf("No geometry selected")
             return
         }
-        temp.model.Remove(iter)
-        id, err := temp.model.GetValue(iter, PROP_NUM)
-        if err != nil {
-            log.Printf("Error removing prop (%s)", err)
-            return
-        }
 
-        val, err := id.GoValue()
+        model := &temp.model.TreeModel
+        propID, err := gtk_utils.ModelGetValue[int](model, iter, PROP_NUM)
         if err != nil {
-            log.Printf("Error removing prop (%s)", err)
-            return
-        }
-
-        propID, ok := val.(int)
-        if !ok {
-            log.Printf("Error removing prop (%s)", err)
+            log.Printf("Error getting prop id (%s)", err)
             return
         }
 
         RemoveProp(propID)
+        temp.model.Remove(iter)
     })
 
 
-    geoScroll, err := gtkGetObject[*gtk.ScrolledWindow](builder, "geo-win")
+    geoScroll, err := gtk_utils.BuilderGetObject[*gtk.ScrolledWindow](builder, "geo-win")
     if err != nil {
         log.Fatal(err)
     }
 
     geoScroll.Add(temp.view)
 
-    editBox, err := gtkGetObject[*gtk.Box](builder, "edit")
+    editBox, err := gtk_utils.BuilderGetObject[*gtk.Box](builder, "edit")
     if err != nil {
         log.Fatal(err)
     }
 
     editBox.PackStart(editView.Box, true, true, 0)
     
-    prevBox, err := gtkGetObject[*gtk.Box](builder, "preview")
+    prevBox, err := gtk_utils.BuilderGetObject[*gtk.Box](builder, "preview")
     if err != nil {
         log.Fatal(err)
     }
@@ -512,17 +386,129 @@ func RemoveProp(propID int) {
     template.Geometry[propID] = nil
 }
 
-func gtkGetObject[T any](builder *gtk.Builder, name string) (obj T, err error) {
-    gtkObject, err := builder.GetObject(name)
+func guiImportPage(win *gtk.ApplicationWindow, temp *TempTree) error {
+    dialog, err := gtk.FileChooserDialogNewWith2Buttons(
+        "Import Page", win, gtk.FILE_CHOOSER_ACTION_OPEN, 
+        "_Cancel", gtk.RESPONSE_CANCEL, "_Open", gtk.RESPONSE_ACCEPT)
     if err != nil {
-        return 
+        return err
+    }
+    defer dialog.Destroy()
+
+    res := dialog.Run()
+    if res == gtk.RESPONSE_ACCEPT {
+        filename := dialog.GetFilename()
+
+        buf, err := os.ReadFile(filename)
+        if err != nil {
+            return err 
+        }
+
+        err = json.Unmarshal(buf, template)
+        if err != nil {
+            return err
+        }
+
+        temp.model, err = gtk.TreeStoreNew(glib.TYPE_OBJECT, glib.TYPE_STRING, glib.TYPE_OBJECT, glib.TYPE_INT)
+        temp.view.SetModel(temp.model)
+
+        // build a map of json geo id's to new geo id's
+        geoRename := make(map[int]int, len(template.Geometry))
+        newGeoMap := make(map[int]*props.Property, len(template.Geometry))
+
+        for id, geo := range template.Geometry {
+            geom, ok := geoms[geo.PropType]
+            if !ok {
+                log.Printf("Missing Geom %s", props.PropType(geo.PropType))
+                continue
+            }
+
+            newID, err := geom.allocGeom()
+            if err != nil {
+                log.Print(err)
+                continue
+            }
+
+            newGeoMap[newID] = geo
+            geoRename[id] = newID
+
+            newRow := temp.model.Append(nil)
+            temp.model.SetValue(newRow, NAME, geo.Name)
+            temp.model.SetValue(newRow, PROP_NUM, newID)
+        }
+
+        template.Geometry = newGeoMap
+
+        // update parent geo id's using geoRename
+        for _, geo := range template.Geometry {
+            parentAttr := geo.Attr["parent"]
+            if parentAttr == nil {
+                log.Printf("Missing parent attr for geo %s", geo.Name)
+                continue
+            }
+
+            parent := parentAttr.(*attribute.IntAttribute).Value
+            parentAttr.(*attribute.IntAttribute).Value = geoRename[parent]
+        }
+
+        // set props to visible
+        for _, geo := range template.Geometry {
+            geo.Visible = visible
+        }
     }
 
-    goObj, ok := gtkObject.(T)
-    if !ok {
-        err = fmt.Errorf("viz-gui.ui object '%s' is type %v", name, reflect.TypeOf(goObj))
-        return 
+    return nil
+}
+
+func guiExportPage(win *gtk.ApplicationWindow) error {
+    dialog, err := gtk.FileChooserDialogNewWith2Buttons(
+        "Save Template", win, gtk.FILE_CHOOSER_ACTION_SAVE, 
+        "_Cancel", gtk.RESPONSE_CANCEL, "_Save", gtk.RESPONSE_ACCEPT)
+    if err != nil {
+        return err
+    }
+    defer dialog.Destroy()
+
+    dialog.SetCurrentName(template.Title + ".json")
+    res := dialog.Run()
+    if res == gtk.RESPONSE_ACCEPT {
+        filename := dialog.GetFilename()
+
+        // build geo id map 
+        geoRename := make(map[int]int, len(template.Geometry))
+        newGeoMap := make(map[int]*props.Property, len(template.Geometry))
+
+        i := 0
+        for id, geo := range template.Geometry {
+            newGeoMap[i] = geo
+            geoRename[id] = i 
+            i++
+        }
+
+        template.Geometry = newGeoMap
+
+        // update parent geo id's
+        for id, geo := range template.Geometry {
+            parentAttr := geo.Attr["parent"]
+            if parentAttr == nil {
+                continue
+            }
+
+            attr := parentAttr.(*attribute.IntAttribute)
+            if attr.Value != id {
+                continue
+            }
+
+            attr.Value = geoRename[id]
+        }
+
+        // TODO: sync visible attrs to template
+
+        err := templates.ExportTemplate(template, filename)
+        if err != nil {
+            return err
+        }
     }
 
-    return goObj, nil
+    return nil
 }
