@@ -512,40 +512,6 @@ func RemoveProp(propID int) {
     template.Geometry[propID] = nil
 }
 
-func stringEditor(name string, update func(*gtk.Entry)) *gtk.Box {
-    titleBox, err := gtk.BoxNew(gtk.ORIENTATION_HORIZONTAL, 0)
-    if err != nil {
-        log.Fatal(err)
-    }
-
-    titleBox.SetVisible(true)
-    label, err := gtk.LabelNew(name)
-    if err != nil { 
-        log.Fatal(err)
-    }
-
-    label.SetVisible(true)
-    label.SetWidthChars(12)
-    titleBox.PackStart(label, false, false, 10)
-
-    buf, err := gtk.EntryBufferNew("", 0)
-    if err != nil { 
-        log.Fatal(err)
-    }
-
-    entry, err := gtk.EntryNewWithBuffer(buf)
-    if err != nil { 
-        log.Fatal(err)
-    }
-
-    entry.Connect("changed", update)
-
-    entry.SetVisible(true)
-    titleBox.PackStart(entry, false, false, 0)
-
-    return titleBox
-}
-
 func gtkGetObject[T any](builder *gtk.Builder, name string) (obj T, err error) {
     gtkObject, err := builder.GetObject(name)
     if err != nil {
