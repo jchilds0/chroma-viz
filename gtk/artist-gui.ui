@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <object class="GtkPaned" id="body">
+    <property name="orientation">horizontal</property>
+    <child>
+      <object class="GtkBox" id="left">
+        <property name="orientation">vertical</property>
+        <child>
+          <object class="GtkBox" id="templates">
+            <property name="orientation">vertical</property>
+            <child>
+              <object class="GtkHeaderBar">
+                <property name="title">Templates</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkBox" id="pageActions">
+                <property name="orientation">horizontal</property>
+                <child>
+                  <!-- Title string editor -->
+                </child>
+                <child>
+                  <!-- Temp ID string editor -->
+                </child>
+              </object>
+            </child>
+            <child>
+              <object class="GtkBox" id="tempActions">
+                <property name="orientation">horizontal</property>
+                <child>
+                  <!-- geo selector -->
+                  <object class="GtkComboBoxText" id="geo-selector">
+                    <items>
+                      <item id="rect">Rectangle</item>
+                      <item id="circ">Circle</item>
+                      <item id="text">Text</item>
+                      <item id="graph">Graph</item>
+                      <item id="ticker">Ticker</item>
+                      <item id="clock">Clock</item>
+                      <item id="image">Image</item>
+                    </items>
+                  </object>
+                  <packing>
+                    <property name="padding">10</property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="GtkButton" id="add-geo">
+                    <property name="label">Add Geometry</property>
+                  </object>
+                  <packing>
+                    <property name="padding">10</property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="GtkButton" id="remove-geo">
+                    <property name="label">Remove Geometry</property>
+                  </object>
+                  <packing>
+                    <property name="padding">10</property>
+                  </packing>
+                </child>
+              </object>
+              <packing>
+                <property name="padding">10</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkScrolledWindow" id="geo-win">
+                <property name="vexpand">TRUE</property>
+              </object>
+            </child>
+          </object>
+        </child>
+      </object>
+    </child>
+    <child>
+      <object class="GtkBox" id="right">
+        <property name="orientation">vertical</property>
+        <child> 
+          <object class="GtkBox" id="edit">
+            <property name="orientation">vertical</property>
+            <child>
+              <object class="GtkHeaderBar">
+                <property name="title">Editor</property>
+              </object>
+            </child>
+          </object>
+        </child>
+        <child> 
+          <object class="GtkBox" id="preview">
+            <property name="orientation">vertical</property>
+            <child>
+              <object class="GtkHeaderBar">
+                <property name="title">Preview</property>
+              </object>
+            </child>
+          </object>
+          <packing>
+            <property name="pack_type">end</property>
+          </packing>
+        </child>
+      </object>
+    </child>
+  </object>
+</interface>

@@ -209,17 +209,12 @@ func VizGui(app *gtk.Application) {
         log.Fatal(err)
     }
 
-    body, err := builder.GetObject("body")
+    body, err := gtkGetObject[*gtk.Paned](builder, "body")
     if err != nil {
         log.Fatal(err)
     }
     
-    bodyBox, ok := body.(*gtk.Paned)
-    if !ok {
-        log.Fatal("viz-gui.ui object 'body' is not a gtk.Paned")
-    }
-
-    box.PackStart(bodyBox, true, true, 0)
+    box.PackStart(body, true, true, 0)
 
     tempScroll, err := gtkGetObject[*gtk.ScrolledWindow](builder, "templates-win")
     if err != nil {

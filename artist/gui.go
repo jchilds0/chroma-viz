@@ -11,7 +11,7 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"strconv"
+	"reflect"
 
 	"github.com/gotk3/gotk3/glib"
 	"github.com/gotk3/gotk3/gtk"
@@ -87,6 +87,8 @@ func ArtistGui(app *gtk.Application) {
     })
     editView.PropertyEditor()
     editView.Page = template
+
+    preview := setup_preview_window(port)
 
     temp, err := NewTempTree(
         func(propID int) { 
@@ -268,112 +270,62 @@ func ArtistGui(app *gtk.Application) {
 
 
     /* Body layout */
-    bodyBox, err := gtk.PanedNew(gtk.ORIENTATION_HORIZONTAL)
-    if err != nil {
-        log.Fatalf("Error starting artist gui (%s)", err)
+    builder, err = gtk.BuilderNew()
+    if err := builder.AddFromFile("./gtk/artist-gui.ui"); err != nil {
+        log.Fatal(err)
     }
 
-    box.PackStart(bodyBox, true, true, 0)
-
-    leftBox, err := gtk.PanedNew(gtk.ORIENTATION_VERTICAL)
+    body, err := gtkGetObject[*gtk.Paned](builder, "body")
     if err != nil {
-        log.Fatalf("Error starting artist gui (%s)", err)
+        log.Fatal(err)
     }
 
-    rightBox, err := gtk.BoxNew(gtk.ORIENTATION_VERTICAL, 0)
+    box.PackStart(body, true, true, 0)
+
+
+    // title := stringEditor("Title", func(entry *gtk.Entry) {
+    //     text, err := entry.GetText()
+    //     if err != nil {
+    //         log.Print(err)
+    //         return
+    //     }
+    //
+    //     template.Title = text
+    // })
+    //
+    // pageActions.PackStart(title, false, false, 10)
+    //
+    // tempid := stringEditor("Template ID", func(entry *gtk.Entry) {
+    //     text, err := entry.GetText()
+    //     if err != nil {
+    //         log.Print(err)
+    //         return
+    //     }
+    //
+    //     id, err := strconv.Atoi(text)
+    //     if err != nil {
+    //         log.Print(err)
+    //         return
+    //     }
+    //
+    //     template.TempID = id
+    // })
+    //
+    // pageActions.PackStart(tempid, false, false, 10)
+    //
+
+    geoSelector, err := gtkGetObject[*gtk.ComboBoxText](builder, "geo-selector")
     if err != nil {
-        log.Fatalf("Error starting artist gui (%s)", err)
+        log.Fatal(err)
     }
 
-    bodyBox.Pack1(leftBox, true, true)
-    bodyBox.Pack2(rightBox, true, true)
-
-    /* left */
-    leftBox.SetHExpand(true)
-
-    /* template */
-    templates, err := gtk.BoxNew(gtk.ORIENTATION_VERTICAL, 0)
+    addGeo, err := gtkGetObject[*gtk.Button](builder, "add-geo")
     if err != nil {
-        log.Fatalf("Error starting artist gui (%s)", err)
+        log.Fatal(err)
     }
 
-    leftBox.Pack1(templates, true, true)
-
-    header1, err := gtk.HeaderBarNew()
-    if err != nil {
-        log.Fatalf("Error starting artist gui (%s)", err)
-    }
-
-    header1.SetTitle("Template")
-    templates.PackStart(header1, false, false, 0)
-
-    pageActions, err := gtk.BoxNew(gtk.ORIENTATION_HORIZONTAL, 0)
-    if err != nil {
-        log.Fatalf("Error starting artist gui (%s)", err)
-    }
-
-    templates.PackStart(pageActions, false, false, 10)
-
-    title := stringEditor("Title", func(entry *gtk.Entry) {
-        text, err := entry.GetText()
-        if err != nil {
-            log.Print(err)
-            return
-        }
-
-        template.Title = text
-    })
-
-    pageActions.PackStart(title, false, false, 10)
-
-    tempid := stringEditor("Template ID", func(entry *gtk.Entry) {
-        text, err := entry.GetText()
-        if err != nil {
-            log.Print(err)
-            return
-        }
-
-        id, err := strconv.Atoi(text)
-        if err != nil {
-            log.Print(err)
-            return
-        }
-
-        template.TempID = id
-    })
-
-    pageActions.PackStart(tempid, false, false, 10)
-
-    tempActions, err := gtk.BoxNew(gtk.ORIENTATION_HORIZONTAL, 0)
-    if err != nil {
-        log.Fatalf("Error starting artist gui (%s)", err)
-    }
-
-    templates.PackStart(tempActions, false, false, 10)
-
-    geoBox, err := gtk.ComboBoxTextNew()
-    if err != nil {
-        log.Fatalf("Error starting artist gui (%s)", err)
-    }
-
-    tempActions.PackStart(geoBox, false, false, 10)
-    geoBox.AppendText("Rectangle")
-    geoBox.AppendText("Circle")
-    geoBox.AppendText("Text")
-    geoBox.AppendText("Graph")
-    geoBox.AppendText("Ticker")
-    geoBox.AppendText("Clock")
-    geoBox.AppendText("Image")
-
-    button1, err := gtk.ButtonNewWithLabel("Add Geometry")
-    if err != nil {
-        log.Fatalf("Error starting artist gui (%s)", err)
-    }
-
-    tempActions.PackStart(button1, false, false, 10)
-
-    button1.Connect("clicked", func() {
-        name := geoBox.GetActiveText()
+    addGeo.Connect("clicked", func() {
+        name := geoSelector.GetActiveText()
         if name == "" {
             log.Print("No geometry selected")
             return
@@ -390,14 +342,12 @@ func ArtistGui(app *gtk.Application) {
         temp.model.SetValue(newRow, PROP_NUM, propNum)
     })
 
-    button2, err := gtk.ButtonNewWithLabel("Remove Geometry")
-
+    removeGeo, err := gtkGetObject[*gtk.Button](builder, "remove-geo")
     if err != nil {
-        log.Fatalf("Error starting artist gui (%s)", err)
+        log.Fatal(err)
     }
 
-    tempActions.PackStart(button2, false, false, 10)
-    button2.Connect("clicked", func() {
+    removeGeo.Connect("clicked", func() {
         selection, err := temp.view.GetSelection()
         if err != nil {
             log.Printf("Error getting selected")
@@ -431,19 +381,27 @@ func ArtistGui(app *gtk.Application) {
         RemoveProp(propID)
     })
 
-    scroll1, err := gtk.ScrolledWindowNew(nil, nil)
+
+    geoScroll, err := gtkGetObject[*gtk.ScrolledWindow](builder, "geo-win")
     if err != nil {
-        log.Fatalf("Error starting artist gui (%s)", err)
+        log.Fatal(err)
     }
 
-    templates.PackStart(scroll1, true, true, 0)
-    scroll1.Add(temp.view)
+    geoScroll.Add(temp.view)
 
-    /* right */
-    rightBox.PackStart(editView.Box, true, true, 0)
+    editBox, err := gtkGetObject[*gtk.Box](builder, "edit")
+    if err != nil {
+        log.Fatal(err)
+    }
 
-    preview := setup_preview_window(port)
-    rightBox.PackEnd(preview, false, false, 0)
+    editBox.PackStart(editView.Box, true, true, 0)
+    
+    prevBox, err := gtkGetObject[*gtk.Box](builder, "preview")
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    prevBox.PackStart(preview, true, true, 0)
 
     /* Lower Bar layout */
     lowerBox, err := gtk.ActionBarNew()
@@ -581,4 +539,19 @@ func stringEditor(name string, update func(*gtk.Entry)) *gtk.Box {
     titleBox.PackStart(entry, false, false, 0)
 
     return titleBox
+}
+
+func gtkGetObject[T any](builder *gtk.Builder, name string) (obj T, err error) {
+    gtkObject, err := builder.GetObject(name)
+    if err != nil {
+        return 
+    }
+
+    goObj, ok := gtkObject.(T)
+    if !ok {
+        err = fmt.Errorf("viz-gui.ui object '%s' is type %v", name, reflect.TypeOf(goObj))
+        return 
+    }
+
+    return goObj, nil
 }
