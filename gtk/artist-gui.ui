@@ -13,21 +13,50 @@
                 <property name="title">Templates</property>
               </object>
             </child>
+
+            <!-- Template Settings -->
             <child>
               <object class="GtkBox" id="pageActions">
                 <property name="orientation">horizontal</property>
+
+                <!-- Title string editor -->
                 <child>
-                  <!-- Title string editor -->
+                  <object class="GtkLabel">
+                    <property name="label">Title</property>
+                    <property name="width-chars">12</property>
+                  </object>
                 </child>
+
                 <child>
-                  <!-- Temp ID string editor -->
+                  <object class="GtkEntry" id="title">
+                  </object>
                 </child>
+
+                <!-- Temp ID string editor -->
+                <child>
+                  <object class="GtkLabel">
+                    <property name="label">Template ID</property>
+                    <property name="width-chars">12</property>
+                  </object>
+                </child>
+
+                <child>
+                  <object class="GtkEntry" id="tempid">
+                  </object>
+                </child>
+
               </object>
+              <packing>
+                <property name="padding">10</property>
+              </packing>
             </child>
+
+            <!-- Action Bar -->
             <child>
               <object class="GtkBox" id="tempActions">
                 <property name="orientation">horizontal</property>
                 <child>
+
                   <!-- geo selector -->
                   <object class="GtkComboBoxText" id="geo-selector">
                     <items>
@@ -40,6 +69,7 @@
                       <item id="image">Image</item>
                     </items>
                   </object>
+
                   <packing>
                     <property name="padding">10</property>
                   </packing>
@@ -65,11 +95,14 @@
                 <property name="padding">10</property>
               </packing>
             </child>
+
+            <!-- Geometry Tree -->
             <child>
               <object class="GtkScrolledWindow" id="geo-win">
                 <property name="vexpand">TRUE</property>
               </object>
             </child>
+
           </object>
         </child>
       </object>
@@ -77,6 +110,8 @@
     <child>
       <object class="GtkBox" id="right">
         <property name="orientation">vertical</property>
+
+        <!-- Geometry Editor -->
         <child> 
           <object class="GtkBox" id="edit">
             <property name="orientation">vertical</property>
@@ -87,6 +122,8 @@
             </child>
           </object>
         </child>
+
+        <!-- Preview -->
         <child> 
           <object class="GtkBox" id="preview">
             <property name="orientation">vertical</property>
@@ -100,6 +137,7 @@
             <property name="pack_type">end</property>
           </packing>
         </child>
+
       </object>
     </child>
   </object>

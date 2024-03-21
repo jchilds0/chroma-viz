@@ -5,6 +5,8 @@
     <child>
       <object class="GtkPaned" id="left">
         <property name="orientation">vertical</property>
+
+        <!-- Templates -->
         <child>
           <object class="GtkBox" id="templates">
             <property name="orientation">vertical</property>
@@ -20,38 +22,46 @@
             </child>
           </object>
         </child>
+
+        <!-- Show -->
         <child>
           <object class="GtkBox" id="show">
             <property name="orientation">vertical</property>
-              <child>
-                <object class="GtkHeaderBar">
-                  <property name="title">Show</property>
-                </object>
-              </child>
-              <child>
-                <object class="GtkScrolledWindow" id="show-win">
-                    <property name="vexpand">TRUE</property>
-                </object>
-              </child>
-            </object>
-          </child>
-        </object>
-      </child>
-      <child>
-        <object class="GtkPaned" id="right">
+            <child>
+              <object class="GtkHeaderBar">
+                <property name="title">Show</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkScrolledWindow" id="show-win">
+                  <property name="vexpand">TRUE</property>
+              </object>
+            </child>
+          </object>
+        </child>
+
+      </object>
+    </child>
+
+    <child>
+      <object class="GtkBox" id="right">
+        <property name="orientation">vertical</property>
+
+        <!-- Editor -->
+        <child> 
+          <object class="GtkBox" id="edit">
           <property name="orientation">vertical</property>
-          <child> 
-            <object class="GtkBox" id="edit">
-            <property name="orientation">vertical</property>
-              <child>
-                <object class="GtkHeaderBar">
-                  <property name="title">Editor</property>
-                </object>
-              </child>
-            </object>
-          </child>
-          <child> 
-            <object class="GtkBox" id="preview">
+            <child>
+              <object class="GtkHeaderBar">
+                <property name="title">Editor</property>
+              </object>
+            </child>
+          </object>
+        </child>
+
+        <!-- Preview -->
+        <child> 
+          <object class="GtkBox" id="preview">
             <property name="orientation">vertical</property>
             <child>
               <object class="GtkHeaderBar">
@@ -59,7 +69,11 @@
               </object>
             </child>
           </object>
+          <packing>
+            <property name="pack_type">end</property>
+          </packing>
         </child>
+
       </object>
     </child>
   </object>

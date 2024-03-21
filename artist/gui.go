@@ -12,6 +12,7 @@ import (
 	"log"
 	"os"
 	"reflect"
+	"strconv"
 
 	"github.com/gotk3/gotk3/glib"
 	"github.com/gotk3/gotk3/gtk"
@@ -282,37 +283,41 @@ func ArtistGui(app *gtk.Application) {
 
     box.PackStart(body, true, true, 0)
 
+    title, err := gtkGetObject[*gtk.Entry](builder, "title")
+    if err != nil {
+        log.Fatal(err)
+    }
 
-    // title := stringEditor("Title", func(entry *gtk.Entry) {
-    //     text, err := entry.GetText()
-    //     if err != nil {
-    //         log.Print(err)
-    //         return
-    //     }
-    //
-    //     template.Title = text
-    // })
-    //
-    // pageActions.PackStart(title, false, false, 10)
-    //
-    // tempid := stringEditor("Template ID", func(entry *gtk.Entry) {
-    //     text, err := entry.GetText()
-    //     if err != nil {
-    //         log.Print(err)
-    //         return
-    //     }
-    //
-    //     id, err := strconv.Atoi(text)
-    //     if err != nil {
-    //         log.Print(err)
-    //         return
-    //     }
-    //
-    //     template.TempID = id
-    // })
-    //
-    // pageActions.PackStart(tempid, false, false, 10)
-    //
+    title.Connect("changed", func(entry *gtk.Entry) {
+        text, err := entry.GetText()
+        if err != nil {
+            log.Print(err)
+            return
+        }
+
+        template.Title = text
+    })
+
+    tempid, err := gtkGetObject[*gtk.Entry](builder, "tempid")
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    tempid.Connect("changed", func(entry *gtk.Entry) {
+        text, err := entry.GetText()
+        if err != nil {
+            log.Print(err)
+            return
+        }
+
+        id, err := strconv.Atoi(text)
+        if err != nil {
+            log.Print(err)
+            return
+        }
+
+        template.TempID = id
+    })
 
     geoSelector, err := gtkGetObject[*gtk.ComboBoxText](builder, "geo-selector")
     if err != nil {
