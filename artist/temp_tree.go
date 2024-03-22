@@ -21,7 +21,7 @@ type TempTree struct {
     view *gtk.TreeView
 }
 
-func NewTempTree(propToEditor func(propID int), updateParent func(propId, parentID int)) (*TempTree, error) {
+func NewTempTree(propToEditor func(propID int)) (*TempTree, error) {
     var err error
     temp := &TempTree{}
 
@@ -74,41 +74,6 @@ func NewTempTree(propToEditor func(propID int), updateParent func(propId, parent
     }
 
     temp.view.SetModel(temp.model)
-
-    temp.view.Connect("cursor-changed", 
-        func(tree *gtk.TreeView) { 
-            selection, err := tree.GetSelection()
-            if err != nil {
-                log.Printf("Error sending prop to editor (%s)", err)
-                return
-            }
-
-            _, iter, ok := selection.GetSelected()
-            if !ok {
-                log.Printf("Error sending prop to editor (%s)", err)
-                return
-            }
-
-            model := &temp.model.TreeModel
-            propID, err := gtk_utils.ModelGetValue[int](model, iter, PROP_NUM)
-            if err != nil {
-                log.Printf("Error sending prop to editor (%s)", err)
-                return
-            }
-
-            var parentID int
-            var parent gtk.TreeIter
-            ok = temp.model.IterParent(&parent, iter)
-            if ok {
-                parentID, err = gtk_utils.ModelGetValue[int](model, &parent, PROP_NUM)
-                if err != nil {
-                    log.Printf("Error sending prop to editor (%s)", err)
-                    return
-                }
-            }
-
-            updateParent(propID, parentID)
-    })
 
     temp.view.Connect("row-activated", 
         func(tree *gtk.TreeView, path *gtk.TreePath, column *gtk.TreeViewColumn) {

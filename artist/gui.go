@@ -71,7 +71,7 @@ func ArtistGui(app *gtk.Application) {
     geo_count = []int{10, 10, 10, 10, 10, 10, 10}
     geoms = make(map[int]*geom, len(geo))
 
-    index := 0
+    index := 1
     for i, name := range geo {
         geoms[props.StringToProp[name]] = newGeom(index, geo_count[i])
         index += geo_count[i]
@@ -91,23 +91,10 @@ func ArtistGui(app *gtk.Application) {
 
     preview := setup_preview_window(port)
 
-    temp, err := NewTempTree(
+    tempView, err := NewTempTree(
         func(propID int) { 
-            prop := template.GetPropMap()[propID]
+            prop := template.Geometry[propID]
             editView.SetProperty(prop) 
-        },
-        func(propID, parentID int) {
-            prop := template.GetPropMap()[propID]
-            if prop == nil {
-                return
-            }
-
-            parentAttr := prop.Attr["parent"]
-            if parentAttr == nil {
-                return
-            }
-
-            parentAttr.(*attribute.IntAttribute).Value = parentID
         },
     )
 
@@ -137,7 +124,7 @@ func ArtistGui(app *gtk.Application) {
 
     importPage := glib.SimpleActionNew("import_page", nil)
     importPage.Connect("activate", func() { 
-        err := guiImportPage(win, temp)
+        err := guiImportPage(win, tempView)
         if err != nil {
             log.Print(err)
         }
@@ -146,7 +133,7 @@ func ArtistGui(app *gtk.Application) {
 
     exportPage := glib.SimpleActionNew("export_page", nil)
     exportPage.Connect("activate", func() { 
-        err := guiExportPage(win)
+        err := guiExportPage(win, tempView)
         if err != nil {
             log.Print(err)
         }
@@ -226,9 +213,9 @@ func ArtistGui(app *gtk.Application) {
             return
         }
 
-        newRow := temp.model.Append(nil)
-        temp.model.SetValue(newRow, NAME, name)
-        temp.model.SetValue(newRow, PROP_NUM, propNum)
+        newRow := tempView.model.Append(nil)
+        tempView.model.SetValue(newRow, NAME, name)
+        tempView.model.SetValue(newRow, PROP_NUM, propNum)
     })
 
     removeGeo, err := gtk_utils.BuilderGetObject[*gtk.Button](builder, "remove-geo")
@@ -237,7 +224,7 @@ func ArtistGui(app *gtk.Application) {
     }
 
     removeGeo.Connect("clicked", func() {
-        selection, err := temp.view.GetSelection()
+        selection, err := tempView.view.GetSelection()
         if err != nil {
             log.Printf("Error getting selected")
             return
@@ -249,7 +236,7 @@ func ArtistGui(app *gtk.Application) {
             return
         }
 
-        model := &temp.model.TreeModel
+        model := &tempView.model.TreeModel
         propID, err := gtk_utils.ModelGetValue[int](model, iter, PROP_NUM)
         if err != nil {
             log.Printf("Error getting prop id (%s)", err)
@@ -257,7 +244,7 @@ func ArtistGui(app *gtk.Application) {
         }
 
         RemoveProp(propID)
-        temp.model.Remove(iter)
+        tempView.model.Remove(iter)
     })
 
 
@@ -266,7 +253,7 @@ func ArtistGui(app *gtk.Application) {
         log.Fatal(err)
     }
 
-    geoScroll.Add(temp.view)
+    geoScroll.Add(tempView.view)
 
     editBox, err := gtk_utils.BuilderGetObject[*gtk.Box](builder, "edit")
     if err != nil {
@@ -404,63 +391,32 @@ func guiImportPage(win *gtk.ApplicationWindow, temp *TempTree) error {
             return err 
         }
 
-        err = json.Unmarshal(buf, template)
+        var newTemp templates.Template
+        err = json.Unmarshal(buf, &newTemp)
         if err != nil {
             return err
         }
 
+        // reset temp view geometry
         temp.model, err = gtk.TreeStoreNew(glib.TYPE_OBJECT, glib.TYPE_STRING, glib.TYPE_OBJECT, glib.TYPE_INT)
         temp.view.SetModel(temp.model)
 
-        // build a map of json geo id's to new geo id's
-        geoRename := make(map[int]int, len(template.Geometry))
-        newGeoMap := make(map[int]*props.Property, len(template.Geometry))
+        // reset geometry allocs
 
+        importTemplate(template, &newTemp)
+
+        // add geometry to temp view
         for id, geo := range template.Geometry {
-            geom, ok := geoms[geo.PropType]
-            if !ok {
-                log.Printf("Missing Geom %s", props.PropType(geo.PropType))
-                continue
-            }
-
-            newID, err := geom.allocGeom()
-            if err != nil {
-                log.Print(err)
-                continue
-            }
-
-            newGeoMap[newID] = geo
-            geoRename[id] = newID
-
             newRow := temp.model.Append(nil)
             temp.model.SetValue(newRow, NAME, geo.Name)
-            temp.model.SetValue(newRow, PROP_NUM, newID)
-        }
-
-        template.Geometry = newGeoMap
-
-        // update parent geo id's using geoRename
-        for _, geo := range template.Geometry {
-            parentAttr := geo.Attr["parent"]
-            if parentAttr == nil {
-                log.Printf("Missing parent attr for geo %s", geo.Name)
-                continue
-            }
-
-            parent := parentAttr.(*attribute.IntAttribute).Value
-            parentAttr.(*attribute.IntAttribute).Value = geoRename[parent]
-        }
-
-        // set props to visible
-        for _, geo := range template.Geometry {
-            geo.Visible = visible
+            temp.model.SetValue(newRow, PROP_NUM, id) 
         }
     }
 
     return nil
 }
 
-func guiExportPage(win *gtk.ApplicationWindow) error {
+func guiExportPage(win *gtk.ApplicationWindow, temp *TempTree) error {
     dialog, err := gtk.FileChooserDialogNewWith2Buttons(
         "Save Template", win, gtk.FILE_CHOOSER_ACTION_SAVE, 
         "_Cancel", gtk.RESPONSE_CANCEL, "_Save", gtk.RESPONSE_ACCEPT)
@@ -474,33 +430,20 @@ func guiExportPage(win *gtk.ApplicationWindow) error {
     if res == gtk.RESPONSE_ACCEPT {
         filename := dialog.GetFilename()
 
-        // build geo id map 
-        geoRename := make(map[int]int, len(template.Geometry))
-        newGeoMap := make(map[int]*props.Property, len(template.Geometry))
+        // newTemp := templates.NewTemplate(
+        //     template.Title, 
+        //     template.TempID, 
+        //     template.Layer, 
+        //     template.NumGeo,
+        // )
 
-        i := 0
-        for id, geo := range template.Geometry {
-            newGeoMap[i] = geo
-            geoRename[id] = i 
-            i++
+        // sync parent attrs
+        model := &temp.model.TreeModel
+        if iter, ok := model.GetIterFirst(); ok {
+            updateParentGeometry(model, iter, 0)
         }
 
-        template.Geometry = newGeoMap
-
-        // update parent geo id's
-        for id, geo := range template.Geometry {
-            parentAttr := geo.Attr["parent"]
-            if parentAttr == nil {
-                continue
-            }
-
-            attr := parentAttr.(*attribute.IntAttribute)
-            if attr.Value != id {
-                continue
-            }
-
-            attr.Value = geoRename[id]
-        }
+        //compressGeometry(template, newTemp)
 
         // TODO: sync visible attrs to template
 
