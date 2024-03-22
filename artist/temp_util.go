@@ -10,49 +10,6 @@ import (
 	"github.com/gotk3/gotk3/gtk"
 )
 
-func importTemplate(temp, newTemp *templates.Template) {
-    temp.Title = newTemp.Title
-    temp.TempID = newTemp.TempID
-    temp.Layer = newTemp.Layer
-
-    // build a map of new geo id's to alloc geo id's
-    geoRename := make(map[int]int, len(template.Geometry))
-
-    // alloc new geo id's
-    for id, geo := range newTemp.Geometry {
-        geom, ok := geoms[geo.PropType]
-        if !ok {
-            log.Printf("Missing Geom %s", props.PropType(geo.PropType))
-            continue
-        }
-
-        newID, err := geom.allocGeom()
-        if err != nil {
-            log.Print(err)
-            continue
-        }
-
-        geoRename[id] = newID
-    }
-
-    // copy newTemp geo to temp using geoRename
-    for id, geo := range newTemp.Geometry {
-        newID := geoRename[id]
-        temp.Geometry[newID] = geo
-        
-        parentAttr := geo.Attr["parent"]
-        if parentAttr == nil {
-            log.Printf("Missing parent attr for geo %s", geo.Name)
-            continue
-        }
-
-        parent := parentAttr.(*attribute.IntAttribute)
-        parent.Value = geoRename[parent.Value]
-
-        geo.Visible = visible
-    }
-}
-
 func updateParentGeometry(model *gtk.TreeModel, iter *gtk.TreeIter, parentID int) {
     ok := true
     for ok {
@@ -107,5 +64,70 @@ func compressGeometry(temp, newTemp *templates.Template) {
 
         attr := parentAttr.(*attribute.IntAttribute)
         attr.Value = geoRename[attr.Value]
+    }
+}
+
+func decompressGeometry(temp, newTemp *templates.Template) {
+    temp.Title = newTemp.Title
+    temp.TempID = newTemp.TempID
+    temp.Layer = newTemp.Layer
+
+    // build a map of new geo id's to alloc geo id's
+    geoRename := make(map[int]int, len(template.Geometry))
+
+    // alloc new geo id's
+    for id, geo := range newTemp.Geometry {
+        geom, ok := geoms[geo.PropType]
+        if !ok {
+            log.Printf("Missing Geom %s", props.PropType(geo.PropType))
+            continue
+        }
+
+        newID, err := geom.allocGeom()
+        if err != nil {
+            log.Print(err)
+            continue
+        }
+
+        geoRename[id] = newID
+    }
+
+    // copy newTemp geo to temp using geoRename
+    for id, geo := range newTemp.Geometry {
+        newID := geoRename[id]
+        temp.Geometry[newID] = geo
+        
+        parentAttr := geo.Attr["parent"]
+        if parentAttr == nil {
+            log.Printf("Missing parent attr for geo %s", geo.Name)
+            continue
+        }
+
+        parent := parentAttr.(*attribute.IntAttribute)
+        parent.Value = geoRename[parent.Value]
+
+        geo.Visible = visible
+    }
+}
+
+func geometryToTreeView(model *gtk.TreeStore, iter *gtk.TreeIter, propID int) {
+    for id, geo := range template.Geometry {
+        parentAttr := geo.Attr["parent"]
+        if parentAttr == nil {
+            log.Print("Error getting parent attr")
+            continue
+        }
+
+        parent := parentAttr.(*attribute.IntAttribute)
+
+        if parent.Value != propID {
+            continue
+        }
+
+        newRow := model.Append(iter)
+        model.SetValue(newRow, NAME, geo.Name)
+        model.SetValue(newRow, PROP_NUM, id) 
+
+        geometryToTreeView(model, newRow, id)
     }
 }

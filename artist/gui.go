@@ -401,16 +401,8 @@ func guiImportPage(win *gtk.ApplicationWindow, temp *TempTree) error {
         temp.model, err = gtk.TreeStoreNew(glib.TYPE_OBJECT, glib.TYPE_STRING, glib.TYPE_OBJECT, glib.TYPE_INT)
         temp.view.SetModel(temp.model)
 
-        // reset geometry allocs
-
-        importTemplate(template, &newTemp)
-
-        // add geometry to temp view
-        for id, geo := range template.Geometry {
-            newRow := temp.model.Append(nil)
-            temp.model.SetValue(newRow, NAME, geo.Name)
-            temp.model.SetValue(newRow, PROP_NUM, id) 
-        }
+        decompressGeometry(template, &newTemp)
+        geometryToTreeView(temp.model, nil, 0)
     }
 
     return nil
@@ -438,7 +430,7 @@ func guiExportPage(win *gtk.ApplicationWindow, temp *TempTree) error {
         )
 
         // sync parent attrs
-        model := &temp.model.TreeModel
+        model := temp.model.ToTreeModel()
         if iter, ok := model.GetIterFirst(); ok {
             updateParentGeometry(model, iter, 0)
         }
