@@ -68,10 +68,6 @@ func compressGeometry(temp, newTemp *templates.Template) {
 }
 
 func decompressGeometry(temp, newTemp *templates.Template) {
-    temp.Title = newTemp.Title
-    temp.TempID = newTemp.TempID
-    temp.Layer = newTemp.Layer
-
     // build a map of new geo id's to alloc geo id's
     geoRename := make(map[int]int, len(template.Geometry))
 
@@ -110,7 +106,7 @@ func decompressGeometry(temp, newTemp *templates.Template) {
     }
 }
 
-func geometryToTreeView(model *gtk.TreeStore, iter *gtk.TreeIter, propID int) {
+func geometryToTreeView(tempView *TempTree, iter *gtk.TreeIter, propID int) {
     for id, geo := range template.Geometry {
         parentAttr := geo.Attr["parent"]
         if parentAttr == nil {
@@ -124,10 +120,8 @@ func geometryToTreeView(model *gtk.TreeStore, iter *gtk.TreeIter, propID int) {
             continue
         }
 
-        newRow := model.Append(iter)
-        model.SetValue(newRow, NAME, geo.Name)
-        model.SetValue(newRow, PROP_NUM, id) 
-
-        geometryToTreeView(model, newRow, id)
+        newRow := tempView.model.Append(iter)
+        tempView.AddRow(newRow, geo.Name, geo_name[geo.PropType], id)
+        geometryToTreeView(tempView, newRow, id)
     }
 }

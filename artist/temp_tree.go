@@ -9,7 +9,7 @@ import (
 )
 
 const (
-    ICON = iota
+    PROP_TYPE = iota
     NAME
     VISIBLE
     PROP_NUM 
@@ -32,13 +32,24 @@ func NewTempTree(propToEditor func(propID int)) (*TempTree, error) {
 
     temp.view.Set("reorderable", true)
 
-    cell, err := gtk.CellRendererTextNew()
+    typeCell, err := gtk.CellRendererTextNew()
     if err != nil {
         return nil, err
     }
 
-    cell.SetProperty("editable", true)
-    cell.Connect("edited", func(cell *gtk.CellRendererText, path, text string) {
+    column, err := gtk.TreeViewColumnNewWithAttribute("Geometry", typeCell, "text", PROP_TYPE)
+    if err != nil {
+        return nil, err
+    }
+    temp.view.AppendColumn(column)
+
+    nameCell, err := gtk.CellRendererTextNew()
+    if err != nil {
+        return nil, err
+    }
+
+    nameCell.SetProperty("editable", true)
+    nameCell.Connect("edited", func(cell *gtk.CellRendererText, path, text string) {
         iter, err := temp.model.GetIterFromString(path)
         if err != nil {
             log.Printf("Error editing geometry (%s)", err)
@@ -62,13 +73,13 @@ func NewTempTree(propToEditor func(propID int)) (*TempTree, error) {
         temp.model.SetValue(iter, NAME, text)
     })
 
-    column, err := gtk.TreeViewColumnNewWithAttribute("Name", cell, "text", NAME)
+    column, err = gtk.TreeViewColumnNewWithAttribute("Name", nameCell, "text", NAME)
     if err != nil {
         return nil, err
     }
     temp.view.AppendColumn(column)
 
-    temp.model, err = gtk.TreeStoreNew(glib.TYPE_OBJECT, glib.TYPE_STRING, glib.TYPE_OBJECT, glib.TYPE_INT)
+    temp.model, err = gtk.TreeStoreNew(glib.TYPE_STRING, glib.TYPE_STRING, glib.TYPE_OBJECT, glib.TYPE_INT)
     if err != nil {
         return nil, err
     }
@@ -94,4 +105,22 @@ func NewTempTree(propToEditor func(propID int)) (*TempTree, error) {
     })
 
     return temp, nil
+}
+
+func (tempView *TempTree) AddRow(iter *gtk.TreeIter, name, propName string, propNum int) {
+    tempView.model.SetValue(iter, PROP_TYPE, propName)
+    tempView.model.SetValue(iter, NAME, name)
+    tempView.model.SetValue(iter, PROP_NUM, propNum)
+}
+
+func (tempView *TempTree) Clean() {
+    var err error
+    tempView.model, err = gtk.TreeStoreNew(
+        glib.TYPE_STRING, glib.TYPE_STRING, glib.TYPE_OBJECT, glib.TYPE_INT)
+    if err != nil {
+        log.Print(err)
+        return
+    }
+
+    tempView.view.SetModel(tempView.model)
 }

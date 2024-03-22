@@ -2,7 +2,7 @@
     "Title": "test",
     "TempID": 1,
     "NumGeo": 0,
-    "Layer": 0,
+    "Layer": 1,
     "Geometry": {
         "1": {
             "Name": "Circle",

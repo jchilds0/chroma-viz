@@ -16,10 +16,10 @@
 
             <!-- Template Settings -->
             <child>
-              <object class="GtkBox" id="pageActions">
+              <object class="GtkBox">
                 <property name="orientation">horizontal</property>
 
-                <!-- Title string editor -->
+                <!-- Title editor -->
                 <child>
                   <object class="GtkLabel">
                     <property name="label">Title</property>
@@ -32,7 +32,7 @@
                   </object>
                 </child>
 
-                <!-- Temp ID string editor -->
+                <!-- Temp ID editor -->
                 <child>
                   <object class="GtkLabel">
                     <property name="label">Template ID</property>
@@ -42,6 +42,19 @@
 
                 <child>
                   <object class="GtkEntry" id="tempid">
+                  </object>
+                </child>
+
+                <!-- Layer editor -->
+                <child>
+                  <object class="GtkLabel">
+                    <property name="label">Layer</property>
+                    <property name="width-chars">12</property>
+                  </object>
+                </child>
+
+                <child>
+                  <object class="GtkEntry" id="layer">
                   </object>
                 </child>
 

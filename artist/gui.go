@@ -120,26 +120,13 @@ func ArtistGui(app *gtk.Application) {
         log.Fatalf("Error starting artist gui (%s)", err)
     }
 
-    app.SetMenubar(menu.(*glib.MenuModel))
-
     importPage := glib.SimpleActionNew("import_page", nil)
-    importPage.Connect("activate", func() { 
-        err := guiImportPage(win, tempView)
-        if err != nil {
-            log.Print(err)
-        }
-    })
     app.AddAction(importPage)
 
     exportPage := glib.SimpleActionNew("export_page", nil)
-    exportPage.Connect("activate", func() { 
-        err := guiExportPage(win, tempView)
-        if err != nil {
-            log.Print(err)
-        }
-    })
     app.AddAction(exportPage)
 
+    app.SetMenubar(menu.(*glib.MenuModel))
 
     /* Body layout */
     builder, err = gtk.BuilderNew()
@@ -159,6 +146,71 @@ func ArtistGui(app *gtk.Application) {
         log.Fatal(err)
     }
 
+    tempid, err := gtk_utils.BuilderGetObject[*gtk.Entry](builder, "tempid")
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    layer, err := gtk_utils.BuilderGetObject[*gtk.Entry](builder, "layer")
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    geoSelector, err := gtk_utils.BuilderGetObject[*gtk.ComboBoxText](builder, "geo-selector")
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    addGeo, err := gtk_utils.BuilderGetObject[*gtk.Button](builder, "add-geo")
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    removeGeo, err := gtk_utils.BuilderGetObject[*gtk.Button](builder, "remove-geo")
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    geoScroll, err := gtk_utils.BuilderGetObject[*gtk.ScrolledWindow](builder, "geo-win")
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    geoScroll.Add(tempView.view)
+
+    editBox, err := gtk_utils.BuilderGetObject[*gtk.Box](builder, "edit")
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    editBox.PackStart(editView.Box, true, true, 0)
+    
+    prevBox, err := gtk_utils.BuilderGetObject[*gtk.Box](builder, "preview")
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    prevBox.PackStart(preview, true, true, 0)
+
+    /* actions */
+    importPage.Connect("activate", func() { 
+        err := guiImportPage(win, tempView)
+        if err != nil {
+            log.Print(err)
+        }
+
+        title.SetText(template.Title)
+        tempid.SetText(strconv.Itoa(template.TempID))
+        layer.SetText(strconv.Itoa(template.Layer))
+    })
+
+    exportPage.Connect("activate", func() { 
+        err := guiExportPage(win, tempView)
+        if err != nil {
+            log.Print(err)
+        }
+    })
+
     title.Connect("changed", func(entry *gtk.Entry) {
         text, err := entry.GetText()
         if err != nil {
@@ -168,11 +220,6 @@ func ArtistGui(app *gtk.Application) {
 
         template.Title = text
     })
-
-    tempid, err := gtk_utils.BuilderGetObject[*gtk.Entry](builder, "tempid")
-    if err != nil {
-        log.Fatal(err)
-    }
 
     tempid.Connect("changed", func(entry *gtk.Entry) {
         text, err := entry.GetText()
@@ -190,15 +237,21 @@ func ArtistGui(app *gtk.Application) {
         template.TempID = id
     })
 
-    geoSelector, err := gtk_utils.BuilderGetObject[*gtk.ComboBoxText](builder, "geo-selector")
-    if err != nil {
-        log.Fatal(err)
-    }
+    layer.Connect("changed", func(entry *gtk.Entry) {
+        text, err := entry.GetText()
+        if err != nil {
+            log.Print(err)
+            return
+        }
 
-    addGeo, err := gtk_utils.BuilderGetObject[*gtk.Button](builder, "add-geo")
-    if err != nil {
-        log.Fatal(err)
-    }
+        id, err := strconv.Atoi(text)
+        if err != nil {
+            log.Print(err)
+            return
+        }
+
+        template.Layer = id
+    })
 
     addGeo.Connect("clicked", func() {
         name := geoSelector.GetActiveText()
@@ -213,15 +266,9 @@ func ArtistGui(app *gtk.Application) {
             return
         }
 
-        newRow := tempView.model.Append(nil)
-        tempView.model.SetValue(newRow, NAME, name)
-        tempView.model.SetValue(newRow, PROP_NUM, propNum)
+        iter := tempView.model.Append(nil)
+        tempView.AddRow(iter, name, name, propNum)
     })
-
-    removeGeo, err := gtk_utils.BuilderGetObject[*gtk.Button](builder, "remove-geo")
-    if err != nil {
-        log.Fatal(err)
-    }
 
     removeGeo.Connect("clicked", func() {
         selection, err := tempView.view.GetSelection()
@@ -246,28 +293,6 @@ func ArtistGui(app *gtk.Application) {
         RemoveProp(propID)
         tempView.model.Remove(iter)
     })
-
-
-    geoScroll, err := gtk_utils.BuilderGetObject[*gtk.ScrolledWindow](builder, "geo-win")
-    if err != nil {
-        log.Fatal(err)
-    }
-
-    geoScroll.Add(tempView.view)
-
-    editBox, err := gtk_utils.BuilderGetObject[*gtk.Box](builder, "edit")
-    if err != nil {
-        log.Fatal(err)
-    }
-
-    editBox.PackStart(editView.Box, true, true, 0)
-    
-    prevBox, err := gtk_utils.BuilderGetObject[*gtk.Box](builder, "preview")
-    if err != nil {
-        log.Fatal(err)
-    }
-
-    prevBox.PackStart(preview, true, true, 0)
 
     /* Lower Bar layout */
     lowerBox, err := gtk.ActionBarNew()
@@ -331,6 +356,16 @@ var geo_type = map[string]int {
     "Ticker": props.TICKER_PROP,
     "Clock": props.CLOCK_PROP,
     "Image": props.IMAGE_PROP,
+}
+
+var geo_name = map[int]string {
+    props.RECT_PROP: "Rectangle",
+    props.CIRCLE_PROP: "Circle",
+    props.TEXT_PROP: "Text",
+    props.GRAPH_PROP: "Graph",
+    props.TICKER_PROP: "Ticker",
+    props.CLOCK_PROP: "Clock",
+    props.IMAGE_PROP: "Image",
 }
 
 func AddProp(label string) (id int, err error) {
@@ -398,11 +433,15 @@ func guiImportPage(win *gtk.ApplicationWindow, temp *TempTree) error {
         }
 
         // reset temp view geometry
-        temp.model, err = gtk.TreeStoreNew(glib.TYPE_OBJECT, glib.TYPE_STRING, glib.TYPE_OBJECT, glib.TYPE_INT)
-        temp.view.SetModel(temp.model)
+        temp.Clean()
+
+        template.Title = newTemp.Title
+        template.TempID = newTemp.TempID
+        template.Layer = newTemp.Layer
+        template.NumGeo = len(newTemp.Geometry)
 
         decompressGeometry(template, &newTemp)
-        geometryToTreeView(temp.model, nil, 0)
+        geometryToTreeView(temp, nil, 0)
     }
 
     return nil
@@ -426,7 +465,7 @@ func guiExportPage(win *gtk.ApplicationWindow, temp *TempTree) error {
             template.Title, 
             template.TempID, 
             template.Layer, 
-            template.NumGeo,
+            len(template.Geometry),
         )
 
         // sync parent attrs
