@@ -89,7 +89,7 @@ func compressGeometry(temp, newTemp *templates.Template) {
     // build geo id map 
     geoRename := make(map[int]int, len(template.Geometry))
 
-    i := 0
+    i := 1
     for id := range temp.Geometry {
         geoRename[id] = i 
         i++

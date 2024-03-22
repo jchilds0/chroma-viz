@@ -5,113 +5,6 @@
     "Layer": 0,
     "Geometry": {
         "1": {
-            "Name": "Rectangle",
-            "PropType": 0,
-            "Visible": {
-                "clock": true,
-                "color": true,
-                "end_angle": true,
-                "height": true,
-                "inner_radius": true,
-                "node": true,
-                "outer_radius": true,
-                "parent": true,
-                "scale": true,
-                "start_angle": true,
-                "string": true,
-                "text": true,
-                "width": true,
-                "x": true,
-                "y": true
-            },
-            "Attr": {
-                "color": {
-                    "Name": "color",
-                    "Type": 6,
-                    "Red": 1,
-                    "Green": 1,
-                    "Blue": 1,
-                    "Alpha": 1
-                },
-                "height": {
-                    "Name": "height",
-                    "Type": 1,
-                    "Value": 0
-                },
-                "parent": {
-                    "Name": "parent",
-                    "Type": 1,
-                    "Value": 0
-                },
-                "width": {
-                    "Name": "width",
-                    "Type": 1,
-                    "Value": 0
-                },
-                "x": {
-                    "Name": "rel_x",
-                    "Type": 1,
-                    "Value": 0
-                },
-                "y": {
-                    "Name": "rel_y",
-                    "Type": 1,
-                    "Value": 0
-                }
-            }
-        },
-        "11": {
-            "Name": "Text",
-            "PropType": 1,
-            "Visible": {
-                "clock": true,
-                "color": true,
-                "end_angle": true,
-                "height": true,
-                "inner_radius": true,
-                "node": true,
-                "outer_radius": true,
-                "parent": true,
-                "scale": true,
-                "start_angle": true,
-                "string": true,
-                "text": true,
-                "width": true,
-                "x": true,
-                "y": true
-            },
-            "Attr": {
-                "color": {
-                    "Name": "color",
-                    "Type": 6,
-                    "Red": 1,
-                    "Green": 1,
-                    "Blue": 1,
-                    "Alpha": 1
-                },
-                "parent": {
-                    "Name": "parent",
-                    "Type": 1,
-                    "Value": 21
-                },
-                "string": {
-                    "Name": "string",
-                    "Type": 2,
-                    "Value": ""
-                },
-                "x": {
-                    "Name": "rel_x",
-                    "Type": 1,
-                    "Value": 0
-                },
-                "y": {
-                    "Name": "rel_y",
-                    "Type": 1,
-                    "Value": 0
-                }
-            }
-        },
-        "21": {
             "Name": "Circle",
             "PropType": 2,
             "Visible": {
@@ -177,7 +70,58 @@
                 }
             }
         },
-        "51": {
+        "2": {
+            "Name": "Text",
+            "PropType": 1,
+            "Visible": {
+                "clock": true,
+                "color": true,
+                "end_angle": true,
+                "height": true,
+                "inner_radius": true,
+                "node": true,
+                "outer_radius": true,
+                "parent": true,
+                "scale": true,
+                "start_angle": true,
+                "string": true,
+                "text": true,
+                "width": true,
+                "x": true,
+                "y": true
+            },
+            "Attr": {
+                "color": {
+                    "Name": "color",
+                    "Type": 6,
+                    "Red": 1,
+                    "Green": 1,
+                    "Blue": 1,
+                    "Alpha": 1
+                },
+                "parent": {
+                    "Name": "parent",
+                    "Type": 1,
+                    "Value": 1
+                },
+                "string": {
+                    "Name": "string",
+                    "Type": 2,
+                    "Value": ""
+                },
+                "x": {
+                    "Name": "rel_x",
+                    "Type": 1,
+                    "Value": 0
+                },
+                "y": {
+                    "Name": "rel_y",
+                    "Type": 1,
+                    "Value": 0
+                }
+            }
+        },
+        "3": {
             "Name": "Ticker",
             "PropType": 4,
             "Visible": {
@@ -209,7 +153,7 @@
                 "parent": {
                     "Name": "parent",
                     "Type": 1,
-                    "Value": 11
+                    "Value": 2
                 },
                 "text": {
                     "Name": "string",
@@ -219,6 +163,62 @@
                     "ListStore": [],
                     "MarshalJSON": {},
                     "UnmarshalJSON": {}
+                },
+                "x": {
+                    "Name": "rel_x",
+                    "Type": 1,
+                    "Value": 0
+                },
+                "y": {
+                    "Name": "rel_y",
+                    "Type": 1,
+                    "Value": 0
+                }
+            }
+        },
+        "4": {
+            "Name": "Rectangle",
+            "PropType": 0,
+            "Visible": {
+                "clock": true,
+                "color": true,
+                "end_angle": true,
+                "height": true,
+                "inner_radius": true,
+                "node": true,
+                "outer_radius": true,
+                "parent": true,
+                "scale": true,
+                "start_angle": true,
+                "string": true,
+                "text": true,
+                "width": true,
+                "x": true,
+                "y": true
+            },
+            "Attr": {
+                "color": {
+                    "Name": "color",
+                    "Type": 6,
+                    "Red": 1,
+                    "Green": 1,
+                    "Blue": 1,
+                    "Alpha": 1
+                },
+                "height": {
+                    "Name": "height",
+                    "Type": 1,
+                    "Value": 0
+                },
+                "parent": {
+                    "Name": "parent",
+                    "Type": 1,
+                    "Value": 0
+                },
+                "width": {
+                    "Name": "width",
+                    "Type": 1,
+                    "Value": 0
                 },
                 "x": {
                     "Name": "rel_x",

@@ -430,12 +430,12 @@ func guiExportPage(win *gtk.ApplicationWindow, temp *TempTree) error {
     if res == gtk.RESPONSE_ACCEPT {
         filename := dialog.GetFilename()
 
-        // newTemp := templates.NewTemplate(
-        //     template.Title, 
-        //     template.TempID, 
-        //     template.Layer, 
-        //     template.NumGeo,
-        // )
+        newTemp := templates.NewTemplate(
+            template.Title, 
+            template.TempID, 
+            template.Layer, 
+            template.NumGeo,
+        )
 
         // sync parent attrs
         model := &temp.model.TreeModel
@@ -443,11 +443,11 @@ func guiExportPage(win *gtk.ApplicationWindow, temp *TempTree) error {
             updateParentGeometry(model, iter, 0)
         }
 
-        //compressGeometry(template, newTemp)
+        compressGeometry(template, newTemp)
 
         // TODO: sync visible attrs to template
 
-        err := templates.ExportTemplate(template, filename)
+        err := templates.ExportTemplate(newTemp, filename)
         if err != nil {
             return err
         }
