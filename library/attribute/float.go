@@ -44,11 +44,12 @@ func (floatAttr *FloatAttribute) Update(edit Editor) error {
 type FloatEditor struct {
 	box       *gtk.Box
     button    *gtk.SpinButton
+    name      string 
 }
 
 func NewFloatEditor(name string, lower, upper, scale float64) *FloatEditor {
     var err error
-    floatEdit := &FloatEditor{}
+    floatEdit := &FloatEditor{name: name}
 
     floatEdit.box, err = gtk.BoxNew(gtk.ORIENTATION_HORIZONTAL, 0)
     if err != nil {
@@ -78,6 +79,10 @@ func NewFloatEditor(name string, lower, upper, scale float64) *FloatEditor {
     floatEdit.box.PackStart(floatEdit.button, false, false, 0)
 
     return floatEdit
+}
+
+func (floatEdit *FloatEditor) Name() string {
+    return floatEdit.name
 }
 
 func (floatEdit *FloatEditor) Update(attr Attribute) error {

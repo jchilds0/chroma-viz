@@ -45,11 +45,12 @@ func (stringAttr *StringAttribute) Update(edit Editor) error {
 type StringEditor struct {
     box       *gtk.Box
     Entry     *gtk.Entry
+    name      string
 }
 
 func NewStringEditor(name string) *StringEditor {
     var err error
-    stringEdit := &StringEditor{}
+    stringEdit := &StringEditor{name: name}
 
     stringEdit.box, err = gtk.BoxNew(gtk.ORIENTATION_HORIZONTAL, 0)
     if err != nil {
@@ -84,6 +85,10 @@ func NewStringEditor(name string) *StringEditor {
     stringEdit.box.PackStart(stringEdit.Entry, false, false, 0)
 
     return stringEdit
+}
+
+func (stringEdit *StringEditor) Name() string {
+    return stringEdit.name
 }
 
 func (stringEdit *StringEditor) Update(attr Attribute) error {

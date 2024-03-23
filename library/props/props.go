@@ -272,6 +272,10 @@ func (prop *Property) UpdateProp(propEdit *PropertyEditor) {
             continue
         }
 
+        if check := propEdit.visible[name]; check != nil {
+            prop.Visible[name] = check.GetActive()
+        }
+
         err := attr.Update(editors[name])
         if err != nil {
             log.Print(err)

@@ -53,11 +53,12 @@ func (colorAttr *ColorAttribute) Update(edit Editor) error {
 type ColorEditor struct {
     box      *gtk.Box
     color    *gtk.ColorButton
+    name     string 
 }
 
 func NewColorEditor(name string) *ColorEditor {
     var err error
-    colorEdit := &ColorEditor{}
+    colorEdit := &ColorEditor{name: name}
 
     colorEdit.box, err = gtk.BoxNew(gtk.ORIENTATION_HORIZONTAL, 0)
     if err != nil {
@@ -87,6 +88,11 @@ func NewColorEditor(name string) *ColorEditor {
 
     return colorEdit
 }
+
+func (colorEdit *ColorEditor) Name() string {
+    return colorEdit.name
+}
+
 
 func (colorEdit *ColorEditor) Update(attr Attribute) error {
     colorAttr, ok := attr.(*ColorAttribute)

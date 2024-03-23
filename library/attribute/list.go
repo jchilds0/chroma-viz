@@ -369,6 +369,10 @@ func NewListEditor(name string, columns []string) *ListEditor {
     return listEdit
 }
 
+func (listEdit *ListEditor) Name() string {
+    return listEdit.name
+}
+
 func (listEdit *ListEditor) Update(attr Attribute) error {
     listAttr, ok := attr.(*ListAttribute)
     if !ok {

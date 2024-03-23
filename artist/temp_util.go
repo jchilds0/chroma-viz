@@ -102,7 +102,7 @@ func decompressGeometry(temp, newTemp *templates.Template) {
         parent := parentAttr.(*attribute.IntAttribute)
         parent.Value = geoRename[parent.Value]
 
-        geo.Visible = visible
+        geo.Visible = make(map[string]bool)
     }
 }
 

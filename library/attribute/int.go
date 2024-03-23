@@ -45,11 +45,12 @@ func (intAttr *IntAttribute) Update(edit Editor) error {
 type IntEditor struct {
 	box       *gtk.Box
     button    *gtk.SpinButton
+    name      string
 }
 
 func NewIntEditor(name string, lower, upper float64) *IntEditor {
     var err error
-    intEdit := &IntEditor{}
+    intEdit := &IntEditor{name: name}
 
     intEdit.box, err = gtk.BoxNew(gtk.ORIENTATION_HORIZONTAL, 0)
     if err != nil {
@@ -79,6 +80,10 @@ func NewIntEditor(name string, lower, upper float64) *IntEditor {
     intEdit.box.PackStart(intEdit.button, false, false, 0)
 
     return intEdit
+}
+
+func (intEdit *IntEditor) Name() string {
+    return intEdit.name
 }
 
 func (intEdit *IntEditor) Update(attr Attribute) error {

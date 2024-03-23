@@ -120,4 +120,5 @@ func (attrJSON *AttributeJSON) Attr() Attribute {
 type Editor interface {
     Box() *gtk.Box
     Update(Attribute) error
+    Name() string
 }

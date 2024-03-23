@@ -97,6 +97,24 @@ func (editor *Editor) PageEditor() {
 
 func (editor *Editor) PropertyEditor() {
     var err error
+    editor.tabs, err = gtk.NotebookNew()
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    tab, err := gtk.BoxNew(gtk.ORIENTATION_VERTICAL, 0)
+    if err != nil { 
+        log.Fatalf("Error creating editor (%s)", err) 
+    }
+
+    tabLabel, err := gtk.LabelNew("Select A Page")
+    if err != nil { 
+        log.Fatalf("Error creating editor (%s)", err) 
+    }
+
+    editor.tabs.AppendPage(tab, tabLabel)
+    editor.Box.PackStart(editor.tabs, true, true, 0)
+
     // prop editors 
     editor.propEdit = make([][]*props.PropertyEditor, props.NUM_PROPS)
     
@@ -141,7 +159,8 @@ func (editor *Editor) SetPage(page *shows.Page) {
         typed := prop.PropType
         label, err := gtk.LabelNew(prop.Name)
         if err != nil { 
-            log.Fatalf("Error setting page (%s)", err) 
+            log.Printf("Error setting page (%s)", err) 
+            return
         }
 
         // pair up with prop editor
@@ -166,17 +185,38 @@ func (editor *Editor) SetPage(page *shows.Page) {
 }
 
 func (editor *Editor) SetProperty(prop *props.Property) {
-    if editor.propBox != nil {
-        editor.Box.Remove(editor.propBox)
+    num_pages := editor.tabs.GetNPages()
+    for i := 0; i < num_pages; i++  {
+        editor.tabs.RemovePage(0)
+    }
+
+    geoLabel, err := gtk.LabelNew("Geometry")
+    if err != nil { 
+        log.Printf("Error setting property (%s)", err) 
+        return
     }
 
     editor.pairs = nil
     propEdit := editor.propEdit[prop.PropType][0]
 
+    visibleBox, err := propEdit.CreateVisibleEditor()
+    if err != nil {
+        log.Printf("Error setting property (%s)", err)
+        return
+    }
+
+    visibleLabel, err := gtk.LabelNew("Visible")
+    if err != nil { 
+        log.Printf("Error setting property (%s)", err) 
+        return
+    }
+
     propEdit.UpdateEditorAllProp(prop)
-    editor.propBox = propEdit.Box
     editor.pairs = []Pairing{{prop: prop, editor: propEdit}}
 
-    editor.Box.PackStart(editor.propBox, true, true, 0)
+    editor.tabs.AppendPage(propEdit.Box, geoLabel)
+    editor.tabs.AppendPage(visibleBox, visibleLabel)
+
+    //editor.Box.PackStart(editor.propBox, true, true, 0)
 }
 

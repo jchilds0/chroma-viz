@@ -319,23 +319,23 @@ func ArtistGui(app *gtk.Application) {
     win.ShowAll()
 }
 
-var visible = map[string]bool {
-    "x": true,
-    "y": true, 
-    "width": true,
-    "height": true,
-    "inner_radius": true,
-    "outer_radius": true,
-    "start_angle": true,
-    "end_angle": true,
-    "color": true,
-    "string": true,
-    "node": true,
-    "text": true,
-    "clock": true,
-    "scale": true,
-    "parent": true,
-}
+// var visible = map[string]bool {
+//     "x": true,
+//     "y": true, 
+//     "width": true,
+//     "height": true,
+//     "inner_radius": true,
+//     "outer_radius": true,
+//     "start_angle": true,
+//     "end_angle": true,
+//     "color": true,
+//     "string": true,
+//     "node": true,
+//     "text": true,
+//     "clock": true,
+//     "scale": true,
+//     "parent": true,
+// }
 
 func ArtistPage() *templates.Template {
     page := &templates.Template{
@@ -386,7 +386,7 @@ func AddProp(label string) (id int, err error) {
         return 
     }
 
-    template.Geometry[id] = props.NewProperty(geo_typed, label, visible, cont)
+    template.Geometry[id] = props.NewProperty(geo_typed, label, nil, cont)
     template.Geometry[id].Attr["parent"] = attribute.NewIntAttribute("parent")
     return
 }

@@ -115,11 +115,12 @@ type ClockEditor struct {
     box    *gtk.Box
     entry  *gtk.Entry
     c      chan int
+    name   string 
 }
 
 func NewClockEditor(name string) *ClockEditor {
     var err error
-    clockEdit := &ClockEditor{}
+    clockEdit := &ClockEditor{name: name}
 
     clockEdit.box, err = gtk.BoxNew(gtk.ORIENTATION_VERTICAL, 0)
     if err != nil { 
@@ -209,6 +210,10 @@ func NewClockEditor(name string) *ClockEditor {
     timeBox.PackStart(clockEdit.entry, false, false, 0)
 
     return clockEdit
+}
+
+func (clockEdit *ClockEditor) Name() string {
+    return clockEdit.name
 }
 
 func (clockEdit *ClockEditor) Update(attr Attribute) error {

@@ -33,6 +33,7 @@ type PropertyEditor struct {
     PropType    int
     Box         *gtk.Box
     editor      map[string]attribute.Editor
+    visible     map[string]*gtk.CheckButton
 }
 
 func NewPropertyEditor(typed int) (propEdit *PropertyEditor, err error) {
@@ -50,8 +51,8 @@ func NewPropertyEditor(typed int) (propEdit *PropertyEditor, err error) {
 
     switch (typed) {
     case RECT_PROP:
-        propEdit.editor["x"] = attribute.NewIntEditor("x", 0, float64(width))
-        propEdit.editor["y"] = attribute.NewIntEditor("y", 0, float64(height))
+        propEdit.editor["x"] = attribute.NewIntEditor("x", -float64(width), float64(width))
+        propEdit.editor["y"] = attribute.NewIntEditor("y", -float64(width), float64(height))
         propEdit.editor["width"] = attribute.NewIntEditor("Width", 0, float64(width))
         propEdit.editor["height"] = attribute.NewIntEditor("Height", 0, float64(height))
         propEdit.editor["color"] = attribute.NewColorEditor("Color")
@@ -103,57 +104,97 @@ func NewPropertyEditor(typed int) (propEdit *PropertyEditor, err error) {
     return
 }
 
+var propOrder = map[int][]string {
+    RECT_PROP: { "x", "y", "width", "height", "color" },
+    TEXT_PROP: { "x", "y", "color", "string" },
+    CIRCLE_PROP: { "x", "y", "inner_radius", "outer_radius", "start_angle", "end_angle", "color" },
+    GRAPH_PROP: { "x", "y", "color", "node" },
+    TICKER_PROP: { "x", "y", "color", "text" },
+    CLOCK_PROP: { "x", "y", "color", "clock" },
+    IMAGE_PROP: { "x", "y", "scale", "string" },
+}
+
 func (propEdit *PropertyEditor) AddEditors() {
-    switch (propEdit.PropType) {
-    case RECT_PROP:
-        propEdit.Box.PackStart(propEdit.editor["x"].Box(), false, false, padding)
-        propEdit.Box.PackStart(propEdit.editor["y"].Box(), false, false, padding)
-        propEdit.Box.PackStart(propEdit.editor["width"].Box(), false, false, padding)
-        propEdit.Box.PackStart(propEdit.editor["height"].Box(), false, false, padding)
-        propEdit.Box.PackStart(propEdit.editor["color"].Box(), false, false, padding)
-    
-    case TEXT_PROP:
-        propEdit.Box.PackStart(propEdit.editor["x"].Box(), false, false, padding)
-        propEdit.Box.PackStart(propEdit.editor["y"].Box(), false, false, padding)
-        propEdit.Box.PackStart(propEdit.editor["color"].Box(), false, false, padding)
-        propEdit.Box.PackStart(propEdit.editor["string"].Box(), false, false, padding)
+    order := propOrder[propEdit.PropType]
 
-    case CIRCLE_PROP:
-        propEdit.Box.PackStart(propEdit.editor["x"].Box(), false, false, padding)
-        propEdit.Box.PackStart(propEdit.editor["y"].Box(), false, false, padding)
-        propEdit.Box.PackStart(propEdit.editor["inner_radius"].Box(), false, false, padding)
-        propEdit.Box.PackStart(propEdit.editor["outer_radius"].Box(), false, false, padding)
-        propEdit.Box.PackStart(propEdit.editor["start_angle"].Box(), false, false, padding)
-        propEdit.Box.PackStart(propEdit.editor["end_angle"].Box(), false, false, padding)
-        propEdit.Box.PackStart(propEdit.editor["color"].Box(), false, false, padding)
-
-    case GRAPH_PROP:
-        propEdit.Box.PackStart(propEdit.editor["x"].Box(), false, false, padding)
-        propEdit.Box.PackStart(propEdit.editor["y"].Box(), false, false, padding)
-        propEdit.Box.PackStart(propEdit.editor["color"].Box(), false, false, padding)
-        propEdit.Box.PackStart(propEdit.editor["node"].Box(), false, false, padding)
-
-    case TICKER_PROP:
-        propEdit.Box.PackStart(propEdit.editor["x"].Box(), false, false, padding)
-        propEdit.Box.PackStart(propEdit.editor["y"].Box(), false, false, padding)
-        propEdit.Box.PackStart(propEdit.editor["color"].Box(), false, false, padding)
-        propEdit.Box.PackStart(propEdit.editor["text"].Box(), false, false, padding)
-
-    case CLOCK_PROP:
-        propEdit.Box.PackStart(propEdit.editor["x"].Box(), false, false, padding)
-        propEdit.Box.PackStart(propEdit.editor["y"].Box(), false, false, padding)
-        propEdit.Box.PackStart(propEdit.editor["color"].Box(), false, false, padding)
-        propEdit.Box.PackStart(propEdit.editor["clock"].Box(), false, false, padding)
-
-    case IMAGE_PROP:
-        propEdit.Box.PackStart(propEdit.editor["x"].Box(), false, false, padding)
-        propEdit.Box.PackStart(propEdit.editor["y"].Box(), false, false, padding)
-        propEdit.Box.PackStart(propEdit.editor["scale"].Box(), false, false, padding)
-        propEdit.Box.PackStart(propEdit.editor["string"].Box(), false, false, padding)
-
-    default:
-        log.Printf("Unknown Prop %d", propEdit.PropType)
+    if len(order) == 0 {
+        log.Printf("Prop order for %d has length 0", propEdit.PropType)
     }
+
+    for _, name := range order {
+        propEdit.Box.PackStart(propEdit.editor[name].Box(), false, false, padding)
+    }
+}
+
+func (propEdit *PropertyEditor) CreateVisibleEditor() (box *gtk.Box, err error) {
+    widthChars := 12 
+    order := propOrder[propEdit.PropType]
+    propEdit.visible = make(map[string]*gtk.CheckButton)
+
+    box, err = gtk.BoxNew(gtk.ORIENTATION_VERTICAL, 0)
+    if err != nil {
+        return
+    }
+
+    box.SetVisible(true)
+    
+    row, err := gtk.BoxNew(gtk.ORIENTATION_HORIZONTAL, 0)
+    if err != nil {
+        return 
+    }
+
+    attrLabel, err := gtk.LabelNew("Attribute")
+    if err != nil {
+        return
+    }
+
+    visibleLabel, err := gtk.LabelNew("Visible")
+    if err != nil {
+        return
+    }
+
+    row.SetVisible(true)
+    attrLabel.SetVisible(true)
+    visibleLabel.SetVisible(true)
+
+    attrLabel.SetWidthChars(widthChars)
+    visibleLabel.SetWidthChars(widthChars)
+
+    row.PackStart(attrLabel, false, false, padding)
+    row.PackStart(visibleLabel, false, false, padding)
+    box.PackStart(row, false, false, padding)
+
+    for _, name := range order {
+        attr := propEdit.editor[name]
+
+        row, err = gtk.BoxNew(gtk.ORIENTATION_HORIZONTAL, 0)
+        if err != nil {
+            return 
+        }
+
+        attrLabel, err = gtk.LabelNew(attr.Name())
+        if err != nil {
+            return
+        }
+
+        propEdit.visible[name], err = gtk.CheckButtonNew()
+        if err != nil {
+            return 
+        }
+
+        row.SetVisible(true)
+        attrLabel.SetVisible(true)
+        attrLabel.SetWidthChars(widthChars)
+
+        propEdit.visible[name].SetVisible(true)
+        propEdit.visible[name].SetMarginStart(40)
+
+        row.PackStart(attrLabel, false, false, padding)
+        row.PackStart(propEdit.visible[name], false, false, padding)
+        box.PackStart(row, false, false, padding)
+    }
+
+    return
 }
 
 /*
@@ -180,6 +221,10 @@ func (propEdit *PropertyEditor) UpdateEditorAllProp(prop *Property) {
         }
 
         edit.Box().SetVisible(true)
+        if check := propEdit.visible[name]; check != nil {
+            check.SetActive(prop.Visible[name])
+        }
+
         err := edit.Update(prop.Attr[name])
         if err != nil {
             log.Print(err)
