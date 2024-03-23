@@ -1,62 +1,26 @@
 {
     "Title": "Lower Frame",
-    "TempID": 5,
+    "TempID": 1,
     "NumGeo": 4,
     "Layer": 0,
     "Geometry": {
-        "3": {
-            "Name": "Text",
-            "PropType": 1,
-            "Visible": {
-                "string": true,
-                "x": true,
-                "y": true
-            },
-            "Attr": {
-                "color": {
-                    "Name": "color",
-                    "Type": 6,
-                    "Red": 1,
-                    "Green": 1,
-                    "Blue": 1,
-                    "Alpha": 1
-                },
-                "parent": {
-                    "Name": "parent",
-                    "Type": 1,
-                    "Value": 0
-                },
-                "string": {
-                    "Name": "string",
-                    "Type": 2,
-                    "Value": "subtitle"
-                },
-                "x": {
-                    "Name": "rel_x",
-                    "Type": 1,
-                    "Value": 250
-                },
-                "y": {
-                    "Name": "rel_y",
-                    "Type": 1,
-                    "Value": 40
-                }
-            }
-        },
-        "0": {
-            "Name": "Rectangle",
+        "1": {
+            "Name": "Background",
             "PropType": 0,
             "Visible": {
+                "color": false,
                 "height": true,
-                "width": true
+                "width": true,
+                "x": false,
+                "y": false
             },
             "Attr": {
                 "color": {
                     "Name": "color",
                     "Type": 6,
-                    "Red": 0.10980392156862745,
-                    "Green": 0.44313725490196076,
-                    "Blue": 0.8470588235294118,
+                    "Red": 0.007843137254901954,
+                    "Green": 0.5176470588235295,
+                    "Blue": 0.5098039215686275,
                     "Alpha": 1
                 },
                 "height": {
@@ -72,7 +36,7 @@
                 "width": {
                     "Name": "width",
                     "Type": 1,
-                    "Value": 700
+                    "Value": 400
                 },
                 "x": {
                     "Name": "rel_x",
@@ -86,11 +50,12 @@
                 }
             }
         },
-        "1": {
+        "2": {
             "Name": "Image",
             "PropType": 6,
             "Visible": {
                 "scale": true,
+                "string": true,
                 "x": true,
                 "y": true
             },
@@ -98,7 +63,7 @@
                 "parent": {
                     "Name": "parent",
                     "Type": 1,
-                    "Value": 0
+                    "Value": 1
                 },
                 "scale": {
                     "Name": "scale",
@@ -118,14 +83,15 @@
                 "y": {
                     "Name": "rel_y",
                     "Type": 1,
-                    "Value": 10
+                    "Value": 0
                 }
             }
         },
-        "2": {
-            "Name": "Text",
+        "3": {
+            "Name": "Subtitle",
             "PropType": 1,
             "Visible": {
+                "color": false,
                 "string": true,
                 "x": true,
                 "y": true
@@ -142,24 +108,67 @@
                 "parent": {
                     "Name": "parent",
                     "Type": 1,
-                    "Value": 0
+                    "Value": 1
                 },
                 "string": {
                     "Name": "string",
                     "Type": 2,
-                    "Value": "Lower Frame"
+                    "Value": ""
                 },
                 "x": {
                     "Name": "rel_x",
                     "Type": 1,
-                    "Value": 250
+                    "Value": 0
                 },
                 "y": {
                     "Name": "rel_y",
                     "Type": 1,
-                    "Value": 110
+                    "Value": 0
+                }
+            }
+        },
+        "4": {
+            "Name": "Title",
+            "PropType": 1,
+            "Visible": {
+                "color": false,
+                "string": true,
+                "x": true,
+                "y": true
+            },
+            "Attr": {
+                "color": {
+                    "Name": "color",
+                    "Type": 6,
+                    "Red": 1,
+                    "Green": 1,
+                    "Blue": 1,
+                    "Alpha": 1
+                },
+                "parent": {
+                    "Name": "parent",
+                    "Type": 1,
+                    "Value": 1
+                },
+                "string": {
+                    "Name": "string",
+                    "Type": 2,
+                    "Value": ""
+                },
+                "x": {
+                    "Name": "rel_x",
+                    "Type": 1,
+                    "Value": 0
+                },
+                "y": {
+                    "Name": "rel_y",
+                    "Type": 1,
+                    "Value": 0
                 }
             }
         }
-    }
+    },
+    "AnimateOn": "left_to_right",
+    "Continue": "",
+    "AnimateOff": "left_to_right"
 }

@@ -97,7 +97,6 @@ func ArtistGui(app *gtk.Application) {
             editView.SetProperty(prop) 
         },
     )
-
     if err != nil {
         log.Fatalf("Error starting artist gui (%s)", err)
     }
@@ -156,6 +155,11 @@ func ArtistGui(app *gtk.Application) {
         log.Fatal(err)
     }
 
+    animSelector, err := gtk_utils.BuilderGetObject[*gtk.ComboBoxText](builder, "anim-selector")
+    if err != nil {
+        log.Fatal(err)
+    }
+
     geoSelector, err := gtk_utils.BuilderGetObject[*gtk.ComboBoxText](builder, "geo-selector")
     if err != nil {
         log.Fatal(err)
@@ -199,12 +203,41 @@ func ArtistGui(app *gtk.Application) {
             log.Print(err)
         }
 
+        switch template.AnimateOn {
+        case "":
+            animSelector.SetActive(0)
+        case "left_to_right":
+            animSelector.SetActive(1)
+        case "up":
+            animSelector.SetActive(2)
+        case "right_to_left":
+            animSelector.SetActive(3)
+        default:
+        log.Printf("Unknown animation %s", template.AnimateOn)
+        }
+
         title.SetText(template.Title)
         tempid.SetText(strconv.Itoa(template.TempID))
         layer.SetText(strconv.Itoa(template.Layer))
     })
 
     exportPage.Connect("activate", func() { 
+        switch animSelector.GetActiveText() {
+        case "None", "":
+            template.AnimateOn = ""
+            template.AnimateOff = ""
+        case "Left":
+            template.AnimateOn = "left_to_right"
+            template.AnimateOff = "left_to_right"
+        case "Up":
+            template.AnimateOn = "up"
+        case "Right":
+            template.AnimateOn = "right_to_left"
+            template.AnimateOff = "right_to_left"
+        default:
+            log.Printf("Unknown animation %s", animSelector.GetActiveText())
+        }
+
         err := guiExportPage(win, tempView)
         if err != nil {
             log.Print(err)
@@ -318,24 +351,6 @@ func ArtistGui(app *gtk.Application) {
 
     win.ShowAll()
 }
-
-// var visible = map[string]bool {
-//     "x": true,
-//     "y": true, 
-//     "width": true,
-//     "height": true,
-//     "inner_radius": true,
-//     "outer_radius": true,
-//     "start_angle": true,
-//     "end_angle": true,
-//     "color": true,
-//     "string": true,
-//     "node": true,
-//     "text": true,
-//     "clock": true,
-//     "scale": true,
-//     "parent": true,
-// }
 
 func ArtistPage() *templates.Template {
     page := &templates.Template{

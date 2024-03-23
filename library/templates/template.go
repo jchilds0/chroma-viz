@@ -24,6 +24,9 @@ type Template struct {
     NumGeo      int
     Layer       int
     Geometry    map[int]*props.Property
+    AnimateOn   string
+    Continue    string
+    AnimateOff  string
 }
 
 func NewTemplate(title string, id int, layer int, num_geo int) *Template {
@@ -79,8 +82,10 @@ func (temp *Template) Encode() string {
         templates = fmt.Sprintf("%s,%s", templates, prop.Encode(geo_id))
     }
 
-    return fmt.Sprintf("{'id': %d, 'num_geo': %d, 'name': '%s', 'layer': %d, 'anim_on': '%s', 'anim_cont': '%s', 'anim_off': '%s', 'geometry': [%s]}", 
-        temp.TempID, len(temp.Geometry), temp.Title, temp.Layer, "left_to_right", "", "left_to_right", templates)
+    return fmt.Sprintf("{'id': %d, 'num_geo': %d, 'name': '%s', 'layer': %d, " + 
+        "'anim_on': '%s', 'anim_cont': '%s', 'anim_off': '%s', 'geometry': [%s]}", 
+        temp.TempID, len(temp.Geometry), temp.Title, temp.Layer, 
+        temp.AnimateOn, temp.Continue, temp.AnimateOff, templates)
 }
 
 func ExportTemplate(temp *Template, filename string) error {

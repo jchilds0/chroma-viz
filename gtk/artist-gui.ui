@@ -45,6 +45,16 @@
                   </object>
                 </child>
 
+              </object>
+              <packing>
+                <property name="padding">10</property>
+              </packing>
+            </child>
+
+            <child>
+              <object class="GtkBox">
+                <property name="orientation">horizontal</property>
+
                 <!-- Layer editor -->
                 <child>
                   <object class="GtkLabel">
@@ -58,10 +68,25 @@
                   </object>
                 </child>
 
+                <!-- animation selector -->
+                <child>
+                  <object class="GtkLabel">
+                    <property name="label">Animate On</property>
+                    <property name="width-chars">12</property>
+                  </object>
+                </child>
+
+                <child>
+                  <object class="GtkComboBoxText" id="anim-selector">
+                    <items>
+                      <item id="rect">None</item>
+                      <item id="rect">Left</item>
+                      <item id="circ">Up</item>
+                      <item id="text">Right</item>
+                    </items>
+                  </object>
+                </child>
               </object>
-              <packing>
-                <property name="padding">10</property>
-              </packing>
             </child>
 
             <!-- Action Bar -->

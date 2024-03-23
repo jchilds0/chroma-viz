@@ -16,13 +16,13 @@ import (
 
     PropertyEditor's consist of gtk ui elements which are used
     to edit Properties. When a user selects a Page in the Show,
-    the Page is sent to the editor, which calls UpdateEditor. 
-    This updates the PropertyEditor with the data from the 
-    Property.
+    the Page is sent to the editor, which calls UpdateEditor 
+    (or UpdateEditorAllProp). This updates the PropertyEditor 
+    with the data from the Property.
 
-    Similarly UpdateProp is used to send the updated data from 
-    the PropertyEditor's back to the Property.
-    
+    The changes made to the PropertyEditor are synced back to 
+    the Property using UpdateProp (see props.go).
+
     The Properties are built up from a collection of Attributes,
     and in a similar way, PropertyEditor's are built up from a 
     collection of AttributeEditors.

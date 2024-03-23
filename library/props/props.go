@@ -95,10 +95,10 @@ func GeoType(prop int) string {
 
     The user creates a Page from a Template, which involves creating a 
     Property for each Property in the Template. When the user wants to edit 
-    the Properties of a Page, the editor uses the Properties of the Page to 
-    update PropertyEditor's with the corresponding type (UpdateEditor). 
-    In turn the PropertyEditor's update the data stored in Properties on 
-    change by the user (UpdateProp).
+    the Properties of a Page, UpdateEditor syncs the data contained in the 
+    Property to the PropertyEditor. Once the user has made changes they 
+    can send the values in PropertyEditor back to the Property using 
+    UpdateProperty.
 
     Each Property is built up from Attributes, which are simple building 
     blocks like an integer field. We don't always want to show all 
