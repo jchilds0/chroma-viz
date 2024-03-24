@@ -13,6 +13,7 @@ import (
 	"log"
 	"os"
 	"strconv"
+	"time"
 
 	"github.com/gotk3/gotk3/glib"
 	"github.com/gotk3/gotk3/gtk"
@@ -97,8 +98,13 @@ func ArtistGui(app *gtk.Application) {
             updateParentGeometry(model, iter, 0)
         }
 
+        tempid := template.TempID
+        template.TempID = 0
+
         editView.UpdateProps()
         SendPreview(editView.Page, tcp.ANIMATE_ON) 
+        time.Sleep(50 * time.Millisecond)
+        template.TempID = tempid
     })
 
     editView.PropertyEditor()

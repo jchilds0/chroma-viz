@@ -205,6 +205,14 @@ func (listAttr *ListAttribute) encodeRow(iter *gtk.TreeIter) []string {
     return row
 }
 
+func (listAttr *ListAttribute) Copy(attr Attribute) {
+    _, ok := attr.(*ListAttribute)
+    if !ok {
+        log.Print("Attribute not ListAttribute")
+        return
+    }
+}
+
 func (listAttr *ListAttribute) Update(edit Editor) error {
     listEdit, ok := edit.(*ListEditor) 
     if !ok {

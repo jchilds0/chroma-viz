@@ -31,6 +31,16 @@ func (floatAttr *FloatAttribute) Encode() string {
         floatAttr.Name, floatAttr.Value)
 }
 
+func (floatAttr *FloatAttribute) Copy(attr Attribute) {
+    floatAttrCopy, ok := attr.(*FloatAttribute)
+    if !ok {
+        log.Print("Attribute not FloatAttribute")
+        return
+    }
+
+    floatAttr.Value = floatAttrCopy.Value
+}
+
 func (floatAttr *FloatAttribute) Update(edit Editor) error {
     floatEdit, ok := edit.(*FloatEditor)
     if !ok {

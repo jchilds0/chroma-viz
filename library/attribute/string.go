@@ -31,6 +31,16 @@ func (stringAttr *StringAttribute) Encode() string {
         stringAttr.Name, stringAttr.Value)
 }
 
+func (stringAttr *StringAttribute) Copy(attr Attribute) {
+    stringAttrCopy, ok := attr.(*StringAttribute)
+    if !ok {
+        log.Print("Attribute not StringAttribute")
+        return
+    }
+
+    stringAttr.Value = stringAttrCopy.Value
+}
+
 func (stringAttr *StringAttribute) Update(edit Editor) error {
     var err error
     stringEdit, ok := edit.(*StringEditor)

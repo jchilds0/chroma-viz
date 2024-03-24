@@ -31,6 +31,15 @@ func (intAttr *IntAttribute) Encode() string {
         intAttr.Name, intAttr.Value)
 }
 
+func (intAttr *IntAttribute) Copy(attr Attribute) {
+    intAttrCopy, ok := attr.(*IntAttribute)
+    if !ok {
+        log.Printf("Attribute not IntAttribute")
+        return
+    }
+
+    intAttr.Value = intAttrCopy.Value
+}
 
 func (intAttr *IntAttribute) Update(edit Editor) error {
     intEdit, ok := edit.(*IntEditor)

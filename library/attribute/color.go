@@ -35,6 +35,19 @@ func (colorAttr *ColorAttribute) Encode() string {
         colorAttr.Name, colorAttr.Red, colorAttr.Green, colorAttr.Blue, colorAttr.Alpha)
 }
 
+func (colorAttr *ColorAttribute) Copy(attr Attribute) {
+    colorAttrCopy, ok := attr.(*ColorAttribute)
+    if !ok {
+        log.Print("Attribute not ColorAttribute")
+        return
+    }
+
+    colorAttr.Red   = colorAttrCopy.Red
+    colorAttr.Green = colorAttrCopy.Green
+    colorAttr.Blue  = colorAttrCopy.Blue
+    colorAttr.Alpha = colorAttrCopy.Alpha
+}
+
 func (colorAttr *ColorAttribute) Update(edit Editor) error {
     colorEdit, ok := edit.(*ColorEditor)
     if !ok {

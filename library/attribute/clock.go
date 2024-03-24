@@ -64,6 +64,16 @@ func (clockAttr *ClockAttribute) Encode() string {
         clockAttr.Name, clockAttr.CurrentTime)
 }
 
+func (clockAttr *ClockAttribute) Copy(attr Attribute) {
+    clockAttrCopy, ok := attr.(*ClockAttribute) 
+    if !ok {
+        log.Print("Attribute not ClockAttribute")
+        return
+    }
+
+    clockAttr.CurrentTime = clockAttrCopy.CurrentTime
+}
+
 func (clockAttr *ClockAttribute) Update(edit Editor) error {
     var err error
     clockEdit, ok := edit.(*ClockEditor)

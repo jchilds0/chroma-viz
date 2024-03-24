@@ -38,6 +38,7 @@ const (
 type Attribute interface {
     String() string
     Update(Editor) error
+    Copy(Attribute)
 
     // A -> {'name': string, 'value': string} | A, A
     Encode() string

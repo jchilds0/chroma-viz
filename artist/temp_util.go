@@ -107,6 +107,10 @@ func compressGeometry(temp, newTemp *templates.Template, tree *gtk.TreeModel) {
 
     // copy geo's from temp to newTemp
     for id, geo := range temp.Geometry {
+        if geo == nil {
+            continue 
+        }
+
         newID := geoRename[id]
         newTemp.Geometry[newID] = geo
 
