@@ -95,10 +95,7 @@ func GeoType(prop int) string {
 
     The user creates a Page from a Template, which involves creating a 
     Property for each Property in the Template. When the user wants to edit 
-    the Properties of a Page, UpdateEditor syncs the data contained in the 
-    Property to the PropertyEditor. Once the user has made changes they 
-    can send the values in PropertyEditor back to the Property using 
-    UpdateProperty.
+    the Properties of a Page, 
 
     Each Property is built up from Attributes, which are simple building 
     blocks like an integer field. We don't always want to show all 
@@ -118,10 +115,11 @@ type Property struct {
     PropType  int
     Visible   map[string]bool
     Attr      map[string]attribute.Attribute
+    temp      bool
 }
 
-func NewProperty(typed int, name string, visible map[string]bool, cont func()) *Property {
-    prop := &Property{Name: name, PropType: typed, Visible: visible}
+func NewProperty(typed int, name string, isTemp bool, visible map[string]bool, cont func()) *Property {
+    prop := &Property{Name: name, PropType: typed, Visible: visible, temp: isTemp}
 
     if visible == nil {
         prop.Visible = make(map[string]bool)
@@ -135,6 +133,7 @@ func NewProperty(typed int, name string, visible map[string]bool, cont func()) *
         prop.Attr["y"] = attribute.NewIntAttribute("rel_y")
         prop.Attr["width"] = attribute.NewIntAttribute("width")
         prop.Attr["height"] = attribute.NewIntAttribute("height")
+        prop.Attr["rounding"] = attribute.NewIntAttribute("rounding")
         prop.Attr["color"] = attribute.NewColorAttribute("color")
 
     case TEXT_PROP:
@@ -216,7 +215,7 @@ func (prop *Property) UnmarshalJSON(b []byte) error {
 */
 func (prop *Property) String() (s string) {
     for name, attr := range prop.Attr {
-        if !prop.Visible[name] {
+        if !prop.Visible[name] && !prop.temp {
             continue
         }
 
@@ -281,4 +280,11 @@ func (prop *Property) UpdateProp(propEdit *PropertyEditor) {
             log.Print(err)
         }
     }
+}
+
+/*
+    Used by artist to set temp on imported templates
+*/
+func (prop *Property) SetTemp(isTemp bool) {
+    prop.temp = isTemp
 }

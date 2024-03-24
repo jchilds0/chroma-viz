@@ -88,6 +88,10 @@ func (conn *Connection) SendPage() {
 
         geo := ""
         for i, prop := range page.GetPropMap() {
+            if prop == nil {
+                continue
+            }
+
             geo = geo + fmt.Sprintf("geo_num=%d#%s", i, prop.String())
         }
 

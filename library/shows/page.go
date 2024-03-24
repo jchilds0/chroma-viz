@@ -43,7 +43,7 @@ func newPage(pageNum int, title string, temp *templates.Template, cont func(*Pag
     contPage := func() { cont(page) }
 
     for i, geo := range temp.Geometry {
-        page.PropMap[i] = props.NewProperty(geo.PropType, geo.Name, geo.Visible, contPage)
+        page.PropMap[i] = props.NewProperty(geo.PropType, geo.Name, false, geo.Visible, contPage)
     }
 
     return page

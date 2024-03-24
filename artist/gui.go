@@ -82,14 +82,6 @@ func ArtistGui(app *gtk.Application) {
     go hub.StartHub(port, -1)
 
     editView := editor.NewEditor(func(page tcp.Animator, action int) {}, SendPreview)
-    editView.AddAction("Save", true, func() { 
-        editView.UpdateProps()
-        SendPreview(editView.Page, tcp.ANIMATE_ON) 
-    })
-    editView.PropertyEditor()
-    editView.Page = template
-
-    preview := setup_preview_window(port)
 
     tempView, err := NewTempTree(
         func(propID int) { 
@@ -97,6 +89,23 @@ func ArtistGui(app *gtk.Application) {
             editView.SetProperty(prop) 
         },
     )
+
+    editView.AddAction("Save", true, func() { 
+        // sync parent attrs
+        model := tempView.model.ToTreeModel()
+        if iter, ok := model.GetIterFirst(); ok {
+            updateParentGeometry(model, iter, 0)
+        }
+
+        editView.UpdateProps()
+        SendPreview(editView.Page, tcp.ANIMATE_ON) 
+    })
+
+    editView.PropertyEditor()
+    editView.Page = template
+
+    preview := setup_preview_window(port)
+
     if err != nil {
         log.Fatalf("Error starting artist gui (%s)", err)
     }
@@ -401,7 +410,7 @@ func AddProp(label string) (id int, err error) {
         return 
     }
 
-    template.Geometry[id] = props.NewProperty(geo_typed, label, nil, cont)
+    template.Geometry[id] = props.NewProperty(geo_typed, label, true, nil, cont)
     template.Geometry[id].Attr["parent"] = attribute.NewIntAttribute("parent")
     return
 }
@@ -457,6 +466,11 @@ func guiImportPage(win *gtk.ApplicationWindow, temp *TempTree) error {
 
         decompressGeometry(template, &newTemp)
         geometryToTreeView(temp, nil, 0)
+
+        // set temp switch to true to send all props to chroma engine
+        for _, geo := range template.Geometry {
+            geo.SetTemp(true)
+        }
     }
 
     return nil
@@ -482,6 +496,10 @@ func guiExportPage(win *gtk.ApplicationWindow, temp *TempTree) error {
             template.Layer, 
             len(template.Geometry),
         )
+
+        newTemp.AnimateOn = template.AnimateOn
+        newTemp.Continue = template.Continue
+        newTemp.AnimateOff = template.AnimateOff
 
         // sync parent attrs
         model := temp.model.ToTreeModel()

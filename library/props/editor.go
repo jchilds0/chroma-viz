@@ -55,6 +55,7 @@ func NewPropertyEditor(typed int) (propEdit *PropertyEditor, err error) {
         propEdit.editor["y"] = attribute.NewIntEditor("y", -float64(width), float64(height))
         propEdit.editor["width"] = attribute.NewIntEditor("Width", 0, float64(width))
         propEdit.editor["height"] = attribute.NewIntEditor("Height", 0, float64(height))
+        propEdit.editor["rounding"] = attribute.NewIntEditor("Rounding", 0, float64(width))
         propEdit.editor["color"] = attribute.NewColorEditor("Color")
 
     case TEXT_PROP:
@@ -105,7 +106,7 @@ func NewPropertyEditor(typed int) (propEdit *PropertyEditor, err error) {
 }
 
 var propOrder = map[int][]string {
-    RECT_PROP: { "x", "y", "width", "height", "color" },
+    RECT_PROP: { "x", "y", "width", "height", "rounding", "color" },
     TEXT_PROP: { "x", "y", "color", "string" },
     CIRCLE_PROP: { "x", "y", "inner_radius", "outer_radius", "start_angle", "end_angle", "color" },
     GRAPH_PROP: { "x", "y", "color", "node" },

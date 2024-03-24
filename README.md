@@ -11,21 +11,44 @@ Communicates with [Chroma Engine][chroma-engine] over tcp to render graphics.
 - [Chroma Engine][chroma-engine] combines the template and the data set in the editor to display the graphic
 - Shows and Pages can be exported and imported.
 
-
 https://github.com/jchilds0/chroma-viz/assets/71675740/8ead1e54-f93e-4d59-8ab7-add3e4d5e648
 
 ![Chroma_Engine](data/chroma-viz.png)
 
+Chroma Artist can be used to design templates, which can be imported to [Chroma Hub][chroma-hub]
+
+- Tree View for creating the heirachy of geometry elements
+- Set which parameters of each geometry can be edited in Chroma Viz
+
+![Chroma_Engine](data/chroma-artist.png)
+
 ## Installation
 
 - Install and build [Chroma Engine][chroma-engine].
-- Install and run [Chroma Hub][chroma-hub].
 - Set the `engDir` constants in `viz/preview.go` and `artist/preview.go` to the location of the Chroma Engine binary.
+
+### Chroma Viz
+
+- Run Chroma Hub
+
+```
+go run main.go -mode hub
+```
+- Import archives to Chroma Hub using CLI.
 - Run 
 
 ```
-go run main.go -mode [viz | artist] -hub [127.0.0.1:9000]
+go run main.go -mode viz -hub [127.0.0.1:9000]
 ```
+
+### Chroma Artist 
+
+- Run 
+
+```
+go run main.go -mode artist 
+```
+
 
 ## Disclaimer
 
