@@ -42,14 +42,67 @@ func updateParentGeometry(model *gtk.TreeModel, iter *gtk.TreeIter, parentID int
     }
 }
 
-func compressGeometry(temp, newTemp *templates.Template) {
+/*
+
+    Chroma Engine renders geometry using the geometry index,
+    from the first index to the last. To make this consistent
+    with the heirachy arranged by the user, we walk the tree 
+    model. We add the geometries by depth, adding everything 
+    at depth 0, then depth 1 and so on.
+
+*/
+func compressGeometry(temp, newTemp *templates.Template, tree *gtk.TreeModel) {
     // build geo id map 
     geoRename := make(map[int]int, len(template.Geometry))
+    geoIters := make([]*gtk.TreeIter, 0, len(template.Geometry))
 
     i := 1
-    for id := range temp.Geometry {
-        geoRename[id] = i 
+    first, ok := tree.GetIterFirst()
+    if !ok {
+        log.Printf("Error compressing geometry, no tree geometries")
+        return
+    }
+
+    geoIters = append(geoIters, first)
+
+    var childIter gtk.TreeIter
+    for len(geoIters) > 0 {
+        iter := geoIters[0]
+        geoIters = geoIters[1:]
+
+        geoNum, err := gtk_utils.ModelGetValue[int](tree, iter, PROP_NUM)
+        if err != nil {
+            log.Printf("Error getting geo num (%s)", err)
+            continue
+        }
+
+        geoRename[geoNum] = i 
         i++
+
+        // add children of iter to the geoIters array
+        ok := tree.IterChildren(iter, &childIter)
+        if !ok {
+            continue 
+        }
+
+        newIter, err := childIter.Copy()
+        if err != nil {
+            log.Printf("Error copying iter (%s)", err)
+            continue
+        }
+
+        geoIters = append(geoIters, newIter)
+        ok = tree.IterNext(&childIter)
+        for ok {
+            newIter, err := childIter.Copy()
+            if err != nil {
+                log.Printf("Error copying iter (%s)", err)
+                continue
+            }
+
+            geoIters = append(geoIters, newIter)
+            ok = tree.IterNext(&childIter)
+        }
     }
 
     // copy geo's from temp to newTemp
@@ -101,8 +154,6 @@ func decompressGeometry(temp, newTemp *templates.Template) {
 
         parent := parentAttr.(*attribute.IntAttribute)
         parent.Value = geoRename[parent.Value]
-
-        geo.Visible = make(map[string]bool)
     }
 }
 

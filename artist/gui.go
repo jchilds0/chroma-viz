@@ -507,7 +507,7 @@ func guiExportPage(win *gtk.ApplicationWindow, temp *TempTree) error {
             updateParentGeometry(model, iter, 0)
         }
 
-        compressGeometry(template, newTemp)
+        compressGeometry(template, newTemp, temp.model.ToTreeModel())
 
         // TODO: sync visible attrs to template
 

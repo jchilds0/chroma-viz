@@ -4,10 +4,150 @@
     "NumGeo": 11,
     "Layer": 1,
     "Geometry": {
-        "2": {
-            "Name": "Mid Split",
+        "1": {
+            "Name": "Background",
             "PropType": 0,
-            "Visible": {},
+            "Visible": {
+                "color": false,
+                "height": true,
+                "rounding": false,
+                "width": true,
+                "x": true,
+                "y": true
+            },
+            "Attr": {
+                "color": {
+                    "Name": "color",
+                    "Type": 6,
+                    "Red": 0.10980392156862746,
+                    "Green": 0.4431372549019609,
+                    "Blue": 0.48627450980392156,
+                    "Alpha": 1
+                },
+                "height": {
+                    "Name": "height",
+                    "Type": 1,
+                    "Value": 65
+                },
+                "parent": {
+                    "Name": "parent",
+                    "Type": 1,
+                    "Value": 0
+                },
+                "rounding": {
+                    "Name": "rounding",
+                    "Type": 1,
+                    "Value": 15
+                },
+                "width": {
+                    "Name": "width",
+                    "Type": 1,
+                    "Value": 810
+                },
+                "x": {
+                    "Name": "rel_x",
+                    "Type": 1,
+                    "Value": 50
+                },
+                "y": {
+                    "Name": "rel_y",
+                    "Type": 1,
+                    "Value": 965
+                }
+            }
+        },
+        "10": {
+            "Name": "Period",
+            "PropType": 1,
+            "Visible": {
+                "color": false,
+                "string": true,
+                "x": true,
+                "y": false
+            },
+            "Attr": {
+                "color": {
+                    "Name": "color",
+                    "Type": 6,
+                    "Red": 1,
+                    "Green": 1,
+                    "Blue": 1,
+                    "Alpha": 1
+                },
+                "parent": {
+                    "Name": "parent",
+                    "Type": 1,
+                    "Value": 7
+                },
+                "string": {
+                    "Name": "string",
+                    "Type": 2,
+                    "Value": "Q1"
+                },
+                "x": {
+                    "Name": "rel_x",
+                    "Type": 1,
+                    "Value": 30
+                },
+                "y": {
+                    "Name": "rel_y",
+                    "Type": 1,
+                    "Value": 15
+                }
+            }
+        },
+        "11": {
+            "Name": "Clock",
+            "PropType": 5,
+            "Visible": {
+                "clock": true,
+                "color": false,
+                "x": true,
+                "y": false
+            },
+            "Attr": {
+                "clock": {
+                    "Name": "string",
+                    "Type": 3,
+                    "CurrentTime": "00:00",
+                    "TimeFormat": "04:05"
+                },
+                "color": {
+                    "Name": "color",
+                    "Type": 6,
+                    "Red": 1,
+                    "Green": 1,
+                    "Blue": 1,
+                    "Alpha": 1
+                },
+                "parent": {
+                    "Name": "parent",
+                    "Type": 1,
+                    "Value": 7
+                },
+                "x": {
+                    "Name": "rel_x",
+                    "Type": 1,
+                    "Value": 110
+                },
+                "y": {
+                    "Name": "rel_y",
+                    "Type": 1,
+                    "Value": 15
+                }
+            }
+        },
+        "2": {
+            "Name": "Left Split",
+            "PropType": 0,
+            "Visible": {
+                "color": false,
+                "height": false,
+                "rounding": false,
+                "width": false,
+                "x": true,
+                "y": false
+            },
             "Attr": {
                 "color": {
                     "Name": "color",
@@ -25,7 +165,7 @@
                 "parent": {
                     "Name": "parent",
                     "Type": 1,
-                    "Value": 9
+                    "Value": 1
                 },
                 "rounding": {
                     "Name": "rounding",
@@ -40,7 +180,7 @@
                 "x": {
                     "Name": "rel_x",
                     "Type": 1,
-                    "Value": 230
+                    "Value": 76
                 },
                 "y": {
                     "Name": "rel_y",
@@ -49,8 +189,106 @@
                 }
             }
         },
-        "10": {
-            "Name": "Right Split",
+        "3": {
+            "Name": "Circle",
+            "PropType": 2,
+            "Visible": {
+                "color": false,
+                "end_angle": false,
+                "inner_radius": false,
+                "outer_radius": true,
+                "start_angle": false,
+                "x": true,
+                "y": true
+            },
+            "Attr": {
+                "color": {
+                    "Name": "color",
+                    "Type": 6,
+                    "Red": 0.20789999999999997,
+                    "Green": 0.9003843750000002,
+                    "Blue": 0.9900000000000001,
+                    "Alpha": 1
+                },
+                "end_angle": {
+                    "Name": "end_angle",
+                    "Type": 1,
+                    "Value": 360
+                },
+                "inner_radius": {
+                    "Name": "inner_radius",
+                    "Type": 1,
+                    "Value": 0
+                },
+                "outer_radius": {
+                    "Name": "outer_radius",
+                    "Type": 1,
+                    "Value": 25
+                },
+                "parent": {
+                    "Name": "parent",
+                    "Type": 1,
+                    "Value": 1
+                },
+                "start_angle": {
+                    "Name": "start_angle",
+                    "Type": 1,
+                    "Value": 0
+                },
+                "x": {
+                    "Name": "rel_x",
+                    "Type": 1,
+                    "Value": 35
+                },
+                "y": {
+                    "Name": "rel_y",
+                    "Type": 1,
+                    "Value": 32
+                }
+            }
+        },
+        "4": {
+            "Name": "Score 1",
+            "PropType": 1,
+            "Visible": {
+                "color": false,
+                "string": true,
+                "x": true,
+                "y": false
+            },
+            "Attr": {
+                "color": {
+                    "Name": "color",
+                    "Type": 6,
+                    "Red": 1,
+                    "Green": 1,
+                    "Blue": 1,
+                    "Alpha": 1
+                },
+                "parent": {
+                    "Name": "parent",
+                    "Type": 1,
+                    "Value": 2
+                },
+                "string": {
+                    "Name": "string",
+                    "Type": 2,
+                    "Value": "0"
+                },
+                "x": {
+                    "Name": "rel_x",
+                    "Type": 1,
+                    "Value": 180
+                },
+                "y": {
+                    "Name": "rel_y",
+                    "Type": 1,
+                    "Value": 15
+                }
+            }
+        },
+        "5": {
+            "Name": "Mid Split",
             "PropType": 0,
             "Visible": {
                 "color": false,
@@ -101,284 +339,8 @@
                 }
             }
         },
-        "11": {
-            "Name": "Clock",
-            "PropType": 5,
-            "Visible": {
-                "clock": true,
-                "color": false,
-                "x": true,
-                "y": false
-            },
-            "Attr": {
-                "clock": {
-                    "Name": "string",
-                    "Type": 3,
-                    "CurrentTime": "00:00",
-                    "TimeFormat": "04:05"
-                },
-                "color": {
-                    "Name": "color",
-                    "Type": 6,
-                    "Red": 1,
-                    "Green": 1,
-                    "Blue": 1,
-                    "Alpha": 1
-                },
-                "parent": {
-                    "Name": "parent",
-                    "Type": 1,
-                    "Value": 10
-                },
-                "x": {
-                    "Name": "rel_x",
-                    "Type": 1,
-                    "Value": 110
-                },
-                "y": {
-                    "Name": "rel_y",
-                    "Type": 1,
-                    "Value": 15
-                }
-            }
-        },
-        "1": {
-            "Name": "Background",
-            "PropType": 0,
-            "Visible": {},
-            "Attr": {
-                "color": {
-                    "Name": "color",
-                    "Type": 6,
-                    "Red": 0.10980392156862746,
-                    "Green": 0.4431372549019609,
-                    "Blue": 0.48627450980392156,
-                    "Alpha": 1
-                },
-                "height": {
-                    "Name": "height",
-                    "Type": 1,
-                    "Value": 65
-                },
-                "parent": {
-                    "Name": "parent",
-                    "Type": 1,
-                    "Value": 0
-                },
-                "rounding": {
-                    "Name": "rounding",
-                    "Type": 1,
-                    "Value": 15
-                },
-                "width": {
-                    "Name": "width",
-                    "Type": 1,
-                    "Value": 810
-                },
-                "x": {
-                    "Name": "rel_x",
-                    "Type": 1,
-                    "Value": 50
-                },
-                "y": {
-                    "Name": "rel_y",
-                    "Type": 1,
-                    "Value": 965
-                }
-            }
-        },
-        "3": {
-            "Name": "Team 2",
-            "PropType": 1,
-            "Visible": {},
-            "Attr": {
-                "color": {
-                    "Name": "color",
-                    "Type": 6,
-                    "Red": 1,
-                    "Green": 1,
-                    "Blue": 1,
-                    "Alpha": 1
-                },
-                "parent": {
-                    "Name": "parent",
-                    "Type": 1,
-                    "Value": 2
-                },
-                "string": {
-                    "Name": "string",
-                    "Type": 2,
-                    "Value": "Team"
-                },
-                "x": {
-                    "Name": "rel_x",
-                    "Type": 1,
-                    "Value": 20
-                },
-                "y": {
-                    "Name": "rel_y",
-                    "Type": 1,
-                    "Value": 15
-                }
-            }
-        },
-        "4": {
-            "Name": "Circle",
-            "PropType": 2,
-            "Visible": {},
-            "Attr": {
-                "color": {
-                    "Name": "color",
-                    "Type": 6,
-                    "Red": 0.20789999999999997,
-                    "Green": 0.9003843750000002,
-                    "Blue": 0.9900000000000001,
-                    "Alpha": 1
-                },
-                "end_angle": {
-                    "Name": "end_angle",
-                    "Type": 1,
-                    "Value": 360
-                },
-                "inner_radius": {
-                    "Name": "inner_radius",
-                    "Type": 1,
-                    "Value": 0
-                },
-                "outer_radius": {
-                    "Name": "outer_radius",
-                    "Type": 1,
-                    "Value": 25
-                },
-                "parent": {
-                    "Name": "parent",
-                    "Type": 1,
-                    "Value": 1
-                },
-                "start_angle": {
-                    "Name": "start_angle",
-                    "Type": 1,
-                    "Value": 0
-                },
-                "x": {
-                    "Name": "rel_x",
-                    "Type": 1,
-                    "Value": 35
-                },
-                "y": {
-                    "Name": "rel_y",
-                    "Type": 1,
-                    "Value": 32
-                }
-            }
-        },
-        "5": {
-            "Name": "Team 1",
-            "PropType": 1,
-            "Visible": {},
-            "Attr": {
-                "color": {
-                    "Name": "color",
-                    "Type": 6,
-                    "Red": 1,
-                    "Green": 1,
-                    "Blue": 1,
-                    "Alpha": 1
-                },
-                "parent": {
-                    "Name": "parent",
-                    "Type": 1,
-                    "Value": 9
-                },
-                "string": {
-                    "Name": "string",
-                    "Type": 2,
-                    "Value": "Team"
-                },
-                "x": {
-                    "Name": "rel_x",
-                    "Type": 1,
-                    "Value": 20
-                },
-                "y": {
-                    "Name": "rel_y",
-                    "Type": 1,
-                    "Value": 15
-                }
-            }
-        },
         "6": {
-            "Name": "Score 1",
-            "PropType": 1,
-            "Visible": {},
-            "Attr": {
-                "color": {
-                    "Name": "color",
-                    "Type": 6,
-                    "Red": 1,
-                    "Green": 1,
-                    "Blue": 1,
-                    "Alpha": 1
-                },
-                "parent": {
-                    "Name": "parent",
-                    "Type": 1,
-                    "Value": 9
-                },
-                "string": {
-                    "Name": "string",
-                    "Type": 2,
-                    "Value": "0"
-                },
-                "x": {
-                    "Name": "rel_x",
-                    "Type": 1,
-                    "Value": 180
-                },
-                "y": {
-                    "Name": "rel_y",
-                    "Type": 1,
-                    "Value": 15
-                }
-            }
-        },
-        "7": {
-            "Name": "Score 2",
-            "PropType": 1,
-            "Visible": {},
-            "Attr": {
-                "color": {
-                    "Name": "color",
-                    "Type": 6,
-                    "Red": 1,
-                    "Green": 1,
-                    "Blue": 1,
-                    "Alpha": 1
-                },
-                "parent": {
-                    "Name": "parent",
-                    "Type": 1,
-                    "Value": 2
-                },
-                "string": {
-                    "Name": "string",
-                    "Type": 2,
-                    "Value": "0"
-                },
-                "x": {
-                    "Name": "rel_x",
-                    "Type": 1,
-                    "Value": 180
-                },
-                "y": {
-                    "Name": "rel_y",
-                    "Type": 1,
-                    "Value": 15
-                }
-            }
-        },
-        "8": {
-            "Name": "Period",
+            "Name": "Team 1",
             "PropType": 1,
             "Visible": {
                 "color": false,
@@ -398,17 +360,17 @@
                 "parent": {
                     "Name": "parent",
                     "Type": 1,
-                    "Value": 10
+                    "Value": 2
                 },
                 "string": {
                     "Name": "string",
                     "Type": 2,
-                    "Value": "Q1"
+                    "Value": "Team"
                 },
                 "x": {
                     "Name": "rel_x",
                     "Type": 1,
-                    "Value": 30
+                    "Value": 20
                 },
                 "y": {
                     "Name": "rel_y",
@@ -417,10 +379,17 @@
                 }
             }
         },
-        "9": {
-            "Name": "Left Split",
+        "7": {
+            "Name": "Right Split",
             "PropType": 0,
-            "Visible": {},
+            "Visible": {
+                "color": false,
+                "height": false,
+                "rounding": false,
+                "width": false,
+                "x": true,
+                "y": false
+            },
             "Attr": {
                 "color": {
                     "Name": "color",
@@ -438,7 +407,7 @@
                 "parent": {
                     "Name": "parent",
                     "Type": 1,
-                    "Value": 1
+                    "Value": 5
                 },
                 "rounding": {
                     "Name": "rounding",
@@ -453,7 +422,7 @@
                 "x": {
                     "Name": "rel_x",
                     "Type": 1,
-                    "Value": 76
+                    "Value": 230
                 },
                 "y": {
                     "Name": "rel_y",
@@ -461,9 +430,89 @@
                     "Value": 0
                 }
             }
+        },
+        "8": {
+            "Name": "Score 2",
+            "PropType": 1,
+            "Visible": {
+                "color": false,
+                "string": true,
+                "x": true,
+                "y": false
+            },
+            "Attr": {
+                "color": {
+                    "Name": "color",
+                    "Type": 6,
+                    "Red": 1,
+                    "Green": 1,
+                    "Blue": 1,
+                    "Alpha": 1
+                },
+                "parent": {
+                    "Name": "parent",
+                    "Type": 1,
+                    "Value": 5
+                },
+                "string": {
+                    "Name": "string",
+                    "Type": 2,
+                    "Value": "0"
+                },
+                "x": {
+                    "Name": "rel_x",
+                    "Type": 1,
+                    "Value": 180
+                },
+                "y": {
+                    "Name": "rel_y",
+                    "Type": 1,
+                    "Value": 15
+                }
+            }
+        },
+        "9": {
+            "Name": "Team 2",
+            "PropType": 1,
+            "Visible": {
+                "color": false,
+                "string": true,
+                "x": true,
+                "y": false
+            },
+            "Attr": {
+                "color": {
+                    "Name": "color",
+                    "Type": 6,
+                    "Red": 1,
+                    "Green": 1,
+                    "Blue": 1,
+                    "Alpha": 1
+                },
+                "parent": {
+                    "Name": "parent",
+                    "Type": 1,
+                    "Value": 5
+                },
+                "string": {
+                    "Name": "string",
+                    "Type": 2,
+                    "Value": "Team"
+                },
+                "x": {
+                    "Name": "rel_x",
+                    "Type": 1,
+                    "Value": 20
+                },
+                "y": {
+                    "Name": "rel_y",
+                    "Type": 1,
+                    "Value": 15
+                }
+            }
         }
     },
-    "AnimateOn": "left_to_right",
+    "AnimateOn": "",
     "Continue": "",
-    "AnimateOff": "left_to_right"
+    "AnimateOff": ""
 }
