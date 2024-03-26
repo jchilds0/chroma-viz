@@ -8,7 +8,7 @@ import (
 
 func TestImportShow(t *testing.T) {
     show := NewShow()
-    show.ImportShow("test_show.json", func(page *Page) {})
+    show.ImportShow("test_show.json")
 
     if len(show.Pages) != 4 {
         t.Errorf("Incorrect number of pages (len(show.Pages) = %d)", len(show.Pages))
