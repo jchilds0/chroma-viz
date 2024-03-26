@@ -14,15 +14,27 @@ import (
 
 var hub = NewDataBase()
 var usage = "Usage: {import, export} {archive, template} <filename>.json"
+var hubPort int
+
+func printMessage(s string) {
+    fmt.Printf("[Chroma Hub - %d]", hubPort)
+
+    if s == "" {
+        fmt.Printf(": ")
+    } else {
+        fmt.Printf("  %s\n", s)
+    }
+}
 
 func HubApp(port int) {
     ok := true
+    hubPort = port
 
     StartHub(port, -1)
 
     read := bufio.NewScanner(os.Stdin)
     for ok {
-        fmt.Printf("[Chroma Hub - %d]: ", port)
+        printMessage("")
         read.Scan()
         input := strings.Split(read.Text(), " ")
 
@@ -33,10 +45,8 @@ func HubApp(port int) {
 
         switch input[0] {
         case "import":
-            fmt.Printf("Importing %s\n", input[2])
             Import(input[1], input[2])
         case "export":
-            fmt.Printf("Exporting %s\n", input[2])
             Export(input[1], input[2])
         default:
             fmt.Println(usage)
@@ -108,10 +118,11 @@ func ImportArchive(fileName string) error {
         }
 
         hub.Templates[temp.TempID] = temp
-        log.Printf("Loaded Template %d (%s)", temp.TempID, temp.Title)
+        s := fmt.Sprintf("Loaded Template %d (%s)", temp.TempID, temp.Title)
+        printMessage(s)
     }
 
-    log.Printf("Imported Hub")
+    //log.Printf("Imported Hub")
     return nil
 }
 
@@ -132,7 +143,8 @@ func ExportArchive(fileName string) {
         log.Printf("Error writing hub (%s)", err)
     }
     
-    fmt.Printf("Exported Hub\n")
+    s := fmt.Sprintf("Exported hub to %s", fileName) 
+    printMessage(s)
 }
 
 func ImportTemplate(fileName string) error {
@@ -152,6 +164,9 @@ func ImportTemplate(fileName string) error {
     }
 
     hub.Templates[temp.TempID] = &temp
+    s := fmt.Sprintf("Loaded Template %d (%s)", temp.TempID, temp.Title)
+    printMessage(s)
+
     return nil
 }
 

@@ -58,15 +58,9 @@ func (db *DataBase) AddGeometry(temp_id, geo_id int, geo_type string) {
 }
 
 func (db *DataBase) SendHub(ln net.Listener) {
-    // upperLimit := (count != -1)
-    // count = 2 * count
     defer ln.Close()
 
     for {
-        // if upperLimit && count == 0 {
-        //     break
-        // }
-
         conn, err := ln.Accept()
         if err != nil {
             log.Printf("Error accepting connection (%s)", err)
@@ -77,9 +71,6 @@ func (db *DataBase) SendHub(ln net.Listener) {
             log.Printf("Error sending hub (%s)", err)
         }
 
-        log.Printf("Sent Hub to %s", conn.RemoteAddr())
-        // if upperLimit {
-        //     count--
-        // }
+        //log.Printf("Sent Hub to %s", conn.RemoteAddr())
     }
 }

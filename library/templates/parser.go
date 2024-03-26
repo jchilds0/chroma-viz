@@ -48,12 +48,6 @@ func (temp *Temps) ImportTemplates(conn net.Conn) error {
         if (c_tok.tok == STRING && c_tok.value == "num_temp") {
             matchToken(STRING, buf)
             matchToken(':', buf)
-            n, err := strconv.Atoi(c_tok.value)
-            if err != nil {
-                log.Printf("Error reading %s (%s)", c_tok.value, err)
-            }
-
-            fmt.Printf("Number of templates %d\n", n)
             matchToken(INT, buf)
         }
 

@@ -95,11 +95,10 @@ func (temp *TempTree) ImportTemplates(hub net.Conn) {
     err := temp.Temps.ImportTemplates(hub)
     if err != nil {
         log.Printf("Error importing hub (%s)", err)
-    } else {
-        log.Println("Graphics hub imported")
     }
 
     for _, template := range temp.Temps.Temps {
+        log.Printf("Imported Template %d (%s)", template.TempID, template.Title)
         temp.AddTemplate(template)
     }
 }
