@@ -18,8 +18,8 @@ func NewShow() *Show {
     return show
 }
 
-func (show *Show) SetPage(pageNum int, title string, temp *templates.Template, cont func(*Page)) {
-    page := newPage(pageNum, title, temp, cont)
+func (show *Show) SetPage(pageNum int, title string, temp *templates.Template) {
+    page := newPage(pageNum, title, temp)
 
     if _, ok := show.Pages[pageNum]; ok {
         log.Printf("Page %d already exists", pageNum)
@@ -29,14 +29,14 @@ func (show *Show) SetPage(pageNum int, title string, temp *templates.Template, c
     show.Pages[pageNum] = page
 }
 
-func (show *Show) AddPage(title string, temp *templates.Template, cont func(*Page)) *Page {
+func (show *Show) AddPage(title string, temp *templates.Template) *Page {
     show.NumPages++
-    show.SetPage(show.NumPages, title, temp, cont)
+    show.SetPage(show.NumPages, title, temp)
 
     return show.Pages[show.NumPages]
 }
 
-func (show *Show) ImportShow(filename string, cont func(*Page)) error {
+func (show *Show) ImportShow(filename string) error {
     buf, err := os.ReadFile(filename)
     if err != nil {
         return err 

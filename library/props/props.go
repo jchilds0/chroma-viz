@@ -118,7 +118,7 @@ type Property struct {
     temp      bool
 }
 
-func NewProperty(typed int, name string, isTemp bool, visible map[string]bool, cont func()) *Property {
+func NewProperty(typed int, name string, isTemp bool, visible map[string]bool) *Property {
     prop := &Property{Name: name, PropType: typed, Visible: visible, temp: isTemp}
 
     if visible == nil {
@@ -166,10 +166,7 @@ func NewProperty(typed int, name string, isTemp bool, visible map[string]bool, c
     case CLOCK_PROP:
         prop.Attr["rel_x"] = attribute.NewIntAttribute("rel_x")
         prop.Attr["rel_y"] = attribute.NewIntAttribute("rel_y")
-
-        clock := attribute.NewClockAttribute("string")
-        go clock.RunClock(cont)
-        prop.Attr["string"] = clock
+        prop.Attr["string"] = attribute.NewClockAttribute("string")
         prop.Attr["color"] = attribute.NewColorAttribute("color")
 
     case IMAGE_PROP:

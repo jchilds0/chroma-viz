@@ -175,9 +175,9 @@ func (showTree *ShowTree) ImportPage(page *shows.Page) {
     )
 }
 
-func (showTree *ShowTree) ImportShow(filename string, cont func(*shows.Page)) {
+func (showTree *ShowTree) ImportShow(filename string) {
     var show shows.Show
-    err := show.ImportShow(filename, cont)
+    err := show.ImportShow(filename)
     if err != nil {
         log.Print(err)
     }

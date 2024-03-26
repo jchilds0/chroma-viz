@@ -399,8 +399,6 @@ var geo_name = map[int]string {
 }
 
 func AddProp(label string) (id int, err error) {
-    cont := func() { SendPreview(template, tcp.CONTINUE) }
-
     geo_typed, ok := geo_type[label]
     if !ok {
         return 0, fmt.Errorf("Unknown label %s", label)
@@ -416,7 +414,7 @@ func AddProp(label string) (id int, err error) {
         return 
     }
 
-    template.Geometry[id] = props.NewProperty(geo_typed, label, true, nil, cont)
+    template.Geometry[id] = props.NewProperty(geo_typed, label, true, nil)
     template.Geometry[id].Attr["parent"] = attribute.NewIntAttribute("parent")
     return
 }

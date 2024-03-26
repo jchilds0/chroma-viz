@@ -123,11 +123,9 @@ func VizGui(app *gtk.Application) {
     })
     edit.PageEditor()
 
-    cont := func(page *shows.Page) { SendEngine(page, tcp.CONTINUE) }
-
     showTree := NewShowTree(func(page *shows.Page) { edit.SetPage(page) })
     tempTree := NewTempTree(func(temp *templates.Template) { 
-        page := showTree.show.AddPage(temp.Title, temp, cont)
+        page := showTree.show.AddPage(temp.Title, temp)
         showTree.ImportPage(page) 
     })
 
@@ -283,8 +281,6 @@ func VizGui(app *gtk.Application) {
 }
 
 func guiImportShow(win *gtk.ApplicationWindow, show *ShowTree) error {
-    cont := func(page *shows.Page) { SendEngine(page, tcp.CONTINUE) }
-
     dialog, err := gtk.FileChooserDialogNewWith2Buttons(
         "Import Show", win, gtk.FILE_CHOOSER_ACTION_OPEN, 
         "_Cancel", gtk.RESPONSE_CANCEL, "_Open", gtk.RESPONSE_ACCEPT)
@@ -296,7 +292,7 @@ func guiImportShow(win *gtk.ApplicationWindow, show *ShowTree) error {
     res := dialog.Run()
     if res == gtk.RESPONSE_ACCEPT {
         filename := dialog.GetFilename()
-        show.ImportShow(filename, cont)
+        show.ImportShow(filename)
     }
     
     return nil
@@ -419,7 +415,6 @@ func guiDeletePage(show *ShowTree) error {
 }
 
 func testGui(tempTree *TempTree, showTree *ShowTree) {
-    cont := func(page *shows.Page) { SendEngine(page, tcp.CONTINUE) }
     num_temps := 10000
     num_props := 100
     num_pages := 1000
@@ -443,7 +438,7 @@ func testGui(tempTree *TempTree, showTree *ShowTree) {
     for i := 0; i < num_pages; i++ {
         index := rand.Int() % (num_temps - 1) + 1
         temp := tempTree.Temps.Temps[index]
-        page := showTree.show.AddPage(temp.Title, temp, cont)
+        page := showTree.show.AddPage(temp.Title, temp)
         showTree.ImportPage(page)
     }
 

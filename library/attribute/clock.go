@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"sync"
 	"time"
 
 	"github.com/gotk3/gotk3/gtk"
@@ -21,6 +22,7 @@ type ClockAttribute struct {
     c           chan int
     CurrentTime string
     TimeFormat  string
+    m           sync.Mutex
 }
 
 func NewClockAttribute(name string) *ClockAttribute {
@@ -45,7 +47,11 @@ func (clockAttr *ClockAttribute) UnmarshalJSON(b []byte) error {
         return err
     }
 
-    *clockAttr = clockAttrJSON.ClockAttribute
+    clockAttr.Name = clockAttrJSON.Name
+    clockAttr.Type = CLOCK
+    clockAttr.TimeFormat = clockAttrJSON.TimeFormat
+    clockAttr.CurrentTime = clockAttrJSON.CurrentTime
+
     clockAttr.c = make(chan int)
     return nil
 }
@@ -120,7 +126,11 @@ func (clock *ClockAttribute) RunClock(cont func()) {
             run = false
         case STOP:
             run = false
+
+            clock.m.Lock()
             clock.CurrentTime = "00:00"
+            clock.m.Unlock()
+
             cont()
         default:
             log.Printf("Clock recieved unknown value through channel %d\n", state)
@@ -129,6 +139,9 @@ func (clock *ClockAttribute) RunClock(cont func()) {
 }
 
 func (clock *ClockAttribute) tickTime() {
+    clock.m.Lock()
+    defer clock.m.Unlock()
+
     currentTime, err := time.Parse(clock.TimeFormat, clock.CurrentTime)
     if err != nil {
         log.Println(err)
