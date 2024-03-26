@@ -25,6 +25,8 @@ func (db *DataBase) EncodeDB() string {
     templates := ""
     maxTempID := 0
     for _, temp := range db.Templates {
+        maxTempID = max(maxTempID, temp.TempID)
+
         if first {
             templates = temp.Encode()
             first = false 
@@ -32,7 +34,6 @@ func (db *DataBase) EncodeDB() string {
         }
 
         templates = fmt.Sprintf("%s,%s", templates, temp.Encode())
-        maxTempID = max(maxTempID, temp.TempID)
     }
 
     return fmt.Sprintf("{'num_temp': %d, 'templates': [%s]}", maxTempID + 2, templates)

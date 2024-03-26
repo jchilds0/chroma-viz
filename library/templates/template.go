@@ -23,10 +23,10 @@ type Template struct {
     TempID      int
     NumGeo      int
     Layer       int
-    Geometry    map[int]*props.Property
     AnimateOn   string
     Continue    string
     AnimateOff  string
+    Geometry    map[int]*props.Property
 }
 
 func NewTemplate(title string, id int, layer int, num_geo int) *Template {

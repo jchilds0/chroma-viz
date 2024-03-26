@@ -3,6 +3,7 @@ package attribute
 import (
 	"fmt"
 	"log"
+	"strconv"
 
 	"github.com/gotk3/gotk3/gtk"
 )
@@ -29,6 +30,15 @@ func (floatAttr *FloatAttribute) String() string {
 func (floatAttr *FloatAttribute) Encode() string {
     return fmt.Sprintf("{'name': '%s', 'value': '%f'}", 
         floatAttr.Name, floatAttr.Value)
+}
+
+func (floatAttr *FloatAttribute) Decode(value string) {
+    var err error
+
+    floatAttr.Value, err = strconv.ParseFloat(value, 64)
+    if err != nil {
+        log.Printf("Error decoding float attr (%s)", err)
+    }
 }
 
 func (floatAttr *FloatAttribute) Copy(attr Attribute) {

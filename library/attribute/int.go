@@ -3,6 +3,7 @@ package attribute
 import (
 	"fmt"
 	"log"
+	"strconv"
 
 	"github.com/gotk3/gotk3/gtk"
 )
@@ -29,6 +30,15 @@ func (intAttr *IntAttribute) String() string {
 func (intAttr *IntAttribute) Encode() string {
     return fmt.Sprintf("{'name': '%s', 'value': '%d'}", 
         intAttr.Name, intAttr.Value)
+}
+
+func (intAttr *IntAttribute) Decode(value string) {
+    var err error
+
+    intAttr.Value, err = strconv.Atoi(value)
+    if err != nil {
+        log.Printf("Error decoding int attr (%s)", err)
+    }
 }
 
 func (intAttr *IntAttribute) Copy(attr Attribute) {

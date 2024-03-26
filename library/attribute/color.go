@@ -3,6 +3,8 @@ package attribute
 import (
 	"fmt"
 	"log"
+	"strconv"
+	"strings"
 
 	"github.com/gotk3/gotk3/gdk"
 	"github.com/gotk3/gotk3/gtk"
@@ -33,6 +35,37 @@ func (colorAttr *ColorAttribute) String() string {
 func (colorAttr *ColorAttribute) Encode() string {
     return fmt.Sprintf("{'name': '%s', 'value': '%f %f %f %f'}", 
         colorAttr.Name, colorAttr.Red, colorAttr.Green, colorAttr.Blue, colorAttr.Alpha)
+}
+
+func (colorAttr *ColorAttribute) Decode(value string) {
+    var err error
+
+    s := strings.Split(value, " ")
+    if len(s) < 4 {
+        log.Println("Error decoding color attr")
+        return
+    }
+
+    colorAttr.Red, err = strconv.ParseFloat(s[0], 64)
+    if err != nil {
+        log.Printf("Error decoding color attr (%s)", err)
+    }
+
+    colorAttr.Green, err = strconv.ParseFloat(s[1], 64)
+    if err != nil {
+        log.Printf("Error decoding color attr (%s)", err)
+    }
+
+    colorAttr.Blue, err = strconv.ParseFloat(s[2], 64)
+    if err != nil {
+        log.Printf("Error decoding color attr (%s)", err)
+    }
+
+    colorAttr.Alpha, err = strconv.ParseFloat(s[3], 64)
+    if err != nil {
+        log.Printf("Error decoding color attr (%s)", err)
+    }
+
 }
 
 func (colorAttr *ColorAttribute) Copy(attr Attribute) {

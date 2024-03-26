@@ -208,6 +208,7 @@ func parseProperty(temp *Template, buf *bufio.Reader) (err error) {
     return nil
 }
 
+// A -> {'name': string, 'value': string} | A, A
 func parseAttributes(prop *props.Property, buf *bufio.Reader) (err error) {
     data := make(map[string]string)
     matchToken('{', buf)
@@ -224,6 +225,11 @@ func parseAttributes(prop *props.Property, buf *bufio.Reader) (err error) {
         if c_tok.tok == ',' {
             matchToken(',', buf)
         }
+    }
+
+    attr := prop.Attr[data["name"]]
+    if attr != nil {
+        attr.Decode(data["value"])
     }
 
     matchToken('}', buf)

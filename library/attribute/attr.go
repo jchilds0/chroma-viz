@@ -42,6 +42,7 @@ type Attribute interface {
 
     // A -> {'name': string, 'value': string} | A, A
     Encode() string
+    Decode(string) 
 }
 
 type AttributeJSON struct {

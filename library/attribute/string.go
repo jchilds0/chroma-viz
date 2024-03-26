@@ -31,6 +31,10 @@ func (stringAttr *StringAttribute) Encode() string {
         stringAttr.Name, stringAttr.Value)
 }
 
+func (stringAttr *StringAttribute) Decode(value string) {
+    stringAttr.Value = value
+}
+
 func (stringAttr *StringAttribute) Copy(attr Attribute) {
     stringAttrCopy, ok := attr.(*StringAttribute)
     if !ok {

@@ -150,7 +150,22 @@ func (showTree *ShowTree) ImportPage(page *shows.Page) {
             continue
         }
 
-        prop.Attr["clock"].(*attribute.ClockAttribute).SetClock(func() { SendEngine(page, tcp.CONTINUE) })
+        /* 
+            Clock requires a way to send updates to viz 
+            to animate the clock. We manually add this 
+            after parsing the page.
+        */
+        attr, ok := prop.Attr["string"]
+        if !ok {
+            continue
+        }
+
+        clockAttr, ok := attr.(*attribute.ClockAttribute)
+        if !ok {
+            continue
+        }
+
+        clockAttr.SetClock(func() { SendEngine(page, tcp.CONTINUE) })
     }
 
     showTree.treeList.Set(

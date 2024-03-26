@@ -23,7 +23,7 @@ type ClockAttribute struct {
     TimeFormat  string
 }
 
-func NewClockAttribute(name string, cont func()) *ClockAttribute {
+func NewClockAttribute(name string) *ClockAttribute {
     clockAttr := &ClockAttribute{
         Name: name,
         Type: CLOCK,
@@ -31,7 +31,6 @@ func NewClockAttribute(name string, cont func()) *ClockAttribute {
         c: make(chan int),
     }
 
-    go clockAttr.RunClock(cont)
     return clockAttr
 }
 
@@ -64,6 +63,10 @@ func (clockAttr *ClockAttribute) Encode() string {
         clockAttr.Name, clockAttr.CurrentTime)
 }
 
+func (clockAttr *ClockAttribute) Decode(value string) {
+    clockAttr.CurrentTime = value
+}
+
 func (clockAttr *ClockAttribute) Copy(attr Attribute) {
     clockAttrCopy, ok := attr.(*ClockAttribute) 
     if !ok {
@@ -88,37 +91,52 @@ func (clockAttr *ClockAttribute) Update(edit Editor) error {
 func (clock *ClockAttribute) RunClock(cont func()) {
     state := PAUSE
     tick := time.NewTicker(time.Second)
+    run := false
 
     for {
-        select {
-        case state = <-clock.c:
-            tick.Reset(time.Second)
-        case <-tick.C:
-        }    
+        log.Printf("State %d Run %v", state, run)
+
+        if run {
+            select {
+            case state = <-clock.c:
+            case <-tick.C:
+                if run {
+                    cont()
+                    clock.tickTime()
+                }
+
+                continue
+            }    
+        } else {
+            state = <- clock.c
+        }
+
 
         switch state {
         case START:
-            // update time and animate
-            currentTime, err := time.Parse(clock.TimeFormat, clock.CurrentTime)
-            if err != nil {
-                log.Println(err)
-                continue
-            }
-
-            currentTime = currentTime.Add(time.Second)
-            clock.CurrentTime = currentTime.Format(clock.TimeFormat)
-            cont()
+            tick.Reset(time.Second)
+            run = true
         case PAUSE:
-            // block until we recieve an instruction
-            state = <-clock.c
+            run = false
         case STOP:
-            // reset the time and block
+            run = false
             clock.CurrentTime = "00:00"
-            state = <-clock.c
+            cont()
         default:
             log.Printf("Clock recieved unknown value through channel %d\n", state)
         }
     }
+}
+
+func (clock *ClockAttribute) tickTime() {
+    currentTime, err := time.Parse(clock.TimeFormat, clock.CurrentTime)
+    if err != nil {
+        log.Println(err)
+        return
+    }
+
+    currentTime = currentTime.Add(time.Second)
+    clock.CurrentTime = currentTime.Format(clock.TimeFormat)
 }
 
 type ClockEditor struct {

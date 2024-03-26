@@ -130,6 +130,9 @@ func (listAttr *ListAttribute) Encode() (s string) {
     return
 }
 
+func (listAttr *ListAttribute) Decode(value string) {
+}
+
 type ListAttributeJSON struct {
     ListAttribute
     ListStore       [][]string
