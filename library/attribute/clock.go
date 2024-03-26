@@ -100,8 +100,6 @@ func (clock *ClockAttribute) RunClock(cont func()) {
     run := false
 
     for {
-        log.Printf("State %d Run %v", state, run)
-
         if run {
             select {
             case state = <-clock.c:

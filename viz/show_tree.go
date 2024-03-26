@@ -136,9 +136,7 @@ func NewShowTree(pageToEditor func(*shows.Page)) *ShowTree {
 }
 
 func (showTree *ShowTree) ImportPage(page *shows.Page) {
-    showTree.show.NumPages++
-    showTree.show.Pages[showTree.show.NumPages] = page
-    page.PageNum = showTree.show.NumPages
+    showTree.show.Pages[page.PageNum] = page
 
     if page == nil {
         log.Print("Missing template")
