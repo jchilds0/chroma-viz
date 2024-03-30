@@ -24,103 +24,102 @@ import (
 */
 
 type Page struct {
-    PageNum     int
-    Title       string
-    TemplateID  int
-    Layer       int
-    PropMap     map[int]*props.Property
+	PageNum    int
+	Title      string
+	TemplateID int
+	Layer      int
+	PropMap    map[int]*props.Property
 }
 
 func newPage(pageNum int, title string, temp *templates.Template) *Page {
-    page := &Page{
-        PageNum: pageNum, 
-        Title: title, 
-        TemplateID: temp.TempID,
-        Layer: temp.Layer,
-    }
-    page.PropMap = make(map[int]*props.Property, temp.NumGeo)
+	page := &Page{
+		PageNum:    pageNum,
+		Title:      title,
+		TemplateID: temp.TempID,
+		Layer:      temp.Layer,
+	}
+	page.PropMap = make(map[int]*props.Property, temp.NumGeo)
 
-    for i, geo := range temp.Geometry {
-        page.PropMap[i] = props.NewProperty(geo.PropType, geo.Name, false, geo.Visible)
-        prop := page.PropMap[i]
+	for i, geo := range temp.Geometry {
+		page.PropMap[i] = props.NewProperty(geo.PropType, geo.Name, false, geo.Visible)
+		prop := page.PropMap[i]
 
-        for name, attr := range prop.Attr {
-            attr.Copy(geo.Attr[name])
-        }
-    }
+		for name, attr := range prop.Attr {
+			attr.Copy(geo.Attr[name])
+		}
+	}
 
-    return page
+	return page
 }
 
 func (page *Page) PageToListRow() *gtk.ListBoxRow {
-    row1, err := gtk.ListBoxRowNew()
-    if err != nil {
-        log.Fatalf("Error converting page to list (%s)", err)
-    }
+	row1, err := gtk.ListBoxRowNew()
+	if err != nil {
+		log.Fatalf("Error converting page to list (%s)", err)
+	}
 
-    row1.Add(templates.TextToBuffer(strconv.Itoa(page.PageNum)))
-    row1.Add(templates.TextToBuffer(page.Title))
+	row1.Add(templates.TextToBuffer(strconv.Itoa(page.PageNum)))
+	row1.Add(templates.TextToBuffer(page.Title))
 
-    return row1
+	return row1
 }
 
 func (page *Page) UnmarshalJSON(b []byte) error {
-    var tempPage struct {
-        Page
-        UnmarshalJSON struct {}
-    }
+	var tempPage struct {
+		Page
+		UnmarshalJSON struct{}
+	}
 
-    err := json.Unmarshal(b, &tempPage)
-    if err != nil {
-        return err 
-    }
+	err := json.Unmarshal(b, &tempPage)
+	if err != nil {
+		return err
+	}
 
-    *page = tempPage.Page
-    return nil
+	*page = tempPage.Page
+	return nil
 }
 
 func (page *Page) ImportPage(filename string) error {
-    buf, err := os.ReadFile(filename)
-    if err != nil {
-        return err
-    }
+	buf, err := os.ReadFile(filename)
+	if err != nil {
+		return err
+	}
 
-    err = json.Unmarshal(buf, page)
-    if err != nil {
-        return err
-    }
+	err = json.Unmarshal(buf, page)
+	if err != nil {
+		return err
+	}
 
-    return nil
+	return nil
 }
 
 func ExportPage(page *Page, filename string) (err error) {
-    file, err := os.Create(filename)
-    if err != nil {
-        return err
-    }
-    defer file.Close()
+	file, err := os.Create(filename)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
 
-    buf, err := json.Marshal(page)
-    if err != nil {
-        return err
-    }
+	buf, err := json.Marshal(page)
+	if err != nil {
+		return err
+	}
 
-    _, err = file.Write(buf)
-    if err != nil {
-        return err
-    }
-    return
+	_, err = file.Write(buf)
+	if err != nil {
+		return err
+	}
+	return
 }
 
 func (page *Page) GetTemplateID() int {
-    return page.TemplateID
+	return page.TemplateID
 }
 
 func (page *Page) GetLayer() int {
-    return page.Layer
+	return page.Layer
 }
 
 func (page *Page) GetPropMap() map[int]*props.Property {
-    return page.PropMap
+	return page.PropMap
 }
-

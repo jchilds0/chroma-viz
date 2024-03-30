@@ -18,431 +18,389 @@ import (
 var conn *GuiConn = NewGuiConn()
 
 type GuiConn struct {
-    hub   *tcp.Connection
-    eng   []*tcp.Connection
-    prev  []*tcp.Connection
+	hub  *tcp.Connection
+	eng  []*tcp.Connection
+	prev []*tcp.Connection
 }
 
 func NewGuiConn() *GuiConn {
-    gui := &GuiConn{}
-    gui.eng = make([]*tcp.Connection, 0, 10)
-    gui.prev = make([]*tcp.Connection, 0, 10)
+	gui := &GuiConn{}
+	gui.eng = make([]*tcp.Connection, 0, 10)
+	gui.prev = make([]*tcp.Connection, 0, 10)
 
-    return gui
-}
-
-func AddGraphicsHub(addr string, port int) {
-    conn.hub = tcp.NewConnection("Hub", addr, port)
-    conn.hub.Connect()
-}
-
-func AddConnection(name, conn_type, ip string, port int) error {
-    if conn_type == "engine" {
-        conn.eng = append(conn.eng, tcp.NewConnection(name, ip, port))
-        return nil
-    } else if conn_type == "preview" {
-        conn.prev = append(conn.prev, tcp.NewConnection(name, ip, port))
-        return nil
-    }
-
-    return fmt.Errorf("Unknown connection type %s", conn_type)
+	return gui
 }
 
 func SendPreview(page tcp.Animator, action int) {
-    if page == nil {
-        log.Println("SendPreview recieved nil page")
-        return
-    }
+	if page == nil {
+		log.Println("SendPreview recieved nil page")
+		return
+	}
 
-    for _, c := range conn.prev {
-        if c == nil {
-            continue
-        }
+	for _, c := range conn.prev {
+		if c == nil {
+			continue
+		}
 
-        c.SetPage <- page
-        c.SetAction <- action 
-    }
+		c.SetPage <- page
+		c.SetAction <- action
+	}
 }
 
 func SendEngine(page tcp.Animator, action int) {
-    if page == nil {
-        log.Println("SendEngine recieved nil page")
-        return
-    }
+	if page == nil {
+		log.Println("SendEngine recieved nil page")
+		return
+	}
 
-    for _, c := range conn.eng {
-        if c == nil {
-            continue
-        }
+	for _, c := range conn.eng {
+		if c == nil {
+			continue
+		}
 
-        c.SetPage <- page
-        c.SetAction <- action 
-    }
-}
-
-func CloseConn() {
-    for _, c := range conn.eng {
-        if c == nil {
-            continue
-        }
-
-        if c.IsConnected() {
-            c.CloseConn()
-            log.Printf("Closed %s\n", c.Name)
-        }
-    }
-
-    for _, c := range conn.prev {
-        if c == nil {
-            continue
-        }
-
-        if c.IsConnected() {
-            c.CloseConn()
-            log.Printf("Closed %s\n", c.Name)
-        }
-    }
+		c.SetPage <- page
+		c.SetAction <- action
+	}
 }
 
 func VizGui(app *gtk.Application) {
-    win, err := gtk.ApplicationWindowNew(app)
-    if err != nil {
-        log.Fatal(err)
-    }
+	win, err := gtk.ApplicationWindowNew(app)
+	if err != nil {
+		log.Fatal(err)
+	}
 
-    win.SetDefaultSize(800, 600)
-    win.SetTitle("Chroma Viz")
+	win.SetDefaultSize(800, 600)
+	win.SetTitle("Chroma Viz")
 
-    edit := editor.NewEditor(SendEngine, SendPreview)
-    edit.AddAction("Take On", true, func() { SendEngine(edit.Page, tcp.ANIMATE_ON) })
-    edit.AddAction("Continue", true, func() { SendEngine(edit.Page, tcp.CONTINUE) })
-    edit.AddAction("Take Off", true, func() { SendEngine(edit.Page, tcp.ANIMATE_OFF) })
-    edit.AddAction("Save", false, func() { 
-        edit.UpdateProps()
-        SendPreview(edit.Page, tcp.ANIMATE_ON) 
-    })
-    edit.PageEditor()
+	edit := editor.NewEditor(SendEngine, SendPreview)
+	edit.AddAction("Take On", true, func() { SendEngine(edit.Page, tcp.ANIMATE_ON) })
+	edit.AddAction("Continue", true, func() { SendEngine(edit.Page, tcp.CONTINUE) })
+	edit.AddAction("Take Off", true, func() { SendEngine(edit.Page, tcp.ANIMATE_OFF) })
+	edit.AddAction("Save", false, func() {
+		edit.UpdateProps()
+		SendPreview(edit.Page, tcp.ANIMATE_ON)
+	})
+	edit.PageEditor()
 
-    showTree := NewShowTree(func(page *shows.Page) { edit.SetPage(page) })
-    tempTree := NewTempTree(func(temp *templates.Template) { 
-        page := showTree.show.AddPage(temp.Title, temp)
-        showTree.ImportPage(page) 
-    })
+	showTree := NewShowTree(func(page *shows.Page) { edit.SetPage(page) })
+	tempTree := NewTempTree(func(temp *templates.Template) {
+		page := showTree.show.AddPage(temp.Title, temp)
+		showTree.ImportPage(page)
+	})
 
-    tempTree.ImportTemplates(conn.hub.Conn)
+	tempTree.ImportTemplates(conn.hub.Conn)
 
-    preview := setup_preview_window()
+	preview := setupPreviewWindow(conf.PreviewDirectory, conf.PreviewName)
 
-    //testGui(tempView, showView)
+	//testGui(tempView, showView)
 
-    box, err := gtk.BoxNew(gtk.ORIENTATION_VERTICAL, 0)
-    if err != nil {
-        log.Fatal(err)
-    }
+	box, err := gtk.BoxNew(gtk.ORIENTATION_VERTICAL, 0)
+	if err != nil {
+		log.Fatal(err)
+	}
 
-    win.Add(box)
+	win.Add(box)
 
-    /* Menu layout */
-    builder, err := gtk.BuilderNew()
-    if err := builder.AddFromFile("./gtk/viz-menu.ui"); err != nil {
-        log.Fatal(err)
-    }
+	/* Menu layout */
+	builder, err := gtk.BuilderNew()
+	if err := builder.AddFromFile("./gtk/viz-menu.ui"); err != nil {
+		log.Fatal(err)
+	}
 
-    menu, err := builder.GetObject("menubar")
-    if err != nil {
-        log.Fatal(err)
-    }
+	menu, err := builder.GetObject("menubar")
+	if err != nil {
+		log.Fatal(err)
+	}
 
-    app.SetMenubar(menu.(*glib.MenuModel))
+	app.SetMenubar(menu.(*glib.MenuModel))
 
-    importShow := glib.SimpleActionNew("import_show", nil)
-    importShow.Connect("activate", func() { 
-        err := guiImportShow(win, showTree) 
-        if err != nil {
-            log.Printf("Error importing show (%s)", err)
-        }
-    })
-    app.AddAction(importShow)
+	importShow := glib.SimpleActionNew("import_show", nil)
+	importShow.Connect("activate", func() {
+		err := guiImportShow(win, showTree)
+		if err != nil {
+			log.Printf("Error importing show (%s)", err)
+		}
+	})
+	app.AddAction(importShow)
 
-    exportShow := glib.SimpleActionNew("export_show", nil)
-    exportShow.Connect("activate", func() { 
-        err := guiExportShow(win, showTree) 
-        if err != nil {
-            log.Printf("Error exporting show (%s)", err)
-        }
-    })
-    app.AddAction(exportShow)
+	exportShow := glib.SimpleActionNew("export_show", nil)
+	exportShow.Connect("activate", func() {
+		err := guiExportShow(win, showTree)
+		if err != nil {
+			log.Printf("Error exporting show (%s)", err)
+		}
+	})
+	app.AddAction(exportShow)
 
-    importPage := glib.SimpleActionNew("import_page", nil)
-    importPage.Connect("activate", func() { 
-        err := guiImportPage(win, showTree) 
-        if err != nil {
-            log.Printf("Error importing page (%s)", err)
-        }
-    })
-    app.AddAction(importPage)
+	importPage := glib.SimpleActionNew("import_page", nil)
+	importPage.Connect("activate", func() {
+		err := guiImportPage(win, showTree)
+		if err != nil {
+			log.Printf("Error importing page (%s)", err)
+		}
+	})
+	app.AddAction(importPage)
 
-    exportPage := glib.SimpleActionNew("export_page", nil)
-    exportPage.Connect("activate", func() { 
-        err := guiExportPage(win, showTree) 
-        if err != nil {
-            log.Printf("Error exporting page (%s)", err)
-        }
-    })
-    app.AddAction(exportPage)
+	exportPage := glib.SimpleActionNew("export_page", nil)
+	exportPage.Connect("activate", func() {
+		err := guiExportPage(win, showTree)
+		if err != nil {
+			log.Printf("Error exporting page (%s)", err)
+		}
+	})
+	app.AddAction(exportPage)
 
-    deletePage := glib.SimpleActionNew("delete_page", nil)
-    deletePage.Connect("activate", func() { 
-        err := guiDeletePage(showTree) 
-        if err != nil {
-            log.Printf("Error deleting page (%s)", err)
-        }
-    })
-    app.AddAction(deletePage)
+	deletePage := glib.SimpleActionNew("delete_page", nil)
+	deletePage.Connect("activate", func() {
+		err := guiDeletePage(showTree)
+		if err != nil {
+			log.Printf("Error deleting page (%s)", err)
+		}
+	})
+	app.AddAction(deletePage)
 
-    /* Body layout */
-    builder, err = gtk.BuilderNew()
-    if err := builder.AddFromFile("./gtk/viz-gui.ui"); err != nil {
-        log.Fatal(err)
-    }
+	/* Body layout */
+	builder, err = gtk.BuilderNew()
+	if err := builder.AddFromFile("./gtk/viz-gui.ui"); err != nil {
+		log.Fatal(err)
+	}
 
-    body, err := gtk_utils.BuilderGetObject[*gtk.Paned](builder, "body")
-    if err != nil {
-        log.Fatal(err)
-    }
-    
-    box.PackStart(body, true, true, 0)
+	body, err := gtk_utils.BuilderGetObject[*gtk.Paned](builder, "body")
+	if err != nil {
+		log.Fatal(err)
+	}
 
-    tempScroll, err := gtk_utils.BuilderGetObject[*gtk.ScrolledWindow](builder, "templates-win")
-    if err != nil {
-        log.Fatal(err)
-    }
+	box.PackStart(body, true, true, 0)
 
-    tempScroll.Add(tempTree.treeView)
+	tempScroll, err := gtk_utils.BuilderGetObject[*gtk.ScrolledWindow](builder, "templates-win")
+	if err != nil {
+		log.Fatal(err)
+	}
 
-    showScroll, err := gtk_utils.BuilderGetObject[*gtk.ScrolledWindow](builder, "show-win")
-    if err != nil {
-        log.Fatal(err)
-    }
+	tempScroll.Add(tempTree.treeView)
 
-    showScroll.Add(showTree.treeView)
+	showScroll, err := gtk_utils.BuilderGetObject[*gtk.ScrolledWindow](builder, "show-win")
+	if err != nil {
+		log.Fatal(err)
+	}
 
-    editBox, err := gtk_utils.BuilderGetObject[*gtk.Box](builder, "edit")
-    if err != nil {
-        log.Fatal(err)
-    }
+	showScroll.Add(showTree.treeView)
 
-    editBox.PackStart(edit.Box, true, true, 0)
+	editBox, err := gtk_utils.BuilderGetObject[*gtk.Box](builder, "edit")
+	if err != nil {
+		log.Fatal(err)
+	}
 
-    prevBox, err := gtk_utils.BuilderGetObject[*gtk.Box](builder, "preview")
-    if err != nil {
-        log.Fatal(err)
-    }
+	editBox.PackStart(edit.Box, true, true, 0)
 
-    prevBox.PackStart(preview, true, true, 0)
+	prevBox, err := gtk_utils.BuilderGetObject[*gtk.Box](builder, "preview")
+	if err != nil {
+		log.Fatal(err)
+	}
 
-    /* Lower Bar layout */
-    lowerBox, err := gtk.ActionBarNew()
-    if err != nil {
-        log.Fatal(err)
-    }
+	prevBox.PackStart(preview, true, true, 0)
 
-    box.PackEnd(lowerBox, false, false, 0)
+	/* Lower Bar layout */
+	lowerBox, err := gtk.ActionBarNew()
+	if err != nil {
+		log.Fatal(err)
+	}
 
-    button, err := gtk.ButtonNew()
-    if err != nil {
-        log.Fatal(err)
-    }
+	box.PackEnd(lowerBox, false, false, 0)
 
-    lowerBox.PackEnd(button)
-    button.SetLabel("Exit")
-    button.Connect("clicked", func() { gtk.MainQuit() })
+	button, err := gtk.ButtonNew()
+	if err != nil {
+		log.Fatal(err)
+	}
 
-    for _, c := range conn.eng {
-        if c == nil {
-            continue
-        }
+	lowerBox.PackEnd(button)
+	button.SetLabel("Exit")
+	button.Connect("clicked", func() { gtk.MainQuit() })
 
-        eng := NewEngineWidget(c)
-        lowerBox.PackStart(eng.button)
-    }
+	for _, c := range conn.eng {
+		if c == nil {
+			continue
+		}
 
-    for _, c := range conn.prev {
-        if c == nil {
-            continue
-        }
+		eng := NewEngineWidget(c)
+		lowerBox.PackStart(eng.button)
+	}
 
-        eng := NewEngineWidget(c)
-        lowerBox.PackStart(eng.button)
-    }
+	for _, c := range conn.prev {
+		if c == nil {
+			continue
+		}
 
-    win.ShowAll()
+		eng := NewEngineWidget(c)
+		lowerBox.PackStart(eng.button)
+	}
+
+	win.ShowAll()
 
 }
 
 func guiImportShow(win *gtk.ApplicationWindow, show *ShowTree) error {
-    dialog, err := gtk.FileChooserDialogNewWith2Buttons(
-        "Import Show", win, gtk.FILE_CHOOSER_ACTION_OPEN, 
-        "_Cancel", gtk.RESPONSE_CANCEL, "_Open", gtk.RESPONSE_ACCEPT)
-    if err != nil {
-        return err
-    }
-    defer dialog.Destroy()
+	dialog, err := gtk.FileChooserDialogNewWith2Buttons(
+		"Import Show", win, gtk.FILE_CHOOSER_ACTION_OPEN,
+		"_Cancel", gtk.RESPONSE_CANCEL, "_Open", gtk.RESPONSE_ACCEPT)
+	if err != nil {
+		return err
+	}
+	defer dialog.Destroy()
 
-    res := dialog.Run()
-    if res == gtk.RESPONSE_ACCEPT {
-        filename := dialog.GetFilename()
-        show.ImportShow(filename)
-    }
-    
-    return nil
+	res := dialog.Run()
+	if res == gtk.RESPONSE_ACCEPT {
+		filename := dialog.GetFilename()
+		show.ImportShow(filename)
+	}
+
+	return nil
 }
 
 func guiExportShow(win *gtk.ApplicationWindow, showTree *ShowTree) error {
-    dialog, err := gtk.FileChooserDialogNewWith2Buttons(
-        "Save Show", win, gtk.FILE_CHOOSER_ACTION_SAVE, 
-        "_Cancel", gtk.RESPONSE_CANCEL, "_Save", gtk.RESPONSE_ACCEPT)
-    if err != nil {
-        return err
-    }
-    defer dialog.Destroy()
+	dialog, err := gtk.FileChooserDialogNewWith2Buttons(
+		"Save Show", win, gtk.FILE_CHOOSER_ACTION_SAVE,
+		"_Cancel", gtk.RESPONSE_CANCEL, "_Save", gtk.RESPONSE_ACCEPT)
+	if err != nil {
+		return err
+	}
+	defer dialog.Destroy()
 
-    dialog.SetCurrentName(".show")
-    res := dialog.Run()
-    if res == gtk.RESPONSE_ACCEPT {
-        filename := dialog.GetFilename()
-        showTree.show.ExportShow(filename)
-    }
+	dialog.SetCurrentName(".show")
+	res := dialog.Run()
+	if res == gtk.RESPONSE_ACCEPT {
+		filename := dialog.GetFilename()
+		showTree.show.ExportShow(filename)
+	}
 
-    return nil
+	return nil
 }
 
 func guiImportPage(win *gtk.ApplicationWindow, showTree *ShowTree) error {
-    dialog, err := gtk.FileChooserDialogNewWith2Buttons(
-        "Import Page", win, gtk.FILE_CHOOSER_ACTION_OPEN, 
-        "_Cancel", gtk.RESPONSE_CANCEL, "_Open", gtk.RESPONSE_ACCEPT)
-    if err != nil {
-        return err
-    }
-    defer dialog.Destroy()
+	dialog, err := gtk.FileChooserDialogNewWith2Buttons(
+		"Import Page", win, gtk.FILE_CHOOSER_ACTION_OPEN,
+		"_Cancel", gtk.RESPONSE_CANCEL, "_Open", gtk.RESPONSE_ACCEPT)
+	if err != nil {
+		return err
+	}
+	defer dialog.Destroy()
 
-    res := dialog.Run()
-    if res == gtk.RESPONSE_ACCEPT {
-        filename := dialog.GetFilename()
+	res := dialog.Run()
+	if res == gtk.RESPONSE_ACCEPT {
+		filename := dialog.GetFilename()
 
-        page := &shows.Page{}
-        err := page.ImportPage(filename)
-        if err != nil {
-            return err
-        }
+		page := &shows.Page{}
+		err := page.ImportPage(filename)
+		if err != nil {
+			return err
+		}
 
-        showTree.ImportPage(page)
-    }
+		showTree.ImportPage(page)
+	}
 
-    return nil
+	return nil
 }
 
 func guiExportPage(win *gtk.ApplicationWindow, showTree *ShowTree) error {
-    selection, err := showTree.treeView.GetSelection()
-    if err != nil { 
-        return err 
-    }
+	selection, err := showTree.treeView.GetSelection()
+	if err != nil {
+		return err
+	}
 
-    _, iter, ok := selection.GetSelected()
-    if !ok { 
-        return fmt.Errorf("Error getting selected iter") 
-    }
+	_, iter, ok := selection.GetSelected()
+	if !ok {
+		return fmt.Errorf("Error getting selected iter")
+	}
 
-    model := &showTree.treeList.TreeModel
-    title, err := gtk_utils.ModelGetValue[string](model, iter, TITLE)
-    if err != nil {
-        return err
-    }
+	model := &showTree.treeList.TreeModel
+	title, err := gtk_utils.ModelGetValue[string](model, iter, TITLE)
+	if err != nil {
+		return err
+	}
 
-    pageNum, err := gtk_utils.ModelGetValue[int](model, iter, PAGENUM)
-    if err != nil {
-        return err
-    }
+	pageNum, err := gtk_utils.ModelGetValue[int](model, iter, PAGENUM)
+	if err != nil {
+		return err
+	}
 
-    dialog, err := gtk.FileChooserDialogNewWith2Buttons(
-        "Save Page", win, gtk.FILE_CHOOSER_ACTION_SAVE, 
-        "_Cancel", gtk.RESPONSE_CANCEL, "_Save", gtk.RESPONSE_ACCEPT)
-    if err != nil {
-        return err
-    }
-    defer dialog.Destroy()
+	dialog, err := gtk.FileChooserDialogNewWith2Buttons(
+		"Save Page", win, gtk.FILE_CHOOSER_ACTION_SAVE,
+		"_Cancel", gtk.RESPONSE_CANCEL, "_Save", gtk.RESPONSE_ACCEPT)
+	if err != nil {
+		return err
+	}
+	defer dialog.Destroy()
 
-    dialog.SetCurrentName(title + ".json")
-    res := dialog.Run()
-    if res == gtk.RESPONSE_ACCEPT {
-        filename := dialog.GetFilename()
+	dialog.SetCurrentName(title + ".json")
+	res := dialog.Run()
+	if res == gtk.RESPONSE_ACCEPT {
+		filename := dialog.GetFilename()
 
-        page := showTree.show.Pages[pageNum]
-        if page == nil {
-            return fmt.Errorf("Page %d does not exist", pageNum)
-        }
+		page := showTree.show.Pages[pageNum]
+		if page == nil {
+			return fmt.Errorf("Page %d does not exist", pageNum)
+		}
 
-        err := shows.ExportPage(page, filename)
-        if err != nil {
-            return err
-        }
-    }
+		err := shows.ExportPage(page, filename)
+		if err != nil {
+			return err
+		}
+	}
 
-    return nil
+	return nil
 }
 
 func guiDeletePage(show *ShowTree) error {
-    selection, err := show.treeView.GetSelection()
-    if err != nil {
-        return err
-    }
+	selection, err := show.treeView.GetSelection()
+	if err != nil {
+		return err
+	}
 
-    _, iter, ok := selection.GetSelected()
-    if !ok {
-        return fmt.Errorf("Error getting selection iter")
-    }
+	_, iter, ok := selection.GetSelected()
+	if !ok {
+		return fmt.Errorf("Error getting selection iter")
+	}
 
-    model := &show.treeList.TreeModel
-    pageNum, err := gtk_utils.ModelGetValue[int](model, iter, PAGENUM)
-    if err != nil {
-        return err
-    }
+	model := &show.treeList.TreeModel
+	pageNum, err := gtk_utils.ModelGetValue[int](model, iter, PAGENUM)
+	if err != nil {
+		return err
+	}
 
-    show.treeList.Remove(iter)
-    show.show.Pages[pageNum] = nil
-    return nil
+	show.treeList.Remove(iter)
+	show.show.Pages[pageNum] = nil
+	return nil
 }
 
 func testGui(tempTree *TempTree, showTree *ShowTree) {
-    num_temps := 10000
-    num_props := 100
-    num_pages := 1000
+	num_temps := 10000
+	num_props := 100
+	num_pages := 1000
 
-    log.Printf("Testing with %d Templates, %d Properties, %d Pages\n", num_temps, num_props, num_pages)
+	log.Printf("Testing with %d Templates, %d Properties, %d Pages\n", num_temps, num_props, num_pages)
 
-    start := time.Now()
-    for i := 1; i < num_temps; i++ {
-        //page, _ := tempTree.AddTemplate("Template", i, LOWER_FRAME, num_props)
+	start := time.Now()
+	for i := 1; i < num_temps; i++ {
+		//page, _ := tempTree.AddTemplate("Template", i, LOWER_FRAME, num_props)
 
-        // for j := 0; j < num_props; j++ {
-        //     page.AddProp("Background", j, props.RECT_PROP)
-        // }
-    }
+		// for j := 0; j < num_props; j++ {
+		//     page.AddProp("Background", j, props.RECT_PROP)
+		// }
+	}
 
-    t := time.Now()
-    elapsed := t.Sub(start)
-    log.Printf("Built Templates in %s\n", elapsed)
+	t := time.Now()
+	elapsed := t.Sub(start)
+	log.Printf("Built Templates in %s\n", elapsed)
 
-    start = time.Now()
-    for i := 0; i < num_pages; i++ {
-        index := rand.Int() % (num_temps - 1) + 1
-        temp := tempTree.Temps.Temps[index]
-        page := showTree.show.AddPage(temp.Title, temp)
-        showTree.ImportPage(page)
-    }
+	start = time.Now()
+	for i := 0; i < num_pages; i++ {
+		index := rand.Int()%(num_temps-1) + 1
+		temp := tempTree.Temps.Temps[index]
+		page := showTree.show.AddPage(temp.Title, temp)
+		showTree.ImportPage(page)
+	}
 
-    t = time.Now()
-    elapsed = t.Sub(start)
-    log.Printf("Built Show in %s\n", elapsed)
+	t = time.Now()
+	elapsed = t.Sub(start)
+	log.Printf("Built Show in %s\n", elapsed)
 }
-

@@ -11,116 +11,116 @@ const padding = 10
 
 /*
 
-    Attributes and Editors come in pairs, for example
-    in int.go we have IntAttribute which stores an 
-    integer and IntEditor which creates a gtk box with
-    a label for the integer, a text entry and spin button
-    for incrementing and decrementing the integer.
+   Attributes and Editors come in pairs, for example
+   in int.go we have IntAttribute which stores an
+   integer and IntEditor which creates a gtk box with
+   a label for the integer, a text entry and spin button
+   for incrementing and decrementing the integer.
 
-    Attributes are the building blocks of Properties.
-    Each attribute has a String method for sending to
-    Chroma Engine, Encode and Decode for import and 
-    export of shows respectively and Update for 
-    transferring the values of the corresponding Editor 
-    to the Attribute.
+   Attributes are the building blocks of Properties.
+   Each attribute has a String method for sending to
+   Chroma Engine, Encode and Decode for import and
+   export of shows respectively and Update for
+   transferring the values of the corresponding Editor
+   to the Attribute.
 
 */
 
 const (
-    INT = iota + 1
-    STRING
-    CLOCK
-    FLOAT
-    LIST
-    COLOR
+	INT = iota + 1
+	STRING
+	CLOCK
+	FLOAT
+	LIST
+	COLOR
 )
 
 type Attribute interface {
-    String() string
-    Update(Editor) error
-    Copy(Attribute)
+	String() string
+	Update(Editor) error
+	Copy(Attribute)
 
-    // A -> {'name': string, 'value': string} | A, A
-    Encode() string
-    Decode(string) 
+	// A -> {'name': string, 'value': string} | A, A
+	Encode() string
+	Decode(string)
 }
 
 type AttributeJSON struct {
-    Name       string
-    Type       int
-    attr       Attribute
+	Name string
+	Type int
+	attr Attribute
 }
 
 func (attrJSON *AttributeJSON) UnmarshalJSON(b []byte) error {
-    var tempAttrJSON struct {
-        AttributeJSON
-        UnmarshalJSON  struct {}
-    }
+	var tempAttrJSON struct {
+		AttributeJSON
+		UnmarshalJSON struct{}
+	}
 
-    err := json.Unmarshal(b, &tempAttrJSON)
-    if err != nil {
-        return err
-    }
+	err := json.Unmarshal(b, &tempAttrJSON)
+	if err != nil {
+		return err
+	}
 
-    *attrJSON = tempAttrJSON.AttributeJSON
+	*attrJSON = tempAttrJSON.AttributeJSON
 
-    switch attrJSON.Type {
-    case INT:
-        intAttr := &IntAttribute{}
-        err = json.Unmarshal(b, intAttr)
-        attrJSON.attr = intAttr
+	switch attrJSON.Type {
+	case INT:
+		intAttr := &IntAttribute{}
+		err = json.Unmarshal(b, intAttr)
+		attrJSON.attr = intAttr
 
-    case STRING:
-        stringAttr := &StringAttribute{}
-        err = json.Unmarshal(b, stringAttr)
-        attrJSON.attr = stringAttr 
+	case STRING:
+		stringAttr := &StringAttribute{}
+		err = json.Unmarshal(b, stringAttr)
+		attrJSON.attr = stringAttr
 
-    case FLOAT:
-        floatAttr := &FloatAttribute{}
-        err = json.Unmarshal(b, floatAttr)
-        attrJSON.attr = floatAttr 
+	case FLOAT:
+		floatAttr := &FloatAttribute{}
+		err = json.Unmarshal(b, floatAttr)
+		attrJSON.attr = floatAttr
 
-    case LIST:
-        listAttr := &ListAttribute{}
-        err = json.Unmarshal(b, listAttr)
-        attrJSON.attr = listAttr 
+	case LIST:
+		listAttr := &ListAttribute{}
+		err = json.Unmarshal(b, listAttr)
+		attrJSON.attr = listAttr
 
-    case CLOCK:
-        clockAttr := &ClockAttribute{}
-        err = json.Unmarshal(b, clockAttr)
-        attrJSON.attr = clockAttr 
+	case CLOCK:
+		clockAttr := &ClockAttribute{}
+		err = json.Unmarshal(b, clockAttr)
+		attrJSON.attr = clockAttr
 
-    case COLOR:
-        colorAttr := &ColorAttribute{}
-        err = json.Unmarshal(b, colorAttr)
-        attrJSON.attr = colorAttr 
+	case COLOR:
+		colorAttr := &ColorAttribute{}
+		err = json.Unmarshal(b, colorAttr)
+		attrJSON.attr = colorAttr
 
-    default:
-        log.Printf("Error unknown attribute type %d", attrJSON.Type)
-    }
+	default:
+		log.Printf("Error unknown attribute type %d", attrJSON.Type)
+	}
 
-    if err != nil {
-        attrJSON.attr = nil
-        return err
-    }
+	if err != nil {
+		attrJSON.attr = nil
+		return err
+	}
 
-    return nil
+	return nil
 }
 
 func (attrJSON *AttributeJSON) Attr() Attribute {
-    return attrJSON.attr
+	return attrJSON.attr
 }
 
-/* 
+/*
 
-    Editors are the building block of PropertyEditors.
-    Each Editor creates the gtk ui elements to edit 
-    the associated Attribute.
+   Editors are the building block of PropertyEditors.
+   Each Editor creates the gtk ui elements to edit
+   the associated Attribute.
 
 */
 
 type Editor interface {
-    Box() *gtk.Box
-    Update(Attribute) error
-    Name() string
+	Box() *gtk.Box
+	Update(Attribute) error
+	Name() string
 }

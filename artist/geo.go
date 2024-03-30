@@ -15,37 +15,36 @@ import (
 */
 
 type geom struct {
-    index     int
-    count     int
-    alloc     []bool
+	index int
+	count int
+	alloc []bool
 }
 
 func newGeom(index, count int) *geom {
-    geo := &geom{index: index, count: count}
-    geo.alloc = make([]bool, count)
+	geo := &geom{index: index, count: count}
+	geo.alloc = make([]bool, count)
 
-    return geo
+	return geo
 }
 
 func (g *geom) allocGeom() (int, error) {
-    for i := range g.alloc {
-        if g.alloc[i] {
-            continue
-        }
+	for i := range g.alloc {
+		if g.alloc[i] {
+			continue
+		}
 
-        g.alloc[i] = true
-        return i + g.index, nil
-    }
+		g.alloc[i] = true
+		return i + g.index, nil
+	}
 
-    return 0, fmt.Errorf("No more geometries") 
+	return 0, fmt.Errorf("No more geometries")
 }
 
 func (g *geom) freeGeom(id int) {
-    if id < 0 || id >= len(g.alloc) {
-        log.Printf("id out of range (%d)", id)
-        return
-    }
+	if id < 0 || id >= len(g.alloc) {
+		log.Printf("id out of range (%d)", id)
+		return
+	}
 
-    g.alloc[id] = false
+	g.alloc[id] = false
 }
-
