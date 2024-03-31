@@ -1,0 +1,14 @@
+{
+    "HubAddr": "127.0.0.1",
+    "HubPort": 9100,
+    "PreviewDirectory": "/home/josh/Documents/projects/chroma-engine/build/",
+    "PreviewName": "chroma-engine",
+    "Connections": [
+        {
+            "Name": "Preview",
+            "Address": "127.0.0.1",
+            "Port": 6100,
+            "Type": "preview"
+        }
+    ]
+}

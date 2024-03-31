@@ -377,7 +377,12 @@ func testGui(tempTree *TempTree, showTree *ShowTree) {
 	num_props := 100
 	num_pages := 1000
 
-	log.Printf("Testing with %d Templates, %d Properties, %d Pages\n", num_temps, num_props, num_pages)
+	log.Printf(
+		"Testing with %d Templates, %d Properties, %d Pages\n",
+		num_temps,
+		num_props,
+		num_pages,
+	)
 
 	start := time.Now()
 	for i := 1; i < num_temps; i++ {

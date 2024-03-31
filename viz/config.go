@@ -1,29 +1,13 @@
 package viz
 
 import (
+	"chroma-viz/library/config"
 	"chroma-viz/library/tcp"
-	"encoding/json"
 	"fmt"
 	"log"
-	"os"
 )
 
-type Conn struct {
-	Name    string
-	Address string
-	Port    int
-	Type    string
-}
-
-type Config struct {
-	HubAddr          string
-	HubPort          int
-	PreviewDirectory string
-	PreviewName      string
-	Connections      []Conn
-}
-
-var conf Config
+var conf *config.Config
 
 func AddConnection(name, conn_type, ip string, port int) error {
 	if conn_type == "engine" {
@@ -38,15 +22,11 @@ func AddConnection(name, conn_type, ip string, port int) error {
 }
 
 func InitialiseViz() {
-	buf, err := os.ReadFile("./viz/conf.json")
-	if err != nil {
-		log.Fatalf("Error reading config file (%s)", err)
-	}
-
-	err = json.Unmarshal(buf, &conf)
-	if err != nil {
-		log.Fatalf("Error parsing config file (%s)", err)
-	}
+    var err error
+    conf, err = config.ImportConfig("./viz/conf.json")
+    if err != nil {
+        log.Fatal(err)
+    }
 
 	conn.hub = tcp.NewConnection("Hub", conf.HubAddr, conf.HubPort)
 	conn.hub.Connect()

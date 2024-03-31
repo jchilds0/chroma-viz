@@ -30,10 +30,8 @@ func main() {
 	var app *gtk.Application
 	var err error
 	if *mode == "artist" {
-		artist.InitConnections()
 		defer artist.CloseConn()
-
-		artist.AddConnection("Preview", "127.0.0.1", 6100)
+        artist.InitialiseArtist()
 
 		app, err = gtk.ApplicationNew("app.chroma.artist", glib.APPLICATION_FLAGS_NONE)
 		if err != nil {

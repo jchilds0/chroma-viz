@@ -1,8 +1,8 @@
 package artist
 
 import (
-	"chroma-viz/hub"
 	"chroma-viz/library/attribute"
+	"chroma-viz/library/config"
 	"chroma-viz/library/editor"
 	"chroma-viz/library/gtk_utils"
 	"chroma-viz/library/props"
@@ -20,23 +20,7 @@ import (
 )
 
 var conn map[string]*tcp.Connection
-
-func InitConnections() {
-	conn = make(map[string]*tcp.Connection)
-}
-
-func AddConnection(name string, ip string, port int) {
-	conn[name] = tcp.NewConnection(name, ip, port)
-}
-
-func CloseConn() {
-	for name, c := range conn {
-		if c.IsConnected() {
-			c.CloseConn()
-			log.Printf("Closed %s\n", name)
-		}
-	}
-}
+var conf *config.Config
 
 func SendPreview(page tcp.Animator, action int) {
 	if page == nil {
@@ -67,21 +51,6 @@ func ArtistGui(app *gtk.Application) {
 	win.SetDefaultSize(800, 600)
 	win.SetTitle("Chroma Artist")
 
-	port := 9100
-	geo := []string{"rect", "text", "circle", "graph", "image", "ticker", "clock"}
-	geo_count = []int{10, 10, 10, 10, 10, 10, 10}
-	geoms = make(map[int]*geom, len(geo))
-
-	index := 1
-	for i, name := range geo {
-		geoms[props.StringToProp[name]] = newGeom(index, geo_count[i])
-		index += geo_count[i]
-	}
-
-	hub.GenerateTemplateHub(geo, geo_count, "artist/artist.json")
-	hub.ImportArchive("artist/artist.json")
-	go hub.StartHub(port, -1)
-
 	editView := editor.NewEditor(func(page tcp.Animator, action int) {}, SendPreview)
 
 	tempView, err := NewTempTree(
@@ -110,7 +79,7 @@ func ArtistGui(app *gtk.Application) {
 	editView.PropertyEditor()
 	editView.Page = template
 
-	preview := setup_preview_window(port)
+	preview := setupPreviewWindow(conf.HubPort, conf.PreviewDirectory, conf.PreviewName)
 
 	if err != nil {
 		log.Fatalf("Error starting artist gui (%s)", err)
