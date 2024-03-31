@@ -10,12 +10,13 @@ import (
 
 func TestImportTemplates(t *testing.T) {
 	temp := templates.NewTemps()
+    hub := NewDataBase()
 
-	err := ImportArchive("test_archive.json")
+	err := hub.ImportArchive("test_archive.json")
 	if err != nil {
 		t.Errorf("Error importing test archive (%s)", err)
 	}
-	go StartHub(9000, 2)
+	go StartHub(hub, 9000, 2)
 
 	time.Sleep(1 * time.Second)
 	conn, err := net.Dial("tcp", "127.0.0.1:9000")
