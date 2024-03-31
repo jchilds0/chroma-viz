@@ -60,7 +60,7 @@ func StartHub(hub *DataBase, port, count int) {
 		log.Fatalf("Error creating server (%s)", err)
 	}
 
-	go hub.SendHub(ln)
+	go hub.AcceptHubConn(ln)
 }
 
 /*
