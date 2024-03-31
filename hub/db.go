@@ -1,10 +1,11 @@
 package hub
 
 import (
+	"bufio"
 	"chroma-viz/library/props"
 	"chroma-viz/library/templates"
-	"encoding/json"
 	"fmt"
+	"io"
 	"log"
 	"net"
 	"strconv"
@@ -42,18 +43,16 @@ func (db *DataBase) EncodeDB() string {
 	return fmt.Sprintf("{'num_temp': %d, 'templates': [%s]}", maxTempID+2, templates)
 }
 
-func (db *DataBase) TempIDs() ([]byte, error) {
-    tempids := make([]int, 0, len(db.Templates))
-
-    for i, temp := range db.Templates {
+func (db *DataBase) TempIDs() (s string) {
+    for _, temp := range db.Templates {
         if temp == nil {
             continue
         }
 
-        tempids = append(tempids, i)
+        s += fmt.Sprintf("%d %s;", temp.TempID, temp.Title)
     }
 
-    return json.Marshal(tempids)
+    return s + "EOF;"
 }
 
 func (db *DataBase) AddTemplate(id int, anim_on, anim_cont, anim_off string) {
@@ -92,7 +91,7 @@ func (db *DataBase) AcceptHubConn(ln net.Listener) {
 
     Protocol for Chroma Hub <=> Chroma Viz/Engine communication
 
-    S -> V C 
+    S -> V C;
     V -> ver %d %d
     C -> full | tempids | temp %d
 
@@ -108,26 +107,31 @@ func (db *DataBase) AcceptHubConn(ln net.Listener) {
         to clint
 */
 func (db *DataBase) HandleConn(conn net.Conn) {
-    var err error
     req := make([]byte, 0, 1024)
+    buf := bufio.NewReader(conn)
 
     for {
-        _, err = conn.Read(req)
-        if err != nil {
-            log.Printf("Error receiving request (%s)", err)
+        s, err := buf.ReadString(';')
+        if err == io.EOF {
+            break
+        } else if err != nil {
+            log.Printf("Error reading request (%s)", err)
             continue
         }
 
-        s := string(req[:])
-        cmds := strings.Split(s, " ")
+        cmds := strings.Split(strings.TrimSuffix(s, ";"), " ")
+
+        if len(s) < 4 {
+            continue
+        }
 
         if cmds[0] != "ver" {
-            log.Printf("Request in incorrect format (%s)", s)
+            log.Fatalf("Request in incorrect format (%s)", s)
             continue
         }
 
         if cmds[1] != "0" || cmds[2] != "1" {
-            log.Printf("Request in incorrect format (%s)", s)
+            log.Fatalf("Request in incorrect format (%s)", s)
             continue
         } 
 
@@ -135,12 +139,7 @@ func (db *DataBase) HandleConn(conn net.Conn) {
         case "full":
             _, err = conn.Write([]byte(db.EncodeDB()))
         case "tempids":
-            tempids, err := db.TempIDs()
-            if err != nil {
-                break
-            }
-
-            _, err = conn.Write(tempids)
+            _, err = conn.Write([]byte(db.TempIDs()))
         case "temp":
             tempid, err := strconv.Atoi(cmds[4])
             if err != nil {

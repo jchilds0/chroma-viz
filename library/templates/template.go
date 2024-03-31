@@ -1,10 +1,12 @@
 package templates
 
 import (
+	"bufio"
 	"chroma-viz/library/props"
 	"encoding/json"
 	"fmt"
 	"log"
+	"net"
 	"os"
 
 	"github.com/gotk3/gotk3/gtk"
@@ -118,4 +120,20 @@ func (temp *Template) GetLayer() int {
 
 func (temp *Template) GetPropMap() map[int]*props.Property {
 	return temp.Geometry
+}
+
+func GetTemplate(hub net.Conn, tempid int) (*Template, error) {
+    var temp Template
+
+    s := fmt.Sprintf("ver 0 1 temp %d", tempid)
+
+    _, err := hub.Write([]byte(s))
+    if err != nil {
+        return nil, err
+    }
+
+    buf := bufio.NewReader(hub)
+    temp.parseTemplate(buf)
+
+    return &temp, nil
 }

@@ -1,10 +1,14 @@
 package viz
 
 import (
+	"bufio"
 	"chroma-viz/library/gtk_utils"
 	"chroma-viz/library/templates"
+	"fmt"
 	"log"
 	"net"
+	"strconv"
+	"strings"
 
 	"github.com/gotk3/gotk3/glib"
 	"github.com/gotk3/gotk3/gtk"
@@ -18,13 +22,12 @@ const (
 )
 
 type TempTree struct {
-	treeView     *gtk.TreeView
-	treeList     *gtk.ListStore
-	Temps        *templates.Temps
-	sendTemplate func(*templates.Template)
+	treeView          *gtk.TreeView
+	treeList          *gtk.ListStore
+	sendTemplate      func(*templates.Template)
 }
 
-func NewTempTree(templateToShow func(*templates.Template)) *TempTree {
+func NewTempTree(hub net.Conn, templateToShow func(*templates.Template)) *TempTree {
 	var err error
 	temp := &TempTree{sendTemplate: templateToShow}
 
@@ -32,8 +35,6 @@ func NewTempTree(templateToShow func(*templates.Template)) *TempTree {
 	if err != nil {
 		log.Fatalf("Error creating temp list (%s)", err)
 	}
-
-	temp.Temps = templates.NewTemps()
 
 	// create tree columns
 	cell, err := gtk.CellRendererTextNew()
@@ -75,30 +76,56 @@ func NewTempTree(templateToShow func(*templates.Template)) *TempTree {
 				log.Fatalf("Error sending template to show (%s)", err)
 			}
 
-			temp.sendTemplate(temp.Temps.Temps[tempID])
+            template, err := templates.GetTemplate(hub, tempID)
+            if err != nil {
+                log.Printf("Error receiving template %d (%s)", tempID, err)
+                return
+            }
+
+			temp.sendTemplate(template)
 		})
 
 	return temp
 }
 
-func (temp *TempTree) AddTemplate(template *templates.Template) error {
-	err := temp.treeList.Set(
-		temp.treeList.Append(),
-		[]int{0, 1},
-		[]interface{}{template.Title, template.TempID},
-	)
-
-	return err
-}
-
 func (temp *TempTree) ImportTemplates(hub net.Conn) {
-	err := temp.Temps.ImportTemplates(hub)
-	if err != nil {
-		log.Printf("Error importing hub (%s)", err)
-	}
+    if hub == nil {
+        log.Print("Chroma Hub is disconnected")
+        return 
+    }
 
-	for _, template := range temp.Temps.Temps {
-		//log.Printf("Imported Template %d (%s)", template.TempID, template.Title)
-		temp.AddTemplate(template)
-	}
+    s := fmt.Sprintf("ver 0 1 tempids;")
+    hub.Write([]byte(s))
+
+    buf := bufio.NewReader(hub)
+    for {
+        s, err := buf.ReadString(';')
+        if err != nil {
+            return 
+        }
+
+        s = strings.TrimSuffix(s, ";")
+        if s == "EOF" {
+            return
+        }
+
+        data := strings.Split(s, " ")
+
+        tempID, err := strconv.Atoi(data[0])
+        if err != nil {
+            log.Printf("Error reading template id (%s)", err)
+            continue
+        }
+        title := strings.Join(data[1:], " ")
+
+        err = temp.treeList.Set(
+            temp.treeList.Append(),
+            []int{0, 1},
+            []interface{}{title, tempID},
+        )
+        if err != nil {
+            log.Printf("Error adding template to gtk treestore (%s)", err)
+            return
+        }
+    }
 }

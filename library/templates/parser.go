@@ -5,7 +5,6 @@ import (
 	"chroma-viz/library/props"
 	"fmt"
 	"log"
-	"net"
 	"strconv"
 	"strings"
 )
@@ -24,57 +23,8 @@ type Token struct {
 
 var c_tok Token
 
-// S -> {'num_temp': 123, 'templates': [T]}
-func (temp *Temps) ImportTemplates(conn net.Conn) error {
-	// check conn is open
-	if conn == nil {
-		return fmt.Errorf("Graphics hub not connected")
-	}
-
-	buf := bufio.NewReader(conn)
-
-	// var line rune
-	// var err error
-	// for err == nil {
-	//     line, _, err = buf.ReadRune()
-	//     fmt.Printf("%c", line)
-	// }
-
-	nextToken(buf)
-	matchToken('{', buf)
-
-	for c_tok.tok != '}' {
-		// 'num_temp': ...
-		if c_tok.tok == STRING && c_tok.value == "num_temp" {
-			matchToken(STRING, buf)
-			matchToken(':', buf)
-			matchToken(INT, buf)
-		}
-
-		// 'templates': [...]
-		if c_tok.tok == STRING && c_tok.value == "templates" {
-			matchToken(STRING, buf)
-			matchToken(':', buf)
-			matchToken('[', buf)
-
-			err := temp.parseTemplate(buf)
-			if err != nil {
-				return err
-			}
-
-			matchToken(']', buf)
-		}
-
-		if c_tok.tok == ',' {
-			matchToken(',', buf)
-		}
-	}
-
-	return nil
-}
-
-// T -> {'id': 123, 'num_geo': 123, 'layer': 123, 'geometry': [G]} | T, T
-func (temp *Temps) parseTemplate(buf *bufio.Reader) (err error) {
+// T -> {'id': 123, 'num_geo': 123, 'layer': 123, 'geometry': [G]}
+func (temp *Template) parseTemplate(buf *bufio.Reader) (err error) {
 	data := make(map[string]string)
 	matchToken('{', buf)
 
@@ -111,10 +61,12 @@ func (temp *Temps) parseTemplate(buf *bufio.Reader) (err error) {
 				data["name"] = "Template"
 			}
 
-			temp.SetTemplate(temp_id, layer, num_geo, data["name"])
-			template := temp.Temps[temp_id]
+            temp.TempID = temp_id
+            temp.Layer = layer
+            temp.NumGeo = num_geo
+            temp.Title = data["name"]
 
-			parseProperty(template, buf)
+			parseProperty(temp, buf)
 
 			matchToken(']', buf)
 		}
@@ -125,12 +77,6 @@ func (temp *Temps) parseTemplate(buf *bufio.Reader) (err error) {
 	}
 
 	matchToken('}', buf)
-
-	if c_tok.tok == ',' {
-		matchToken(',', buf)
-		temp.parseTemplate(buf)
-	}
-
 	return
 }
 

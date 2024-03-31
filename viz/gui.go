@@ -89,10 +89,12 @@ func VizGui(app *gtk.Application) {
 
     edit := editor.NewEditor(SendEngine, SendPreview)
     showTree := NewShowTree(func(page *shows.Page) { edit.SetPage(page) })
-    tempTree := NewTempTree(func(temp *templates.Template) {
-        page := showTree.show.AddPage(temp.Title, temp)
-        showTree.ImportPage(page)
-    })
+    tempTree := NewTempTree(conn.hub.Conn, 
+        func(temp *templates.Template) {
+            page := showTree.show.AddPage(temp.Title, temp)
+            showTree.ImportPage(page)
+        },
+    )
 
 	edit.AddAction("Take On", true, func() { SendEngine(edit.Page, tcp.ANIMATE_ON) })
 	edit.AddAction("Continue", true, func() { SendEngine(edit.Page, tcp.CONTINUE) })
