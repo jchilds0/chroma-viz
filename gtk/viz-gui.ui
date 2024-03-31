@@ -2,9 +2,12 @@
 <interface>
   <object class="GtkPaned" id="body">
     <property name="orientation">horizontal</property>
+    <property name="position">700</property>
+
     <child>
       <object class="GtkPaned" id="left">
         <property name="orientation">vertical</property>
+        <property name="position">300</property>
 
         <!-- Templates -->
         <child>

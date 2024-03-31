@@ -65,6 +65,8 @@ func (editor *Editor) PageEditor() {
 		log.Fatalf("Error creating editor (%s)", err)
 	}
 
+    editor.tabs.SetScrollable(true)
+
 	tab, err := gtk.BoxNew(gtk.ORIENTATION_VERTICAL, 0)
 	if err != nil {
 		log.Fatalf("Error creating editor (%s)", err)
