@@ -11,6 +11,7 @@ import (
 func InitialiseArtist() {
     var err error
 	conn = make(map[string]*tcp.Connection)
+    chromaHub = hub.NewDataBase()
 
     conf, err = config.ImportConfig("./artist/conf.json")
     if err != nil {
@@ -18,18 +19,25 @@ func InitialiseArtist() {
     }
 
 	geo := []string{"rect", "text", "circle", "graph", "image", "ticker", "clock"}
-	geo_count = []int{10, 10, 10, 10, 10, 10, 10}
+    geo_count := 10
 	geoms = make(map[int]*geom, len(geo))
 
 	index := 1
-	for i, name := range geo {
-		geoms[props.StringToProp[name]] = newGeom(index, geo_count[i])
-		index += geo_count[i]
+	for _, name := range geo {
+		geoms[props.StringToProp[name]] = newGeom(index, geo_count)
+		index += geo_count
 	}
 
-	hub.GenerateTemplateHub(geo, geo_count, "artist/artist.json")
-	hub.ImportArchive("artist/artist.json")
-	go hub.StartHub(conf.HubPort, -1)
+	chromaHub.AddTemplate(0, "left_to_right", "", "left_to_right")
+
+	var total int
+	for i := range geo {
+		for j := 0; j < geo_count; j++ {
+			chromaHub.AddGeometry(0, total, geo[i])
+			total++
+		}
+	}
+	go hub.StartHub(chromaHub, conf.HubPort, -1)
 
     artistHub := tcp.NewConnection("Hub", conf.HubAddr, conf.HubPort)
 	artistHub.Connect()

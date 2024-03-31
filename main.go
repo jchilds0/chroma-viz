@@ -41,7 +41,7 @@ func main() {
 		app.Connect("activate", artist.ArtistGui)
 	} else if *mode == "viz" {
 		defer viz.CloseViz()
-		viz.InitialiseViz()
+		viz.InitialiseViz("./viz/conf.json")
 
 		app, err = gtk.ApplicationNew("app.chroma.viz", glib.APPLICATION_FLAGS_NONE)
 		if err != nil {

@@ -98,7 +98,7 @@ func (temp *TempTree) ImportTemplates(hub net.Conn) {
 	}
 
 	for _, template := range temp.Temps.Temps {
-		log.Printf("Imported Template %d (%s)", template.TempID, template.Title)
+		//log.Printf("Imported Template %d (%s)", template.TempID, template.Title)
 		temp.AddTemplate(template)
 	}
 }

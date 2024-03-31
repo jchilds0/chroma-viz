@@ -66,7 +66,7 @@ func (db *DataBase) SendHub(ln net.Listener) {
 			log.Printf("Error accepting connection (%s)", err)
 		}
 
-		_, err = conn.Write([]byte(hub.EncodeDB()))
+		_, err = conn.Write([]byte(db.EncodeDB()))
 		if err != nil {
 			log.Printf("Error sending hub (%s)", err)
 		}

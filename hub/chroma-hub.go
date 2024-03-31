@@ -12,7 +12,6 @@ import (
 	"strings"
 )
 
-var hub = NewDataBase()
 var usage = "Usage: {import, export} {archive, template} <filename>.json"
 var hubPort int
 
@@ -27,10 +26,11 @@ func printMessage(s string) {
 }
 
 func HubApp(port int) {
+    hub := NewDataBase()
 	ok := true
 	hubPort = port
 
-	StartHub(port, -1)
+	StartHub(hub, port, -1)
 
 	read := bufio.NewScanner(os.Stdin)
 	for ok {
@@ -45,16 +45,16 @@ func HubApp(port int) {
 
 		switch input[0] {
 		case "import":
-			Import(input[1], input[2])
+			imported(hub, input[1], input[2])
 		case "export":
-			Export(input[1], input[2])
+			exported(hub, input[1], input[2])
 		default:
 			fmt.Println(usage)
 		}
 	}
 }
 
-func StartHub(port, count int) {
+func StartHub(hub *DataBase, port, count int) {
 	ln, err := net.Listen("tcp", ":"+strconv.Itoa(port))
 	if err != nil {
 		log.Fatalf("Error creating server (%s)", err)
@@ -73,13 +73,13 @@ func StartHub(port, count int) {
 
 */
 
-func Import(typed, file string) {
+func imported(hub *DataBase, typed, file string) {
 	var err error
 	switch typed {
 	case "archive":
-		err = ImportArchive(file)
+		err = hub.ImportArchive(file)
 	case "template":
-		err = ImportTemplate(file)
+		err = hub.ImportTemplate(file)
 	default:
 		fmt.Println(usage)
 	}
@@ -89,18 +89,18 @@ func Import(typed, file string) {
 	}
 }
 
-func Export(typed, file string) {
+func exported(hub *DataBase, typed, file string) {
 	switch typed {
 	case "archive":
-		ExportArchive(file)
+		hub.ExportArchive(file)
 	case "template":
-		ExportTemplate(file)
+		hub.ExportTemplate(file)
 	default:
 		fmt.Println(usage)
 	}
 }
 
-func ImportArchive(fileName string) error {
+func (hub *DataBase) ImportArchive(fileName string) error {
 	buf, err := os.ReadFile(fileName)
 	if err != nil {
 		return err
@@ -126,7 +126,7 @@ func ImportArchive(fileName string) error {
 	return nil
 }
 
-func ExportArchive(fileName string) {
+func (hub *DataBase) ExportArchive(fileName string) {
 	file, err := os.Create(fileName)
 	if err != nil {
 		log.Fatalf("Couldn't open file (%s)", err)
@@ -147,7 +147,7 @@ func ExportArchive(fileName string) {
 	printMessage(s)
 }
 
-func ImportTemplate(fileName string) error {
+func (hub *DataBase) ImportTemplate(fileName string) error {
 	buf, err := os.ReadFile(fileName)
 	if err != nil {
 		return err
@@ -170,6 +170,6 @@ func ImportTemplate(fileName string) error {
 	return nil
 }
 
-func ExportTemplate(fileName string) error {
+func (hub *DataBase) ExportTemplate(fileName string) error {
 	return fmt.Errorf("Not implemented")
 }

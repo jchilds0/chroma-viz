@@ -21,9 +21,9 @@ func AddConnection(name, conn_type, ip string, port int) error {
 	return fmt.Errorf("Unknown connection type %s", conn_type)
 }
 
-func InitialiseViz() {
+func InitialiseViz(configFile string) {
     var err error
-    conf, err = config.ImportConfig("./viz/conf.json")
+    conf, err = config.ImportConfig(configFile)
     if err != nil {
         log.Fatal(err)
     }

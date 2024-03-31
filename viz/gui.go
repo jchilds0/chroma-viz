@@ -8,7 +8,6 @@ import (
 	"chroma-viz/library/templates"
 	"fmt"
 	"log"
-	"math/rand"
 	"time"
 
 	"github.com/gotk3/gotk3/glib"
@@ -63,6 +62,13 @@ func SendEngine(page tcp.Animator, action int) {
 	}
 }
 
+/* 
+    A hook which is run after the viz TempTree and 
+    ShowTree are initialised. This allows a test to 
+    to call the import methods of these structs
+*/
+var importHook = func(temp *TempTree, show *ShowTree) {}
+
 func VizGui(app *gtk.Application) {
 	win, err := gtk.ApplicationWindowNew(app)
 	if err != nil {
@@ -72,7 +78,22 @@ func VizGui(app *gtk.Application) {
 	win.SetDefaultSize(800, 600)
 	win.SetTitle("Chroma Viz")
 
-	edit := editor.NewEditor(SendEngine, SendPreview)
+	preview := setupPreviewWindow(conf.PreviewDirectory, conf.PreviewName)
+
+	box, err := gtk.BoxNew(gtk.ORIENTATION_VERTICAL, 0)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	win.Add(box)
+
+    edit := editor.NewEditor(SendEngine, SendPreview)
+    showTree := NewShowTree(func(page *shows.Page) { edit.SetPage(page) })
+    tempTree := NewTempTree(func(temp *templates.Template) {
+        page := showTree.show.AddPage(temp.Title, temp)
+        showTree.ImportPage(page)
+    })
+
 	edit.AddAction("Take On", true, func() { SendEngine(edit.Page, tcp.ANIMATE_ON) })
 	edit.AddAction("Continue", true, func() { SendEngine(edit.Page, tcp.CONTINUE) })
 	edit.AddAction("Take Off", true, func() { SendEngine(edit.Page, tcp.ANIMATE_OFF) })
@@ -82,28 +103,17 @@ func VizGui(app *gtk.Application) {
 	})
 	edit.PageEditor()
 
-	showTree := NewShowTree(func(page *shows.Page) { edit.SetPage(page) })
-	tempTree := NewTempTree(func(temp *templates.Template) {
-		page := showTree.show.AddPage(temp.Title, temp)
-		showTree.ImportPage(page)
-	})
-
+    start := time.Now()
 	tempTree.ImportTemplates(conn.hub.Conn)
+    end := time.Now()
+    elapsed := end.Sub(start)
 
-	preview := setupPreviewWindow(conf.PreviewDirectory, conf.PreviewName)
-
-	//testGui(tempView, showView)
-
-	box, err := gtk.BoxNew(gtk.ORIENTATION_VERTICAL, 0)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	win.Add(box)
+    log.Printf("Imported Graphics Hub in %s", elapsed)
+	importHook(tempTree, showTree)
 
 	/* Menu layout */
 	builder, err := gtk.BuilderNew()
-	if err := builder.AddFromFile("./gtk/viz-menu.ui"); err != nil {
+    if err := builder.AddFromFile(conf.InstallDirectory + "gtk/viz-menu.ui"); err != nil {
 		log.Fatal(err)
 	}
 
@@ -161,7 +171,7 @@ func VizGui(app *gtk.Application) {
 
 	/* Body layout */
 	builder, err = gtk.BuilderNew()
-	if err := builder.AddFromFile("./gtk/viz-gui.ui"); err != nil {
+	if err := builder.AddFromFile(conf.InstallDirectory + "gtk/viz-gui.ui"); err != nil {
 		log.Fatal(err)
 	}
 
@@ -372,40 +382,3 @@ func guiDeletePage(show *ShowTree) error {
 	return nil
 }
 
-func testGui(tempTree *TempTree, showTree *ShowTree) {
-	num_temps := 10000
-	num_props := 100
-	num_pages := 1000
-
-	log.Printf(
-		"Testing with %d Templates, %d Properties, %d Pages\n",
-		num_temps,
-		num_props,
-		num_pages,
-	)
-
-	start := time.Now()
-	for i := 1; i < num_temps; i++ {
-		//page, _ := tempTree.AddTemplate("Template", i, LOWER_FRAME, num_props)
-
-		// for j := 0; j < num_props; j++ {
-		//     page.AddProp("Background", j, props.RECT_PROP)
-		// }
-	}
-
-	t := time.Now()
-	elapsed := t.Sub(start)
-	log.Printf("Built Templates in %s\n", elapsed)
-
-	start = time.Now()
-	for i := 0; i < num_pages; i++ {
-		index := rand.Int()%(num_temps-1) + 1
-		temp := tempTree.Temps.Temps[index]
-		page := showTree.show.AddPage(temp.Title, temp)
-		showTree.ImportPage(page)
-	}
-
-	t = time.Now()
-	elapsed = t.Sub(start)
-	log.Printf("Built Show in %s\n", elapsed)
-}

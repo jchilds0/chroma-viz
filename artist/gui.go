@@ -1,6 +1,7 @@
 package artist
 
 import (
+	"chroma-viz/hub"
 	"chroma-viz/library/attribute"
 	"chroma-viz/library/config"
 	"chroma-viz/library/editor"
@@ -21,6 +22,7 @@ import (
 
 var conn map[string]*tcp.Connection
 var conf *config.Config
+var chromaHub *hub.DataBase
 
 func SendPreview(page tcp.Animator, action int) {
 	if page == nil {
@@ -39,7 +41,6 @@ func SendPreview(page tcp.Animator, action int) {
 }
 
 var template = ArtistPage()
-var geo_count []int
 var geoms map[int]*geom
 
 func ArtistGui(app *gtk.Application) {
