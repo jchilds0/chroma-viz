@@ -26,7 +26,7 @@ func printMessage(s string) {
 }
 
 func HubApp(port int) {
-    hub := NewDataBase()
+    hub := NewDataBase(1_000)
 	ok := true
 	hubPort = port
 

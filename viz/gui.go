@@ -8,6 +8,7 @@ import (
 	"chroma-viz/library/templates"
 	"fmt"
 	"log"
+	"net"
 	"time"
 
 	"github.com/gotk3/gotk3/glib"
@@ -67,7 +68,7 @@ func SendEngine(page tcp.Animator, action int) {
     ShowTree are initialised. This allows a test to 
     to call the import methods of these structs
 */
-var importHook = func(temp *TempTree, show *ShowTree) {}
+var importHook = func(hub net.Conn, temp *TempTree, show *ShowTree) {}
 
 func VizGui(app *gtk.Application) {
 	win, err := gtk.ApplicationWindowNew(app)
@@ -111,7 +112,7 @@ func VizGui(app *gtk.Application) {
     elapsed := end.Sub(start)
 
     log.Printf("Imported Graphics Hub in %s", elapsed)
-	importHook(tempTree, showTree)
+	importHook(conn.hub.Conn, tempTree, showTree)
 
 	/* Menu layout */
 	builder, err := gtk.BuilderNew()

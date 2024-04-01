@@ -16,9 +16,9 @@ type DataBase struct {
 	Templates map[int]*templates.Template
 }
 
-func NewDataBase() *DataBase {
+func NewDataBase(numTemp int) *DataBase {
 	db := &DataBase{}
-	db.Templates = make(map[int]*templates.Template)
+	db.Templates = make(map[int]*templates.Template, numTemp)
 
 	return db
 }
@@ -147,6 +147,10 @@ func (db *DataBase) HandleConn(conn net.Conn) {
             }
 
             template := db.Templates[tempid]
+            if template == nil {
+                log.Printf("Template %d does not exist", tempid)
+                continue
+            }
 
             _, err = conn.Write([]byte(template.Encode()))
         default:

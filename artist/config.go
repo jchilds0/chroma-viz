@@ -11,7 +11,7 @@ import (
 func InitialiseArtist() {
     var err error
 	conn = make(map[string]*tcp.Connection)
-    chromaHub = hub.NewDataBase()
+    chromaHub = hub.NewDataBase(10)
 
     conf, err = config.ImportConfig("./artist/conf.json")
     if err != nil {
@@ -37,7 +37,7 @@ func InitialiseArtist() {
 			total++
 		}
 	}
-	go hub.StartHub(chromaHub, conf.HubPort, -1)
+	go hub.StartHub(chromaHub, conf.HubPort)
 
     artistHub := tcp.NewConnection("Hub", conf.HubAddr, conf.HubPort)
 	artistHub.Connect()

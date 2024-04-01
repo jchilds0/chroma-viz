@@ -2,8 +2,12 @@ package viz
 
 import (
 	"chroma-viz/hub"
+	"chroma-viz/library/templates"
 	"log"
 	"math/rand"
+	"net"
+	"os"
+	"runtime/pprof"
 	"strconv"
 	"testing"
 	"time"
@@ -12,19 +16,27 @@ import (
 	"github.com/gotk3/gotk3/gtk"
 )
 
-var numTemplates = 100
-var numPages = 100_000
+var numTemplates = 1_000
+var numPages = 1_000
 var numGeometries = 100
 
 func TestGui(t *testing.T) {
 	defer CloseViz()
+
+    f, err := os.Create("../perf/viz_test.prof")
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    pprof.StartCPUProfile(f)
+    defer pprof.StopCPUProfile()
 	log.Printf(
 		"Testing with %d Templates, %d Pages and %d Geometries\n",
 		numTemplates, numPages, numGeometries,
 	)
 
 	importHook = importRandomPages
-	chromaHub := hub.NewDataBase()
+	chromaHub := hub.NewDataBase(numTemplates)
 
     start := time.Now()
 	geo := []string{"rect", "text", "circle", "image"}
@@ -45,7 +57,7 @@ func TestGui(t *testing.T) {
 	elapsed := end.Sub(start)
 	log.Printf("Built Graphics Hub in %s\n", elapsed)
 
-	go hub.StartHub(chromaHub, 9000, -1)
+	go hub.StartHub(chromaHub, 9000)
 
     time.Sleep(time.Second)
 	InitialiseViz("./conf.json")
@@ -59,26 +71,16 @@ func TestGui(t *testing.T) {
 	app.Run([]string{})
 }
 
-func importRandomPages(tempTree *TempTree, showTree *ShowTree) {
-
-	temps := make([]int, 0, len(tempTree.Temps.Temps))
-
-	for _, temp := range tempTree.Temps.Temps {
-		if temp == nil {
-			continue
-		}
-
-		temps = append(temps, temp.TempID)
-	}
-
-	if len(temps) == 0 {
-		log.Fatal("Error: Graphics Hub is empty")
-	}
-
+func importRandomPages(hub net.Conn, tempTree *TempTree, showTree *ShowTree) {
 	start := time.Now()
 	for i := 0; i < numPages; i++ {
-		index := rand.Int() % len(temps)
-		template := tempTree.Temps.Temps[temps[index]]
+		index := (rand.Int() % numTemplates) + 1
+        template, err := templates.GetTemplate(hub, index)
+        if err != nil {
+            log.Print(err)
+            continue
+        }
+
 		page := showTree.show.AddPage(template.Title, template)
 		showTree.ImportPage(page)
 	}

@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"log"
 	"strconv"
-	"strings"
 )
 
 // tokens
@@ -71,6 +70,11 @@ func parseTemplate(buf *bufio.Reader) (temp *Template, err error) {
 			matchToken(',', buf)
 		}
 	}
+
+    if temp == nil {
+        err = fmt.Errorf("Template not created")
+        return
+    }
 
     if c_tok.tok != '}' {
 		return
@@ -214,7 +218,8 @@ WS:
 		}
 	}
 
-	tok.buf = make([]rune, 256)
+	tok.buf = make([]rune, 64)
+    bufLength := 0
 
 	switch peek {
 	case '\'':
@@ -222,7 +227,7 @@ WS:
 		tok.tok = STRING
 		peek = ' '
 
-		for i := 0; ; i++ {
+		for {
 			c, _, err = buf.ReadRune()
 			if err != nil {
 				return
@@ -232,12 +237,14 @@ WS:
 				break
 			}
 
-			tok.buf[i] = c
+			tok.buf[bufLength] = c
+            bufLength++
 		}
 	case '0', '1', '2', '3', '4', '5', '6', '7', '8', '9':
 		tok.tok = INT
-		for i := 0; '0' <= peek && peek <= '9'; i++ {
-			tok.buf[i] = peek
+		for '0' <= peek && peek <= '9' {
+			tok.buf[bufLength] = peek
+            bufLength++
 
 			peek, _, err = buf.ReadRune()
 			if err != nil {
@@ -250,6 +257,6 @@ WS:
 		peek = ' '
 	}
 
-	tok.value = strings.TrimRight(string(tok.buf[:]), "\x00")
+    tok.value = string(tok.buf[:bufLength])
 	return
 }
