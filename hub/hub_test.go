@@ -10,7 +10,7 @@ import (
 )
 
 func TestImportTemplates(t *testing.T) {
-    hub := NewDataBase()
+    hub := NewDataBase(10)
 
 	err := hub.ImportArchive("test_archive.json")
 	if err != nil {
