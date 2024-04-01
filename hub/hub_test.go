@@ -3,37 +3,35 @@ package hub
 import (
 	"chroma-viz/library/props"
 	"chroma-viz/library/templates"
+	"log"
 	"net"
 	"testing"
 	"time"
 )
 
 func TestImportTemplates(t *testing.T) {
-	temp := templates.NewTemps()
     hub := NewDataBase()
 
 	err := hub.ImportArchive("test_archive.json")
 	if err != nil {
 		t.Errorf("Error importing test archive (%s)", err)
 	}
-	go StartHub(hub, 9000, 2)
+	go StartHub(hub, 9000)
 
-	time.Sleep(1 * time.Second)
+	time.Sleep(time.Second)
 	conn, err := net.Dial("tcp", "127.0.0.1:9000")
 	if err != nil {
 		t.Fatalf("Error connecting to graphics hub (%s)", err)
 	}
 
-	err = temp.ImportTemplates(conn)
-	if err != nil {
-		t.Fatalf("Error importing graphics hub (%s)", err)
-	}
+    for i := 0; i < 5; i++ {
+        template, err := templates.GetTemplate(conn, i)
+        if err != nil {
+            t.Fatalf("Error receiving template (%s)", err)
+        }
 
-	if len(temp.Temps) != 5 {
-		t.Errorf("Incorrect num of templates, len(temp.Temps) = %d", len(temp.Temps))
-	}
+        log.Printf("Received Template %d", template.TempID)
 
-	for _, template := range temp.Temps {
 		switch template.Title {
 		case "Teal Box":
 			propTest(t, template, 0, "Background", "rect")

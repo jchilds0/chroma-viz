@@ -30,7 +30,7 @@ func HubApp(port int) {
 	ok := true
 	hubPort = port
 
-	StartHub(hub, port, -1)
+	StartHub(hub, port)
 
 	read := bufio.NewScanner(os.Stdin)
 	for ok {
@@ -54,7 +54,7 @@ func HubApp(port int) {
 	}
 }
 
-func StartHub(hub *DataBase, port, count int) {
+func StartHub(hub *DataBase, port int) {
 	ln, err := net.Listen("tcp", ":"+strconv.Itoa(port))
 	if err != nil {
 		log.Fatalf("Error creating server (%s)", err)
