@@ -120,8 +120,6 @@ func (db *DataBase) HandleConn(conn net.Conn) {
         }
 
         cmds := strings.Split(strings.TrimSuffix(s, ";"), " ")
-        fmt.Println()
-        log.Println(cmds)
 
         if len(s) < 4 {
             continue
