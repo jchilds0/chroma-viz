@@ -123,9 +123,7 @@ func (temp *Template) GetPropMap() map[int]*props.Property {
 }
 
 func GetTemplate(hub net.Conn, tempid int) (*Template, error) {
-    var temp Template
-
-    s := fmt.Sprintf("ver 0 1 temp %d", tempid)
+    s := fmt.Sprintf("ver 0 1 temp %d;", tempid)
 
     _, err := hub.Write([]byte(s))
     if err != nil {
@@ -133,7 +131,7 @@ func GetTemplate(hub net.Conn, tempid int) (*Template, error) {
     }
 
     buf := bufio.NewReader(hub)
-    temp.parseTemplate(buf)
+    temp, err := parseTemplate(buf)
 
-    return &temp, nil
+    return temp, err
 }

@@ -24,8 +24,9 @@ type Token struct {
 var c_tok Token
 
 // T -> {'id': 123, 'num_geo': 123, 'layer': 123, 'geometry': [G]}
-func (temp *Template) parseTemplate(buf *bufio.Reader) (err error) {
+func parseTemplate(buf *bufio.Reader) (temp *Template, err error) {
 	data := make(map[string]string)
+    nextToken(buf)
 	matchToken('{', buf)
 
 	for c_tok.tok == STRING {
@@ -44,30 +45,25 @@ func (temp *Template) parseTemplate(buf *bufio.Reader) (err error) {
 			var num_geo, temp_id, layer int
 			num_geo, err = strconv.Atoi(data["num_geo"])
 			if err != nil {
-				return fmt.Errorf("Error reading num geo from template (%s)", err)
+                return
 			}
 
 			temp_id, err = strconv.Atoi(data["id"])
 			if err != nil {
-				return fmt.Errorf("Error reading temp id from template (%s)", err)
+				return
 			}
 
 			layer, err = strconv.Atoi(data["layer"])
 			if err != nil {
-				return fmt.Errorf("Error reading layer from template (%s)", err)
+				return
 			}
 
 			if data["name"] == "" {
 				data["name"] = "Template"
 			}
 
-            temp.TempID = temp_id
-            temp.Layer = layer
-            temp.NumGeo = num_geo
-            temp.Title = data["name"]
-
+            temp = NewTemplate(data["name"], temp_id, layer, num_geo)
 			parseProperty(temp, buf)
-
 			matchToken(']', buf)
 		}
 
@@ -76,7 +72,9 @@ func (temp *Template) parseTemplate(buf *bufio.Reader) (err error) {
 		}
 	}
 
-	matchToken('}', buf)
+    if c_tok.tok != '}' {
+		return
+    }
 	return
 }
 
