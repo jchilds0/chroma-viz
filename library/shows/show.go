@@ -20,7 +20,7 @@ func NewShow() *Show {
 
 func (show *Show) SetPage(pageNum int, title string, temp *templates.Template) {
 	page := NewPage(pageNum, temp.TempID, temp.Layer, temp.NumGeo, title)
-    page.PropMap = temp.GetPropMap()
+	page.PropMap = temp.GetPropMap()
 
 	if _, ok := show.Pages[pageNum]; ok {
 		log.Printf("Page %d already exists", pageNum)

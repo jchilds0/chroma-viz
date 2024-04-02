@@ -31,7 +31,7 @@ func main() {
 	var err error
 	if *mode == "artist" {
 		defer artist.CloseConn()
-        artist.InitialiseArtist()
+		artist.InitialiseArtist()
 
 		app, err = gtk.ApplicationNew("app.chroma.artist", glib.APPLICATION_FLAGS_NONE)
 		if err != nil {

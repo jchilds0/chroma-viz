@@ -227,45 +227,45 @@ func (prop *Property) String() (s string) {
 
 // G -> {'id': 123, 'name': 'abc', 'prop_type': 'abc', 'geo_type': 'abc', 'visible': [...], 'attr': [A]} | G, G
 func (prop *Property) Encode(geo_id int) (s string, err error) {
-    var b strings.Builder
+	var b strings.Builder
 	first := true
-    b.WriteString("{")
+	b.WriteString("{")
 
-    b.WriteString("'id': ")
-    b.WriteString(strconv.Itoa(geo_id))
-    b.WriteString(", ")
+	b.WriteString("'id': ")
+	b.WriteString(strconv.Itoa(geo_id))
+	b.WriteString(", ")
 
-    b.WriteString("'name': '")
-    b.WriteString(prop.Name)
-    b.WriteString("', ")
+	b.WriteString("'name': '")
+	b.WriteString(prop.Name)
+	b.WriteString("', ")
 
-    b.WriteString("'prop_type': '")
-    b.WriteString(PropType(prop.PropType))
-    b.WriteString("', ")
+	b.WriteString("'prop_type': '")
+	b.WriteString(PropType(prop.PropType))
+	b.WriteString("', ")
 
-    b.WriteString("'geo_type': '")
-    b.WriteString(GeoType(prop.PropType))
-    b.WriteString("', ")
+	b.WriteString("'geo_type': '")
+	b.WriteString(GeoType(prop.PropType))
+	b.WriteString("', ")
 
-    b.WriteString("'visible': [")
+	b.WriteString("'visible': [")
 	for name, vis := range prop.Visible {
-        if !vis {
-            continue
-        }
-
-		if !first {
-            b.WriteString(",")
+		if !vis {
+			continue
 		}
 
-        first = false
-        b.WriteString("'")
-        b.WriteString(name)
-        b.WriteString("': 'true'")
-	}
-    b.WriteString("], ")
+		if !first {
+			b.WriteString(",")
+		}
 
-    first = true
-    b.WriteString("'attr': [")
+		first = false
+		b.WriteString("'")
+		b.WriteString(name)
+		b.WriteString("': 'true'")
+	}
+	b.WriteString("], ")
+
+	first = true
+	b.WriteString("'attr': [")
 	for _, attr := range prop.Attr {
 		encode := attr.Encode()
 		if encode == "" {
@@ -273,17 +273,17 @@ func (prop *Property) Encode(geo_id int) (s string, err error) {
 		}
 
 		if !first {
-            b.WriteString(",")
+			b.WriteString(",")
 		}
-        first = false
+		first = false
 
-        b.WriteString(encode)
+		b.WriteString(encode)
 	}
 
-    b.WriteString("]}")
-    s = b.String()
+	b.WriteString("]}")
+	s = b.String()
 
-    return
+	return
 }
 
 /*

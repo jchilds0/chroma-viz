@@ -10,7 +10,7 @@ import (
 // T -> {'id': 123, 'num_geo': 123, 'layer': 123, 'geometry': [G]}
 func parsePage(buf *bufio.Reader) (page *Page, err error) {
 	data := make(map[string]string)
-    parser.NextToken(buf)
+	parser.NextToken(buf)
 	parser.MatchToken('{', buf)
 
 	for parser.C_tok.Tok == parser.STRING {
@@ -29,7 +29,7 @@ func parsePage(buf *bufio.Reader) (page *Page, err error) {
 			var num_geo, temp_id, layer int
 			num_geo, err = strconv.Atoi(data["num_geo"])
 			if err != nil {
-                return
+				return
 			}
 
 			temp_id, err = strconv.Atoi(data["id"])
@@ -46,11 +46,11 @@ func parsePage(buf *bufio.Reader) (page *Page, err error) {
 				data["name"] = "Template"
 			}
 
-            page = NewPage(0, temp_id, layer, num_geo, data["name"])
-            page.PropMap, err = parser.ParseProperty(buf, false)
-            if err != nil {
-                return
-            }
+			page = NewPage(0, temp_id, layer, num_geo, data["name"])
+			page.PropMap, err = parser.ParseProperty(buf, false)
+			if err != nil {
+				return
+			}
 
 			parser.MatchToken(']', buf)
 		}
@@ -60,11 +60,10 @@ func parsePage(buf *bufio.Reader) (page *Page, err error) {
 		}
 	}
 
-    if page == nil {
-        err = fmt.Errorf("Page not created")
-        return
-    }
+	if page == nil {
+		err = fmt.Errorf("Page not created")
+		return
+	}
 
-    return 
+	return
 }
-

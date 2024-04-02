@@ -63,10 +63,10 @@ func SendEngine(page tcp.Animator, action int) {
 	}
 }
 
-/* 
-    A hook which is run after the viz TempTree and 
-    ShowTree are initialised. This allows a test to 
-    to call the import methods of these structs
+/*
+	A hook which is run after the viz TempTree and
+	ShowTree are initialised. This allows a test to
+	to call the import methods of these structs
 */
 var importHook = func(hub net.Conn, temp *TempTree, show *ShowTree) {}
 
@@ -88,14 +88,14 @@ func VizGui(app *gtk.Application) {
 
 	win.Add(box)
 
-    edit := editor.NewEditor(SendEngine, SendPreview)
-    showTree := NewShowTree(func(page *shows.Page) { edit.SetPage(page) })
-    tempTree := NewTempTree(conn.hub.Conn, 
-        func(temp *templates.Template) {
-            page := showTree.show.AddPage(temp.Title, temp)
-            showTree.ImportPage(page)
-        },
-    )
+	edit := editor.NewEditor(SendEngine, SendPreview)
+	showTree := NewShowTree(func(page *shows.Page) { edit.SetPage(page) })
+	tempTree := NewTempTree(conn.hub.Conn,
+		func(temp *templates.Template) {
+			page := showTree.show.AddPage(temp.Title, temp)
+			showTree.ImportPage(page)
+		},
+	)
 
 	edit.AddAction("Take On", true, func() { SendEngine(edit.Page, tcp.ANIMATE_ON) })
 	edit.AddAction("Continue", true, func() { SendEngine(edit.Page, tcp.CONTINUE) })
@@ -106,17 +106,17 @@ func VizGui(app *gtk.Application) {
 	})
 	edit.PageEditor()
 
-    start := time.Now()
+	start := time.Now()
 	tempTree.ImportTemplates(conn.hub.Conn)
-    end := time.Now()
-    elapsed := end.Sub(start)
+	end := time.Now()
+	elapsed := end.Sub(start)
 
-    log.Printf("Imported Graphics Hub in %s", elapsed)
+	log.Printf("Imported Graphics Hub in %s", elapsed)
 	importHook(conn.hub.Conn, tempTree, showTree)
 
 	/* Menu layout */
 	builder, err := gtk.BuilderNew()
-    if err := builder.AddFromFile(conf.InstallDirectory + "gtk/viz-menu.ui"); err != nil {
+	if err := builder.AddFromFile(conf.InstallDirectory + "gtk/viz-menu.ui"); err != nil {
 		log.Fatal(err)
 	}
 
@@ -384,4 +384,3 @@ func guiDeletePage(show *ShowTree) error {
 	show.show.Pages[pageNum] = nil
 	return nil
 }
-

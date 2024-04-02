@@ -43,20 +43,20 @@ func NewPage(pageNum, tempID, layer, numGeo int, title string) *Page {
 	}
 
 	page.PropMap = make(map[int]*props.Property, numGeo)
-    return page
+	return page
 }
 
 func GetPage(hub net.Conn, tempid int) (*Page, error) {
-    s := fmt.Sprintf("ver 0 1 temp %d;", tempid)
+	s := fmt.Sprintf("ver 0 1 temp %d;", tempid)
 
-    _, err := hub.Write([]byte(s))
-    if err != nil {
-        return nil, err
-    }
+	_, err := hub.Write([]byte(s))
+	if err != nil {
+		return nil, err
+	}
 
-    buf := bufio.NewReader(hub)
-    page, err := parsePage(buf)
-    return page, err
+	buf := bufio.NewReader(hub)
+	page, err := parsePage(buf)
+	return page, err
 }
 
 func (page *Page) CopyTemplate(temp *templates.Template) {
@@ -141,4 +141,3 @@ func (page *Page) GetLayer() int {
 func (page *Page) GetPropMap() map[int]*props.Property {
 	return page.PropMap
 }
-

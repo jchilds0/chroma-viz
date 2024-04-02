@@ -25,7 +25,7 @@ func NewDataBase(numTemp int) *DataBase {
 
 // S -> {'num_temp': num, 'templates': [T]}
 func (db *DataBase) EncodeDB() (s string, err error) {
-    var b strings.Builder
+	var b strings.Builder
 
 	first := true
 	maxTempID := 0
@@ -33,28 +33,28 @@ func (db *DataBase) EncodeDB() (s string, err error) {
 		maxTempID = max(maxTempID, temp.TempID)
 
 		if !first {
-            b.WriteString(",")
+			b.WriteString(",")
 		}
 
-        first = false
-        tempStr, _ := temp.Encode()
-        b.WriteString(tempStr)
+		first = false
+		tempStr, _ := temp.Encode()
+		b.WriteString(tempStr)
 	}
 
 	s = fmt.Sprintf("{'num_temp': %d, 'templates': [%s]}", maxTempID+2, b.String())
-    return 
+	return
 }
 
 func (db *DataBase) TempIDs() (s string) {
-    for _, temp := range db.Templates {
-        if temp == nil {
-            continue
-        }
+	for _, temp := range db.Templates {
+		if temp == nil {
+			continue
+		}
 
-        s += fmt.Sprintf("%d %s;", temp.TempID, temp.Title)
-    }
+		s += fmt.Sprintf("%d %s;", temp.TempID, temp.Title)
+	}
 
-    return s + "EOF;"
+	return s + "EOF;"
 }
 
 func (db *DataBase) AddTemplate(id int, anim_on, anim_cont, anim_off string) {
@@ -82,89 +82,88 @@ func (db *DataBase) AcceptHubConn(ln net.Listener) {
 		conn, err := ln.Accept()
 		if err != nil {
 			log.Printf("Error accepting connection (%s)", err)
-            continue
+			continue
 		}
 
-        go db.HandleConn(conn)
+		go db.HandleConn(conn)
 	}
 }
 
 /*
+Protocol for Chroma Hub <=> Chroma Viz/Engine communication
 
-    Protocol for Chroma Hub <=> Chroma Viz/Engine communication
+S -> V C;
+V -> ver %d %d
+C -> full | tempids | temp %d
 
-    S -> V C;
-    V -> ver %d %d
-    C -> full | tempids | temp %d
+A command consists of a header with the protocol version,
+the command which is currently either full or a single page,
+and a template id if the command is template.
 
-    A command consists of a header with the protocol version,
-    the command which is currently either full or a single page,
-    and a template id if the command is template.
+	full - encode the entire chroma hub and send to client
 
-        full - encode the entire chroma hub and send to client
+	tempids - send all current template ids
 
-        tempids - send all current template ids
-
-        temp i - encode template with template id 'i' and send 
-        to clint
+	temp i - encode template with template id 'i' and send
+	to clint
 */
 func (db *DataBase) HandleConn(conn net.Conn) {
-    req := make([]byte, 0, 1024)
-    buf := bufio.NewReader(conn)
+	req := make([]byte, 0, 1024)
+	buf := bufio.NewReader(conn)
 
-    for {
-        s, err := buf.ReadString(';')
-        if err == io.EOF {
-            break
-        } else if err != nil {
-            log.Printf("Error reading request (%s)", err)
-            continue
-        }
+	for {
+		s, err := buf.ReadString(';')
+		if err == io.EOF {
+			break
+		} else if err != nil {
+			log.Printf("Error reading request (%s)", err)
+			continue
+		}
 
-        cmds := strings.Split(strings.TrimSuffix(s, ";"), " ")
+		cmds := strings.Split(strings.TrimSuffix(s, ";"), " ")
 
-        if len(s) < 4 {
-            continue
-        }
+		if len(s) < 4 {
+			continue
+		}
 
-        if cmds[0] != "ver" {
-            log.Fatalf("Request in incorrect format (%s)", s)
-            continue
-        }
+		if cmds[0] != "ver" {
+			log.Fatalf("Request in incorrect format (%s)", s)
+			continue
+		}
 
-        if cmds[1] != "0" || cmds[2] != "1" {
-            log.Fatalf("Request in incorrect format (%s)", s)
-            continue
-        } 
+		if cmds[1] != "0" || cmds[2] != "1" {
+			log.Fatalf("Request in incorrect format (%s)", s)
+			continue
+		}
 
-        switch cmds[3] {
-        case "full":
-            s, _ = db.EncodeDB()
-            _, err = conn.Write([]byte(s))
-        case "tempids":
-            _, err = conn.Write([]byte(db.TempIDs()))
-        case "temp":
-            tempid, err := strconv.Atoi(cmds[4])
-            if err != nil {
-                break;
-            }
+		switch cmds[3] {
+		case "full":
+			s, _ = db.EncodeDB()
+			_, err = conn.Write([]byte(s))
+		case "tempids":
+			_, err = conn.Write([]byte(db.TempIDs()))
+		case "temp":
+			tempid, err := strconv.Atoi(cmds[4])
+			if err != nil {
+				break
+			}
 
-            template := db.Templates[tempid]
-            if template == nil {
-                log.Printf("Template %d does not exist", tempid)
-                continue
-            }
+			template := db.Templates[tempid]
+			if template == nil {
+				log.Printf("Template %d does not exist", tempid)
+				continue
+			}
 
-            s, _ := template.Encode()
-            _, err = conn.Write([]byte(s))
-        default:
-            log.Printf("Unknown request %s", string(req[:]))
-            continue
-        }
+			s, _ := template.Encode()
+			_, err = conn.Write([]byte(s))
+		default:
+			log.Printf("Unknown request %s", string(req[:]))
+			continue
+		}
 
-        if err != nil {
-            log.Printf("Error responding to request %s (%s)", string(req[:]), err)
-            continue
-        }
-    }
+		if err != nil {
+			log.Printf("Error responding to request %s (%s)", string(req[:]), err)
+			continue
+		}
+	}
 }

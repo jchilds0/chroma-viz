@@ -24,75 +24,75 @@ var C_tok Token
 
 // G -> {'id': 123, 'name': 'abc', 'prop_type': 'abc', 'geo_type': 'abc', 'visible': [...], 'attr': [A]} | G, G
 func ParseProperty(buf *bufio.Reader, isTemp bool) (propMap map[int]*props.Property, err error) {
-    propMap = make(map[int]*props.Property, 10)
+	propMap = make(map[int]*props.Property, 10)
 	data := make(map[string]string)
 	visible := make(map[string]bool)
 
-    for { 
-        MatchToken('{', buf)
+	for {
+		MatchToken('{', buf)
 
-        for C_tok.Tok == STRING {
-            name := C_tok.Value
+		for C_tok.Tok == STRING {
+			name := C_tok.Value
 
-            MatchToken(STRING, buf)
-            MatchToken(':', buf)
+			MatchToken(STRING, buf)
+			MatchToken(':', buf)
 
-            if name == "attr" {
-                MatchToken('[', buf)
+			if name == "attr" {
+				MatchToken('[', buf)
 
-                var prop_id int
-                prop_type := props.StringToProp[data["prop_type"]]
-                prop_id, err = strconv.Atoi(data["id"])
-                if err != nil {
-                    err = fmt.Errorf("Error reading prop id from property (%s)", err)
-                    return
-                }
+				var prop_id int
+				prop_type := props.StringToProp[data["prop_type"]]
+				prop_id, err = strconv.Atoi(data["id"])
+				if err != nil {
+					err = fmt.Errorf("Error reading prop id from property (%s)", err)
+					return
+				}
 
-                if data["name"] == "" {
-                    data["name"] = "Property"
-                }
+				if data["name"] == "" {
+					data["name"] = "Property"
+				}
 
-                propMap[prop_id] = props.NewProperty(prop_type, data["name"], isTemp, visible)
-                parseAttributes(propMap[prop_id], buf)
+				propMap[prop_id] = props.NewProperty(prop_type, data["name"], isTemp, visible)
+				parseAttributes(propMap[prop_id], buf)
 
-                MatchToken(']', buf)
-            } else if name == "visible" {
-                MatchToken('[', buf)
+				MatchToken(']', buf)
+			} else if name == "visible" {
+				MatchToken('[', buf)
 
-                for C_tok.Tok == STRING {
-                    attr := C_tok.Value
-                    MatchToken(STRING, buf)
-                    MatchToken(':', buf)
+				for C_tok.Tok == STRING {
+					attr := C_tok.Value
+					MatchToken(STRING, buf)
+					MatchToken(':', buf)
 
-                    visible[attr] = (C_tok.Value == "true")
-                    NextToken(buf)
+					visible[attr] = (C_tok.Value == "true")
+					NextToken(buf)
 
-                    if C_tok.Tok == ',' {
-                        MatchToken(',', buf)
-                    }
-                }
+					if C_tok.Tok == ',' {
+						MatchToken(',', buf)
+					}
+				}
 
-                MatchToken(']', buf)
-            } else {
-                data[name] = C_tok.Value
+				MatchToken(']', buf)
+			} else {
+				data[name] = C_tok.Value
 
-                NextToken(buf)
-            }
+				NextToken(buf)
+			}
 
-            if C_tok.Tok == ',' {
-                MatchToken(',', buf)
-            }
-        }
-        MatchToken('}', buf)
+			if C_tok.Tok == ',' {
+				MatchToken(',', buf)
+			}
+		}
+		MatchToken('}', buf)
 
-        if C_tok.Tok != ',' {
-            break
-        }
+		if C_tok.Tok != ',' {
+			break
+		}
 
-        MatchToken(',', buf)
-    }
+		MatchToken(',', buf)
+	}
 
-	return 
+	return
 }
 
 // A -> {'name': string, 'value': string} | A, A
@@ -164,7 +164,7 @@ WS:
 	}
 
 	tok.buf = make([]rune, 64)
-    bufLength := 0
+	bufLength := 0
 
 	switch peek {
 	case '\'':
@@ -183,13 +183,13 @@ WS:
 			}
 
 			tok.buf[bufLength] = c
-            bufLength++
+			bufLength++
 		}
 	case '0', '1', '2', '3', '4', '5', '6', '7', '8', '9':
 		tok.Tok = INT
 		for '0' <= peek && peek <= '9' {
 			tok.buf[bufLength] = peek
-            bufLength++
+			bufLength++
 
 			peek, _, err = buf.ReadRune()
 			if err != nil {
@@ -202,6 +202,6 @@ WS:
 		peek = ' '
 	}
 
-    tok.Value = string(tok.buf[:bufLength])
+	tok.Value = string(tok.buf[:bufLength])
 	return
 }

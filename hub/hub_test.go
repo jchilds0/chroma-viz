@@ -10,7 +10,7 @@ import (
 )
 
 func TestImportTemplates(t *testing.T) {
-    hub := NewDataBase(10)
+	hub := NewDataBase(10)
 
 	err := hub.ImportArchive("test_archive.json")
 	if err != nil {
@@ -24,13 +24,13 @@ func TestImportTemplates(t *testing.T) {
 		t.Fatalf("Error connecting to graphics hub (%s)", err)
 	}
 
-    for i := 0; i < 5; i++ {
-        template, err := templates.GetTemplate(conn, i)
-        if err != nil {
-            t.Fatalf("Error receiving template (%s)", err)
-        }
+	for i := 0; i < 5; i++ {
+		template, err := templates.GetTemplate(conn, i)
+		if err != nil {
+			t.Fatalf("Error receiving template (%s)", err)
+		}
 
-        log.Printf("Received Template %d", template.TempID)
+		log.Printf("Received Template %d", template.TempID)
 
 		switch template.Title {
 		case "Teal Box":

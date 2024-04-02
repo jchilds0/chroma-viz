@@ -120,9 +120,9 @@ func (conn *Connection) Read() (string, error) {
 }
 
 /*
-  - watch a connection for a close,
-  - call emit() on close,
-  - print any message recieved to stdout
+- watch a connection for a close,
+- call emit() on close,
+- print any message recieved to stdout
 */
 func (conn *Connection) Watcher(emit func()) {
 	for {

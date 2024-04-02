@@ -31,7 +31,7 @@ func setupPreviewWindow(port int, engineDir, engineName string) *gtk.Frame {
 	soc.SetVisible(true)
 	soc.Connect("realize", func(soc *gtk.Socket) {
 		xid = soc.GetId()
-		prev := exec.Command(engineDir + engineName, "-w", strconv.Itoa(int(xid)), "-p", strconv.Itoa(int(port)))
+		prev := exec.Command(engineDir+engineName, "-w", strconv.Itoa(int(xid)), "-p", strconv.Itoa(int(port)))
 		log.Print(prev.String())
 
 		if err := prev.Start(); err != nil {

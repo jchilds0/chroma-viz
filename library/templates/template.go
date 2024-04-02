@@ -74,53 +74,53 @@ func TextToBuffer(text string) *gtk.TextView {
 
 // T -> {'id': num, 'num_geo': num, 'layer': num, 'geometry': [G]} | T, T
 func (temp *Template) Encode() (s string, err error) {
-    var b strings.Builder
-    b.WriteString("{")
+	var b strings.Builder
+	b.WriteString("{")
 
-    b.WriteString("'id': ")
-    b.WriteString(strconv.Itoa(temp.TempID))
-    b.WriteString(", ")
+	b.WriteString("'id': ")
+	b.WriteString(strconv.Itoa(temp.TempID))
+	b.WriteString(", ")
 
-    b.WriteString("'num_geo': ")
-    b.WriteString(strconv.Itoa(len(temp.Geometry)))
-    b.WriteString(", ")
+	b.WriteString("'num_geo': ")
+	b.WriteString(strconv.Itoa(len(temp.Geometry)))
+	b.WriteString(", ")
 
-    b.WriteString("'name': '")
-    b.WriteString(temp.Title)
-    b.WriteString("', ")
+	b.WriteString("'name': '")
+	b.WriteString(temp.Title)
+	b.WriteString("', ")
 
-    b.WriteString("'layer': ")
-    b.WriteString(strconv.Itoa(temp.Layer))
-    b.WriteString(", ")
+	b.WriteString("'layer': ")
+	b.WriteString(strconv.Itoa(temp.Layer))
+	b.WriteString(", ")
 
-    b.WriteString("'anim_on': '")
-    b.WriteString(temp.AnimateOn)
-    b.WriteString("', ")
+	b.WriteString("'anim_on': '")
+	b.WriteString(temp.AnimateOn)
+	b.WriteString("', ")
 
-    b.WriteString("'anim_cont': '")
-    b.WriteString(temp.Continue)
-    b.WriteString("', ")
+	b.WriteString("'anim_cont': '")
+	b.WriteString(temp.Continue)
+	b.WriteString("', ")
 
-    b.WriteString("'anim_off': '")
-    b.WriteString(temp.AnimateOff)
-    b.WriteString("', ")
+	b.WriteString("'anim_off': '")
+	b.WriteString(temp.AnimateOff)
+	b.WriteString("', ")
 
-    b.WriteString("'geometry': [")
+	b.WriteString("'geometry': [")
 	first := true
 	for geo_id, prop := range temp.Geometry {
 		if !first {
-            b.WriteString(",")
+			b.WriteString(",")
 		}
 
-        first = false
+		first = false
 
-        propStr, _ := prop.Encode(geo_id)
-        b.WriteString(propStr)
+		propStr, _ := prop.Encode(geo_id)
+		b.WriteString(propStr)
 	}
 
-    b.WriteString("]}")
-    s = b.String()
-    return
+	b.WriteString("]}")
+	s = b.String()
+	return
 }
 
 func ExportTemplate(temp *Template, filename string) error {
@@ -156,15 +156,15 @@ func (temp *Template) GetPropMap() map[int]*props.Property {
 }
 
 func GetTemplate(hub net.Conn, tempid int) (*Template, error) {
-    s := fmt.Sprintf("ver 0 1 temp %d;", tempid)
+	s := fmt.Sprintf("ver 0 1 temp %d;", tempid)
 
-    _, err := hub.Write([]byte(s))
-    if err != nil {
-        return nil, err
-    }
+	_, err := hub.Write([]byte(s))
+	if err != nil {
+		return nil, err
+	}
 
-    buf := bufio.NewReader(hub)
-    temp, err := parseTemplate(buf)
+	buf := bufio.NewReader(hub)
+	temp, err := parseTemplate(buf)
 
-    return temp, err
+	return temp, err
 }

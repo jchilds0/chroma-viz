@@ -9,17 +9,17 @@ import (
 )
 
 func InitialiseArtist() {
-    var err error
+	var err error
 	conn = make(map[string]*tcp.Connection)
-    chromaHub = hub.NewDataBase(10)
+	chromaHub = hub.NewDataBase(10)
 
-    conf, err = config.ImportConfig("./artist/conf.json")
-    if err != nil {
-        log.Fatal(err)
-    }
+	conf, err = config.ImportConfig("./artist/conf.json")
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	geo := []string{"rect", "text", "circle", "graph", "image", "ticker", "clock"}
-    geo_count := 10
+	geo_count := 10
 	geoms = make(map[int]*geom, len(geo))
 
 	index := 1
@@ -39,11 +39,11 @@ func InitialiseArtist() {
 	}
 	go hub.StartHub(chromaHub, conf.HubPort)
 
-    artistHub := tcp.NewConnection("Hub", conf.HubAddr, conf.HubPort)
+	artistHub := tcp.NewConnection("Hub", conf.HubAddr, conf.HubPort)
 	artistHub.Connect()
 
 	for _, c := range conf.Connections {
-        conn[c.Name] = tcp.NewConnection(c.Name, c.Address, c.Port)
+		conn[c.Name] = tcp.NewConnection(c.Name, c.Address, c.Port)
 	}
 
 }

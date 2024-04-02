@@ -22,11 +22,11 @@ func AddConnection(name, conn_type, ip string, port int) error {
 }
 
 func InitialiseViz(configFile string) {
-    var err error
-    conf, err = config.ImportConfig(configFile)
-    if err != nil {
-        log.Fatal(err)
-    }
+	var err error
+	conf, err = config.ImportConfig(configFile)
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	conn.hub = tcp.NewConnection("Hub", conf.HubAddr, conf.HubPort)
 	conn.hub.Connect()

@@ -16,20 +16,20 @@ import (
 	"github.com/gotk3/gotk3/gtk"
 )
 
-var numTemplates = 1_000
+var numTemplates = 10_000
 var numPages = 10_000
 var numGeometries = 100
 
 func TestGui(t *testing.T) {
 	defer CloseViz()
 
-    f, err := os.Create("../perf/viz_test.prof")
-    if err != nil {
-        log.Fatal(err)
-    }
+	f, err := os.Create("../perf/viz_test.prof")
+	if err != nil {
+		log.Fatal(err)
+	}
 
-    pprof.StartCPUProfile(f)
-    defer pprof.StopCPUProfile()
+	pprof.StartCPUProfile(f)
+	defer pprof.StopCPUProfile()
 	log.Printf(
 		"Testing with %d Templates, %d Pages and %d Geometries\n",
 		numTemplates, numPages, numGeometries,
@@ -38,7 +38,7 @@ func TestGui(t *testing.T) {
 	importHook = importRandomPages
 	chromaHub := hub.NewDataBase(numTemplates)
 
-    start := time.Now()
+	start := time.Now()
 	geo := []string{"rect", "text", "circle", "image"}
 
 	for i := 1; i <= numTemplates; i++ {
@@ -59,7 +59,7 @@ func TestGui(t *testing.T) {
 
 	go hub.StartHub(chromaHub, 9000)
 
-    time.Sleep(time.Second)
+	time.Sleep(time.Second)
 	InitialiseViz("./conf.json")
 
 	app, err := gtk.ApplicationNew("app.chroma.viz", glib.APPLICATION_FLAGS_NONE)
@@ -75,14 +75,14 @@ func importRandomPages(hub net.Conn, tempTree *TempTree, showTree *ShowTree) {
 	start := time.Now()
 	for i := 0; i < numPages; i++ {
 		index := (rand.Int() % numTemplates) + 1
-        page, err := shows.GetPage(hub, index)
-        if err != nil {
-            log.Print(err)
-            continue
-        }
+		page, err := shows.GetPage(hub, index)
+		if err != nil {
+			log.Print(err)
+			continue
+		}
 
-        page.PageNum = showTree.show.NumPages
-        showTree.show.NumPages++
+		page.PageNum = showTree.show.NumPages
+		showTree.show.NumPages++
 		showTree.ImportPage(page)
 	}
 

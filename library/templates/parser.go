@@ -10,7 +10,7 @@ import (
 // T -> {'id': 123, 'num_geo': 123, 'layer': 123, 'geometry': [G]}
 func parseTemplate(buf *bufio.Reader) (temp *Template, err error) {
 	data := make(map[string]string)
-    parser.NextToken(buf)
+	parser.NextToken(buf)
 	parser.MatchToken('{', buf)
 
 	for parser.C_tok.Tok == parser.STRING {
@@ -29,7 +29,7 @@ func parseTemplate(buf *bufio.Reader) (temp *Template, err error) {
 			var num_geo, temp_id, layer int
 			num_geo, err = strconv.Atoi(data["num_geo"])
 			if err != nil {
-                return
+				return
 			}
 
 			temp_id, err = strconv.Atoi(data["id"])
@@ -46,11 +46,11 @@ func parseTemplate(buf *bufio.Reader) (temp *Template, err error) {
 				data["name"] = "Template"
 			}
 
-            temp = NewTemplate(data["name"], temp_id, layer, num_geo)
-            temp.Geometry, err = parser.ParseProperty(buf, false)
-            if err != nil {
-                return
-            }
+			temp = NewTemplate(data["name"], temp_id, layer, num_geo)
+			temp.Geometry, err = parser.ParseProperty(buf, false)
+			if err != nil {
+				return
+			}
 
 			parser.MatchToken(']', buf)
 		}
@@ -60,11 +60,10 @@ func parseTemplate(buf *bufio.Reader) (temp *Template, err error) {
 		}
 	}
 
-    if temp == nil {
-        err = fmt.Errorf("Template not created")
-        return
-    }
+	if temp == nil {
+		err = fmt.Errorf("Template not created")
+		return
+	}
 
-    return 
+	return
 }
-

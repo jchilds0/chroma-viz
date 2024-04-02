@@ -22,9 +22,9 @@ const (
 )
 
 type TempTree struct {
-	treeView          *gtk.TreeView
-	treeList          *gtk.ListStore
-	sendTemplate      func(*templates.Template)
+	treeView     *gtk.TreeView
+	treeList     *gtk.ListStore
+	sendTemplate func(*templates.Template)
 }
 
 func NewTempTree(hub net.Conn, templateToShow func(*templates.Template)) *TempTree {
@@ -76,11 +76,11 @@ func NewTempTree(hub net.Conn, templateToShow func(*templates.Template)) *TempTr
 				log.Fatalf("Error sending template to show (%s)", err)
 			}
 
-            template, err := templates.GetTemplate(hub, tempID)
-            if err != nil {
-                log.Printf("Error receiving template %d (%s)", tempID, err)
-                return
-            }
+			template, err := templates.GetTemplate(hub, tempID)
+			if err != nil {
+				log.Printf("Error receiving template %d (%s)", tempID, err)
+				return
+			}
 
 			temp.sendTemplate(template)
 		})
@@ -89,43 +89,43 @@ func NewTempTree(hub net.Conn, templateToShow func(*templates.Template)) *TempTr
 }
 
 func (temp *TempTree) ImportTemplates(hub net.Conn) {
-    if hub == nil {
-        log.Print("Chroma Hub is disconnected")
-        return 
-    }
+	if hub == nil {
+		log.Print("Chroma Hub is disconnected")
+		return
+	}
 
-    s := fmt.Sprintf("ver 0 1 tempids;")
-    hub.Write([]byte(s))
+	s := fmt.Sprintf("ver 0 1 tempids;")
+	hub.Write([]byte(s))
 
-    buf := bufio.NewReader(hub)
-    for {
-        s, err := buf.ReadString(';')
-        if err != nil {
-            return 
-        }
+	buf := bufio.NewReader(hub)
+	for {
+		s, err := buf.ReadString(';')
+		if err != nil {
+			return
+		}
 
-        s = strings.TrimSuffix(s, ";")
-        if s == "EOF" {
-            return
-        }
+		s = strings.TrimSuffix(s, ";")
+		if s == "EOF" {
+			return
+		}
 
-        data := strings.Split(s, " ")
+		data := strings.Split(s, " ")
 
-        tempID, err := strconv.Atoi(data[0])
-        if err != nil {
-            log.Printf("Error reading template id (%s)", err)
-            continue
-        }
-        title := strings.Join(data[1:], " ")
+		tempID, err := strconv.Atoi(data[0])
+		if err != nil {
+			log.Printf("Error reading template id (%s)", err)
+			continue
+		}
+		title := strings.Join(data[1:], " ")
 
-        err = temp.treeList.Set(
-            temp.treeList.Append(),
-            []int{0, 1},
-            []interface{}{title, tempID},
-        )
-        if err != nil {
-            log.Printf("Error adding template to gtk treestore (%s)", err)
-            return
-        }
-    }
+		err = temp.treeList.Set(
+			temp.treeList.Append(),
+			[]int{0, 1},
+			[]interface{}{title, tempID},
+		)
+		if err != nil {
+			log.Printf("Error adding template to gtk treestore (%s)", err)
+			return
+		}
+	}
 }
