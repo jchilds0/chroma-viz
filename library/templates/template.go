@@ -8,6 +8,8 @@ import (
 	"log"
 	"net"
 	"os"
+	"strconv"
+	"strings"
 
 	"github.com/gotk3/gotk3/gtk"
 )
@@ -71,23 +73,54 @@ func TextToBuffer(text string) *gtk.TextView {
 }
 
 // T -> {'id': num, 'num_geo': num, 'layer': num, 'geometry': [G]} | T, T
-func (temp *Template) Encode() string {
+func (temp *Template) Encode() (s string, err error) {
+    var b strings.Builder
+    b.WriteString("{")
+
+    b.WriteString("'id': ")
+    b.WriteString(strconv.Itoa(temp.TempID))
+    b.WriteString(", ")
+
+    b.WriteString("'num_geo': ")
+    b.WriteString(strconv.Itoa(len(temp.Geometry)))
+    b.WriteString(", ")
+
+    b.WriteString("'name': '")
+    b.WriteString(temp.Title)
+    b.WriteString("', ")
+
+    b.WriteString("'layer': ")
+    b.WriteString(strconv.Itoa(temp.Layer))
+    b.WriteString(", ")
+
+    b.WriteString("'anim_on': '")
+    b.WriteString(temp.AnimateOn)
+    b.WriteString("', ")
+
+    b.WriteString("'anim_cont': '")
+    b.WriteString(temp.Continue)
+    b.WriteString("', ")
+
+    b.WriteString("'anim_off': '")
+    b.WriteString(temp.AnimateOff)
+    b.WriteString("', ")
+
+    b.WriteString("'geometry': [")
 	first := true
-	templates := ""
 	for geo_id, prop := range temp.Geometry {
-		if first {
-			templates = prop.Encode(geo_id)
-			first = false
-			continue
+		if !first {
+            b.WriteString(",")
 		}
 
-		templates = fmt.Sprintf("%s,%s", templates, prop.Encode(geo_id))
+        first = false
+
+        propStr, _ := prop.Encode(geo_id)
+        b.WriteString(propStr)
 	}
 
-	return fmt.Sprintf("{'id': %d, 'num_geo': %d, 'name': '%s', 'layer': %d, "+
-		"'anim_on': '%s', 'anim_cont': '%s', 'anim_off': '%s', 'geometry': [%s]}",
-		temp.TempID, len(temp.Geometry), temp.Title, temp.Layer,
-		temp.AnimateOn, temp.Continue, temp.AnimateOff, templates)
+    b.WriteString("]}")
+    s = b.String()
+    return
 }
 
 func ExportTemplate(temp *Template, filename string) error {

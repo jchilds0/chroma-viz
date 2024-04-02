@@ -24,23 +24,25 @@ func NewDataBase(numTemp int) *DataBase {
 }
 
 // S -> {'num_temp': num, 'templates': [T]}
-func (db *DataBase) EncodeDB() string {
+func (db *DataBase) EncodeDB() (s string, err error) {
+    var b strings.Builder
+
 	first := true
-	templates := ""
 	maxTempID := 0
 	for _, temp := range db.Templates {
 		maxTempID = max(maxTempID, temp.TempID)
 
-		if first {
-			templates = temp.Encode()
-			first = false
-			continue
+		if !first {
+            b.WriteString(",")
 		}
 
-		templates = fmt.Sprintf("%s,%s", templates, temp.Encode())
+        first = false
+        tempStr, _ := temp.Encode()
+        b.WriteString(tempStr)
 	}
 
-	return fmt.Sprintf("{'num_temp': %d, 'templates': [%s]}", maxTempID+2, templates)
+	s = fmt.Sprintf("{'num_temp': %d, 'templates': [%s]}", maxTempID+2, b.String())
+    return 
 }
 
 func (db *DataBase) TempIDs() (s string) {
@@ -137,7 +139,8 @@ func (db *DataBase) HandleConn(conn net.Conn) {
 
         switch cmds[3] {
         case "full":
-            _, err = conn.Write([]byte(db.EncodeDB()))
+            s, _ = db.EncodeDB()
+            _, err = conn.Write([]byte(s))
         case "tempids":
             _, err = conn.Write([]byte(db.TempIDs()))
         case "temp":
@@ -152,7 +155,8 @@ func (db *DataBase) HandleConn(conn net.Conn) {
                 continue
             }
 
-            _, err = conn.Write([]byte(template.Encode()))
+            s, _ := template.Encode()
+            _, err = conn.Write([]byte(s))
         default:
             log.Printf("Unknown request %s", string(req[:]))
             continue

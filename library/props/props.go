@@ -3,8 +3,9 @@ package props
 import (
 	"chroma-viz/library/attribute"
 	"encoding/json"
-	"fmt"
 	"log"
+	"strconv"
+	"strings"
 )
 
 const padding = 10
@@ -225,39 +226,64 @@ func (prop *Property) String() (s string) {
 }
 
 // G -> {'id': 123, 'name': 'abc', 'prop_type': 'abc', 'geo_type': 'abc', 'visible': [...], 'attr': [A]} | G, G
-func (prop *Property) Encode(geo_id int) string {
+func (prop *Property) Encode(geo_id int) (s string, err error) {
+    var b strings.Builder
 	first := true
-	attrs := ""
+    b.WriteString("{")
 
+    b.WriteString("'id': ")
+    b.WriteString(strconv.Itoa(geo_id))
+    b.WriteString(", ")
+
+    b.WriteString("'name': '")
+    b.WriteString(prop.Name)
+    b.WriteString("', ")
+
+    b.WriteString("'prop_type': '")
+    b.WriteString(PropType(prop.PropType))
+    b.WriteString("', ")
+
+    b.WriteString("'geo_type': '")
+    b.WriteString(GeoType(prop.PropType))
+    b.WriteString("', ")
+
+    b.WriteString("'visible': [")
+	for name, vis := range prop.Visible {
+        if !vis {
+            continue
+        }
+
+		if !first {
+            b.WriteString(",")
+		}
+
+        first = false
+        b.WriteString("'")
+        b.WriteString(name)
+        b.WriteString("': 'true'")
+	}
+    b.WriteString("], ")
+
+    first = true
+    b.WriteString("'attr': [")
 	for _, attr := range prop.Attr {
 		encode := attr.Encode()
 		if encode == "" {
 			continue
 		}
 
-		if first {
-			attrs = encode
-			first = false
-			continue
+		if !first {
+            b.WriteString(",")
 		}
+        first = false
 
-		attrs = fmt.Sprintf("%s,%s", attrs, encode)
+        b.WriteString(encode)
 	}
 
-	visible := ""
-	first = true
-	for name, vis := range prop.Visible {
-		if first {
-			visible = fmt.Sprintf("'%s': '%v'", name, vis)
-			first = false
-			continue
-		}
+    b.WriteString("]}")
+    s = b.String()
 
-		visible += fmt.Sprintf(",'%s': '%v'", name, vis)
-	}
-
-	return fmt.Sprintf("{'id': %d, 'name': '%s', 'prop_type': '%s', 'geo_type': '%s', 'visible': [%s], 'attr': [%s]}",
-		geo_id, prop.Name, PropType(prop.PropType), GeoType(prop.PropType), visible, attrs)
+    return
 }
 
 /*
