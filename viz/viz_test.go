@@ -2,7 +2,7 @@ package viz
 
 import (
 	"chroma-viz/hub"
-	"chroma-viz/library/templates"
+	"chroma-viz/library/shows"
 	"log"
 	"math/rand"
 	"net"
@@ -17,7 +17,7 @@ import (
 )
 
 var numTemplates = 1_000
-var numPages = 1_000
+var numPages = 10_000
 var numGeometries = 100
 
 func TestGui(t *testing.T) {
@@ -75,17 +75,18 @@ func importRandomPages(hub net.Conn, tempTree *TempTree, showTree *ShowTree) {
 	start := time.Now()
 	for i := 0; i < numPages; i++ {
 		index := (rand.Int() % numTemplates) + 1
-        template, err := templates.GetTemplate(hub, index)
+        page, err := shows.GetPage(hub, index)
         if err != nil {
             log.Print(err)
             continue
         }
 
-		page := showTree.show.AddPage(template.Title, template)
+        page.PageNum = showTree.show.NumPages
+        showTree.show.NumPages++
 		showTree.ImportPage(page)
 	}
 
-	t := time.Now()
-	elapsed := t.Sub(start)
+	end := time.Now()
+	elapsed := end.Sub(start)
 	log.Printf("Built Show in %s\n", elapsed)
 }

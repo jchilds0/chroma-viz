@@ -1,4 +1,4 @@
-package templates
+package shows
 
 import (
 	"bufio"
@@ -8,7 +8,7 @@ import (
 )
 
 // T -> {'id': 123, 'num_geo': 123, 'layer': 123, 'geometry': [G]}
-func parseTemplate(buf *bufio.Reader) (temp *Template, err error) {
+func parsePage(buf *bufio.Reader) (page *Page, err error) {
 	data := make(map[string]string)
     parser.NextToken(buf)
 	parser.MatchToken('{', buf)
@@ -46,8 +46,8 @@ func parseTemplate(buf *bufio.Reader) (temp *Template, err error) {
 				data["name"] = "Template"
 			}
 
-            temp = NewTemplate(data["name"], temp_id, layer, num_geo)
-            temp.Geometry, err = parser.ParseProperty(buf, false)
+            page = NewPage(0, temp_id, layer, num_geo, data["name"])
+            page.PropMap, err = parser.ParseProperty(buf, false)
             if err != nil {
                 return
             }
@@ -60,8 +60,8 @@ func parseTemplate(buf *bufio.Reader) (temp *Template, err error) {
 		}
 	}
 
-    if temp == nil {
-        err = fmt.Errorf("Template not created")
+    if page == nil {
+        err = fmt.Errorf("Page not created")
         return
     }
 

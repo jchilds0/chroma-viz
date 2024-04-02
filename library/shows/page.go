@@ -1,10 +1,13 @@
 package shows
 
 import (
+	"bufio"
 	"chroma-viz/library/props"
 	"chroma-viz/library/templates"
 	"encoding/json"
+	"fmt"
 	"log"
+	"net"
 	"os"
 	"strconv"
 
@@ -31,15 +34,32 @@ type Page struct {
 	PropMap    map[int]*props.Property
 }
 
-func newPage(pageNum int, title string, temp *templates.Template) *Page {
+func NewPage(pageNum, tempID, layer, numGeo int, title string) *Page {
 	page := &Page{
 		PageNum:    pageNum,
 		Title:      title,
-		TemplateID: temp.TempID,
-		Layer:      temp.Layer,
+		TemplateID: tempID,
+		Layer:      layer,
 	}
-	page.PropMap = make(map[int]*props.Property, temp.NumGeo)
 
+	page.PropMap = make(map[int]*props.Property, numGeo)
+    return page
+}
+
+func GetPage(hub net.Conn, tempid int) (*Page, error) {
+    s := fmt.Sprintf("ver 0 1 temp %d;", tempid)
+
+    _, err := hub.Write([]byte(s))
+    if err != nil {
+        return nil, err
+    }
+
+    buf := bufio.NewReader(hub)
+    page, err := parsePage(buf)
+    return page, err
+}
+
+func (page *Page) CopyTemplate(temp *templates.Template) {
 	for i, geo := range temp.Geometry {
 		page.PropMap[i] = props.NewProperty(geo.PropType, geo.Name, false, geo.Visible)
 		prop := page.PropMap[i]
@@ -48,8 +68,6 @@ func newPage(pageNum int, title string, temp *templates.Template) *Page {
 			attr.Copy(geo.Attr[name])
 		}
 	}
-
-	return page
 }
 
 func (page *Page) PageToListRow() *gtk.ListBoxRow {
@@ -123,3 +141,4 @@ func (page *Page) GetLayer() int {
 func (page *Page) GetPropMap() map[int]*props.Property {
 	return page.PropMap
 }
+
