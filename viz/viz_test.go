@@ -2,7 +2,7 @@ package viz
 
 import (
 	"chroma-viz/hub"
-	"chroma-viz/library/shows"
+	"chroma-viz/library/pages"
 	"log"
 	"math/rand"
 	"net"
@@ -75,7 +75,7 @@ func importRandomPages(hub net.Conn, tempTree *TempTree, showTree *ShowTree) {
 	start := time.Now()
 	for i := 0; i < numPages; i++ {
 		index := (rand.Int() % numTemplates) + 1
-		page, err := shows.GetPage(hub, index)
+		page, err := pages.GetPage(hub, index)
 		if err != nil {
 			log.Print(err)
 			continue

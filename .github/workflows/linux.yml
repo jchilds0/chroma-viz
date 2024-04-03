@@ -32,7 +32,7 @@ jobs:
       working-directory: ${{github.workspace}}/hub
       run: go test
 
-    - name: Test Show
-      working-directory: ${{github.workspace}}/library/shows
+    - name: Test Pages
+      working-directory: ${{github.workspace}}/library/pages
       run: go test
 
