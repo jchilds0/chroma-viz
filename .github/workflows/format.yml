@@ -1,5 +1,5 @@
 ---
-name: linux
+name: format
 
 on:
   push:
@@ -28,11 +28,6 @@ jobs:
           sudo apt-get update -qq
           sudo apt-get install libgtk-3-dev 
 
-    - name: Test Templates 
-      working-directory: ${{github.workspace}}/hub
-      run: go test
-
-    - name: Test Show
-      working-directory: ${{github.workspace}}/library/shows
-      run: go test
+    - name: gofmt
+      run: if [ "$(gofmt -s -l . | wc -l)" -gt 0]; then exit 1; fi
 
