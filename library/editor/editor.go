@@ -1,8 +1,8 @@
 package editor
 
 import (
+	"chroma-viz/library/pages"
 	"chroma-viz/library/props"
-	"chroma-viz/library/shows"
 	"chroma-viz/library/tcp"
 	"log"
 
@@ -142,7 +142,7 @@ func (edit *Editor) UpdateProps() {
 	}
 }
 
-func (editor *Editor) SetPage(page *shows.Page) {
+func (editor *Editor) SetPage(page *pages.Page) {
 	num_pages := editor.tabs.GetNPages()
 	for i := 0; i < num_pages; i++ {
 		editor.tabs.RemovePage(0)

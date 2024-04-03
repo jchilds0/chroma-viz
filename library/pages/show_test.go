@@ -1,4 +1,4 @@
-package shows
+package pages
 
 import (
 	"chroma-viz/library/attribute"

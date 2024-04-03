@@ -3,8 +3,8 @@ package viz
 import (
 	"chroma-viz/library/attribute"
 	"chroma-viz/library/gtk_utils"
+	"chroma-viz/library/pages"
 	"chroma-viz/library/props"
-	"chroma-viz/library/shows"
 	"chroma-viz/library/tcp"
 	"log"
 
@@ -29,11 +29,11 @@ var KEYTITLE = map[int]string{
 type ShowTree struct {
 	treeView *gtk.TreeView
 	treeList *gtk.ListStore
-	show     *shows.Show
+	show     *pages.Show
 	columns  [NUMCOL]bool
 }
 
-func NewShowTree(pageToEditor func(*shows.Page)) *ShowTree {
+func NewShowTree(pageToEditor func(*pages.Page)) *ShowTree {
 	var err error
 	showTree := &ShowTree{}
 
@@ -42,7 +42,7 @@ func NewShowTree(pageToEditor func(*shows.Page)) *ShowTree {
 		log.Fatalf("Error creating show (%s)", err)
 	}
 
-	showTree.show = shows.NewShow()
+	showTree.show = pages.NewShow()
 	showTree.treeView.SetReorderable(true)
 	showTree.columns = [NUMCOL]bool{true, true, true}
 
@@ -136,8 +136,8 @@ func NewShowTree(pageToEditor func(*shows.Page)) *ShowTree {
 	return showTree
 }
 
-func (showTree *ShowTree) ImportPage(page *shows.Page) {
-	showTree.show.Pages[page.PageNum] = page
+func (showTree *ShowTree) ImportPage(page *pages.Page) {
+	showTree.show.AddPage(page)
 
 	if page == nil {
 		log.Print("Missing template")
@@ -175,7 +175,7 @@ func (showTree *ShowTree) ImportPage(page *shows.Page) {
 }
 
 func (showTree *ShowTree) ImportShow(filename string) {
-	var show shows.Show
+	var show pages.Show
 	err := show.ImportShow(filename)
 	if err != nil {
 		log.Print(err)

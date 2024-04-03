@@ -3,9 +3,8 @@ package viz
 import (
 	"chroma-viz/library/editor"
 	"chroma-viz/library/gtk_utils"
-	"chroma-viz/library/shows"
+	"chroma-viz/library/pages"
 	"chroma-viz/library/tcp"
-	"chroma-viz/library/templates"
 	"fmt"
 	"log"
 	"net"
@@ -64,9 +63,9 @@ func SendEngine(page tcp.Animator, action int) {
 }
 
 /*
-	A hook which is run after the viz TempTree and
-	ShowTree are initialised. This allows a test to
-	to call the import methods of these structs
+A hook which is run after the viz TempTree and
+ShowTree are initialised. This allows a test to
+to call the import methods of these structs
 */
 var importHook = func(hub net.Conn, temp *TempTree, show *ShowTree) {}
 
@@ -89,13 +88,16 @@ func VizGui(app *gtk.Application) {
 	win.Add(box)
 
 	edit := editor.NewEditor(SendEngine, SendPreview)
-	showTree := NewShowTree(func(page *shows.Page) { edit.SetPage(page) })
-	tempTree := NewTempTree(conn.hub.Conn,
-		func(temp *templates.Template) {
-			page := showTree.show.AddPage(temp.Title, temp)
-			showTree.ImportPage(page)
-		},
-	)
+	showTree := NewShowTree(func(page *pages.Page) { edit.SetPage(page) })
+	tempTree := NewTempTree(func(tempid int) {
+		page, err := pages.GetPage(conn.hub.Conn, tempid)
+		if err != nil {
+			log.Print(err)
+			return
+		}
+
+		showTree.ImportPage(page)
+	})
 
 	edit.AddAction("Take On", true, func() { SendEngine(edit.Page, tcp.ANIMATE_ON) })
 	edit.AddAction("Continue", true, func() { SendEngine(edit.Page, tcp.CONTINUE) })
@@ -302,7 +304,7 @@ func guiImportPage(win *gtk.ApplicationWindow, showTree *ShowTree) error {
 	if res == gtk.RESPONSE_ACCEPT {
 		filename := dialog.GetFilename()
 
-		page := &shows.Page{}
+		page := &pages.Page{}
 		err := page.ImportPage(filename)
 		if err != nil {
 			return err
@@ -354,7 +356,7 @@ func guiExportPage(win *gtk.ApplicationWindow, showTree *ShowTree) error {
 			return fmt.Errorf("Page %d does not exist", pageNum)
 		}
 
-		err := shows.ExportPage(page, filename)
+		err := pages.ExportPage(page, filename)
 		if err != nil {
 			return err
 		}

@@ -1,8 +1,9 @@
-package shows
+package pages
 
 import (
 	"chroma-viz/library/templates"
 	"encoding/json"
+	"fmt"
 	"log"
 	"os"
 )
@@ -13,28 +14,29 @@ type Show struct {
 }
 
 func NewShow() *Show {
-	show := &Show{}
+	show := &Show{NumPages: 1}
 	show.Pages = make(map[int]*Page)
 	return show
 }
 
-func (show *Show) SetPage(pageNum int, title string, temp *templates.Template) {
-	page := NewPage(pageNum, temp.TempID, temp.Layer, temp.NumGeo, title)
-	page.PropMap = temp.GetPropMap()
+func (show *Show) AddPage(page *Page) {
+	page.PageNum = show.NumPages
+	show.Pages[page.PageNum] = page
+	show.NumPages++
+}
 
-	if _, ok := show.Pages[pageNum]; ok {
-		log.Printf("Page %d already exists", pageNum)
+func (show *Show) TempToPage(title string, temp *templates.Template) (page *Page, err error) {
+	show.NumPages++
+
+	page = NewPage(show.NumPages, temp.TempID, temp.Layer, temp.NumGeo, title)
+	page.CopyTemplate(temp)
+	if _, ok := show.Pages[page.PageNum]; ok {
+		err = fmt.Errorf("Page %d already exists", page.PageNum)
 		return
 	}
 
-	show.Pages[pageNum] = page
-}
-
-func (show *Show) AddPage(title string, temp *templates.Template) *Page {
-	show.NumPages++
-	show.SetPage(show.NumPages, title, temp)
-
-	return show.Pages[show.NumPages]
+	show.Pages[page.PageNum] = page
+	return
 }
 
 func (show *Show) ImportShow(filename string) error {

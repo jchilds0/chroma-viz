@@ -3,7 +3,6 @@ package viz
 import (
 	"bufio"
 	"chroma-viz/library/gtk_utils"
-	"chroma-viz/library/templates"
 	"fmt"
 	"log"
 	"net"
@@ -24,10 +23,10 @@ const (
 type TempTree struct {
 	treeView     *gtk.TreeView
 	treeList     *gtk.ListStore
-	sendTemplate func(*templates.Template)
+	sendTemplate func(int)
 }
 
-func NewTempTree(hub net.Conn, templateToShow func(*templates.Template)) *TempTree {
+func NewTempTree(templateToShow func(int)) *TempTree {
 	var err error
 	temp := &TempTree{sendTemplate: templateToShow}
 
@@ -76,13 +75,7 @@ func NewTempTree(hub net.Conn, templateToShow func(*templates.Template)) *TempTr
 				log.Fatalf("Error sending template to show (%s)", err)
 			}
 
-			template, err := templates.GetTemplate(hub, tempID)
-			if err != nil {
-				log.Printf("Error receiving template %d (%s)", tempID, err)
-				return
-			}
-
-			temp.sendTemplate(template)
+			temp.sendTemplate(tempID)
 		})
 
 	return temp
