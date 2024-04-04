@@ -95,7 +95,7 @@ func NewPropertyEditor(typed int) (propEdit *PropertyEditor, err error) {
 		propEdit.editor["rel_x"] = attribute.NewIntEditor("x", 0, float64(width))
 		propEdit.editor["rel_y"] = attribute.NewIntEditor("y", 0, float64(height))
 		propEdit.editor["scale"] = attribute.NewFloatEditor("Scale", 0.01, 10, 0.01)
-		propEdit.editor["string"] = attribute.NewStringEditor("Image")
+		propEdit.editor["image_id"] = attribute.NewIntEditor("Image", 0, 10)
 
 	default:
 		return nil, fmt.Errorf("Unknown Prop %d", typed)
@@ -112,7 +112,7 @@ var propOrder = map[int][]string{
 	GRAPH_PROP:  {"rel_x", "rel_y", "color", "graph_node"},
 	TICKER_PROP: {"rel_x", "rel_y", "color", "string"},
 	CLOCK_PROP:  {"rel_x", "rel_y", "color", "string"},
-	IMAGE_PROP:  {"rel_x", "rel_y", "scale", "string"},
+	IMAGE_PROP:  {"rel_x", "rel_y", "scale", "image_id"},
 }
 
 func (propEdit *PropertyEditor) AddEditors() {
@@ -123,6 +123,11 @@ func (propEdit *PropertyEditor) AddEditors() {
 	}
 
 	for _, name := range order {
+		if propEdit.editor[name] == nil {
+			log.Printf("PropEdit missing editor %s", name)
+			continue
+		}
+
 		propEdit.Box.PackStart(propEdit.editor[name].Box(), false, false, padding)
 	}
 }

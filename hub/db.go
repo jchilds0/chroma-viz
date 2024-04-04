@@ -8,6 +8,7 @@ import (
 	"io"
 	"log"
 	"net"
+	"os"
 	"strconv"
 	"strings"
 )
@@ -156,6 +157,23 @@ func (db *DataBase) HandleConn(conn net.Conn) {
 
 			s, _ := template.Encode()
 			_, err = conn.Write([]byte(s))
+		case "img":
+			logo, _ := os.ReadFile("data/logo.png")
+			lenByte0 := byte(len(logo) & (1<<8 - 1))
+			lenByte1 := byte((len(logo) >> 8) & (1<<8 - 1))
+			lenByte2 := byte((len(logo) >> 16) & (1<<8 - 1))
+			lenByte3 := byte((len(logo) >> 24) & (1<<8 - 1))
+
+			log.Printf("Logo length %d - bytes %d %d %d %d", len(logo), lenByte0, lenByte1, lenByte2, lenByte3)
+
+			// header
+			_, err = conn.Write([]byte{0, 1, 0, 0})
+
+			// image length
+			_, err = conn.Write([]byte{lenByte0, lenByte1, lenByte2, lenByte3})
+
+			// payload
+			_, err = conn.Write(logo)
 		default:
 			log.Printf("Unknown request %s", string(req[:]))
 			continue

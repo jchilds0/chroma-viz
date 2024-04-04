@@ -174,7 +174,7 @@ func NewProperty(typed int, name string, isTemp bool, visible map[string]bool) *
 		prop.Attr["rel_x"] = attribute.NewIntAttribute("rel_x")
 		prop.Attr["rel_y"] = attribute.NewIntAttribute("rel_y")
 		prop.Attr["scale"] = attribute.NewFloatAttribute("scale")
-		prop.Attr["string"] = attribute.NewStringAttribute("string")
+		prop.Attr["image_id"] = attribute.NewIntAttribute("image_id")
 
 	default:
 		log.Printf("Unknown Prop %d", typed)
