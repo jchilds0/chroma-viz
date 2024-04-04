@@ -33,6 +33,7 @@ const (
 	FLOAT
 	LIST
 	COLOR
+	ASSET
 )
 
 type Attribute interface {
@@ -94,6 +95,11 @@ func (attrJSON *AttributeJSON) UnmarshalJSON(b []byte) error {
 		colorAttr := &ColorAttribute{}
 		err = json.Unmarshal(b, colorAttr)
 		attrJSON.attr = colorAttr
+
+	case ASSET:
+		assetAttr := &AssetAttribute{}
+		err = json.Unmarshal(b, assetAttr)
+		attrJSON.attr = assetAttr
 
 	default:
 		log.Printf("Error unknown attribute type %d", attrJSON.Type)

@@ -12,7 +12,7 @@ import (
 	"strings"
 )
 
-var usage = "Usage: {import, export} {archive, template} <filename>.json"
+var usage = "Usage: {import, export} {archive, template, asset} <filename>.json [options]"
 var hubPort int
 
 func printMessage(s string) {
@@ -38,16 +38,16 @@ func HubApp(port int) {
 		read.Scan()
 		input := strings.Split(read.Text(), " ")
 
-		if len(input) != 3 {
+		if len(input) < 3 {
 			fmt.Println(usage)
 			continue
 		}
 
 		switch input[0] {
 		case "import":
-			imported(hub, input[1], input[2])
+			imported(hub, input[1:])
 		case "export":
-			exported(hub, input[1], input[2])
+			exported(hub, input[1:])
 		default:
 			fmt.Println(usage)
 		}
@@ -73,13 +73,17 @@ func StartHub(hub *DataBase, port int) {
 
 */
 
-func imported(hub *DataBase, typed, file string) {
+func imported(hub *DataBase, inputs []string) {
 	var err error
-	switch typed {
+	switch inputs[0] {
 	case "archive":
-		err = hub.ImportArchive(file)
+		err = hub.ImportArchive(inputs[1])
 	case "template":
-		err = hub.ImportTemplate(file)
+		err = hub.ImportTemplate(inputs[1])
+	case "asset":
+		var imageID int
+		imageID, err = strconv.Atoi(inputs[2])
+		hub.Assets[imageID], err = os.ReadFile(inputs[1])
 	default:
 		fmt.Println(usage)
 	}
@@ -89,12 +93,12 @@ func imported(hub *DataBase, typed, file string) {
 	}
 }
 
-func exported(hub *DataBase, typed, file string) {
-	switch typed {
+func exported(hub *DataBase, inputs []string) {
+	switch inputs[0] {
 	case "archive":
-		hub.ExportArchive(file)
+		hub.ExportArchive(inputs[1])
 	case "template":
-		hub.ExportTemplate(file)
+		hub.ExportTemplate(inputs[1])
 	default:
 		fmt.Println(usage)
 	}

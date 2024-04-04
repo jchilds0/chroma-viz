@@ -1,6 +1,7 @@
 package viz
 
 import (
+	"chroma-viz/library/attribute"
 	"chroma-viz/library/editor"
 	"chroma-viz/library/gtk_utils"
 	"chroma-viz/library/pages"
@@ -86,6 +87,8 @@ func VizGui(app *gtk.Application) {
 	}
 
 	win.Add(box)
+
+	attribute.InsertAsset("IMAGE/SCENE/LOGOS", "logo", 0)
 
 	edit := editor.NewEditor(SendEngine, SendPreview)
 	showTree := NewShowTree(func(page *pages.Page) { edit.SetPage(page) })

@@ -95,7 +95,7 @@ func NewPropertyEditor(typed int) (propEdit *PropertyEditor, err error) {
 		propEdit.editor["rel_x"] = attribute.NewIntEditor("x", 0, float64(width))
 		propEdit.editor["rel_y"] = attribute.NewIntEditor("y", 0, float64(height))
 		propEdit.editor["scale"] = attribute.NewFloatEditor("Scale", 0.01, 10, 0.01)
-		propEdit.editor["image_id"] = attribute.NewIntEditor("Image", 0, 10)
+		propEdit.editor["image_id"] = attribute.NewAssetEditor("Image")
 
 	default:
 		return nil, fmt.Errorf("Unknown Prop %d", typed)
