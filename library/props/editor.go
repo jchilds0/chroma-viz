@@ -123,12 +123,13 @@ func (propEdit *PropertyEditor) AddEditors() {
 	}
 
 	for _, name := range order {
-		if propEdit.editor[name] == nil {
+		edit := propEdit.editor[name]
+		if edit == nil {
 			log.Printf("PropEdit missing editor %s", name)
 			continue
 		}
 
-		propEdit.Box.PackStart(propEdit.editor[name].Box(), false, false, padding)
+		propEdit.Box.PackStart(edit.Box(), edit.Expand(), edit.Expand(), padding)
 	}
 }
 

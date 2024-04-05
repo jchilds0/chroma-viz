@@ -160,3 +160,7 @@ func (colorEdit *ColorEditor) Update(attr Attribute) error {
 func (colorEdit *ColorEditor) Box() *gtk.Box {
 	return colorEdit.box
 }
+
+func (colorEdit *ColorEditor) Expand() bool {
+	return false
+}

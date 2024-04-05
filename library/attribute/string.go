@@ -118,3 +118,7 @@ func (stringEdit *StringEditor) Update(attr Attribute) error {
 func (stringEdit *StringEditor) Box() *gtk.Box {
 	return stringEdit.box
 }
+
+func (stringEdit *StringEditor) Expand() bool {
+	return false
+}

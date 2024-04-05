@@ -118,3 +118,7 @@ func (intEdit *IntEditor) Update(attr Attribute) error {
 func (intEdit *IntEditor) Box() *gtk.Box {
 	return intEdit.box
 }
+
+func (intEdit *IntEditor) Expand() bool {
+	return false
+}

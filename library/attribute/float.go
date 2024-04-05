@@ -118,3 +118,7 @@ func (floatEdit *FloatEditor) Update(attr Attribute) error {
 func (floatEdit *FloatEditor) Box() *gtk.Box {
 	return floatEdit.box
 }
+
+func (floatEdit *FloatEditor) Expand() bool {
+	return false
+}

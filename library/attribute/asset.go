@@ -17,7 +17,7 @@ const (
 	NUM_COL
 )
 
-var cols = []glib.Type{glib.TYPE_STRING, glib.TYPE_INT}
+var cols = []glib.Type{glib.TYPE_INT, glib.TYPE_STRING}
 
 var defaultNodeSize = 10
 var rootNode = newAssetNode(defaultNodeSize)
@@ -119,10 +119,12 @@ func (asset *AssetAttribute) Decode(s string) {
 }
 
 type AssetEditor struct {
-	name   string
-	box    *gtk.Box
-	dirs   *gtk.TreeView
-	assets *gtk.TreeView
+	name        string
+	box         *gtk.Box
+	dirs        *gtk.TreeView
+	dirsStore   *gtk.TreeStore
+	assets      *gtk.TreeView
+	assetsStore *gtk.ListStore
 }
 
 func NewAssetEditor(name string) *AssetEditor {
@@ -130,7 +132,7 @@ func NewAssetEditor(name string) *AssetEditor {
 
 	assetEdit.box, _ = gtk.BoxNew(gtk.ORIENTATION_VERTICAL, 0)
 	assetEdit.box.SetVisible(true)
-	assetEdit.box.SetHExpand(true)
+	assetEdit.box.SetVExpand(true)
 
 	paned, _ := gtk.PanedNew(gtk.ORIENTATION_HORIZONTAL)
 	assetEdit.box.PackStart(paned, true, true, 0)
@@ -149,6 +151,20 @@ func NewAssetEditor(name string) *AssetEditor {
 	col, _ := gtk.TreeViewColumnNewWithAttribute("File", cell, "text", 0)
 	assetEdit.dirs.AppendColumn(col)
 
+	assetEdit.dirs.Connect("row-activated",
+		func(tree *gtk.TreeView, path *gtk.TreePath, column *gtk.TreeViewColumn) {
+			iter, _ := assetEdit.dirsStore.GetIter(path)
+			assets := assetEdit.GetAssets(iter)
+
+			assetEdit.assetsStore.Clear()
+
+			for i, name := range assets.assetNames {
+				row := assetEdit.assetsStore.Append()
+				assetEdit.assetsStore.SetValue(row, NAME, name)
+				assetEdit.assetsStore.SetValue(row, IMAGE_ID, assets.assetIDs[i])
+			}
+		})
+
 	assetsScroll, _ := gtk.ScrolledWindowNew(nil, nil)
 	paned.Pack2(assetsScroll, true, true)
 	assetsScroll.SetVisible(true)
@@ -156,6 +172,17 @@ func NewAssetEditor(name string) *AssetEditor {
 	assetEdit.assets, _ = gtk.TreeViewNew()
 	assetsScroll.Add(assetEdit.assets)
 	assetEdit.assets.SetVisible(true)
+
+	assetEdit.assetsStore, _ = gtk.ListStoreNew(cols...)
+	assetEdit.assets.SetModel(assetEdit.assetsStore)
+
+	cell, _ = gtk.CellRendererTextNew()
+	col, _ = gtk.TreeViewColumnNewWithAttribute("Image ID", cell, "text", IMAGE_ID)
+	assetEdit.assets.AppendColumn(col)
+
+	cell, _ = gtk.CellRendererTextNew()
+	col, _ = gtk.TreeViewColumnNewWithAttribute("Name", cell, "text", NAME)
+	assetEdit.assets.AppendColumn(col)
 
 	assetEdit.RefreshDirs()
 
@@ -166,6 +193,7 @@ func (asset *AssetEditor) RefreshDirs() {
 	model, _ := gtk.TreeStoreNew(glib.TYPE_STRING)
 	addChildren(model, nil, rootNode)
 
+	asset.dirsStore = model
 	asset.dirs.SetModel(model)
 }
 
@@ -178,8 +206,27 @@ func addChildren(model *gtk.TreeStore, iter *gtk.TreeIter, node *assetNode) {
 	}
 }
 
+func (asset *AssetEditor) GetAssets(iter *gtk.TreeIter) *assetNode {
+	var parent gtk.TreeIter
+	var parentNode *assetNode
+
+	ok := asset.dirsStore.IterParent(&parent, iter)
+	if ok {
+		parentNode = asset.GetAssets(&parent)
+	} else {
+		parentNode = rootNode
+	}
+
+	name, _ := gtk_utils.ModelGetValue[string](asset.dirsStore.ToTreeModel(), iter, 0)
+	return parentNode.childNodes[name]
+}
+
 func (asset *AssetEditor) Box() *gtk.Box {
 	return asset.box
+}
+
+func (asset *AssetEditor) Expand() bool {
+	return true
 }
 
 func (asset *AssetEditor) Update(attr Attribute) error {

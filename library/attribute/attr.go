@@ -129,4 +129,5 @@ type Editor interface {
 	Box() *gtk.Box
 	Update(Attribute) error
 	Name() string
+	Expand() bool
 }

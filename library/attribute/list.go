@@ -271,6 +271,8 @@ func NewListEditor(name string, columns []string) *ListEditor {
 	}
 
 	listEdit.treeView.SetVisible(true)
+	listEdit.treeView.SetVExpand(true)
+
 	for i, name := range columns {
 		gCell := NewGraphCell(i)
 		gCell.SetProperty("editable", true)
@@ -375,7 +377,7 @@ func NewListEditor(name string, columns []string) *ListEditor {
 	button.SetVisible(true)
 	actionBox.PackStart(button, false, false, padding)
 
-	listEdit.box.PackStart(actionBox, true, true, 0)
+	listEdit.box.PackStart(actionBox, false, false, 0)
 	listEdit.box.PackStart(frame, true, true, 0)
 	return listEdit
 }
@@ -397,4 +399,8 @@ func (listEdit *ListEditor) Update(attr Attribute) error {
 
 func (listEdit *ListEditor) Box() *gtk.Box {
 	return listEdit.box
+}
+
+func (listEdit *ListEditor) Expand() bool {
+	return true
 }

@@ -268,3 +268,7 @@ func (clockEdit *ClockEditor) Update(attr Attribute) error {
 func (clockEdit *ClockEditor) Box() *gtk.Box {
 	return clockEdit.box
 }
+
+func (clockEdit *ClockEditor) Expand() bool {
+	return false
+}
