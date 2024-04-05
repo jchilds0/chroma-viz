@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"chroma-viz/library/props"
 	"chroma-viz/library/templates"
+	"encoding/json"
 	"fmt"
 	"io"
 	"log"
@@ -15,12 +16,16 @@ import (
 type DataBase struct {
 	Templates map[int]*templates.Template
 	Assets    map[int][]byte
+	Dirs      map[int]string
+	Names     map[int]string
 }
 
 func NewDataBase(numTemp int) *DataBase {
 	db := &DataBase{}
 	db.Templates = make(map[int]*templates.Template, numTemp)
 	db.Assets = make(map[int][]byte, 10)
+	db.Dirs = make(map[int]string, 10)
+	db.Names = make(map[int]string, 10)
 
 	return db
 }
@@ -171,6 +176,21 @@ func (db *DataBase) HandleConn(conn net.Conn) {
 			_, err = conn.Write([]byte{0, 1, 0, 0})
 			_, err = conn.Write([]byte{lenByte3, lenByte2, lenByte1, lenByte0})
 			_, err = conn.Write(image)
+		case "assets":
+			var assets struct {
+				Dirs  map[int]string
+				Names map[int]string
+			}
+			assets.Dirs = db.Dirs
+			assets.Names = db.Names
+
+			assetsJson, err := json.Marshal(assets)
+			if err != nil {
+				break
+			}
+
+			_, err = conn.Write(assetsJson)
+			_, err = conn.Write([]byte{0})
 		default:
 			log.Printf("Unknown request %s", string(req[:]))
 			continue

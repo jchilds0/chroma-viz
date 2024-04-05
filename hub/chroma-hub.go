@@ -12,7 +12,11 @@ import (
 	"strings"
 )
 
-var usage = "Usage: {import, export} {archive, template, asset} <filename>.json [options]"
+var usage = "Usage: \n" +
+	"\t- import [archive|template] <filename>.json\n" +
+	"\t- import asset <filename>.png <directory> <name> <image id>\n" +
+	"\t- export [archive|template] <filename>.json"
+
 var hubPort int
 
 func printMessage(s string) {
@@ -81,9 +85,7 @@ func imported(hub *DataBase, inputs []string) {
 	case "template":
 		err = hub.ImportTemplate(inputs[1])
 	case "asset":
-		var imageID int
-		imageID, err = strconv.Atoi(inputs[2])
-		hub.Assets[imageID], err = os.ReadFile(inputs[1])
+		err = hub.ImportAsset(inputs[1:])
 	default:
 		fmt.Println(usage)
 	}
@@ -176,4 +178,25 @@ func (hub *DataBase) ImportTemplate(fileName string) error {
 
 func (hub *DataBase) ExportTemplate(fileName string) error {
 	return fmt.Errorf("Not implemented")
+}
+
+func (hub *DataBase) ImportAsset(args []string) (err error) {
+	if len(args) != 4 {
+		return fmt.Errorf("Incorrect number of args to import asset")
+	}
+
+	image, err := os.ReadFile(args[0])
+	if err != nil {
+		return
+	}
+
+	imageID, err := strconv.Atoi(args[3])
+	if err != nil {
+		return
+	}
+
+	hub.Assets[imageID] = image
+	hub.Dirs[imageID] = args[1]
+	hub.Names[imageID] = args[2]
+	return
 }

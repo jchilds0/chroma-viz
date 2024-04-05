@@ -1,9 +1,12 @@
 package attribute
 
 import (
+	"bufio"
 	"chroma-viz/library/gtk_utils"
+	"encoding/json"
 	"fmt"
 	"log"
+	"net"
 	"strconv"
 	"strings"
 
@@ -55,6 +58,33 @@ func InsertAsset(path, name string, id int) {
 	currentNode.assetNames = append(currentNode.assetNames, name)
 }
 
+func ImportAssets(hub net.Conn) (err error) {
+	hub.Write([]byte("ver 0 1 assets;"))
+	buf := bufio.NewReader(hub)
+
+	assetBytes, err := buf.ReadBytes(0)
+	if err != nil {
+		return
+	}
+
+	var asset struct {
+		Dirs  map[int]string
+		Names map[int]string
+	}
+
+	bytes := assetBytes[:len(assetBytes)-1]
+	err = json.Unmarshal(bytes, &asset)
+	if err != nil {
+		return
+	}
+
+	for id, path := range asset.Dirs {
+		InsertAsset(path, asset.Names[id], id)
+	}
+
+	return
+}
+
 type AssetAttribute struct {
 	Name  string
 	Type  int
@@ -89,11 +119,6 @@ func (asset *AssetAttribute) Update(edit Editor) (err error) {
 	}
 
 	selection, err = assetEdit.assets.GetSelection()
-	if err == nil {
-		_, iter, _ := selection.GetSelected()
-		asset.asset, _ = assetEdit.assetsStore.GetPath(iter)
-	}
-
 	_, selected, _ := selection.GetSelected()
 
 	asset.Value, err = gtk_utils.ModelGetValue[int](assetEdit.assetsStore.ToTreeModel(), selected, IMAGE_ID)
@@ -253,11 +278,6 @@ func (asset *AssetEditor) Update(attr Attribute) error {
 			asset.assetsStore.SetValue(row, NAME, name)
 			asset.assetsStore.SetValue(row, IMAGE_ID, assets.assetIDs[i])
 		}
-	}
-
-	assetSelection, err := asset.assets.GetSelection()
-	if err == nil && assetAttr.asset != nil {
-		assetSelection.SelectPath(assetAttr.dir)
 	}
 
 	return nil

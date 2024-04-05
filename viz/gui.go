@@ -88,9 +88,15 @@ func VizGui(app *gtk.Application) {
 
 	win.Add(box)
 
-	attribute.InsertAsset("IMAGE/SCENE/LOGOS", "logo", 0)
-	attribute.InsertAsset("IMAGE/SCENE/LOGOS", "image", 1)
-	attribute.InsertAsset("IMAGE/SCENE", "afl", 2)
+	start := time.Now()
+	err = attribute.ImportAssets(conn.hub.Conn)
+	if err != nil {
+		log.Print(err)
+	}
+
+	end := time.Now()
+	elapsed := end.Sub(start)
+	log.Printf("Imported Assets in %s", elapsed)
 
 	edit := editor.NewEditor(SendEngine, SendPreview)
 	showTree := NewShowTree(func(page *pages.Page) { edit.SetPage(page) })
@@ -113,11 +119,10 @@ func VizGui(app *gtk.Application) {
 	})
 	edit.PageEditor()
 
-	start := time.Now()
+	start = time.Now()
 	tempTree.ImportTemplates(conn.hub.Conn)
-	end := time.Now()
-	elapsed := end.Sub(start)
-
+	end = time.Now()
+	elapsed = end.Sub(start)
 	log.Printf("Imported Graphics Hub in %s", elapsed)
 	importHook(conn.hub.Conn, tempTree, showTree)
 
