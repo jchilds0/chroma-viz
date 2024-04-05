@@ -5,7 +5,6 @@ import (
 	"chroma-viz/library/props"
 	"encoding/json"
 	"fmt"
-	"log"
 	"net"
 	"os"
 	"strconv"
@@ -40,14 +39,19 @@ func NewTemplate(title string, id int, layer int, num_geo int) *Template {
 	return temp
 }
 
-func (temp *Template) TemplateToListRow() *gtk.ListBoxRow {
-	row1, err := gtk.ListBoxRowNew()
+func (temp *Template) TemplateToListRow() (row *gtk.ListBoxRow, err error) {
+	row, err = gtk.ListBoxRowNew()
 	if err != nil {
-		log.Fatalf("Error converting template to row (%s)", err)
+		return
 	}
 
-	row1.Add(TextToBuffer(temp.Title))
-	return row1
+	textView, err := TextToBuffer(temp.Title)
+	if err != nil {
+		return
+	}
+
+	row.Add(textView)
+	return
 }
 
 func (temp *Template) AddGeometry(name string, geo_id, typed int, visible map[string]bool) *props.Property {
@@ -57,19 +61,19 @@ func (temp *Template) AddGeometry(name string, geo_id, typed int, visible map[st
 	return temp.Geometry[geo_id]
 }
 
-func TextToBuffer(text string) *gtk.TextView {
-	text1, err := gtk.TextViewNew()
+func TextToBuffer(text string) (textView *gtk.TextView, err error) {
+	textView, err = gtk.TextViewNew()
 	if err != nil {
-		log.Fatalf("Error creating text buffer (%s)", err)
+		return
 	}
 
-	buffer, err := text1.GetBuffer()
+	buffer, err := textView.GetBuffer()
 	if err != nil {
-		log.Fatalf("Error creating text buffer (%s)", err)
+		return
 	}
 
 	buffer.SetText(text)
-	return text1
+	return
 }
 
 // T -> {'id': num, 'num_geo': num, 'layer': num, 'geometry': [G]} | T, T

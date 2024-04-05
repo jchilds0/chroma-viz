@@ -4,7 +4,6 @@ import (
 	"chroma-viz/library/pages"
 	"chroma-viz/library/props"
 	"chroma-viz/library/tcp"
-	"log"
 
 	"github.com/gotk3/gotk3/gtk"
 )
@@ -25,28 +24,27 @@ type Editor struct {
 	propEdit [][]*props.PropertyEditor
 }
 
-func NewEditor(sendEngine, sendPreview func(tcp.Animator, int)) *Editor {
-	var err error
-	editor := &Editor{}
+func NewEditor(sendEngine, sendPreview func(tcp.Animator, int)) (editor *Editor, err error) {
+	editor = &Editor{}
 
 	editor.Box, err = gtk.BoxNew(gtk.ORIENTATION_VERTICAL, 0)
 	if err != nil {
-		log.Fatalf("Error creating editor (%s)", err)
+		return
 	}
 
 	editor.actions, err = gtk.BoxNew(gtk.ORIENTATION_HORIZONTAL, 0)
 	if err != nil {
-		log.Fatalf("Error creating editor (%s)", err)
+		return
 	}
 
 	editor.Box.PackStart(editor.actions, false, false, 10)
-	return editor
+	return
 }
 
-func (editor *Editor) AddAction(label string, start bool, action func()) {
+func (editor *Editor) AddAction(label string, start bool, action func()) (err error) {
 	button, err := gtk.ButtonNewWithLabel(label)
 	if err != nil {
-		log.Fatalf("Error creating editor (%s)", err)
+		return
 	}
 
 	button.Connect("clicked", action)
@@ -56,25 +54,26 @@ func (editor *Editor) AddAction(label string, start bool, action func()) {
 	} else {
 		editor.actions.PackEnd(button, false, false, 10)
 	}
+
+	return
 }
 
-func (editor *Editor) PageEditor() {
-	var err error
+func (editor *Editor) PageEditor() (err error) {
 	editor.tabs, err = gtk.NotebookNew()
 	if err != nil {
-		log.Fatalf("Error creating editor (%s)", err)
+		return
 	}
 
 	editor.tabs.SetScrollable(true)
 
 	tab, err := gtk.BoxNew(gtk.ORIENTATION_VERTICAL, 0)
 	if err != nil {
-		log.Fatalf("Error creating editor (%s)", err)
+		return
 	}
 
 	tabLabel, err := gtk.LabelNew("Select A Page")
 	if err != nil {
-		log.Fatalf("Error creating editor (%s)", err)
+		return
 	}
 
 	editor.tabs.AppendPage(tab, tabLabel)
@@ -90,27 +89,28 @@ func (editor *Editor) PageEditor() {
 		for j := 0; j < num; j++ {
 			editor.propEdit[i][j], err = props.NewPropertyEditor(i)
 			if err != nil {
-				log.Printf("Error creating prop editor %d", i)
+				return
 			}
 		}
 	}
+
+	return
 }
 
-func (editor *Editor) PropertyEditor() {
-	var err error
+func (editor *Editor) PropertyEditor() (err error) {
 	editor.tabs, err = gtk.NotebookNew()
 	if err != nil {
-		log.Fatal(err)
+		return
 	}
 
 	tab, err := gtk.BoxNew(gtk.ORIENTATION_VERTICAL, 0)
 	if err != nil {
-		log.Fatalf("Error creating editor (%s)", err)
+		return
 	}
 
 	tabLabel, err := gtk.LabelNew("Select A Page")
 	if err != nil {
-		log.Fatalf("Error creating editor (%s)", err)
+		return
 	}
 
 	editor.tabs.AppendPage(tab, tabLabel)
@@ -126,10 +126,12 @@ func (editor *Editor) PropertyEditor() {
 		for j := 0; j < num; j++ {
 			editor.propEdit[i][j], err = props.NewPropertyEditor(i)
 			if err != nil {
-				log.Printf("Error creating prop editor %d", i)
+				return
 			}
 		}
 	}
+
+	return
 }
 
 func (edit *Editor) UpdateProps() {
@@ -142,7 +144,7 @@ func (edit *Editor) UpdateProps() {
 	}
 }
 
-func (editor *Editor) SetPage(page *pages.Page) {
+func (editor *Editor) SetPage(page *pages.Page) (err error) {
 	num_pages := editor.tabs.GetNPages()
 	for i := 0; i < num_pages; i++ {
 		editor.tabs.RemovePage(0)
@@ -151,26 +153,28 @@ func (editor *Editor) SetPage(page *pages.Page) {
 	editor.Page = page
 	editor.pairs = make([]Pairing, 0, 10)
 	propCount := make([]int, props.NUM_PROPS)
+
+	var label *gtk.Label
+
 	for _, prop := range editor.Page.GetPropMap() {
 		if prop == nil {
-			log.Print("Editor recieved nil prop")
 			continue
 		}
 
 		typed := prop.PropType
-		label, err := gtk.LabelNew(prop.Name)
+		label, err = gtk.LabelNew(prop.Name)
 		if err != nil {
-			log.Printf("Error setting page (%s)", err)
 			return
 		}
 
 		// pair up with prop editor
 		var propEdit *props.PropertyEditor
+
 		if propCount[typed] == len(editor.propEdit[typed]) {
 			// we ran out of editors, add a new one
 			propEdit, err = props.NewPropertyEditor(typed)
 			if err != nil {
-				log.Printf("Error creating prop editor %d", typed)
+				return
 			}
 
 			editor.propEdit[typed] = append(editor.propEdit[typed], propEdit)
@@ -183,9 +187,11 @@ func (editor *Editor) SetPage(page *pages.Page) {
 		propCount[typed]++
 		editor.pairs = append(editor.pairs, Pairing{prop: prop, editor: propEdit})
 	}
+
+	return
 }
 
-func (editor *Editor) SetProperty(prop *props.Property) {
+func (editor *Editor) SetProperty(prop *props.Property) (err error) {
 	num_pages := editor.tabs.GetNPages()
 	for i := 0; i < num_pages; i++ {
 		editor.tabs.RemovePage(0)
@@ -193,7 +199,6 @@ func (editor *Editor) SetProperty(prop *props.Property) {
 
 	geoLabel, err := gtk.LabelNew("Geometry")
 	if err != nil {
-		log.Printf("Error setting property (%s)", err)
 		return
 	}
 
@@ -202,13 +207,11 @@ func (editor *Editor) SetProperty(prop *props.Property) {
 
 	visibleBox, err := propEdit.CreateVisibleEditor()
 	if err != nil {
-		log.Printf("Error setting property (%s)", err)
 		return
 	}
 
 	visibleLabel, err := gtk.LabelNew("Visible")
 	if err != nil {
-		log.Printf("Error setting property (%s)", err)
 		return
 	}
 
@@ -217,6 +220,5 @@ func (editor *Editor) SetProperty(prop *props.Property) {
 
 	editor.tabs.AppendPage(propEdit.Box, geoLabel)
 	editor.tabs.AppendPage(visibleBox, visibleLabel)
-
-	//editor.Box.PackStart(editor.propBox, true, true, 0)
+	return
 }

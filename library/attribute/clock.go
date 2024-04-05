@@ -69,18 +69,20 @@ func (clockAttr *ClockAttribute) Encode() string {
 		clockAttr.Name, clockAttr.CurrentTime)
 }
 
-func (clockAttr *ClockAttribute) Decode(value string) {
+func (clockAttr *ClockAttribute) Decode(value string) (err error) {
 	clockAttr.CurrentTime = value
+	return
 }
 
-func (clockAttr *ClockAttribute) Copy(attr Attribute) {
+func (clockAttr *ClockAttribute) Copy(attr Attribute) (err error) {
 	clockAttrCopy, ok := attr.(*ClockAttribute)
 	if !ok {
-		log.Print("Attribute not ClockAttribute")
+		err = fmt.Errorf("Attribute not ClockAttribute")
 		return
 	}
 
 	clockAttr.CurrentTime = clockAttrCopy.CurrentTime
+	return
 }
 
 func (clockAttr *ClockAttribute) Update(edit Editor) error {
@@ -156,22 +158,19 @@ type ClockEditor struct {
 	name  string
 }
 
-func NewClockEditor(name string) *ClockEditor {
-	var err error
-	clockEdit := &ClockEditor{name: name}
+func NewClockEditor(name string) (clockEdit *ClockEditor, err error) {
+	clockEdit = &ClockEditor{name: name}
 
 	clockEdit.box, err = gtk.BoxNew(gtk.ORIENTATION_VERTICAL, 0)
 	if err != nil {
-		log.Print(err)
-		return nil
+		return
 	}
 
 	clockEdit.box.SetVisible(true)
 
 	actions, err := gtk.BoxNew(gtk.ORIENTATION_HORIZONTAL, 0)
 	if err != nil {
-		log.Print(err)
-		return nil
+		return
 	}
 
 	clockEdit.box.PackStart(actions, false, false, padding)
@@ -179,8 +178,7 @@ func NewClockEditor(name string) *ClockEditor {
 
 	startButton, err := gtk.ButtonNewWithLabel("Start")
 	if err != nil {
-		log.Print(err)
-		return nil
+		return
 	}
 
 	actions.PackStart(startButton, false, false, padding)
@@ -191,8 +189,7 @@ func NewClockEditor(name string) *ClockEditor {
 
 	pauseButton, err := gtk.ButtonNewWithLabel("Pause")
 	if err != nil {
-		log.Print(err)
-		return nil
+		return
 	}
 
 	actions.PackStart(pauseButton, false, false, padding)
@@ -203,8 +200,7 @@ func NewClockEditor(name string) *ClockEditor {
 
 	stopButton, err := gtk.ButtonNewWithLabel("Stop")
 	if err != nil {
-		log.Print(err)
-		return nil
+		return
 	}
 
 	actions.PackStart(stopButton, false, false, padding)
@@ -215,8 +211,7 @@ func NewClockEditor(name string) *ClockEditor {
 
 	timeBox, err := gtk.BoxNew(gtk.ORIENTATION_HORIZONTAL, 0)
 	if err != nil {
-		log.Print(err)
-		return nil
+		return
 	}
 
 	timeBox.SetVisible(true)
@@ -224,8 +219,7 @@ func NewClockEditor(name string) *ClockEditor {
 
 	label, err := gtk.LabelNew(name)
 	if err != nil {
-		log.Print(err)
-		return nil
+		return
 	}
 
 	label.SetVisible(true)
@@ -234,20 +228,18 @@ func NewClockEditor(name string) *ClockEditor {
 
 	buf, err := gtk.EntryBufferNew("", 0)
 	if err != nil {
-		log.Print(err)
-		return nil
+		return
 	}
 
 	clockEdit.entry, err = gtk.EntryNewWithBuffer(buf)
 	if err != nil {
-		log.Print(err)
-		return nil
+		return
 	}
 
 	clockEdit.entry.SetVisible(true)
 	timeBox.PackStart(clockEdit.entry, false, false, 0)
 
-	return clockEdit
+	return
 }
 
 func (clockEdit *ClockEditor) Name() string {

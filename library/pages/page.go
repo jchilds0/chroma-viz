@@ -6,7 +6,6 @@ import (
 	"chroma-viz/library/templates"
 	"encoding/json"
 	"fmt"
-	"log"
 	"net"
 	"os"
 	"strconv"
@@ -70,16 +69,27 @@ func (page *Page) CopyTemplate(temp *templates.Template) {
 	}
 }
 
-func (page *Page) PageToListRow() *gtk.ListBoxRow {
-	row1, err := gtk.ListBoxRowNew()
+func (page *Page) PageToListRow() (row *gtk.ListBoxRow, err error) {
+	row, err = gtk.ListBoxRowNew()
 	if err != nil {
-		log.Fatalf("Error converting page to list (%s)", err)
+		return
 	}
 
-	row1.Add(templates.TextToBuffer(strconv.Itoa(page.PageNum)))
-	row1.Add(templates.TextToBuffer(page.Title))
+	pageText, err := templates.TextToBuffer(strconv.Itoa(page.PageNum))
+	if err != nil {
+		return
+	}
 
-	return row1
+	row.Add(pageText)
+
+	titleText, err := templates.TextToBuffer(page.Title)
+	if err != nil {
+		return
+	}
+
+	row.Add(titleText)
+
+	return
 }
 
 func (page *Page) UnmarshalJSON(b []byte) error {

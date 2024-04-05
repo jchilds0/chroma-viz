@@ -2,7 +2,7 @@ package attribute
 
 import (
 	"encoding/json"
-	"log"
+	"fmt"
 
 	"github.com/gotk3/gotk3/gtk"
 )
@@ -39,11 +39,11 @@ const (
 type Attribute interface {
 	String() string
 	Update(Editor) error
-	Copy(Attribute)
+	Copy(Attribute) error
 
 	// A -> {'name': string, 'value': string} | A, A
 	Encode() string
-	Decode(string)
+	Decode(string) error
 }
 
 type AttributeJSON struct {
@@ -102,7 +102,7 @@ func (attrJSON *AttributeJSON) UnmarshalJSON(b []byte) error {
 		attrJSON.attr = assetAttr
 
 	default:
-		log.Printf("Error unknown attribute type %d", attrJSON.Type)
+		return fmt.Errorf("Error unknown attribute type %d", attrJSON.Type)
 	}
 
 	if err != nil {

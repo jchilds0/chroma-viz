@@ -2,7 +2,6 @@ package attribute
 
 import (
 	"fmt"
-	"log"
 	"strconv"
 	"strings"
 
@@ -37,41 +36,40 @@ func (colorAttr *ColorAttribute) Encode() string {
 		colorAttr.Name, colorAttr.Red, colorAttr.Green, colorAttr.Blue, colorAttr.Alpha)
 }
 
-func (colorAttr *ColorAttribute) Decode(value string) {
-	var err error
-
+func (colorAttr *ColorAttribute) Decode(value string) (err error) {
 	s := strings.Split(value, " ")
 	if len(s) < 4 {
-		log.Println("Error decoding color attr")
+		err = fmt.Errorf("Error decoding color attr")
 		return
 	}
 
 	colorAttr.Red, err = strconv.ParseFloat(s[0], 64)
 	if err != nil {
-		log.Printf("Error decoding color attr (%s)", err)
+		return
 	}
 
 	colorAttr.Green, err = strconv.ParseFloat(s[1], 64)
 	if err != nil {
-		log.Printf("Error decoding color attr (%s)", err)
+		return
 	}
 
 	colorAttr.Blue, err = strconv.ParseFloat(s[2], 64)
 	if err != nil {
-		log.Printf("Error decoding color attr (%s)", err)
+		return
 	}
 
 	colorAttr.Alpha, err = strconv.ParseFloat(s[3], 64)
 	if err != nil {
-		log.Printf("Error decoding color attr (%s)", err)
+		return
 	}
 
+	return
 }
 
-func (colorAttr *ColorAttribute) Copy(attr Attribute) {
+func (colorAttr *ColorAttribute) Copy(attr Attribute) (err error) {
 	colorAttrCopy, ok := attr.(*ColorAttribute)
 	if !ok {
-		log.Print("Attribute not ColorAttribute")
+		err = fmt.Errorf("Attribute not ColorAttribute")
 		return
 	}
 
@@ -79,12 +77,14 @@ func (colorAttr *ColorAttribute) Copy(attr Attribute) {
 	colorAttr.Green = colorAttrCopy.Green
 	colorAttr.Blue = colorAttrCopy.Blue
 	colorAttr.Alpha = colorAttrCopy.Alpha
+	return
 }
 
-func (colorAttr *ColorAttribute) Update(edit Editor) error {
+func (colorAttr *ColorAttribute) Update(edit Editor) (err error) {
 	colorEdit, ok := edit.(*ColorEditor)
 	if !ok {
-		return fmt.Errorf("ColorAttribute.Update requires ColorEditor")
+		err = fmt.Errorf("ColorAttribute.Update requires ColorEditor")
+		return
 	}
 
 	rgba := colorEdit.color.GetRGBA()
@@ -93,7 +93,7 @@ func (colorAttr *ColorAttribute) Update(edit Editor) error {
 	colorAttr.Blue = rgba.GetBlue()
 	colorAttr.Alpha = rgba.GetAlpha()
 
-	return nil
+	return
 }
 
 type ColorEditor struct {
@@ -102,21 +102,18 @@ type ColorEditor struct {
 	name  string
 }
 
-func NewColorEditor(name string) *ColorEditor {
-	var err error
-	colorEdit := &ColorEditor{name: name}
+func NewColorEditor(name string) (colorEdit *ColorEditor, err error) {
+	colorEdit = &ColorEditor{name: name}
 
 	colorEdit.box, err = gtk.BoxNew(gtk.ORIENTATION_HORIZONTAL, 0)
 	if err != nil {
-		log.Print(err)
-		return nil
+		return
 	}
 
 	colorEdit.box.SetVisible(true)
 	label, err := gtk.LabelNew(name)
 	if err != nil {
-		log.Print(err)
-		return nil
+		return
 	}
 
 	label.SetVisible(true)
@@ -125,14 +122,13 @@ func NewColorEditor(name string) *ColorEditor {
 
 	colorEdit.color, err = gtk.ColorButtonNew()
 	if err != nil {
-		log.Print(err)
-		return nil
+		return
 	}
 
 	colorEdit.color.SetVisible(true)
 	colorEdit.box.PackStart(colorEdit.color, false, false, padding)
 
-	return colorEdit
+	return
 }
 
 func (colorEdit *ColorEditor) Name() string {

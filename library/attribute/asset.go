@@ -5,7 +5,6 @@ import (
 	"chroma-viz/library/gtk_utils"
 	"encoding/json"
 	"fmt"
-	"log"
 	"net"
 	"strconv"
 	"strings"
@@ -125,14 +124,15 @@ func (asset *AssetAttribute) Update(edit Editor) (err error) {
 	return err
 }
 
-func (asset *AssetAttribute) Copy(attr Attribute) {
+func (asset *AssetAttribute) Copy(attr Attribute) (err error) {
 	assetAttrCopy, ok := attr.(*AssetAttribute)
 	if !ok {
-		log.Printf("Attribute not an AssetAttribute")
+		err = fmt.Errorf("Attribute not an AssetAttribute")
 		return
 	}
 
 	asset.Value = assetAttrCopy.Value
+	return
 }
 
 func (asset *AssetAttribute) Encode() string {
@@ -140,13 +140,9 @@ func (asset *AssetAttribute) Encode() string {
 		asset.Name, asset.Value)
 }
 
-func (asset *AssetAttribute) Decode(s string) {
-	var err error
-
+func (asset *AssetAttribute) Decode(s string) (err error) {
 	asset.Value, err = strconv.Atoi(s)
-	if err != nil {
-		log.Printf("Error decoding int attr (%s)", err)
-	}
+	return
 }
 
 type AssetEditor struct {

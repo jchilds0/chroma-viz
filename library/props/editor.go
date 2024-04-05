@@ -3,7 +3,6 @@ package props
 import (
 	"chroma-viz/library/attribute"
 	"fmt"
-	"log"
 
 	"github.com/gotk3/gotk3/gtk"
 )
@@ -51,50 +50,50 @@ func NewPropertyEditor(typed int) (propEdit *PropertyEditor, err error) {
 
 	switch typed {
 	case RECT_PROP:
-		propEdit.editor["rel_x"] = attribute.NewIntEditor("x", -float64(width), float64(width))
-		propEdit.editor["rel_y"] = attribute.NewIntEditor("y", -float64(width), float64(height))
-		propEdit.editor["width"] = attribute.NewIntEditor("Width", 0, float64(width))
-		propEdit.editor["height"] = attribute.NewIntEditor("Height", 0, float64(height))
-		propEdit.editor["rounding"] = attribute.NewIntEditor("Rounding", 0, float64(width))
-		propEdit.editor["color"] = attribute.NewColorEditor("Color")
+		propEdit.editor["rel_x"], _ = attribute.NewIntEditor("x", -float64(width), float64(width))
+		propEdit.editor["rel_y"], _ = attribute.NewIntEditor("y", -float64(width), float64(height))
+		propEdit.editor["width"], _ = attribute.NewIntEditor("Width", 0, float64(width))
+		propEdit.editor["height"], _ = attribute.NewIntEditor("Height", 0, float64(height))
+		propEdit.editor["rounding"], _ = attribute.NewIntEditor("Rounding", 0, float64(width))
+		propEdit.editor["color"], _ = attribute.NewColorEditor("Color")
 
 	case TEXT_PROP:
-		propEdit.editor["rel_x"] = attribute.NewIntEditor("x", 0, float64(width))
-		propEdit.editor["rel_y"] = attribute.NewIntEditor("y", 0, float64(height))
-		propEdit.editor["string"] = attribute.NewStringEditor("Text")
-		propEdit.editor["color"] = attribute.NewColorEditor("Color")
+		propEdit.editor["rel_x"], _ = attribute.NewIntEditor("x", 0, float64(width))
+		propEdit.editor["rel_y"], _ = attribute.NewIntEditor("y", 0, float64(height))
+		propEdit.editor["string"], _ = attribute.NewStringEditor("Text")
+		propEdit.editor["color"], _ = attribute.NewColorEditor("Color")
 
 	case CIRCLE_PROP:
-		propEdit.editor["rel_x"] = attribute.NewIntEditor("Center x", 0, float64(width))
-		propEdit.editor["rel_y"] = attribute.NewIntEditor("Center y", 0, float64(height))
-		propEdit.editor["inner_radius"] = attribute.NewIntEditor("Inner Radius", 0, float64(width))
-		propEdit.editor["outer_radius"] = attribute.NewIntEditor("Outer Radius", 0, float64(width))
-		propEdit.editor["start_angle"] = attribute.NewIntEditor("Start Angle", 0, 360)
-		propEdit.editor["end_angle"] = attribute.NewIntEditor("End Angle", 0, 360)
-		propEdit.editor["color"] = attribute.NewColorEditor("Color")
+		propEdit.editor["rel_x"], _ = attribute.NewIntEditor("Center x", 0, float64(width))
+		propEdit.editor["rel_y"], _ = attribute.NewIntEditor("Center y", 0, float64(height))
+		propEdit.editor["inner_radius"], _ = attribute.NewIntEditor("Inner Radius", 0, float64(width))
+		propEdit.editor["outer_radius"], _ = attribute.NewIntEditor("Outer Radius", 0, float64(width))
+		propEdit.editor["start_angle"], _ = attribute.NewIntEditor("Start Angle", 0, 360)
+		propEdit.editor["end_angle"], _ = attribute.NewIntEditor("End Angle", 0, 360)
+		propEdit.editor["color"], _ = attribute.NewColorEditor("Color")
 
 	case GRAPH_PROP:
-		propEdit.editor["rel_x"] = attribute.NewIntEditor("x", 0, float64(width))
-		propEdit.editor["rel_y"] = attribute.NewIntEditor("y", 0, float64(height))
-		propEdit.editor["graph_node"] = attribute.NewListEditor("Graph", []string{"x Pos", "y Pos"})
-		propEdit.editor["color"] = attribute.NewColorEditor("Color")
+		propEdit.editor["rel_x"], _ = attribute.NewIntEditor("x", 0, float64(width))
+		propEdit.editor["rel_y"], _ = attribute.NewIntEditor("y", 0, float64(height))
+		propEdit.editor["graph_node"], _ = attribute.NewListEditor("Graph", []string{"x Pos", "y Pos"})
+		propEdit.editor["color"], _ = attribute.NewColorEditor("Color")
 
 	case TICKER_PROP:
-		propEdit.editor["rel_x"] = attribute.NewIntEditor("x", 0, float64(width))
-		propEdit.editor["rel_y"] = attribute.NewIntEditor("y", 0, float64(height))
-		propEdit.editor["string"] = attribute.NewListEditor("Ticker", []string{"Text"})
-		propEdit.editor["color"] = attribute.NewColorEditor("Color")
+		propEdit.editor["rel_x"], _ = attribute.NewIntEditor("x", 0, float64(width))
+		propEdit.editor["rel_y"], _ = attribute.NewIntEditor("y", 0, float64(height))
+		propEdit.editor["string"], _ = attribute.NewListEditor("Ticker", []string{"Text"})
+		propEdit.editor["color"], _ = attribute.NewColorEditor("Color")
 
 	case CLOCK_PROP:
-		propEdit.editor["rel_x"] = attribute.NewIntEditor("x", 0, float64(width))
-		propEdit.editor["rel_y"] = attribute.NewIntEditor("y", 0, float64(height))
-		propEdit.editor["string"] = attribute.NewClockEditor("Time")
-		propEdit.editor["color"] = attribute.NewColorEditor("Color")
+		propEdit.editor["rel_x"], _ = attribute.NewIntEditor("x", 0, float64(width))
+		propEdit.editor["rel_y"], _ = attribute.NewIntEditor("y", 0, float64(height))
+		propEdit.editor["string"], _ = attribute.NewClockEditor("Time")
+		propEdit.editor["color"], _ = attribute.NewColorEditor("Color")
 
 	case IMAGE_PROP:
-		propEdit.editor["rel_x"] = attribute.NewIntEditor("x", 0, float64(width))
-		propEdit.editor["rel_y"] = attribute.NewIntEditor("y", 0, float64(height))
-		propEdit.editor["scale"] = attribute.NewFloatEditor("Scale", 0.01, 10, 0.01)
+		propEdit.editor["rel_x"], _ = attribute.NewIntEditor("x", 0, float64(width))
+		propEdit.editor["rel_y"], _ = attribute.NewIntEditor("y", 0, float64(height))
+		propEdit.editor["scale"], _ = attribute.NewFloatEditor("Scale", 0.01, 10, 0.01)
 		propEdit.editor["image_id"] = attribute.NewAssetEditor("Image")
 
 	default:
@@ -115,22 +114,24 @@ var propOrder = map[int][]string{
 	IMAGE_PROP:  {"rel_x", "rel_y", "scale", "image_id"},
 }
 
-func (propEdit *PropertyEditor) AddEditors() {
+func (propEdit *PropertyEditor) AddEditors() (err error) {
 	order := propOrder[propEdit.PropType]
 
 	if len(order) == 0 {
-		log.Printf("Prop order for %d has length 0", propEdit.PropType)
+		err = fmt.Errorf("Prop order for %d has length 0", propEdit.PropType)
+		return
 	}
 
 	for _, name := range order {
 		edit := propEdit.editor[name]
 		if edit == nil {
-			log.Printf("PropEdit missing editor %s", name)
 			continue
 		}
 
 		propEdit.Box.PackStart(edit.Box(), edit.Expand(), edit.Expand(), padding)
 	}
+
+	return
 }
 
 func (propEdit *PropertyEditor) CreateVisibleEditor() (box *gtk.Box, err error) {
@@ -207,21 +208,23 @@ func (propEdit *PropertyEditor) CreateVisibleEditor() (box *gtk.Box, err error) 
 /*
 Update PropertyEditor with the data in Property
 */
-func (propEdit *PropertyEditor) UpdateEditor(prop *Property) {
+func (propEdit *PropertyEditor) UpdateEditor(prop *Property) (err error) {
 	for name, edit := range propEdit.editor {
 		if _, ok := prop.Attr[name]; !ok {
 			continue
 		}
 
 		edit.Box().SetVisible(prop.Visible[name])
-		err := edit.Update(prop.Attr[name])
+		err = edit.Update(prop.Attr[name])
 		if err != nil {
-			log.Print(err)
+			return
 		}
 	}
+
+	return
 }
 
-func (propEdit *PropertyEditor) UpdateEditorAllProp(prop *Property) {
+func (propEdit *PropertyEditor) UpdateEditorAllProp(prop *Property) (err error) {
 	for name, edit := range propEdit.editor {
 		if _, ok := prop.Attr[name]; !ok {
 			continue
@@ -232,9 +235,11 @@ func (propEdit *PropertyEditor) UpdateEditorAllProp(prop *Property) {
 			check.SetActive(prop.Visible[name])
 		}
 
-		err := edit.Update(prop.Attr[name])
+		err = edit.Update(prop.Attr[name])
 		if err != nil {
-			log.Print(err)
+			return
 		}
 	}
+
+	return
 }

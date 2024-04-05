@@ -2,7 +2,6 @@ package attribute
 
 import (
 	"fmt"
-	"log"
 	"strconv"
 
 	"github.com/gotk3/gotk3/gtk"
@@ -32,23 +31,25 @@ func (intAttr *IntAttribute) Encode() string {
 		intAttr.Name, intAttr.Value)
 }
 
-func (intAttr *IntAttribute) Decode(value string) {
-	var err error
-
+func (intAttr *IntAttribute) Decode(value string) (err error) {
 	intAttr.Value, err = strconv.Atoi(value)
 	if err != nil {
-		log.Printf("Error decoding int attr (%s)", err)
+		err = fmt.Errorf("Error decoding int attr (%s)", err)
+		return
 	}
+
+	return
 }
 
-func (intAttr *IntAttribute) Copy(attr Attribute) {
+func (intAttr *IntAttribute) Copy(attr Attribute) (err error) {
 	intAttrCopy, ok := attr.(*IntAttribute)
 	if !ok {
-		log.Printf("Attribute not IntAttribute")
+		err = fmt.Errorf("Attribute not IntAttribute")
 		return
 	}
 
 	intAttr.Value = intAttrCopy.Value
+	return
 }
 
 func (intAttr *IntAttribute) Update(edit Editor) error {
@@ -67,21 +68,18 @@ type IntEditor struct {
 	name   string
 }
 
-func NewIntEditor(name string, lower, upper float64) *IntEditor {
-	var err error
-	intEdit := &IntEditor{name: name}
+func NewIntEditor(name string, lower, upper float64) (intEdit *IntEditor, err error) {
+	intEdit = &IntEditor{name: name}
 
 	intEdit.box, err = gtk.BoxNew(gtk.ORIENTATION_HORIZONTAL, 0)
 	if err != nil {
-		log.Print(err)
-		return nil
+		return
 	}
 
 	intEdit.box.SetVisible(true)
 	label, err := gtk.LabelNew(name)
 	if err != nil {
-		log.Print(err)
-		return nil
+		return
 	}
 
 	label.SetVisible(true)
@@ -90,15 +88,14 @@ func NewIntEditor(name string, lower, upper float64) *IntEditor {
 
 	intEdit.button, err = gtk.SpinButtonNewWithRange(lower, upper, 1)
 	if err != nil {
-		log.Print(err)
-		return nil
+		return
 	}
 
 	intEdit.button.SetVisible(true)
 	intEdit.button.SetValue(0)
 	intEdit.box.PackStart(intEdit.button, false, false, 0)
 
-	return intEdit
+	return
 }
 
 func (intEdit *IntEditor) Name() string {

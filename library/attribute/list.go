@@ -16,14 +16,14 @@ type graphCell struct {
 	columnNum int
 }
 
-func NewGraphCell(i int) *graphCell {
+func NewGraphCell(i int) (gCell *graphCell, err error) {
 	cell, err := gtk.CellRendererTextNew()
 	if err != nil {
-		log.Fatalf("Error creating graph cell (%s)", err)
+		err = fmt.Errorf("Error creating graph cell (%s)", err)
 	}
 
-	gCell := &graphCell{CellRendererText: cell, columnNum: i}
-	return gCell
+	gCell = &graphCell{CellRendererText: cell, columnNum: i}
+	return
 }
 
 type ListAttribute struct {
@@ -35,9 +35,8 @@ type ListAttribute struct {
 	ListStore    *gtk.ListStore
 }
 
-func NewListAttribute(name string, numCols int, selected bool) *ListAttribute {
-	var err error
-	list := &ListAttribute{
+func NewListAttribute(name string, numCols int, selected bool) (list *ListAttribute, err error) {
+	list = &ListAttribute{
 		Name:     name,
 		Type:     LIST,
 		NumCols:  numCols,
@@ -50,11 +49,7 @@ func NewListAttribute(name string, numCols int, selected bool) *ListAttribute {
 	}
 
 	list.ListStore, err = gtk.ListStoreNew(cols...)
-	if err != nil {
-		log.Fatalf("Error creating list store")
-	}
-
-	return list
+	return
 }
 
 func (listAttr *ListAttribute) String() (s string) {
@@ -65,13 +60,15 @@ func (listAttr *ListAttribute) String() (s string) {
 			return
 		}
 
-		return listAttr.stringRow(listAttr.selectedIter)
+		s, _ = listAttr.stringRow(listAttr.selectedIter)
+		return
 	}
 
 	iter, ok := listAttr.ListStore.GetIterFirst()
 	i := 0
 	for ok {
-		s = s + listAttr.stringRow(iter)
+		row, _ := listAttr.stringRow(iter)
+		s = s + row
 		ok = listAttr.ListStore.IterNext(iter)
 		i++
 	}
@@ -80,24 +77,23 @@ func (listAttr *ListAttribute) String() (s string) {
 	return
 }
 
-func (listAttr *ListAttribute) stringRow(iter *gtk.TreeIter) (s string) {
+func (listAttr *ListAttribute) stringRow(iter *gtk.TreeIter) (s string, err error) {
+	var item string
 	model := &listAttr.ListStore.TreeModel
 	s = listAttr.Name + "="
 
 	for j := 0; j < listAttr.NumCols-1; j++ {
-		item, err := gtk_utils.ModelGetValue[string](model, iter, j)
+		item, err = gtk_utils.ModelGetValue[string](model, iter, j)
 		if err != nil {
-			log.Print("Error getting list attr entry (%s)", err)
-			return ""
+			return
 		}
 
 		s = s + item + " "
 	}
 
-	item, err := gtk_utils.ModelGetValue[string](model, iter, listAttr.NumCols-1)
+	item, err = gtk_utils.ModelGetValue[string](model, iter, listAttr.NumCols-1)
 	if err != nil {
-		log.Print("Error getting list attr entry (%s)", err)
-		return ""
+		return
 	}
 
 	s = s + item + "#"
@@ -112,7 +108,7 @@ func (listAttr *ListAttribute) Encode() (s string) {
 			return
 		}
 
-		row := listAttr.encodeRow(listAttr.selectedIter)
+		row, _ := listAttr.encodeRow(listAttr.selectedIter)
 		return fmt.Sprintf("{'name': '%s', 'value': '%s'}",
 			listAttr.Name, strings.Join(row, " "))
 	}
@@ -120,7 +116,7 @@ func (listAttr *ListAttribute) Encode() (s string) {
 	s = fmt.Sprintf("{'name': 'num_node', 'value': '%d'}", listAttr.NumCols-1)
 	iter, ok := listAttr.ListStore.GetIterFirst()
 	for ok {
-		row := listAttr.encodeRow(iter)
+		row, _ := listAttr.encodeRow(iter)
 		s += fmt.Sprintf(",{'name': '%s', 'value': '%s'}",
 			listAttr.Name, strings.Join(row, " "))
 
@@ -130,7 +126,8 @@ func (listAttr *ListAttribute) Encode() (s string) {
 	return
 }
 
-func (listAttr *ListAttribute) Decode(value string) {
+func (listAttr *ListAttribute) Decode(value string) error {
+	return nil
 }
 
 type ListAttributeJSON struct {
@@ -147,8 +144,13 @@ func (listAttr *ListAttribute) MarshalJSON() (b []byte, err error) {
 	}
 
 	iter, ok := listAttr.ListStore.GetIterFirst()
+	var row []string
 	for ok {
-		row := listAttr.encodeRow(iter)
+		row, err = listAttr.encodeRow(iter)
+		if err != nil {
+			return
+		}
+
 		ok = listAttr.ListStore.IterNext(iter)
 		listAttrJSON.ListStore = append(listAttrJSON.ListStore, row)
 	}
@@ -173,7 +175,7 @@ func (listAttr *ListAttribute) UnmarshalJSON(b []byte) error {
 
 	listAttr.ListStore, err = gtk.ListStoreNew(cols...)
 	if err != nil {
-		log.Fatalf("Error creating list store")
+		return err
 	}
 
 	colIdx := make([]int, listAttr.NumCols)
@@ -193,27 +195,29 @@ func (listAttr *ListAttribute) UnmarshalJSON(b []byte) error {
 	return nil
 }
 
-func (listAttr *ListAttribute) encodeRow(iter *gtk.TreeIter) []string {
-	var err error
-	row := make([]string, listAttr.NumCols)
+func (listAttr *ListAttribute) encodeRow(iter *gtk.TreeIter) (row []string, err error) {
+	row = make([]string, listAttr.NumCols)
 	model := &listAttr.ListStore.TreeModel
 
 	for j := 0; j < listAttr.NumCols; j++ {
 		row[j], err = gtk_utils.ModelGetValue[string](model, iter, j)
 		if err != nil {
-			log.Printf("Error encoding list attr row (%s)", err)
+			err = fmt.Errorf("Error encoding list attr row (%s)", err)
+			return
 		}
 	}
 
-	return row
+	return
 }
 
-func (listAttr *ListAttribute) Copy(attr Attribute) {
+func (listAttr *ListAttribute) Copy(attr Attribute) (err error) {
 	_, ok := attr.(*ListAttribute)
 	if !ok {
-		log.Print("Attribute not ListAttribute")
+		err = fmt.Errorf("Attribute not ListAttribute")
 		return
 	}
+
+	return
 }
 
 func (listAttr *ListAttribute) Update(edit Editor) error {
@@ -255,26 +259,29 @@ type ListEditor struct {
 	listStore *gtk.ListStore
 }
 
-func NewListEditor(name string, columns []string) *ListEditor {
-	var err error
-	listEdit := &ListEditor{name: name}
+func NewListEditor(name string, columns []string) (listEdit *ListEditor, err error) {
+	listEdit = &ListEditor{name: name}
 	listEdit.box, err = gtk.BoxNew(gtk.ORIENTATION_VERTICAL, 0)
 	if err != nil {
-		log.Print(err)
-		return nil
+		return
 	}
 
 	listEdit.treeView, err = gtk.TreeViewNew()
 	if err != nil {
-		log.Print(err)
-		return nil
+		return
 	}
 
 	listEdit.treeView.SetVisible(true)
 	listEdit.treeView.SetVExpand(true)
 
+	var gCell *graphCell
+	var column *gtk.TreeViewColumn
 	for i, name := range columns {
-		gCell := NewGraphCell(i)
+		gCell, err = NewGraphCell(i)
+		if err != nil {
+			return
+		}
+
 		gCell.SetProperty("editable", true)
 		gCell.Connect("edited",
 			func(cell *gtk.CellRendererText, path string, text string) {
@@ -291,9 +298,9 @@ func NewListEditor(name string, columns []string) *ListEditor {
 
 				listEdit.listStore.SetValue(iter, gCell.columnNum, text)
 			})
-		column, err := gtk.TreeViewColumnNewWithAttribute(name, gCell, "text", i)
+		column, err = gtk.TreeViewColumnNewWithAttribute(name, gCell, "text", i)
 		if err != nil {
-			log.Printf("Error creating list column (%s)", err)
+			return
 		}
 
 		listEdit.treeView.AppendColumn(column)
@@ -301,8 +308,7 @@ func NewListEditor(name string, columns []string) *ListEditor {
 
 	frame, err := gtk.FrameNew(name)
 	if err != nil {
-		log.Print(err)
-		return nil
+		return
 	}
 
 	frame.Set("border-width", 2*padding)
@@ -311,16 +317,14 @@ func NewListEditor(name string, columns []string) *ListEditor {
 
 	actionBox, err := gtk.BoxNew(gtk.ORIENTATION_HORIZONTAL, 0)
 	if err != nil {
-		log.Print(err)
-		return nil
+		return
 	}
 
 	actionBox.SetVisible(true)
 
 	label, err := gtk.LabelNew("Data Rows")
 	if err != nil {
-		log.Print(err)
-		return nil
+		return
 	}
 
 	label.SetVisible(true)
@@ -330,8 +334,7 @@ func NewListEditor(name string, columns []string) *ListEditor {
 	// add rows
 	button, err := gtk.ButtonNewWithLabel("+")
 	if err != nil {
-		log.Print(err)
-		return nil
+		return
 	}
 
 	button.Connect("clicked", func() {
@@ -349,8 +352,7 @@ func NewListEditor(name string, columns []string) *ListEditor {
 	// remove rows
 	button, err = gtk.ButtonNewWithLabel("-")
 	if err != nil {
-		log.Printf("Error creating graph table (%s)", err)
-		return nil
+		return
 	}
 
 	button.Connect("clicked", func() {
@@ -379,7 +381,7 @@ func NewListEditor(name string, columns []string) *ListEditor {
 
 	listEdit.box.PackStart(actionBox, false, false, 0)
 	listEdit.box.PackStart(frame, true, true, 0)
-	return listEdit
+	return
 }
 
 func (listEdit *ListEditor) Name() string {

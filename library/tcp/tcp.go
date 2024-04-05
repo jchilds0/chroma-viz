@@ -42,16 +42,15 @@ func NewConnection(name, addr string, port int) *Connection {
 	return conn
 }
 
-func (conn *Connection) Connect() {
-	var err error
+func (conn *Connection) Connect() (err error) {
 	conn.Conn, err = net.Dial("tcp", conn.addr+":"+strconv.Itoa(conn.port))
-
 	if err != nil {
-		log.Print(err)
 		conn.connected = false
+		return
 	}
 
 	conn.connected = true
+	return
 }
 
 /*

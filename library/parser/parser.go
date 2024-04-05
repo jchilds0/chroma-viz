@@ -4,7 +4,6 @@ import (
 	"bufio"
 	"chroma-viz/library/props"
 	"fmt"
-	"log"
 	"strconv"
 )
 
@@ -129,21 +128,19 @@ func parseAttributes(prop *props.Property, buf *bufio.Reader) (err error) {
 	return nil
 }
 
-func MatchToken(tok int, buf *bufio.Reader) {
+func MatchToken(tok int, buf *bufio.Reader) (err error) {
 	if tok != C_tok.Tok {
-		log.Printf("Incorrect token %s, expected %c", C_tok.Value, tok)
+		err = fmt.Errorf("Incorrect token %s, expected %c", C_tok.Value, tok)
 		return
 	}
 
-	NextToken(buf)
+	err = NextToken(buf)
+	return
 }
 
-func NextToken(buf *bufio.Reader) {
-	var err error
+func NextToken(buf *bufio.Reader) (err error) {
 	C_tok, err = getToken(buf)
-	if err != nil {
-		log.Fatalf("Error getting next token (%s)", err)
-	}
+	return
 }
 
 var peek = ' '

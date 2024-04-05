@@ -2,7 +2,6 @@ package attribute
 
 import (
 	"fmt"
-	"log"
 
 	"github.com/gotk3/gotk3/gtk"
 )
@@ -31,18 +30,20 @@ func (stringAttr *StringAttribute) Encode() string {
 		stringAttr.Name, stringAttr.Value)
 }
 
-func (stringAttr *StringAttribute) Decode(value string) {
+func (stringAttr *StringAttribute) Decode(value string) error {
 	stringAttr.Value = value
+	return nil
 }
 
-func (stringAttr *StringAttribute) Copy(attr Attribute) {
+func (stringAttr *StringAttribute) Copy(attr Attribute) (err error) {
 	stringAttrCopy, ok := attr.(*StringAttribute)
 	if !ok {
-		log.Print("Attribute not StringAttribute")
+		err = fmt.Errorf("Attribute not StringAttribute")
 		return
 	}
 
 	stringAttr.Value = stringAttrCopy.Value
+	return
 }
 
 func (stringAttr *StringAttribute) Update(edit Editor) error {
@@ -62,21 +63,18 @@ type StringEditor struct {
 	name  string
 }
 
-func NewStringEditor(name string) *StringEditor {
-	var err error
-	stringEdit := &StringEditor{name: name}
+func NewStringEditor(name string) (stringEdit *StringEditor, err error) {
+	stringEdit = &StringEditor{name: name}
 
 	stringEdit.box, err = gtk.BoxNew(gtk.ORIENTATION_HORIZONTAL, 0)
 	if err != nil {
-		log.Print(err)
-		return nil
+		return
 	}
 
 	stringEdit.box.SetVisible(true)
 	label, err := gtk.LabelNew(name)
 	if err != nil {
-		log.Print(err)
-		return nil
+		return
 	}
 
 	label.SetVisible(true)
@@ -85,20 +83,18 @@ func NewStringEditor(name string) *StringEditor {
 
 	buf, err := gtk.EntryBufferNew("", 0)
 	if err != nil {
-		log.Print(err)
-		return nil
+		return
 	}
 
 	stringEdit.Entry, err = gtk.EntryNewWithBuffer(buf)
 	if err != nil {
-		log.Print(err)
-		return nil
+		return
 	}
 
 	stringEdit.Entry.SetVisible(true)
 	stringEdit.box.PackStart(stringEdit.Entry, false, false, 0)
 
-	return stringEdit
+	return
 }
 
 func (stringEdit *StringEditor) Name() string {

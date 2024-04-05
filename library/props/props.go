@@ -3,7 +3,6 @@ package props
 import (
 	"chroma-viz/library/attribute"
 	"encoding/json"
-	"log"
 	"strconv"
 	"strings"
 )
@@ -56,7 +55,6 @@ func PropType(prop int) string {
 	case IMAGE_PROP:
 		return "image"
 	default:
-		log.Printf("Unknown prop type %d", prop)
 		return ""
 	}
 }
@@ -78,7 +76,6 @@ func GeoType(prop int) string {
 	case IMAGE_PROP:
 		return "image"
 	default:
-		log.Printf("Unknown geo type %d", prop)
 		return ""
 	}
 }
@@ -155,13 +152,13 @@ func NewProperty(typed int, name string, isTemp bool, visible map[string]bool) *
 	case GRAPH_PROP:
 		prop.Attr["rel_x"] = attribute.NewIntAttribute("rel_x")
 		prop.Attr["rel_y"] = attribute.NewIntAttribute("rel_y")
-		prop.Attr["graph_node"] = attribute.NewListAttribute("graph_node", 2, false)
+		prop.Attr["graph_node"], _ = attribute.NewListAttribute("graph_node", 2, false)
 		prop.Attr["color"] = attribute.NewColorAttribute("color")
 
 	case TICKER_PROP:
 		prop.Attr["rel_x"] = attribute.NewIntAttribute("rel_x")
 		prop.Attr["rel_y"] = attribute.NewIntAttribute("rel_y")
-		prop.Attr["string"] = attribute.NewListAttribute("string", 1, true)
+		prop.Attr["string"], _ = attribute.NewListAttribute("string", 1, true)
 		prop.Attr["color"] = attribute.NewColorAttribute("color")
 
 	case CLOCK_PROP:
@@ -177,7 +174,6 @@ func NewProperty(typed int, name string, isTemp bool, visible map[string]bool) *
 		prop.Attr["image_id"] = attribute.NewAssetAttribute("image_id")
 
 	default:
-		log.Printf("Unknown Prop %d", typed)
 		return nil
 	}
 
@@ -289,7 +285,7 @@ func (prop *Property) Encode(geo_id int) (s string, err error) {
 /*
 Update Property with the data in PropertyEditor
 */
-func (prop *Property) UpdateProp(propEdit *PropertyEditor) {
+func (prop *Property) UpdateProp(propEdit *PropertyEditor) (err error) {
 	editors := propEdit.editor
 
 	for name, attr := range prop.Attr {
@@ -303,9 +299,11 @@ func (prop *Property) UpdateProp(propEdit *PropertyEditor) {
 
 		err := attr.Update(editors[name])
 		if err != nil {
-			log.Print(err)
+			return err
 		}
 	}
+
+	return
 }
 
 /*

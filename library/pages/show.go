@@ -4,7 +4,6 @@ import (
 	"chroma-viz/library/templates"
 	"encoding/json"
 	"fmt"
-	"log"
 	"os"
 )
 
@@ -53,23 +52,18 @@ func (show *Show) ImportShow(filename string) error {
 	return nil
 }
 
-func (show *Show) ExportShow(filename string) {
+func (show *Show) ExportShow(filename string) (err error) {
 	file, err := os.Create(filename)
 	if err != nil {
-		log.Printf("Error exporting show (%s)", err)
 		return
 	}
 	defer file.Close()
 
 	buf, err := json.Marshal(show)
 	if err != nil {
-		log.Printf("Error exporting show (%s)", err)
 		return
 	}
 
 	_, err = file.Write(buf)
-	if err != nil {
-		log.Printf("Error exporting show (%s)", err)
-		return
-	}
+	return
 }
