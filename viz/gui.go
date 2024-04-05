@@ -88,6 +88,10 @@ func VizGui(app *gtk.Application) {
 
 	win.Add(box)
 
+	attribute.InsertAsset("IMAGE/SCENE/LOGOS", "logo", 0)
+	attribute.InsertAsset("IMAGE/SCENE/LOGOS", "image", 1)
+	attribute.InsertAsset("IMAGE/SCENE", "afl", 2)
+
 	edit := editor.NewEditor(SendEngine, SendPreview)
 	showTree := NewShowTree(func(page *pages.Page) { edit.SetPage(page) })
 	tempTree := NewTempTree(func(tempid int) {

@@ -59,6 +59,8 @@ type AssetAttribute struct {
 	Name  string
 	Type  int
 	Value int
+	dir   *gtk.TreePath
+	asset *gtk.TreePath
 }
 
 func NewAssetAttribute(name string) *AssetAttribute {
@@ -74,23 +76,27 @@ func (asset *AssetAttribute) String() string {
 	return fmt.Sprintf("%s=%d#", asset.Name, asset.Value)
 }
 
-func (asset *AssetAttribute) Update(edit Editor) error {
+func (asset *AssetAttribute) Update(edit Editor) (err error) {
 	assetEdit, ok := edit.(*AssetEditor)
 	if !ok {
 		return fmt.Errorf("AssetAttribute.Update requires AssetEditor")
 	}
 
-	selection, err := assetEdit.assets.GetSelection()
-	if err != nil {
-		return err
+	selection, err := assetEdit.dirs.GetSelection()
+	if err == nil {
+		_, iter, _ := selection.GetSelected()
+		asset.dir, _ = assetEdit.dirsStore.GetPath(iter)
 	}
 
-	model, selected, ok := selection.GetSelected()
-	if !ok {
-		return fmt.Errorf("No asset selected")
+	selection, err = assetEdit.assets.GetSelection()
+	if err == nil {
+		_, iter, _ := selection.GetSelected()
+		asset.asset, _ = assetEdit.assetsStore.GetPath(iter)
 	}
 
-	asset.Value, err = gtk_utils.ModelGetValue[int](model.ToTreeModel(), selected, IMAGE_ID)
+	_, selected, _ := selection.GetSelected()
+
+	asset.Value, err = gtk_utils.ModelGetValue[int](assetEdit.assetsStore.ToTreeModel(), selected, IMAGE_ID)
 	return err
 }
 
@@ -230,9 +236,28 @@ func (asset *AssetEditor) Expand() bool {
 }
 
 func (asset *AssetEditor) Update(attr Attribute) error {
-	_, ok := attr.(*AssetAttribute)
+	assetAttr, ok := attr.(*AssetAttribute)
 	if !ok {
 		return fmt.Errorf("AssetEditor.Update requires AssetAttribute")
+	}
+
+	dirSelection, err := asset.dirs.GetSelection()
+	if err == nil && assetAttr.dir != nil {
+		dirSelection.SelectPath(assetAttr.dir)
+		_, iter, _ := dirSelection.GetSelected()
+		assets := asset.GetAssets(iter)
+		asset.assetsStore.Clear()
+
+		for i, name := range assets.assetNames {
+			row := asset.assetsStore.Append()
+			asset.assetsStore.SetValue(row, NAME, name)
+			asset.assetsStore.SetValue(row, IMAGE_ID, assets.assetIDs[i])
+		}
+	}
+
+	assetSelection, err := asset.assets.GetSelection()
+	if err == nil && assetAttr.asset != nil {
+		assetSelection.SelectPath(assetAttr.dir)
 	}
 
 	return nil

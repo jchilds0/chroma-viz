@@ -128,13 +128,8 @@ func (db *DataBase) HandleConn(conn net.Conn) {
 			continue
 		}
 
-		if cmds[0] != "ver" {
-			log.Fatalf("Request in incorrect format (%s)", s)
-			continue
-		}
-
 		if cmds[1] != "0" || cmds[2] != "1" {
-			log.Fatalf("Request in incorrect format (%s)", s)
+			log.Fatalf("Request has incorrect ver %s %s, expected 0 1 (%s)", cmds[1], cmds[2], s)
 			continue
 		}
 
@@ -163,7 +158,9 @@ func (db *DataBase) HandleConn(conn net.Conn) {
 			image := db.Assets[imageID]
 			if image == nil {
 				log.Printf("image %d does not exist", imageID)
-				break
+				_, err = conn.Write([]byte{0, 1, 0, 0})
+				_, err = conn.Write([]byte{0, 0, 0, 0})
+				continue
 			}
 
 			lenByte0 := byte(len(image) & (1<<8 - 1))
@@ -172,7 +169,7 @@ func (db *DataBase) HandleConn(conn net.Conn) {
 			lenByte3 := byte((len(image) >> 24) & (1<<8 - 1))
 
 			_, err = conn.Write([]byte{0, 1, 0, 0})
-			_, err = conn.Write([]byte{lenByte0, lenByte1, lenByte2, lenByte3})
+			_, err = conn.Write([]byte{lenByte3, lenByte2, lenByte1, lenByte0})
 			_, err = conn.Write(image)
 		default:
 			log.Printf("Unknown request %s", string(req[:]))
