@@ -58,6 +58,11 @@ func InsertAsset(path, name string, id int) {
 }
 
 func ImportAssets(hub net.Conn) (err error) {
+	if hub == nil {
+		err = fmt.Errorf("Chroma Hub is disconnected")
+		return
+	}
+
 	hub.Write([]byte("ver 0 1 assets;"))
 	buf := bufio.NewReader(hub)
 

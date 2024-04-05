@@ -52,7 +52,10 @@ func ArtistGui(app *gtk.Application) {
 	win.SetDefaultSize(800, 600)
 	win.SetTitle("Chroma Artist")
 
-	editView := editor.NewEditor(func(page tcp.Animator, action int) {}, SendPreview)
+	editView, err := editor.NewEditor(func(page tcp.Animator, action int) {}, SendPreview)
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	tempView, err := NewTempTree(
 		func(propID int) {
@@ -60,6 +63,10 @@ func ArtistGui(app *gtk.Application) {
 			editView.SetProperty(prop)
 		},
 	)
+
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	editView.AddAction("Save", true, func() {
 		// sync parent attrs

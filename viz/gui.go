@@ -98,7 +98,11 @@ func VizGui(app *gtk.Application) {
 	elapsed := end.Sub(start)
 	log.Printf("Imported Assets in %s", elapsed)
 
-	edit := editor.NewEditor(SendEngine, SendPreview)
+	edit, err := editor.NewEditor(SendEngine, SendPreview)
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	showTree := NewShowTree(func(page *pages.Page) { edit.SetPage(page) })
 	tempTree := NewTempTree(func(tempid int) {
 		page, err := pages.GetPage(conn.hub.Conn, tempid)
