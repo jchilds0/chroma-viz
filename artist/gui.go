@@ -111,11 +111,14 @@ func ArtistGui(app *gtk.Application) {
 		log.Fatalf("Error starting artist gui (%s)", err)
 	}
 
-	importPage := glib.SimpleActionNew("import_page", nil)
-	app.AddAction(importPage)
+	newTemplate := glib.SimpleActionNew("new_template", nil)
+	app.AddAction(newTemplate)
 
-	exportPage := glib.SimpleActionNew("export_page", nil)
-	app.AddAction(exportPage)
+	importTemplate := glib.SimpleActionNew("import_template", nil)
+	app.AddAction(importTemplate)
+
+	exportTemplate := glib.SimpleActionNew("export_template", nil)
+	app.AddAction(exportTemplate)
 
 	app.SetMenubar(menu.(*glib.MenuModel))
 
@@ -189,7 +192,22 @@ func ArtistGui(app *gtk.Application) {
 	prevBox.PackStart(preview, true, true, 0)
 
 	/* actions */
-	importPage.Connect("activate", func() {
+	newTemplate.Connect("activate", func() {
+		tempView.model.Clear()
+
+		template.Title = ""
+		template.TempID = 0
+		template.Layer = 0
+		template.Geometry = make(map[int]*props.Property)
+
+		title.SetText(template.Title)
+		tempid.SetText("")
+		layer.SetText("")
+
+		SendPreview(editView.Page, tcp.CLEAN)
+	})
+
+	importTemplate.Connect("activate", func() {
 		err := guiImportPage(win, tempView)
 		if err != nil {
 			log.Print(err)
@@ -213,7 +231,7 @@ func ArtistGui(app *gtk.Application) {
 		layer.SetText(strconv.Itoa(template.Layer))
 	})
 
-	exportPage.Connect("activate", func() {
+	exportTemplate.Connect("activate", func() {
 		switch animSelector.GetActiveText() {
 		case "None", "":
 			template.AnimateOn = ""

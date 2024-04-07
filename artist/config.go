@@ -8,12 +8,12 @@ import (
 	"log"
 )
 
-func InitialiseArtist() {
+func InitialiseArtist(fileName string) {
 	var err error
 	conn = make(map[string]*tcp.Connection)
 	chromaHub = hub.NewDataBase(10)
 
-	conf, err = config.ImportConfig("./artist/conf.json")
+	conf, err = config.ImportConfig(fileName)
 	if err != nil {
 		log.Fatal(err)
 	}
