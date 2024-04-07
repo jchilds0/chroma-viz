@@ -137,12 +137,12 @@ func NewShowTree(pageToEditor func(*pages.Page)) *ShowTree {
 }
 
 func (showTree *ShowTree) ImportPage(page *pages.Page) {
-	showTree.show.AddPage(page)
-
 	if page == nil {
-		log.Print("Missing template")
+		log.Print("Attempted to import nil page")
 		return
 	}
+
+	showTree.show.AddPage(page)
 
 	for _, prop := range page.PropMap {
 		if prop.PropType != props.CLOCK_PROP {
@@ -184,4 +184,10 @@ func (showTree *ShowTree) ImportShow(filename string) {
 	for _, page := range show.Pages {
 		showTree.ImportPage(page)
 	}
+}
+
+func (ShowTree *ShowTree) Clean() {
+	ShowTree.treeList.Clear()
+	ShowTree.show.Pages = make(map[int]*pages.Page, 10)
+	ShowTree.show.NumPages = 1
 }

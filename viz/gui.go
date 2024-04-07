@@ -143,6 +143,12 @@ func VizGui(app *gtk.Application) {
 
 	app.SetMenubar(menu.(*glib.MenuModel))
 
+	newShow := glib.SimpleActionNew("new_show", nil)
+	newShow.Connect("activate", func() {
+		showTree.Clean()
+	})
+	app.AddAction(newShow)
+
 	importShow := glib.SimpleActionNew("import_show", nil)
 	importShow.Connect("activate", func() {
 		err := guiImportShow(win, showTree)

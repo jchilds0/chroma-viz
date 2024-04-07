@@ -5,16 +5,16 @@
       <attribute name="label">File</attribute>
       <section>
         <item>
-          <attribute name="label">New Show</attribute>
-          <attribute name="action">app.new_show</attribute>
+          <attribute name="label">New Template</attribute>
+          <attribute name="action">app.new_template</attribute>
         </item>
         <item>
-          <attribute name ="label">Import Show</attribute>
-          <attribute name="action">app.import_show</attribute>
+          <attribute name ="label">Import Template</attribute>
+          <attribute name="action">app.import_template</attribute>
         </item>
         <item>
-          <attribute name ="label">Export Show</attribute>
-          <attribute name="action">app.export_show</attribute>
+          <attribute name ="label">Export Template</attribute>
+          <attribute name="action">app.export_template</attribute>
         </item>
       </section>
     </submenu>
@@ -32,21 +32,7 @@
       </section>
     </submenu>
     <submenu id="submenu">
-      <attribute name="label">Page</attribute>
-      <section>
-        <item>
-          <attribute name="label">Import Page</attribute>
-          <attribute name="action">app.import_page</attribute>
-        </item>
-        <item>
-          <attribute name="label">Export Page</attribute>
-          <attribute name="action">app.export_page</attribute>
-        </item>
-        <item>
-          <attribute name="label">Delete Page</attribute>
-          <attribute name="action">app.delete_page</attribute>
-        </item>
-      </section>
+      <attribute name="label">Template</attribute>
     </submenu>
     <submenu id="submenu">
       <attribute name="label">Help</attribute>
