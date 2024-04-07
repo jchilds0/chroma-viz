@@ -128,6 +128,15 @@ func (hub *DataBase) ImportArchive(fileName string) error {
 		printMessage(s)
 	}
 
+	for id := range archive.Assets {
+		hub.Assets[id] = archive.Assets[id]
+		hub.Dirs[id] = archive.Dirs[id]
+		hub.Names[id] = archive.Names[id]
+
+		s := fmt.Sprintf("Loaded Asset %d at %s/%s", id, archive.Dirs[id], archive.Names[id])
+		printMessage(s)
+	}
+
 	//log.Printf("Imported Hub")
 	return nil
 }
