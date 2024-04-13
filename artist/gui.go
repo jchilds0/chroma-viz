@@ -70,7 +70,7 @@ func ArtistGui(app *gtk.Application) {
 
 	editView.AddAction("Save", true, func() {
 		// sync parent attrs
-		model := tempView.model.ToTreeModel()
+		model := tempView.geoModel.ToTreeModel()
 		if iter, ok := model.GetIterFirst(); ok {
 			updateParentGeometry(model, iter, 0)
 		}
@@ -175,8 +175,30 @@ func ArtistGui(app *gtk.Application) {
 		log.Fatal(err)
 	}
 
-	geoScroll.Add(tempView.view)
+	geoScroll.Add(tempView.geoView)
 
+	keyScroll, err := gtk_utils.BuilderGetObject[*gtk.ScrolledWindow](builder, "key-win")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	keyScroll.Add(tempView.keyView)
+
+	keySelector, err := gtk_utils.BuilderGetObject[*gtk.ComboBox](builder, "key-selector")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	addKey, err := gtk_utils.BuilderGetObject[*gtk.Button](builder, "add-key")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	removeKey, err := gtk_utils.BuilderGetObject[*gtk.Button](builder, "remove-key")
+	if err != nil {
+		log.Fatal(err)
+	}
+    
 	editBox, err := gtk_utils.BuilderGetObject[*gtk.Box](builder, "edit")
 	if err != nil {
 		log.Fatal(err)
@@ -193,7 +215,7 @@ func ArtistGui(app *gtk.Application) {
 
 	/* actions */
 	newTemplate.Connect("activate", func() {
-		tempView.model.Clear()
+		tempView.geoModel.Clear()
 
 		template.Title = ""
 		template.TempID = 0
@@ -309,12 +331,12 @@ func ArtistGui(app *gtk.Application) {
 			return
 		}
 
-		iter := tempView.model.Append(nil)
-		tempView.AddRow(iter, name, name, propNum)
+		iter := tempView.geoModel.Append(nil)
+		tempView.AddGeoRow(iter, name, name, propNum)
 	})
 
 	removeGeo.Connect("clicked", func() {
-		selection, err := tempView.view.GetSelection()
+		selection, err := tempView.geoView.GetSelection()
 		if err != nil {
 			log.Printf("Error getting selected")
 			return
@@ -326,16 +348,53 @@ func ArtistGui(app *gtk.Application) {
 			return
 		}
 
-		model := &tempView.model.TreeModel
-		propID, err := gtk_utils.ModelGetValue[int](model, iter, PROP_NUM)
+		model := tempView.geoModel.ToTreeModel()
+		propID, err := gtk_utils.ModelGetValue[int](model, iter, GEO_NUM)
 		if err != nil {
 			log.Printf("Error getting prop id (%s)", err)
 			return
 		}
 
 		RemoveProp(propID)
-		tempView.model.Remove(iter)
+		tempView.geoModel.Remove(iter)
+        tempView.removeGeometry(propID)
 	})
+
+    geoCell, err := gtk.CellRendererTextNew()
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    keySelector.PackStart(geoCell, true)
+    keySelector.CellLayout.AddAttribute(geoCell, "text", GEO_NAME)
+    keySelector.SetActive(GEO_NAME)
+    keySelector.SetModel(tempView.geoModel)
+
+    addKey.Connect("clicked", func() {
+        iter, err := keySelector.GetActiveIter()
+        if err != nil {
+            log.Printf("No geometry selected")
+            return
+        }
+
+        name, err := gtk_utils.ModelGetValue[string](tempView.geoModel.ToTreeModel(), iter, GEO_NAME)
+        if err != nil {
+            log.Printf("Error getting geo name (%s)", err)
+            return
+        }
+
+        geoID, err := gtk_utils.ModelGetValue[int](tempView.geoModel.ToTreeModel(), iter, GEO_NUM)
+        if err != nil {
+            log.Printf("Error getting geo id (%s)", err)
+            return
+        }
+
+        tempView.AddKeyRow(tempView.keyModel.Append(nil), name, geoID)
+    })
+
+    removeKey.Connect("clicked", func() {
+
+    })
 
 	/* Lower Bar layout */
 	lowerBox, err := gtk.ActionBarNew()
@@ -501,12 +560,12 @@ func guiExportPage(win *gtk.ApplicationWindow, temp *TempTree) error {
 		newTemp.AnimateOff = template.AnimateOff
 
 		// sync parent attrs
-		model := temp.model.ToTreeModel()
+		model := temp.geoModel.ToTreeModel()
 		if iter, ok := model.GetIterFirst(); ok {
 			updateParentGeometry(model, iter, 0)
 		}
 
-		compressGeometry(template, newTemp, temp.model.ToTreeModel())
+		compressGeometry(template, newTemp, temp.geoModel.ToTreeModel())
 
 		// TODO: sync visible attrs to template
 

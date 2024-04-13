@@ -86,61 +86,145 @@
                     </items>
                   </object>
                 </child>
+
               </object>
             </child>
 
-            <!-- Action Bar -->
+            <!-- Left pane -->
             <child>
-              <object class="GtkBox" id="tempActions">
-                <property name="orientation">horizontal</property>
-                <child>
+              <object class="GtkPaned">
+                <property name="orientation">vertical</property>
+                <property name="position">800</property>
 
-                  <!-- geo selector -->
-                  <object class="GtkComboBoxText" id="geo-selector">
-                    <items>
-                      <item id="rect">Rectangle</item>
-                      <item id="circ">Circle</item>
-                      <item id="text">Text</item>
-                      <item id="graph">Graph</item>
-                      <item id="ticker">Ticker</item>
-                      <item id="clock">Clock</item>
-                      <item id="image">Image</item>
-                    </items>
-                  </object>
+                <!-- Geometry Tree -->
+                <child>
+                  <object class="GtkBox" id="geometry">
+                    <property name="orientation">vertical</property>
 
-                  <packing>
-                    <property name="padding">10</property>
-                  </packing>
-                </child>
-                <child>
-                  <object class="GtkButton" id="add-geo">
-                    <property name="label">Add Geometry</property>
+                    <child>
+                      <object class="GtkHeaderBar">
+                        <property name="title">Geometry</property>
+                      </object>
+                    </child>
+
+                    <!-- Action Bar -->
+                    <child>
+                      <object class="GtkBox" id="tempActions">
+                        <property name="orientation">horizontal</property>
+
+                        <!-- geo selector -->
+                        <child>
+                          <object class="GtkComboBoxText" id="geo-selector">
+                            <items>
+                              <item id="rect">Rectangle</item>
+                              <item id="circ">Circle</item>
+                              <item id="text">Text</item>
+                              <item id="graph">Graph</item>
+                              <item id="ticker">Ticker</item>
+                              <item id="clock">Clock</item>
+                              <item id="image">Image</item>
+                            </items>
+                          </object>
+
+                          <packing>
+                            <property name="padding">10</property>
+                          </packing>
+                        </child>
+
+                        <child>
+                          <object class="GtkButton" id="add-geo">
+                            <property name="label">Add Geometry</property>
+                          </object>
+                          <packing>
+                            <property name="padding">10</property>
+                          </packing>
+                        </child>
+
+                        <child>
+                          <object class="GtkButton" id="remove-geo">
+                            <property name="label">Remove Geometry</property>
+                          </object>
+
+                          <packing>
+                            <property name="padding">10</property>
+                          </packing>
+                        </child>
+                      </object>
+
+                      <packing>
+                        <property name="padding">10</property>
+                      </packing>
+                    </child>
+
+                    <child>
+                      <object class="GtkScrolledWindow" id="geo-win">
+                          <property name="vexpand">TRUE</property>
+                      </object>
+                    </child>
                   </object>
-                  <packing>
-                    <property name="padding">10</property>
-                  </packing>
                 </child>
+
+                <!-- Keyframes -->
                 <child>
-                  <object class="GtkButton" id="remove-geo">
-                    <property name="label">Remove Geometry</property>
+                  <object class="GtkBox" id="keyframes">
+                    <property name="orientation">vertical</property>
+
+                    <child>
+                      <object class="GtkHeaderBar">
+                        <property name="title">Keyframes</property>
+                      </object>
+                    </child>
+
+                    <child>
+                      <object class="GtkBox">
+                        <property name="orientation">horizontal</property>
+
+                        <child>
+                          <object class="GtkComboBox" id="key-selector">
+                          </object>
+
+                          <packing>
+                            <property name="padding">10</property>
+                          </packing>
+                        </child>
+
+                        <child>
+                          <object class="GtkButton" id="add-key">
+                            <property name="label">Add Keyframe</property>
+                          </object>
+
+                          <packing>
+                            <property name="padding">10</property>
+                          </packing>
+                        </child>
+
+                        <child>
+                          <object class="GtkButton" id="remove-key">
+                            <property name="label">Remove Keyframe</property>
+                          </object>
+                          
+                          <packing>
+                            <property name="padding">10</property>
+                          </packing>
+                        </child>
+
+                      </object>
+
+                      <packing>
+                        <property name="padding">10</property>
+                      </packing>
+                    </child>
+
+                    <child>
+                      <object class="GtkScrolledWindow" id="key-win">
+                          <property name="vexpand">TRUE</property>
+                      </object>
+                    </child>
                   </object>
-                  <packing>
-                    <property name="padding">10</property>
-                  </packing>
                 </child>
+
               </object>
-              <packing>
-                <property name="padding">10</property>
-              </packing>
             </child>
-
-            <!-- Geometry Tree -->
-            <child>
-              <object class="GtkScrolledWindow" id="geo-win">
-                <property name="vexpand">TRUE</property>
-              </object>
-            </child>
-
           </object>
         </child>
       </object>

@@ -13,7 +13,7 @@ import (
 func updateParentGeometry(model *gtk.TreeModel, iter *gtk.TreeIter, parentID int) {
 	ok := true
 	for ok {
-		propID, err := gtk_utils.ModelGetValue[int](model, iter, PROP_NUM)
+		propID, err := gtk_utils.ModelGetValue[int](model, iter, GEO_NUM)
 		if err != nil {
 			log.Print("Error getting prop id")
 			continue
@@ -68,7 +68,7 @@ func compressGeometry(temp, newTemp *templates.Template, tree *gtk.TreeModel) {
 		iter := geoIters[0]
 		geoIters = geoIters[1:]
 
-		geoNum, err := gtk_utils.ModelGetValue[int](tree, iter, PROP_NUM)
+		geoNum, err := gtk_utils.ModelGetValue[int](tree, iter, GEO_NUM)
 		if err != nil {
 			log.Printf("Error getting geo num (%s)", err)
 			continue
@@ -173,8 +173,8 @@ func geometryToTreeView(tempView *TempTree, iter *gtk.TreeIter, propID int) {
 			continue
 		}
 
-		newRow := tempView.model.Append(iter)
-		tempView.AddRow(newRow, geo.Name, geo_name[geo.PropType], id)
+		newRow := tempView.geoModel.Append(iter)
+		tempView.AddGeoRow(newRow, geo.Name, geo_name[geo.PropType], id)
 		geometryToTreeView(tempView, newRow, id)
 	}
 }
