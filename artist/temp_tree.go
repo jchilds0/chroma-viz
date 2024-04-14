@@ -437,10 +437,46 @@ func (tempView *TempTree) keyframes() []templates.Keyframe {
 			break
 		}
 
+		value, err := gtk_utils.ModelGetValue[string](keyModel, iter, FRAME_VALUE)
+		if err != nil {
+			log.Print(err)
+			break
+		}
+
+		user, err := gtk_utils.ModelGetValue[bool](keyModel, iter, FRAME_USER_VALUE)
+		if err != nil {
+			log.Print(err)
+			break
+		}
+
+		bindNum, err := gtk_utils.ModelGetValue[int](keyModel, iter, FRAME_VALUE_FRAME)
+		if err != nil {
+			log.Print(err)
+			break
+		}
+
+		bindGeo, err := gtk_utils.ModelGetValue[int](keyModel, iter, FRAME_VALUE_GEO)
+		if err != nil {
+			log.Print(err)
+			break
+		}
+
+		bindAttr, err := gtk_utils.ModelGetValue[string](keyModel, iter, FRAME_ATTR)
+		if err != nil {
+			log.Print(err)
+			break
+		}
+
 		frames[i] = templates.Keyframe{
 			FrameNum:  num,
 			FrameGeo:  geo,
 			FrameAttr: attr,
+			FrameType: templates.SET_FRAME,
+			SetValue:  value,
+			UserValue: user,
+			BindFrame: bindNum,
+			BindGeo:   bindGeo,
+			BindAttr:  bindAttr,
 		}
 
 		i++

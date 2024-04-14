@@ -16,18 +16,21 @@ func updateParentGeometry(model *gtk.TreeModel, iter *gtk.TreeIter, parentID int
 		propID, err := gtk_utils.ModelGetValue[int](model, iter, GEO_NUM)
 		if err != nil {
 			log.Print("Error getting prop id")
+			ok = model.IterNext(iter)
 			continue
 		}
 
 		prop := template.Geometry[propID]
 		if prop == nil {
 			log.Print("Error getting prop")
+			ok = model.IterNext(iter)
 			continue
 		}
 
 		parentAttr := prop.Attr["parent"]
 		if parentAttr == nil {
 			log.Print("Error getting parent attr")
+			ok = model.IterNext(iter)
 			continue
 		}
 

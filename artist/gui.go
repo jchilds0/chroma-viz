@@ -91,10 +91,6 @@ func ArtistGui(app *gtk.Application) {
 
 	preview := setupPreviewWindow(conf.HubPort, conf.PreviewDirectory, conf.PreviewName)
 
-	if err != nil {
-		log.Fatalf("Error starting artist gui (%s)", err)
-	}
-
 	box, err := gtk.BoxNew(gtk.ORIENTATION_VERTICAL, 0)
 	if err != nil {
 		log.Fatalf("Error starting artist gui (%s)", err)
@@ -552,6 +548,10 @@ func guiExportPage(win *gtk.ApplicationWindow, temp *TempTree) error {
 			len(template.Geometry),
 			len(template.Keyframe),
 		)
+
+		// get keyframes
+		newTemp.Keyframe = temp.keyframes()
+		newTemp.NumKeyframe = len(newTemp.Keyframe)
 
 		// sync parent attrs
 		model := temp.geoModel.ToTreeModel()

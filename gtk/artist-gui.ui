@@ -45,16 +45,6 @@
                   </object>
                 </child>
 
-              </object>
-              <packing>
-                <property name="padding">10</property>
-              </packing>
-            </child>
-
-            <child>
-              <object class="GtkBox">
-                <property name="orientation">horizontal</property>
-
                 <!-- Layer editor -->
                 <child>
                   <object class="GtkLabel">
@@ -69,6 +59,10 @@
                 </child>
 
               </object>
+
+              <packing>
+                <property name="padding">10</property>
+              </packing>
             </child>
 
             <!-- Left pane -->

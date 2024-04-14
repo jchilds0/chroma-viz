@@ -1,0 +1,85 @@
+{
+    "Title": "test",
+    "TempID": 0,
+    "NumGeo": 1,
+    "NumKeyframe": 2,
+    "Layer": 0,
+    "Keyframe": [
+        {
+            "FrameNum": 0,
+            "FrameGeo": 1,
+            "FrameAttr": "width",
+            "FrameType": 0,
+            "SetValue": "",
+            "UserValue": false,
+            "BindFrame": 0,
+            "BindGeo": 0,
+            "BindAttr": ""
+        },
+        {
+            "FrameNum": 1,
+            "FrameGeo": 1,
+            "FrameAttr": "width",
+            "FrameType": 0,
+            "SetValue": "",
+            "UserValue": false,
+            "BindFrame": 0,
+            "BindGeo": 0,
+            "BindAttr": ""
+        }
+    ],
+    "Geometry": {
+        "1": {
+            "Name": "Rectangle",
+            "PropType": 0,
+            "Visible": {
+                "color": false,
+                "height": false,
+                "rel_x": false,
+                "rel_y": false,
+                "rounding": false,
+                "width": false
+            },
+            "Attr": {
+                "color": {
+                    "Name": "color",
+                    "Type": 6,
+                    "Red": 1,
+                    "Green": 1,
+                    "Blue": 1,
+                    "Alpha": 1
+                },
+                "height": {
+                    "Name": "height",
+                    "Type": 1,
+                    "Value": 100
+                },
+                "parent": {
+                    "Name": "parent",
+                    "Type": 1,
+                    "Value": 0
+                },
+                "rel_x": {
+                    "Name": "rel_x",
+                    "Type": 1,
+                    "Value": 100
+                },
+                "rel_y": {
+                    "Name": "rel_y",
+                    "Type": 1,
+                    "Value": 100
+                },
+                "rounding": {
+                    "Name": "rounding",
+                    "Type": 1,
+                    "Value": 10
+                },
+                "width": {
+                    "Name": "width",
+                    "Type": 1,
+                    "Value": 100
+                }
+            }
+        }
+    }
+}
