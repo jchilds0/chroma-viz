@@ -70,7 +70,7 @@ func (db *DataBase) AddTemplate(id int, anim_on, anim_cont, anim_off string) {
 		return
 	}
 
-	db.Templates[id] = templates.NewTemplate("", id, 0, 10)
+	db.Templates[id] = templates.NewTemplate("", id, 0, 10, 10)
 }
 
 func (db *DataBase) AddGeometry(temp_id, geo_id int, geo_type string) {

@@ -19,15 +19,16 @@ func parseTemplate(buf *bufio.Reader) (temp *Template, err error) {
 		parser.MatchToken(parser.STRING, buf)
 		parser.MatchToken(':', buf)
 
-		if name != "geometry" {
-			data[name] = parser.C_tok.Value
-
-			parser.NextToken(buf)
-		} else {
+		if name == "geometry" {
 			parser.MatchToken('[', buf)
 
-			var num_geo, temp_id, layer int
+			var num_geo, num_keyframe, temp_id, layer int
 			num_geo, err = strconv.Atoi(data["num_geo"])
+			if err != nil {
+				return
+			}
+
+			num_keyframe, err = strconv.Atoi(data["num_keyframe"])
 			if err != nil {
 				return
 			}
@@ -46,13 +47,18 @@ func parseTemplate(buf *bufio.Reader) (temp *Template, err error) {
 				data["name"] = "Template"
 			}
 
-			temp = NewTemplate(data["name"], temp_id, layer, num_geo)
+			temp = NewTemplate(data["name"], temp_id, layer, num_geo, num_keyframe)
 			temp.Geometry, err = parser.ParseProperty(buf, false)
 			if err != nil {
 				return
 			}
 
 			parser.MatchToken(']', buf)
+		} else if name == "keyframe" {
+		} else {
+			data[name] = parser.C_tok.Value
+
+			parser.NextToken(buf)
 		}
 
 		if parser.C_tok.Tok == ',' {

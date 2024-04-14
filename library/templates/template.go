@@ -22,19 +22,25 @@ import (
 */
 
 type Template struct {
-	Title      string
-	TempID     int
-	NumGeo     int
-	Layer      int
-	AnimateOn  string
-	Continue   string
-	AnimateOff string
-	Geometry   map[int]*props.Property
+	Title       string
+	TempID      int
+	NumGeo      int
+	NumKeyframe int
+	Layer       int
+	Keyframe    []Keyframe
+	Geometry    map[int]*props.Property
 }
 
-func NewTemplate(title string, id int, layer int, num_geo int) *Template {
-	temp := &Template{Title: title, TempID: id, Layer: layer, NumGeo: num_geo}
+func NewTemplate(title string, id, layer, num_geo, num_keyframe int) *Template {
+	temp := &Template{
+		Title:       title,
+		TempID:      id,
+		Layer:       layer,
+		NumGeo:      num_geo,
+		NumKeyframe: num_keyframe,
+	}
 
+	temp.Keyframe = make([]Keyframe, 0)
 	temp.Geometry = make(map[int]*props.Property, num_geo)
 	return temp
 }
@@ -89,6 +95,10 @@ func (temp *Template) Encode() (s string, err error) {
 	b.WriteString(strconv.Itoa(len(temp.Geometry)))
 	b.WriteString(", ")
 
+	b.WriteString("'num_keyframe': ")
+	b.WriteString(strconv.Itoa(len(temp.Keyframe)))
+	b.WriteString(", ")
+
 	b.WriteString("'name': '")
 	b.WriteString(temp.Title)
 	b.WriteString("', ")
@@ -97,20 +107,25 @@ func (temp *Template) Encode() (s string, err error) {
 	b.WriteString(strconv.Itoa(temp.Layer))
 	b.WriteString(", ")
 
-	b.WriteString("'anim_on': '")
-	b.WriteString(temp.AnimateOn)
-	b.WriteString("', ")
+	b.WriteString("'keyframe': [")
+	first := true
+	var frameStr string
+	for _, frame := range temp.Keyframe {
+		if !first {
+			b.WriteString(",")
+		}
+		first = false
 
-	b.WriteString("'anim_cont': '")
-	b.WriteString(temp.Continue)
-	b.WriteString("', ")
-
-	b.WriteString("'anim_off': '")
-	b.WriteString(temp.AnimateOff)
-	b.WriteString("', ")
+		frameStr, err = frame.Encode()
+		if err != nil {
+			return
+		}
+		b.WriteString(frameStr)
+	}
 
 	b.WriteString("'geometry': [")
-	first := true
+	first = true
+	var propStr string
 	for geo_id, prop := range temp.Geometry {
 		if !first {
 			b.WriteString(",")
@@ -118,7 +133,11 @@ func (temp *Template) Encode() (s string, err error) {
 
 		first = false
 
-		propStr, _ := prop.Encode(geo_id)
+		propStr, err = prop.Encode(geo_id)
+		if err != nil {
+			return
+		}
+
 		b.WriteString(propStr)
 	}
 
