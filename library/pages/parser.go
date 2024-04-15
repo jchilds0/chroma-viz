@@ -19,11 +19,13 @@ func parsePage(buf *bufio.Reader) (page *Page, err error) {
 		parser.MatchToken(parser.STRING, buf)
 		parser.MatchToken(':', buf)
 
-		if name != "geometry" {
-			data[name] = parser.C_tok.Value
+		if name == "keyframe" {
+            parser.MatchToken('[', buf)
 
-			parser.NextToken(buf)
-		} else {
+            parseKeyframe(buf)
+
+			parser.MatchToken(']', buf)
+		} else if name == "geometry" {
 			parser.MatchToken('[', buf)
 
 			var num_geo, temp_id, layer int
@@ -53,7 +55,11 @@ func parsePage(buf *bufio.Reader) (page *Page, err error) {
 			}
 
 			parser.MatchToken(']', buf)
-		}
+		} else {
+			data[name] = parser.C_tok.Value
+
+			parser.NextToken(buf)
+        }
 
 		if parser.C_tok.Tok == ',' {
 			parser.MatchToken(',', buf)
@@ -66,4 +72,25 @@ func parsePage(buf *bufio.Reader) (page *Page, err error) {
 	}
 
 	return
+}
+
+func parseKeyframe(buf *bufio.Reader) {
+    parser.MatchToken('{', buf)
+
+    for (parser.C_tok.Tok == parser.STRING) {
+        parser.MatchToken(parser.STRING, buf)
+		parser.MatchToken(':', buf)
+        parser.NextToken(buf)
+
+        if (parser.C_tok.Tok == ',') {
+            parser.MatchToken(',', buf)
+        }
+    }
+
+    parser.MatchToken('}', buf)
+
+    if (parser.C_tok.Tok == ',') {
+        parser.MatchToken(',', buf)
+        parseKeyframe(buf)
+    }
 }
