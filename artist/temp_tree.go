@@ -154,7 +154,7 @@ func (temp *TempTree) createKeyTree() (err error) {
 		glib.TYPE_STRING,  // Geometry Name
 		glib.TYPE_INT,     // Geoemtry Num
 		glib.TYPE_STRING,  // Geometry Attr
-		glib.TYPE_STRING,  // Value Entry
+		glib.TYPE_INT,     // Value Entry
 		glib.TYPE_STRING,  // Derived Value Frame
 		glib.TYPE_STRING,  // Derived Value Geo
 		glib.TYPE_STRING,  // Derived Value Attr
@@ -257,67 +257,23 @@ func (temp *TempTree) createKeyTree() (err error) {
 		valueCell.Connect("edited", func(cell *gtk.CellRendererText, path, text string) {
 			iter, err := temp.keyModel.GetIterFromString(path)
 			if err != nil {
-				log.Printf("Error editing geometry (%s)", err)
+				log.Printf("Error editing keyframe (%s)", err)
 				return
 			}
 
-			temp.keyModel.SetValue(iter, FRAME_VALUE, text)
+			num, err := strconv.Atoi(text)
+			if err != nil {
+				log.Printf("Error editing keyframe (%s)", err)
+				return
+			}
+
+
+			temp.keyModel.SetValue(iter, FRAME_VALUE, num)
 		})
 
 		column, err = gtk.TreeViewColumnNewWithAttribute("Set Value", valueCell, "text", FRAME_VALUE)
 		if err != nil {
 			return
-		}
-
-		temp.keyView.AppendColumn(column)
-
-	}
-
-	// Derived Value
-	{
-
-		var valueText, valueCell *gtk.CellRendererText
-		var column *gtk.TreeViewColumn
-
-		column, err = gtk.TreeViewColumnNew()
-		if err != nil {
-			return
-		}
-
-		column.SetTitle("Value From KeyFrame")
-
-		names := []string{"Frame", "Geometry", "Attr"}
-		cols := []int{FRAME_VALUE_FRAME, FRAME_VALUE_GEO, FRAME_VALUE_ATTR}
-
-		for i, name := range names {
-			valueText, err = gtk.CellRendererTextNew()
-			if err != nil {
-				return
-			}
-
-			valueText.SetProperty("text", name+": ")
-
-			valueCell, err = gtk.CellRendererTextNew()
-			if err != nil {
-				return
-			}
-
-			valueCell.SetProperty("editable", true)
-
-			column.PackStart(valueText, false)
-			column.PackStart(valueCell, true)
-
-			column.AddAttribute(valueCell, "text", cols[i])
-
-			valueCell.Connect("edited", func(cell *gtk.CellRendererText, path, text string) {
-				iter, err := temp.keyModel.GetIterFromString(path)
-				if err != nil {
-					log.Printf("Error editing geometry (%s)", err)
-					return
-				}
-
-				temp.keyModel.SetValue(iter, cols[i], text)
-			})
 		}
 
 		temp.keyView.AppendColumn(column)
@@ -356,6 +312,57 @@ func (temp *TempTree) createKeyTree() (err error) {
 		column, err = gtk.TreeViewColumnNewWithAttribute("User Value", toggleCell, "active", FRAME_USER_VALUE)
 		if err != nil {
 			return
+		}
+
+		temp.keyView.AppendColumn(column)
+
+	}
+
+	// Derived Value
+	{
+
+		var valueText, valueCell *gtk.CellRendererText
+		var column *gtk.TreeViewColumn
+
+		column, err = gtk.TreeViewColumnNew()
+		if err != nil {
+			return
+		}
+
+		column.SetTitle("Value From Keyframe")
+
+		names := []string{"Frame", "Geometry", "Attr"}
+		cols := []int{FRAME_VALUE_FRAME, FRAME_VALUE_GEO, FRAME_VALUE_ATTR}
+
+		for i, name := range names {
+			valueText, err = gtk.CellRendererTextNew()
+			if err != nil {
+				return
+			}
+
+			valueText.SetProperty("text", name+": ")
+
+			valueCell, err = gtk.CellRendererTextNew()
+			if err != nil {
+				return
+			}
+
+			valueCell.SetProperty("editable", true)
+
+			column.PackStart(valueText, false)
+			column.PackStart(valueCell, true)
+
+			column.AddAttribute(valueCell, "text", cols[i])
+
+			valueCell.Connect("edited", func(cell *gtk.CellRendererText, path, text string) {
+				iter, err := temp.keyModel.GetIterFromString(path)
+				if err != nil {
+					log.Printf("Error editing geometry (%s)", err)
+					return
+				}
+
+				temp.keyModel.SetValue(iter, cols[i], text)
+			})
 		}
 
 		temp.keyView.AppendColumn(column)
@@ -437,7 +444,7 @@ func (tempView *TempTree) keyframes() []templates.Keyframe {
 			break
 		}
 
-		value, err := gtk_utils.ModelGetValue[string](keyModel, iter, FRAME_VALUE)
+		value, err := gtk_utils.ModelGetValue[int](keyModel, iter, FRAME_VALUE)
 		if err != nil {
 			log.Print(err)
 			break

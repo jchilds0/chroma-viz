@@ -17,7 +17,7 @@ type Keyframe struct {
 	FrameGeo  int
 	FrameAttr string
 	FrameType int
-	SetValue  string
+	SetValue  int 
 	UserValue bool
 	BindFrame int
 	BindGeo   int
@@ -71,9 +71,10 @@ func (frame *Keyframe) Encode() (s string, err error) {
 
 		b.WriteString("'bind_attr': '")
 		b.WriteString(frame.BindAttr)
+		b.WriteString("'")
 	case SET_FRAME:
-		b.WriteString("'value': '")
-		b.WriteString(frame.SetValue)
+		b.WriteString("'value': ")
+		b.WriteString(strconv.Itoa(frame.SetValue))
 
 	default:
 		err = fmt.Errorf("Unknown frame type %d", frame.FrameType)

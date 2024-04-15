@@ -122,6 +122,7 @@ func (temp *Template) Encode() (s string, err error) {
 		}
 		b.WriteString(frameStr)
 	}
+	b.WriteString("],")
 
 	b.WriteString("'geometry': [")
 	first = true
