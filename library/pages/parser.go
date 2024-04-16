@@ -20,9 +20,9 @@ func parsePage(buf *bufio.Reader) (page *Page, err error) {
 		parser.MatchToken(':', buf)
 
 		if name == "keyframe" {
-            parser.MatchToken('[', buf)
+			parser.MatchToken('[', buf)
 
-            parseKeyframe(buf)
+			parseKeyframe(buf)
 
 			parser.MatchToken(']', buf)
 		} else if name == "geometry" {
@@ -59,7 +59,7 @@ func parsePage(buf *bufio.Reader) (page *Page, err error) {
 			data[name] = parser.C_tok.Value
 
 			parser.NextToken(buf)
-        }
+		}
 
 		if parser.C_tok.Tok == ',' {
 			parser.MatchToken(',', buf)
@@ -75,22 +75,22 @@ func parsePage(buf *bufio.Reader) (page *Page, err error) {
 }
 
 func parseKeyframe(buf *bufio.Reader) {
-    parser.MatchToken('{', buf)
+	parser.MatchToken('{', buf)
 
-    for (parser.C_tok.Tok == parser.STRING) {
-        parser.MatchToken(parser.STRING, buf)
+	for parser.C_tok.Tok == parser.STRING {
+		parser.MatchToken(parser.STRING, buf)
 		parser.MatchToken(':', buf)
-        parser.NextToken(buf)
+		parser.NextToken(buf)
 
-        if (parser.C_tok.Tok == ',') {
-            parser.MatchToken(',', buf)
-        }
-    }
+		if parser.C_tok.Tok == ',' {
+			parser.MatchToken(',', buf)
+		}
+	}
 
-    parser.MatchToken('}', buf)
+	parser.MatchToken('}', buf)
 
-    if (parser.C_tok.Tok == ',') {
-        parser.MatchToken(',', buf)
-        parseKeyframe(buf)
-    }
+	if parser.C_tok.Tok == ',' {
+		parser.MatchToken(',', buf)
+		parseKeyframe(buf)
+	}
 }

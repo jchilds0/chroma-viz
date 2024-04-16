@@ -63,7 +63,6 @@ func ArtistGui(app *gtk.Application) {
 			editView.SetProperty(prop)
 		},
 	)
-
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -318,15 +317,16 @@ func ArtistGui(app *gtk.Application) {
 		}
 
 		model := tempView.geoModel.ToTreeModel()
-		propID, err := gtk_utils.ModelGetValue[int](model, iter, GEO_NUM)
+		geoID, err := gtk_utils.ModelGetValue[int](model, iter, GEO_NUM)
 		if err != nil {
 			log.Printf("Error getting prop id (%s)", err)
 			return
 		}
 
-		RemoveProp(propID)
+		RemoveProp(geoID)
 		tempView.geoModel.Remove(iter)
-		tempView.removeGeometry(propID)
+		tempView.removeKeys(geoID)
+		tempView.removeGeometry(geoID)
 	})
 
 	geoCell, err := gtk.CellRendererTextNew()
@@ -337,7 +337,7 @@ func ArtistGui(app *gtk.Application) {
 	keyGeo.PackStart(geoCell, true)
 	keyGeo.CellLayout.AddAttribute(geoCell, "text", GEO_NAME)
 	keyGeo.SetActive(GEO_NAME)
-	keyGeo.SetModel(tempView.geoModel)
+	keyGeo.SetModel(tempView.geoList)
 
 	keyGeo.Connect("changed", func() {
 		iter, err := keyGeo.GetActiveIter()
@@ -346,7 +346,7 @@ func ArtistGui(app *gtk.Application) {
 			return
 		}
 
-		geoID, err := gtk_utils.ModelGetValue[int](tempView.geoModel.ToTreeModel(), iter, GEO_NUM)
+		geoID, err := gtk_utils.ModelGetValue[int](tempView.geoList.ToTreeModel(), iter, GEO_NUM)
 		if err != nil {
 			log.Printf("Error getting geo id (%s)", err)
 			return
@@ -366,7 +366,7 @@ func ArtistGui(app *gtk.Application) {
 			return
 		}
 
-		model := tempView.geoModel.ToTreeModel()
+		model := tempView.geoList.ToTreeModel()
 
 		geo, err := gtk_utils.ModelGetValue[string](model, iter, GEO_NAME)
 		if err != nil {
@@ -541,6 +541,10 @@ func guiExportPage(win *gtk.ApplicationWindow, temp *TempTree) error {
 	if res == gtk.RESPONSE_ACCEPT {
 		filename := dialog.GetFilename()
 
+		// get keyframes
+		template.Keyframe = temp.keyframes()
+		template.NumKeyframe = len(template.Keyframe)
+
 		newTemp := templates.NewTemplate(
 			template.Title,
 			template.TempID,
@@ -548,10 +552,6 @@ func guiExportPage(win *gtk.ApplicationWindow, temp *TempTree) error {
 			len(template.Geometry),
 			len(template.Keyframe),
 		)
-
-		// get keyframes
-		newTemp.Keyframe = temp.keyframes()
-		newTemp.NumKeyframe = len(newTemp.Keyframe)
 
 		// sync parent attrs
 		model := temp.geoModel.ToTreeModel()

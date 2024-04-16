@@ -11,7 +11,6 @@
             "FrameAttr": "width",
             "FrameType": 0,
             "SetValue": 0,
-            "UserValue": false,
             "BindFrame": 0,
             "BindGeo": 0,
             "BindAttr": ""
@@ -20,9 +19,8 @@
             "FrameNum": 1,
             "FrameGeo": 1,
             "FrameAttr": "width",
-            "FrameType": 0,
-            "SetValue": 100,
-            "UserValue": false,
+            "FrameType": 1,
+            "SetValue": 0,
             "BindFrame": 0,
             "BindGeo": 0,
             "BindAttr": ""
@@ -34,11 +32,11 @@
             "PropType": 0,
             "Visible": {
                 "color": false,
-                "height": false,
-                "rel_x": false,
-                "rel_y": false,
+                "height": true,
+                "rel_x": true,
+                "rel_y": true,
                 "rounding": false,
-                "width": false
+                "width": true 
             },
             "Attr": {
                 "color": {

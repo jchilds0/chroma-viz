@@ -8,20 +8,21 @@ import (
 
 const (
 	SET_FRAME = iota
-	BIND_FRAME
 	USER_FRAME
+	BIND_FRAME
 )
 
 type Keyframe struct {
-	FrameNum  int
-	FrameGeo  int
-	FrameAttr string
-	FrameType int
-	SetValue  int 
-	UserValue bool
-	BindFrame int
-	BindGeo   int
-	BindAttr  string
+	FrameNum       int
+	FrameGeo       int
+	FrameAttr      string
+	FrameType      int
+	SetValue       int
+	Mask           bool
+	Expand         bool
+	BindFrame      int
+	BindGeo        int
+	BindAttr       string
 }
 
 func NewKeyFrame(num, geo int, attr string, ftype int) *Keyframe {
@@ -51,15 +52,27 @@ func (frame *Keyframe) Encode() (s string, err error) {
 	b.WriteString(frame.FrameAttr)
 	b.WriteString("', ")
 
+	b.WriteString("'mask': ")
+    if frame.Mask {
+        b.WriteString("'true'")
+    } else {
+        b.WriteString("'false'")
+    }
+	b.WriteString(", ")
+
+	b.WriteString("'expand': ")
+    if frame.Expand {
+        b.WriteString("'true'")
+    } else {
+        b.WriteString("'false'")
+    }
+	b.WriteString(", ")
+
 	switch frame.FrameType {
 	case USER_FRAME:
 		b.WriteString("'user_frame': ")
+		b.WriteString("'true'")
 
-		if frame.UserValue {
-			b.WriteString("'true'")
-		} else {
-			b.WriteString("'false'")
-		}
 	case BIND_FRAME:
 		b.WriteString("'bind_frame': ")
 		b.WriteString(strconv.Itoa(frame.BindFrame))
@@ -72,6 +85,7 @@ func (frame *Keyframe) Encode() (s string, err error) {
 		b.WriteString("'bind_attr': '")
 		b.WriteString(frame.BindAttr)
 		b.WriteString("'")
+
 	case SET_FRAME:
 		b.WriteString("'value': ")
 		b.WriteString(strconv.Itoa(frame.SetValue))

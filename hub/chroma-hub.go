@@ -175,7 +175,7 @@ func (hub *DataBase) ImportTemplate(fileName string) error {
 	}
 
 	if _, ok := hub.Templates[temp.TempID]; ok {
-		return fmt.Errorf("Template ID %d already exists", temp.TempID)
+        printMessage(fmt.Sprintf("Template %d already exists, overwriting", temp.TempID))
 	}
 
 	hub.Templates[temp.TempID] = &temp
