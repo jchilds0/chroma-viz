@@ -40,7 +40,7 @@ func NewTemplate(title string, id, layer, num_geo, num_keyframe int) *Template {
 		NumKeyframe: num_keyframe,
 	}
 
-	temp.Keyframe = make([]Keyframe, 0)
+	temp.Keyframe = make([]Keyframe, 0, num_keyframe)
 	temp.Geometry = make(map[int]*props.Property, num_geo)
 	return temp
 }
