@@ -7,42 +7,6 @@
     "Keyframe": [
         {
             "FrameNum": 0,
-            "FrameGeo": 2,
-            "FrameAttr": "rel_x",
-            "FrameType": 0,
-            "SetValue": 0,
-            "Mask": true,
-            "Expand": false,
-            "BindFrame": 0,
-            "BindGeo": 0,
-            "BindAttr": ""
-        },
-        {
-            "FrameNum": 0,
-            "FrameGeo": 4,
-            "FrameAttr": "rel_x",
-            "FrameType": 0,
-            "SetValue": 0,
-            "Mask": true,
-            "Expand": false,
-            "BindFrame": 0,
-            "BindGeo": 0,
-            "BindAttr": ""
-        },
-        {
-            "FrameNum": 0,
-            "FrameGeo": 3,
-            "FrameAttr": "rel_x",
-            "FrameType": 0,
-            "SetValue": 0,
-            "Mask": true,
-            "Expand": false,
-            "BindFrame": 0,
-            "BindGeo": 0,
-            "BindAttr": ""
-        },
-        {
-            "FrameNum": 0,
             "FrameGeo": 1,
             "FrameAttr": "width",
             "FrameType": 0,
@@ -61,18 +25,6 @@
             "SetValue": 0,
             "Mask": false,
             "Expand": true,
-            "BindFrame": 0,
-            "BindGeo": 0,
-            "BindAttr": ""
-        },
-        {
-            "FrameNum": 2,
-            "FrameGeo": 1,
-            "FrameAttr": "width",
-            "FrameType": 0,
-            "SetValue": 0,
-            "Mask": false,
-            "Expand": false,
             "BindFrame": 0,
             "BindGeo": 0,
             "BindAttr": ""
