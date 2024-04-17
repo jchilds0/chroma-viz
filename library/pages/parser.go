@@ -21,9 +21,7 @@ func parsePage(buf *bufio.Reader) (page *Page, err error) {
 
 		if name == "keyframe" {
 			parser.MatchToken('[', buf)
-
 			parseKeyframe(buf)
-
 			parser.MatchToken(']', buf)
 		} else if name == "geometry" {
 			parser.MatchToken('[', buf)

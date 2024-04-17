@@ -514,9 +514,12 @@ func guiImportPage(win *gtk.ApplicationWindow, temp *TempTree) error {
 		template.TempID = newTemp.TempID
 		template.Layer = newTemp.Layer
 		template.NumGeo = len(newTemp.Geometry)
+		template.NumKeyframe = len(newTemp.Keyframe)
 
 		decompressGeometry(template, &newTemp)
 		geometryToTreeView(temp, nil, 0)
+
+		temp.addKeyframes(template)
 
 		// set temp switch to true to send all props to chroma engine
 		for _, geo := range template.Geometry {

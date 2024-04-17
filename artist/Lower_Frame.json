@@ -2,7 +2,7 @@
     "Title": "Lower Frame",
     "TempID": 1,
     "NumGeo": 4,
-    "NumKeyframe": 5,
+    "NumKeyframe": 8,
     "Layer": 0,
     "Keyframe": [
         {
@@ -19,7 +19,7 @@
         },
         {
             "FrameNum": 0,
-            "FrameGeo": 3,
+            "FrameGeo": 4,
             "FrameAttr": "rel_x",
             "FrameType": 0,
             "SetValue": 0,
@@ -31,7 +31,7 @@
         },
         {
             "FrameNum": 0,
-            "FrameGeo": 4,
+            "FrameGeo": 3,
             "FrameAttr": "rel_x",
             "FrameType": 0,
             "SetValue": 0,
@@ -61,6 +61,42 @@
             "SetValue": 0,
             "Mask": false,
             "Expand": true,
+            "BindFrame": 0,
+            "BindGeo": 0,
+            "BindAttr": ""
+        },
+        {
+            "FrameNum": 2,
+            "FrameGeo": 1,
+            "FrameAttr": "width",
+            "FrameType": 0,
+            "SetValue": 0,
+            "Mask": false,
+            "Expand": false,
+            "BindFrame": 0,
+            "BindGeo": 0,
+            "BindAttr": ""
+        },
+        {
+            "FrameNum": 0,
+            "FrameGeo": 3,
+            "FrameAttr": "rel_y",
+            "FrameType": 0,
+            "SetValue": -100,
+            "Mask": false,
+            "Expand": false,
+            "BindFrame": 0,
+            "BindGeo": 0,
+            "BindAttr": ""
+        },
+        {
+            "FrameNum": 1,
+            "FrameGeo": 3,
+            "FrameAttr": "rel_y",
+            "FrameType": 1,
+            "SetValue": 0,
+            "Mask": false,
+            "Expand": false,
             "BindFrame": 0,
             "BindGeo": 0,
             "BindAttr": ""

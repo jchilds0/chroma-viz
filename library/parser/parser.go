@@ -3,11 +3,13 @@ package parser
 import (
 	"bufio"
 	"fmt"
+	"log"
 )
 
 func MatchToken(tok int, buf *bufio.Reader) (err error) {
 	if tok != C_tok.Tok {
 		err = fmt.Errorf("Incorrect token %s, expected %c", C_tok.Value, tok)
+		log.Println(err)
 		return
 	}
 
@@ -59,8 +61,19 @@ WS:
 			tok.buf[bufLength] = c
 			bufLength++
 		}
-	case '0', '1', '2', '3', '4', '5', '6', '7', '8', '9':
+	case '-', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9':
 		tok.Tok = INT
+
+		if peek == '-' {
+			tok.buf[bufLength] = peek
+			bufLength++
+
+			peek, _, err = buf.ReadRune()
+			if err != nil {
+				return
+			}
+		}
+
 		for '0' <= peek && peek <= '9' {
 			tok.buf[bufLength] = peek
 			bufLength++

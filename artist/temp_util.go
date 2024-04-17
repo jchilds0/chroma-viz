@@ -124,12 +124,12 @@ func compressGeometry(temp, newTemp *templates.Template, tree *gtk.TreeModel) {
 		attr.Value = geoRename[attr.Value]
 	}
 
-    // update keyframe geo id's
-    for _, frame := range temp.Keyframe {
-        frame.FrameGeo = geoRename[frame.FrameGeo]
-        frame.BindGeo = geoRename[frame.BindGeo]
-        newTemp.Keyframe = append(newTemp.Keyframe, frame)
-    }
+	// copy keyframes from temp to newTemp
+	for _, frame := range temp.Keyframe {
+		frame.FrameGeo = geoRename[frame.FrameGeo]
+		frame.BindGeo = geoRename[frame.BindGeo]
+		newTemp.Keyframe = append(newTemp.Keyframe, frame)
+	}
 }
 
 func decompressGeometry(temp, newTemp *templates.Template) {
@@ -166,6 +166,13 @@ func decompressGeometry(temp, newTemp *templates.Template) {
 
 		parent := parentAttr.(*attribute.IntAttribute)
 		parent.Value = geoRename[parent.Value]
+	}
+
+	// copy keyframes to temp
+	for _, frame := range newTemp.Keyframe {
+		frame.FrameGeo = geoRename[frame.FrameGeo]
+		frame.BindGeo = geoRename[frame.BindGeo]
+		temp.Keyframe = append(temp.Keyframe, frame)
 	}
 }
 

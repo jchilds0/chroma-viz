@@ -26,9 +26,9 @@ const (
 	FRAME_USER_VALUE
 	FRAME_MASK
 	FRAME_EXPAND
-	FRAME_VALUE_FRAME
-	FRAME_VALUE_GEO
-	FRAME_VALUE_ATTR
+	FRAME_BIND_FRAME
+	FRAME_BIND_GEO
+	FRAME_BIND_ATTR
 	FRAME_NUM_COLS
 )
 
@@ -300,42 +300,42 @@ func (temp *TempTree) createKeyTree() (err error) {
 		var toggleCell *gtk.CellRendererToggle
 		var column *gtk.TreeViewColumn
 
-        names := []string{"Mask", "Expand", "User Value"}
-        cols := []int{FRAME_MASK, FRAME_EXPAND, FRAME_USER_VALUE}
+		names := []string{"Mask", "Expand", "User Value"}
+		cols := []int{FRAME_MASK, FRAME_EXPAND, FRAME_USER_VALUE}
 
-        for i := range names {
-            toggleCell, err = gtk.CellRendererToggleNew()
-            if err != nil {
-                return
-            }
+		for i := range names {
+			toggleCell, err = gtk.CellRendererToggleNew()
+			if err != nil {
+				return
+			}
 
-            toggleCell.SetProperty("activatable", true)
-            toggleCell.Connect("toggled",
-                func(cell *gtk.CellRendererToggle, path string) {
-                    iter, err := temp.keyModel.GetIterFromString(path)
-                    if err != nil {
-                        log.Printf("Error toggling toggle (%s)", err)
-                        return
-                    }
+			toggleCell.SetProperty("activatable", true)
+			toggleCell.Connect("toggled",
+				func(cell *gtk.CellRendererToggle, path string) {
+					iter, err := temp.keyModel.GetIterFromString(path)
+					if err != nil {
+						log.Printf("Error toggling toggle (%s)", err)
+						return
+					}
 
-                    model := temp.keyModel.ToTreeModel()
+					model := temp.keyModel.ToTreeModel()
 
-                    state, err := gtk_utils.ModelGetValue[bool](model, iter, cols[i])
-                    if err != nil {
-                        log.Printf("Error toggling toggle (%s)", err)
-                        return
-                    }
+					state, err := gtk_utils.ModelGetValue[bool](model, iter, cols[i])
+					if err != nil {
+						log.Printf("Error toggling toggle (%s)", err)
+						return
+					}
 
-                    temp.keyModel.SetValue(iter, cols[i], !state)
-                })
+					temp.keyModel.SetValue(iter, cols[i], !state)
+				})
 
-            column, err = gtk.TreeViewColumnNewWithAttribute(names[i], toggleCell, "active", cols[i])
-            if err != nil {
-                return
-            }
+			column, err = gtk.TreeViewColumnNewWithAttribute(names[i], toggleCell, "active", cols[i])
+			if err != nil {
+				return
+			}
 
-            temp.keyView.AppendColumn(column)
-        }
+			temp.keyView.AppendColumn(column)
+		}
 
 	}
 
@@ -353,7 +353,7 @@ func (temp *TempTree) createKeyTree() (err error) {
 		column.SetTitle("Value From Keyframe")
 
 		names := []string{"Frame", "Geometry", "Attr"}
-		cols := []int{FRAME_VALUE_FRAME, FRAME_VALUE_GEO, FRAME_VALUE_ATTR}
+		cols := []int{FRAME_BIND_FRAME, FRAME_BIND_GEO, FRAME_BIND_ATTR}
 
 		for i, name := range names {
 			valueText, err = gtk.CellRendererTextNew()
@@ -531,35 +531,35 @@ func (tempView *TempTree) keyframes() []templates.Keyframe {
 			log.Print(err)
 			break
 		}
-        
+
 		/*
-				s, err := gtk_utils.ModelGetValue[string](keyModel, iter, FRAME_VALUE_FRAME)
-				if err != nil {
-					log.Print(err)
-					break
-				}
+					s, err := gtk_utils.ModelGetValue[string](keyModel, iter, FRAME_VALUE_FRAME)
+					if err != nil {
+						log.Print(err)
+						break
+					}
 
-		        bindNum, err := strconv.Atoi(s)
-		        if err != nil {
-		            log.Print(err)
-		        }
+			        bindNum, err := strconv.Atoi(s)
+			        if err != nil {
+			            log.Print(err)
+			        }
 
-				s, err = gtk_utils.ModelGetValue[string](keyModel, iter, FRAME_VALUE_GEO)
-				if err != nil {
-					log.Print(err)
-					break
-				}
+					s, err = gtk_utils.ModelGetValue[string](keyModel, iter, FRAME_VALUE_GEO)
+					if err != nil {
+						log.Print(err)
+						break
+					}
 
-		        bindGeo, err := strconv.Atoi(s)
-		        if err != nil {
-		            log.Print(err)
-		        }
+			        bindGeo, err := strconv.Atoi(s)
+			        if err != nil {
+			            log.Print(err)
+			        }
 
-				bindAttr, err := gtk_utils.ModelGetValue[string](keyModel, iter, FRAME_ATTR)
-				if err != nil {
-					log.Print(err)
-					break
-				}
+					bindAttr, err := gtk_utils.ModelGetValue[string](keyModel, iter, FRAME_ATTR)
+					if err != nil {
+						log.Print(err)
+						break
+					}
 
 		*/
 
@@ -576,8 +576,8 @@ func (tempView *TempTree) keyframes() []templates.Keyframe {
 			FrameAttr: attr,
 			FrameType: ftype,
 			SetValue:  value,
-            Expand: expand,
-            Mask: mask,
+			Expand:    expand,
+			Mask:      mask,
 			// BindFrame: bindNum,
 			// BindGeo:   bindGeo,
 			// BindAttr:  bindAttr,
@@ -588,6 +588,29 @@ func (tempView *TempTree) keyframes() []templates.Keyframe {
 	}
 
 	return frames
+}
+
+func (tempView *TempTree) addKeyframes(temp *templates.Template) {
+	for _, frame := range temp.Keyframe {
+		geo := temp.Geometry[frame.FrameGeo]
+		if geo == nil {
+			log.Printf("Missing geometry %d for keyframe", frame.FrameGeo)
+			continue
+		}
+
+		iter := tempView.keyModel.Append(nil)
+		tempView.keyModel.SetValue(iter, FRAME_NUM, frame.FrameNum)
+		tempView.keyModel.SetValue(iter, FRAME_GEOMETRY, geo.Name)
+		tempView.keyModel.SetValue(iter, FRAME_GEOMETRY_ID, frame.FrameGeo)
+		tempView.keyModel.SetValue(iter, FRAME_ATTR, frame.FrameAttr)
+		tempView.keyModel.SetValue(iter, FRAME_VALUE, frame.SetValue)
+		tempView.keyModel.SetValue(iter, FRAME_USER_VALUE, frame.FrameType == templates.USER_FRAME)
+		tempView.keyModel.SetValue(iter, FRAME_MASK, frame.Mask)
+		tempView.keyModel.SetValue(iter, FRAME_EXPAND, frame.Expand)
+		tempView.keyModel.SetValue(iter, FRAME_BIND_FRAME, frame.BindFrame)
+		tempView.keyModel.SetValue(iter, FRAME_BIND_GEO, frame.BindGeo)
+		tempView.keyModel.SetValue(iter, FRAME_BIND_ATTR, frame.BindAttr)
+	}
 }
 
 func (tempView *TempTree) AddGeoRow(iter *gtk.TreeIter, name, propName string, propNum int) {
