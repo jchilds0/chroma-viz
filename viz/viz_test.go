@@ -2,6 +2,7 @@ package viz
 
 import (
 	"chroma-viz/hub"
+	"chroma-viz/library/attribute"
 	"chroma-viz/library/pages"
 	"log"
 	"math/rand"
@@ -39,17 +40,15 @@ func TestGui(t *testing.T) {
 	chromaHub := hub.NewDataBase(numTemplates)
 
 	start := time.Now()
-	geo := []string{"rect", "text", "circle", "image"}
+	geo := []string{"rect", "text", "circle"}
 
 	for i := 1; i <= numTemplates; i++ {
 		chromaHub.AddTemplate(i, "", "", "")
 		chromaHub.Templates[i].Title = "Template " + strconv.Itoa(i)
-		numGeo := 0
 
 		for j := 0; j < numGeometries; j++ {
 			geoIndex := rand.Int() % len(geo)
-			chromaHub.AddGeometry(i, numGeo, geo[geoIndex])
-			numGeo++
+			chromaHub.AddGeometry(i, j, geo[geoIndex])
 		}
 	}
 
@@ -82,7 +81,31 @@ func importRandomPages(hub net.Conn, tempTree *TempTree, showTree *ShowTree) {
 		}
 
 		page.PageNum = showTree.show.NumPages
-		showTree.show.NumPages++
+        for _, prop := range page.PropMap {
+            for name, attr := range prop.Attr {
+                if name == "parent" {
+                    continue
+                }
+
+                prop.Visible[name] = true
+
+                switch a := attr.(type) {
+                case *attribute.IntAttribute:
+                    if (name == "rel_x" || name == "rel_y") {
+                        a.Value = rand.Int() % 2000
+                    } else {
+                        a.Value = rand.Int() % 200
+                    }
+                case *attribute.ColorAttribute:
+                    a.Red = float64(rand.Int() % 255) / 255
+                    a.Green = float64(rand.Int() % 255) / 255
+                    a.Blue = float64(rand.Int() % 255) / 255
+                    a.Alpha = 1.0
+                case *attribute.StringAttribute:
+                    a.Value = "some text"
+                }
+            }
+        }
 		showTree.ImportPage(page)
 	}
 
@@ -90,3 +113,4 @@ func importRandomPages(hub net.Conn, tempTree *TempTree, showTree *ShowTree) {
 	elapsed := end.Sub(start)
 	log.Printf("Built Show in %s\n", elapsed)
 }
+
