@@ -22,10 +22,10 @@ type Token struct {
 var C_tok Token
 
 // G -> {'id': 123, 'name': 'abc', 'prop_type': 'abc', 'geo_type': 'abc', 'visible': [...], 'attr': [A]} | G, G
-func ParseProperty(buf *bufio.Reader, isTemp bool) (propMap map[int]*props.Property, err error) {
-	propMap = make(map[int]*props.Property, 10)
-	data := make(map[string]string)
-	visible := make(map[string]bool)
+func ParseProperty(buf *bufio.Reader, numGeo int) (propMap map[int]*props.Property, err error) {
+	propMap = make(map[int]*props.Property, numGeo)
+	data := make(map[string]string, 20)
+	visible := make(map[string]bool, numGeo)
 
 	for {
 		MatchToken('{', buf)
@@ -51,7 +51,7 @@ func ParseProperty(buf *bufio.Reader, isTemp bool) (propMap map[int]*props.Prope
 					data["name"] = "Property"
 				}
 
-				propMap[prop_id] = props.NewProperty(prop_type, data["name"], isTemp, visible)
+				propMap[prop_id] = props.NewProperty(prop_type, data["name"], false, visible)
 				parseAttributes(propMap[prop_id], buf)
 
 				MatchToken(']', buf)

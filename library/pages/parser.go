@@ -7,9 +7,10 @@ import (
 	"strconv"
 )
 
+var data = make(map[string]string)
+
 // T -> {'id': 123, 'num_geo': 123, 'layer': 123, 'geometry': [G]}
 func parsePage(buf *bufio.Reader) (page *Page, err error) {
-	data := make(map[string]string)
 	parser.NextToken(buf)
 	parser.MatchToken('{', buf)
 
@@ -51,7 +52,7 @@ func parsePage(buf *bufio.Reader) (page *Page, err error) {
 			}
 
 			page = NewPage(0, temp_id, layer, num_geo, data["name"])
-			page.PropMap, err = parser.ParseProperty(buf, false)
+			page.PropMap, err = parser.ParseProperty(buf, num_geo)
 			if err != nil {
 				return
 			}

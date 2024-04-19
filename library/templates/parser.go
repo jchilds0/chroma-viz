@@ -48,7 +48,7 @@ func parseTemplate(buf *bufio.Reader) (temp *Template, err error) {
 			}
 
 			temp = NewTemplate(data["name"], temp_id, layer, num_geo, num_keyframe)
-			temp.Geometry, err = parser.ParseProperty(buf, false)
+			temp.Geometry, err = parser.ParseProperty(buf, num_geo)
 			if err != nil {
 				return
 			}

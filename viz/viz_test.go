@@ -72,6 +72,8 @@ func TestGui(t *testing.T) {
 
 func importRandomPages(hub net.Conn, tempTree *TempTree, showTree *ShowTree) {
 	start := time.Now()
+    showTree.treeView.SetModel(nil)
+
 	for i := 0; i < numPages; i++ {
 		index := (rand.Int() % numTemplates) + 1
 		page, err := pages.GetPage(hub, index)
@@ -112,5 +114,7 @@ func importRandomPages(hub net.Conn, tempTree *TempTree, showTree *ShowTree) {
 	end := time.Now()
 	elapsed := end.Sub(start)
 	log.Printf("Built Show in %s\n", elapsed)
+
+    showTree.treeView.SetModel(showTree.treeList)
 }
 

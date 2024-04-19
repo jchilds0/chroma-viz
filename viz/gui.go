@@ -128,7 +128,8 @@ func VizGui(app *gtk.Application) {
 	end = time.Now()
 	elapsed = end.Sub(start)
 	log.Printf("Imported Graphics Hub in %s", elapsed)
-	importHook(conn.hub.Conn, tempTree, showTree)
+
+	go importHook(conn.hub.Conn, tempTree, showTree)
 
 	/* Menu layout */
 	builder, err := gtk.BuilderNew()
