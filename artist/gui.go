@@ -213,6 +213,7 @@ func ArtistGui(app *gtk.Application) {
 	/* actions */
 	newTemplate.Connect("activate", func() {
 		tempView.geoModel.Clear()
+		tempView.keyModel.Clear()
 
 		template.Title = ""
 		template.TempID = 0
@@ -386,7 +387,19 @@ func ArtistGui(app *gtk.Application) {
 	})
 
 	removeKey.Connect("clicked", func() {
+		selection, err := tempView.keyView.GetSelection()
+		if err != nil {
+			log.Printf("Error getting selected")
+			return
+		}
 
+		_, iter, ok := selection.GetSelected()
+		if !ok {
+			log.Printf("No geometry selected")
+			return
+		}
+
+		tempView.keyModel.Remove(iter)
 	})
 
 	/* Lower Bar layout */
