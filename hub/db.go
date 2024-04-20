@@ -2,8 +2,8 @@ package hub
 
 import (
 	"bufio"
-	"chroma-viz/library/props"
 	"chroma-viz/library/templates"
+	"database/sql"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -11,9 +11,12 @@ import (
 	"net"
 	"strconv"
 	"strings"
+
+	_ "github.com/go-sql-driver/mysql"
 )
 
 type DataBase struct {
+	db        *sql.DB
 	Templates map[int]*templates.Template
 	Assets    map[int][]byte
 	Dirs      map[int]string
@@ -21,22 +24,28 @@ type DataBase struct {
 }
 
 func NewDataBase(numTemp int) *DataBase {
-	db := &DataBase{}
-	db.Templates = make(map[int]*templates.Template, numTemp)
-	db.Assets = make(map[int][]byte, 10)
-	db.Dirs = make(map[int]string, 10)
-	db.Names = make(map[int]string, 10)
+	hub := &DataBase{}
+	hub.Templates = make(map[int]*templates.Template, numTemp)
+	hub.Assets = make(map[int][]byte, 10)
+	hub.Dirs = make(map[int]string, 10)
+	hub.Names = make(map[int]string, 10)
 
-	return db
+	var err error
+	hub.db, err = sql.Open("mysql", "/chroma_hub")
+	if err != nil {
+		log.Println(err)
+	}
+
+	return hub
 }
 
 // S -> {'num_temp': num, 'templates': [T]}
-func (db *DataBase) EncodeDB() (s string, err error) {
+func (hub *DataBase) EncodeDB() (s string, err error) {
 	var b strings.Builder
 
 	first := true
 	maxTempID := 0
-	for _, temp := range db.Templates {
+	for _, temp := range hub.Templates {
 		maxTempID = max(maxTempID, temp.TempID)
 
 		if !first {
@@ -52,37 +61,108 @@ func (db *DataBase) EncodeDB() (s string, err error) {
 	return
 }
 
-func (db *DataBase) TempIDs() (s string) {
-	for _, temp := range db.Templates {
-		if temp == nil {
-			continue
-		}
+func (hub *DataBase) TempIDs() (s string, err error) {
+	q := `
+        SELECT t.templateID, t.Name
+        FROM template t;
+    `
 
-		s += fmt.Sprintf("%d %s;", temp.TempID, temp.Title)
-	}
-
-	return s + "EOF;"
-}
-
-func (db *DataBase) AddTemplate(id int, anim_on, anim_cont, anim_off string) {
-	if db.Templates[id] != nil {
-		log.Printf("Template %d already exists", id)
+	rows, err := hub.db.Query(q)
+	if err != nil {
 		return
 	}
 
-	db.Templates[id] = templates.NewTemplate("", id, 0, 10, 10)
-}
+	var (
+		tempID int
+		title  string
+	)
 
-func (db *DataBase) AddGeometry(temp_id, geo_id int, geo_type string) {
-	if db.Templates[temp_id] == nil {
-		log.Printf("Template %d does not exist", temp_id)
+	var b strings.Builder
+	for rows.Next() {
+		err = rows.Scan(&tempID, &title)
+		if err != nil {
+			return
+		}
+
+		b.WriteString(strconv.Itoa(tempID))
+		b.WriteByte(' ')
+		b.WriteString(title)
+		b.WriteByte(';')
 	}
 
-	temp := db.Templates[temp_id]
-	temp.AddGeometry("", geo_id, props.StringToProp[geo_type], nil)
+	b.WriteString("EOF;")
+	s = b.String()
+	return
 }
 
-func (db *DataBase) AcceptHubConn(ln net.Listener) {
+func (hub *DataBase) AddTemplate(id int64, name string, layer int) (err error) {
+	// TODO: check for existing templates
+	q := `
+        INSERT INTO template VALUES (?, ?, ?);
+    `
+
+	_, err = hub.db.Exec(q, id, name, layer)
+	return
+}
+
+func (hub *DataBase) AddGeometry(temp_id int64, name, geo_type string) (geo_id int64, err error) {
+	q := `
+        INSERT INTO geometry VALUES (NULL, ?, ?, ?);
+    `
+
+	result, err := hub.db.Exec(q, temp_id, name, geo_type)
+	if err != nil {
+		return
+	}
+
+	geo_id, err = result.LastInsertId()
+	return
+}
+
+func (hub *DataBase) AddAttribute(geo_id int64, name, value, typed string, visible bool) (attr_id int64, err error) {
+	q := `
+        INSERT INTO attribute VALUES (NULL, ?, ?, ?, ?, ?);
+    `
+
+	result, err := hub.db.Exec(q, geo_id, name, value, typed, visible)
+	if err != nil {
+		return
+	}
+
+	attr_id, err = result.LastInsertId()
+	return
+}
+
+func (hub *DataBase) GetTemplate(tempID int) (temp *templates.Template, err error) {
+	tempQuery := `
+        SELECT t.Name, t.Layer, COUNT(*)
+        FROM template t
+        INNER JOIN geometry g 
+        ON g.templateID = t.templateID
+        WHERE t.templateID = ?;
+    `
+	var (
+		name    string
+		layer   int
+		num_geo int
+	)
+
+	row := hub.db.QueryRow(tempQuery, tempID)
+	if err = row.Scan(&name, &layer, &num_geo); err != nil {
+		log.Print(err)
+		return
+	}
+
+	temp = templates.NewTemplate(name, tempID, layer, num_geo, 0)
+	err = hub.GetGeometry(temp)
+	return
+}
+
+func (hub *DataBase) GetGeometry(temp *templates.Template) (err error) {
+	return
+}
+
+func (hub *DataBase) AcceptHubConn(ln net.Listener) {
 	defer ln.Close()
 
 	for {
@@ -92,7 +172,7 @@ func (db *DataBase) AcceptHubConn(ln net.Listener) {
 			continue
 		}
 
-		go db.HandleConn(conn)
+		go hub.HandleConn(conn)
 	}
 }
 
@@ -114,7 +194,7 @@ and a template id if the command is template.
 	temp i - encode template with template id 'i' and send
 	to clint
 */
-func (db *DataBase) HandleConn(conn net.Conn) {
+func (hub *DataBase) HandleConn(conn net.Conn) {
 	req := make([]byte, 0, 1024)
 	buf := bufio.NewReader(conn)
 
@@ -140,19 +220,30 @@ func (db *DataBase) HandleConn(conn net.Conn) {
 
 		switch cmds[3] {
 		case "full":
-			s, _ = db.EncodeDB()
+			s, err = hub.EncodeDB()
+			if err != nil {
+				log.Print(err)
+				continue
+			}
+
 			_, err = conn.Write([]byte(s))
 		case "tempids":
-			_, err = conn.Write([]byte(db.TempIDs()))
+			s, err = hub.TempIDs()
+			if err != nil {
+				log.Print(err)
+				continue
+			}
+
+			_, err = conn.Write([]byte(s))
 		case "temp":
 			tempid, err := strconv.Atoi(cmds[4])
 			if err != nil {
 				break
 			}
 
-			template := db.Templates[tempid]
-			if template == nil {
-				log.Printf("Template %d does not exist", tempid)
+			template, err := hub.GetTemplate(tempid)
+			if err == nil {
+				log.Printf("Error getting template %d (%s)", tempid, err)
 				continue
 			}
 
@@ -160,7 +251,7 @@ func (db *DataBase) HandleConn(conn net.Conn) {
 			_, err = conn.Write([]byte(s))
 		case "img":
 			imageID, _ := strconv.Atoi(cmds[4])
-			image := db.Assets[imageID]
+			image := hub.Assets[imageID]
 			if image == nil {
 				log.Printf("image %d does not exist", imageID)
 				_, err = conn.Write([]byte{0, 1, 0, 0})
@@ -181,8 +272,8 @@ func (db *DataBase) HandleConn(conn net.Conn) {
 				Dirs  map[int]string
 				Names map[int]string
 			}
-			assets.Dirs = db.Dirs
-			assets.Names = db.Names
+			assets.Dirs = hub.Dirs
+			assets.Names = hub.Names
 
 			assetsJson, err := json.Marshal(assets)
 			if err != nil {

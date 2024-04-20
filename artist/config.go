@@ -28,7 +28,7 @@ func InitialiseArtist(fileName string) {
 		index += geo_count
 	}
 
-	chromaHub.AddTemplate(0, "left_to_right", "", "left_to_right")
+	chromaHub.AddTemplate(0)
 
 	var total int
 	for i := range geo {

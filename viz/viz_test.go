@@ -4,10 +4,13 @@ import (
 	"chroma-viz/hub"
 	"chroma-viz/library/attribute"
 	"chroma-viz/library/pages"
+	"chroma-viz/library/props"
+	"fmt"
 	"log"
 	"math/rand"
 	"net"
 	"os"
+	"reflect"
 	"runtime/pprof"
 	"strconv"
 	"testing"
@@ -17,9 +20,9 @@ import (
 	"github.com/gotk3/gotk3/gtk"
 )
 
-var numTemplates = 10_000
+var numTemplates = 100
 var numPages = 10_000
-var numGeometries = 100
+var numGeometries = 10
 
 func TestGui(t *testing.T) {
 	defer CloseViz()
@@ -40,17 +43,11 @@ func TestGui(t *testing.T) {
 	chromaHub := hub.NewDataBase(numTemplates)
 
 	start := time.Now()
-	geo := []string{"rect", "text", "circle"}
 
-	for i := 1; i <= numTemplates; i++ {
-		chromaHub.AddTemplate(i, "", "", "")
-		chromaHub.Templates[i].Title = "Template " + strconv.Itoa(i)
-
-		for j := 0; j < numGeometries; j++ {
-			geoIndex := rand.Int() % len(geo)
-			chromaHub.AddGeometry(i, j, geo[geoIndex])
-		}
-	}
+	// var i int64
+	// for i = 1; i <= int64(numTemplates); i++ {
+	// 	randomTemplate(chromaHub, i)
+	// }
 
 	end := time.Now()
 	elapsed := end.Sub(start)
@@ -70,9 +67,60 @@ func TestGui(t *testing.T) {
 	app.Run([]string{})
 }
 
+func randomTemplate(chromaHub *hub.DataBase, tempID int64) {
+	err := chromaHub.AddTemplate(tempID, "Template "+strconv.FormatInt(tempID, 10), 0)
+	if err != nil {
+		log.Fatalf("Error adding template (%s)", err)
+	}
+
+	geos := []*props.Property{
+		props.NewProperty(props.RECT_PROP, "rect", true, nil),
+		props.NewProperty(props.TEXT_PROP, "text", true, nil),
+		props.NewProperty(props.CIRCLE_PROP, "circle", true, nil),
+	}
+
+	for j := 0; j < numGeometries; j++ {
+		geoIndex := rand.Int() % len(geos)
+		prop := geos[geoIndex]
+
+		geo_id, err := chromaHub.AddGeometry(tempID, prop.Name, props.PropType(prop.PropType))
+		if err != nil {
+			log.Fatalf("Error adding geometry (%s)", err)
+		}
+
+		for name, attr := range prop.Attr {
+			var value string
+			switch attr.(type) {
+			case *attribute.IntAttribute:
+				if name == "rel_x" || name == "rel_y" {
+					value = strconv.Itoa(rand.Int() % 2000)
+				} else if name != "parent" {
+					value = strconv.Itoa(rand.Int() % 200)
+				}
+
+			case *attribute.ColorAttribute:
+				value = fmt.Sprintf("%f %f %f %f",
+					float64(rand.Int()%255)/255,
+					float64(rand.Int()%255)/255,
+					float64(rand.Int()%255)/255,
+					1.0,
+				)
+
+			case *attribute.StringAttribute:
+				value = "some text"
+			}
+
+			_, err := chromaHub.AddAttribute(geo_id, name, value, reflect.TypeOf(attr).String()[1:], true)
+			if err != nil {
+				log.Fatalf("Error adding attribute (%s)", err)
+			}
+		}
+	}
+}
+
 func importRandomPages(hub net.Conn, tempTree *TempTree, showTree *ShowTree) {
 	start := time.Now()
-    showTree.treeView.SetModel(nil)
+	showTree.treeView.SetModel(nil)
 
 	for i := 0; i < numPages; i++ {
 		index := (rand.Int() % numTemplates) + 1
@@ -83,31 +131,6 @@ func importRandomPages(hub net.Conn, tempTree *TempTree, showTree *ShowTree) {
 		}
 
 		page.PageNum = showTree.show.NumPages
-        for _, prop := range page.PropMap {
-            for name, attr := range prop.Attr {
-                if name == "parent" {
-                    continue
-                }
-
-                prop.Visible[name] = true
-
-                switch a := attr.(type) {
-                case *attribute.IntAttribute:
-                    if (name == "rel_x" || name == "rel_y") {
-                        a.Value = rand.Int() % 2000
-                    } else {
-                        a.Value = rand.Int() % 200
-                    }
-                case *attribute.ColorAttribute:
-                    a.Red = float64(rand.Int() % 255) / 255
-                    a.Green = float64(rand.Int() % 255) / 255
-                    a.Blue = float64(rand.Int() % 255) / 255
-                    a.Alpha = 1.0
-                case *attribute.StringAttribute:
-                    a.Value = "some text"
-                }
-            }
-        }
 		showTree.ImportPage(page)
 	}
 
@@ -115,6 +138,5 @@ func importRandomPages(hub net.Conn, tempTree *TempTree, showTree *ShowTree) {
 	elapsed := end.Sub(start)
 	log.Printf("Built Show in %s\n", elapsed)
 
-    showTree.treeView.SetModel(showTree.treeList)
+	showTree.treeView.SetModel(showTree.treeList)
 }
-

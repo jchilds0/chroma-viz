@@ -104,7 +104,7 @@ func NewPropertyEditor(typed int) (propEdit *PropertyEditor, err error) {
 	return
 }
 
-var propOrder = map[int][]string{
+var PropAttrs = map[int][]string{
 	RECT_PROP:   {"rel_x", "rel_y", "width", "height", "rounding", "color"},
 	TEXT_PROP:   {"rel_x", "rel_y", "color", "string"},
 	CIRCLE_PROP: {"rel_x", "rel_y", "inner_radius", "outer_radius", "start_angle", "end_angle", "color"},
@@ -115,7 +115,7 @@ var propOrder = map[int][]string{
 }
 
 func (propEdit *PropertyEditor) AddEditors() (err error) {
-	order := propOrder[propEdit.PropType]
+	order := PropAttrs[propEdit.PropType]
 
 	if len(order) == 0 {
 		err = fmt.Errorf("Prop order for %d has length 0", propEdit.PropType)
@@ -136,7 +136,7 @@ func (propEdit *PropertyEditor) AddEditors() (err error) {
 
 func (propEdit *PropertyEditor) CreateVisibleEditor() (box *gtk.Box, err error) {
 	widthChars := 12
-	order := propOrder[propEdit.PropType]
+	order := PropAttrs[propEdit.PropType]
 	propEdit.visible = make(map[string]*gtk.CheckButton)
 
 	box, err = gtk.BoxNew(gtk.ORIENTATION_VERTICAL, 0)

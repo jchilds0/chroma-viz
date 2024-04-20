@@ -36,7 +36,6 @@ func NewTemplate(title string, id, layer, num_geo, num_keyframe int) *Template {
 		Title:       title,
 		TempID:      id,
 		Layer:       layer,
-		NumGeo:      num_geo,
 		NumKeyframe: num_keyframe,
 	}
 
