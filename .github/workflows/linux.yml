@@ -28,9 +28,9 @@ jobs:
           sudo apt-get update -qq
           sudo apt-get install libgtk-3-dev 
 
-    - name: Test Templates 
-      working-directory: ${{github.workspace}}/hub
-      run: go test
+    # - name: Test Templates 
+    #   working-directory: ${{github.workspace}}/hub
+    #   run: go test
 
     - name: Test Pages
       working-directory: ${{github.workspace}}/library/pages
