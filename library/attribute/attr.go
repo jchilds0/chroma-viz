@@ -131,3 +131,13 @@ type Editor interface {
 	Name() string
 	Expand() bool
 }
+
+func SetIntValue(attr Attribute, val int) error {
+	intAttr, ok := attr.(*IntAttribute)
+	if !ok {
+		return fmt.Errorf("Attribute is not an IntAttribute")
+	}
+
+	intAttr.Value = val
+	return nil
+}

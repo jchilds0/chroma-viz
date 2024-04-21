@@ -2,6 +2,7 @@ package hub
 
 import (
 	"bufio"
+	"chroma-viz/library/props"
 	"chroma-viz/library/templates"
 	"database/sql"
 	"encoding/json"
@@ -15,17 +16,24 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 )
 
+var geoTables = map[int]string{
+	props.RECT_PROP:   "rectangle",
+	props.TEXT_PROP:   "text",
+	props.CIRCLE_PROP: "circle",
+	props.IMAGE_PROP:  "asset",
+}
+
 type DataBase struct {
-	db        *sql.DB
-	Templates map[int]*templates.Template
-	Assets    map[int][]byte
-	Dirs      map[int]string
-	Names     map[int]string
+	db     *sql.DB
+	temp   map[int]*templates.Template
+	Assets map[int][]byte
+	Dirs   map[int]string
+	Names  map[int]string
 }
 
 func NewDataBase(numTemp int) *DataBase {
 	hub := &DataBase{}
-	hub.Templates = make(map[int]*templates.Template, numTemp)
+	hub.temp = make(map[int]*templates.Template, 100)
 	hub.Assets = make(map[int][]byte, 10)
 	hub.Dirs = make(map[int]string, 10)
 	hub.Names = make(map[int]string, 10)
@@ -42,22 +50,50 @@ func NewDataBase(numTemp int) *DataBase {
 // S -> {'num_temp': num, 'templates': [T]}
 func (hub *DataBase) EncodeDB() (s string, err error) {
 	var b strings.Builder
-
 	first := true
 	maxTempID := 0
-	for _, temp := range hub.Templates {
-		maxTempID = max(maxTempID, temp.TempID)
+	rows, err := hub.db.Query("SELECT t.templateID FROM template t;")
+	if err != nil {
+		return
+	}
+
+	var (
+		tempID  int
+		temp    *templates.Template
+		tempStr string
+	)
+	for rows.Next() {
+		err = rows.Scan(&tempID)
+		if err != nil {
+			return
+		}
+
+		maxTempID = max(maxTempID, tempID)
 
 		if !first {
 			b.WriteString(",")
 		}
 
 		first = false
-		tempStr, _ := temp.Encode()
+		temp, err = hub.GetTemplate(tempID)
+		if err != nil {
+			return
+		}
+
+		tempStr, err = temp.Encode()
+		if err != nil {
+			return
+		}
+
 		b.WriteString(tempStr)
 	}
 
 	s = fmt.Sprintf("{'num_temp': %d, 'templates': [%s]}", maxTempID+2, b.String())
+	return
+}
+
+func (hub *DataBase) CleanDB() (err error) {
+	_, err = hub.db.Exec("DELETE FROM template")
 	return
 }
 
@@ -105,35 +141,12 @@ func (hub *DataBase) AddTemplate(id int64, name string, layer int) (err error) {
 	return
 }
 
-func (hub *DataBase) AddGeometry(temp_id int64, name, geo_type string) (geo_id int64, err error) {
-	q := `
-        INSERT INTO geometry VALUES (NULL, ?, ?, ?);
-    `
-
-	result, err := hub.db.Exec(q, temp_id, name, geo_type)
-	if err != nil {
-		return
-	}
-
-	geo_id, err = result.LastInsertId()
-	return
-}
-
-func (hub *DataBase) AddAttribute(geo_id int64, name, value, typed string, visible bool) (attr_id int64, err error) {
-	q := `
-        INSERT INTO attribute VALUES (NULL, ?, ?, ?, ?, ?);
-    `
-
-	result, err := hub.db.Exec(q, geo_id, name, value, typed, visible)
-	if err != nil {
-		return
-	}
-
-	attr_id, err = result.LastInsertId()
-	return
-}
-
 func (hub *DataBase) GetTemplate(tempID int) (temp *templates.Template, err error) {
+	temp, ok := hub.temp[tempID]
+	if ok {
+		return
+	}
+
 	tempQuery := `
         SELECT t.Name, t.Layer, COUNT(*)
         FROM template t
@@ -149,16 +162,14 @@ func (hub *DataBase) GetTemplate(tempID int) (temp *templates.Template, err erro
 
 	row := hub.db.QueryRow(tempQuery, tempID)
 	if err = row.Scan(&name, &layer, &num_geo); err != nil {
-		log.Print(err)
+		log.Print("Error reading template values")
 		return
 	}
 
 	temp = templates.NewTemplate(name, tempID, layer, num_geo, 0)
 	err = hub.GetGeometry(temp)
-	return
-}
 
-func (hub *DataBase) GetGeometry(temp *templates.Template) (err error) {
+	hub.temp[tempID] = temp
 	return
 }
 
@@ -238,11 +249,12 @@ func (hub *DataBase) HandleConn(conn net.Conn) {
 		case "temp":
 			tempid, err := strconv.Atoi(cmds[4])
 			if err != nil {
-				break
+				log.Print(err)
+				continue
 			}
 
 			template, err := hub.GetTemplate(tempid)
-			if err == nil {
+			if err != nil {
 				log.Printf("Error getting template %d (%s)", tempid, err)
 				continue
 			}

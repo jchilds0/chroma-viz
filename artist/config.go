@@ -28,15 +28,15 @@ func InitialiseArtist(fileName string) {
 		index += geo_count
 	}
 
-	chromaHub.AddTemplate(0)
+	chromaHub.AddTemplate(0, "artist", 0)
 
-	var total int
-	for i := range geo {
-		for j := 0; j < geo_count; j++ {
-			chromaHub.AddGeometry(0, total, geo[i])
-			total++
-		}
-	}
+	// var total int
+	// for i := range geo {
+	// 	for j := 0; j < geo_count; j++ {
+	// 		chromaHub.AddGeometry(0, total, geo[i])
+	// 		total++
+	// 	}
+	// }
 	go hub.StartHub(chromaHub, conf.HubPort)
 
 	artistHub := tcp.NewConnection("Hub", conf.HubAddr, conf.HubPort)

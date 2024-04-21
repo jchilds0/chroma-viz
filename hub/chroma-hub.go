@@ -118,15 +118,15 @@ func (hub *DataBase) ImportArchive(fileName string) error {
 		return err
 	}
 
-	for _, temp := range archive.Templates {
-		if _, ok := hub.Templates[temp.TempID]; ok {
-			return fmt.Errorf("Template ID %d already exists", temp.TempID)
-		}
-
-		hub.Templates[temp.TempID] = temp
-		s := fmt.Sprintf("Loaded Template %d (%s)", temp.TempID, temp.Title)
-		printMessage(s)
-	}
+	// for _, temp := range archive.Templates {
+	// 	if _, ok := hub.Templates[temp.TempID]; ok {
+	// 		return fmt.Errorf("Template ID %d already exists", temp.TempID)
+	// 	}
+	//
+	// 	hub.Templates[temp.TempID] = temp
+	// 	s := fmt.Sprintf("Loaded Template %d (%s)", temp.TempID, temp.Title)
+	// 	printMessage(s)
+	// }
 
 	for id := range archive.Assets {
 		hub.Assets[id] = archive.Assets[id]
@@ -174,13 +174,13 @@ func (hub *DataBase) ImportTemplate(fileName string) error {
 		return err
 	}
 
-	if _, ok := hub.Templates[temp.TempID]; ok {
-        printMessage(fmt.Sprintf("Template %d already exists, overwriting", temp.TempID))
-	}
+	// if _, ok := hub.Templates[temp.TempID]; ok {
+	// 	printMessage(fmt.Sprintf("Template %d already exists, overwriting", temp.TempID))
+	// }
 
-	hub.Templates[temp.TempID] = &temp
-	s := fmt.Sprintf("Loaded Template %d (%s)", temp.TempID, temp.Title)
-	printMessage(s)
+	// hub.Templates[temp.TempID] = &temp
+	// s := fmt.Sprintf("Loaded Template %d (%s)", temp.TempID, temp.Title)
+	// printMessage(s)
 
 	return nil
 }
