@@ -37,7 +37,7 @@ func InitialiseArtist(fileName string) {
 	// 		total++
 	// 	}
 	// }
-	go hub.StartHub(chromaHub, conf.HubPort)
+	go chromaHub.StartHub(conf.HubPort)
 
 	artistHub := tcp.NewConnection("Hub", conf.HubAddr, conf.HubPort)
 	artistHub.Connect()

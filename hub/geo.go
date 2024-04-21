@@ -1,37 +1,12 @@
 package hub
 
 import (
-	"chroma-viz/library/attribute"
 	"chroma-viz/library/props"
 	"chroma-viz/library/templates"
-	"fmt"
 	"log"
 )
 
-type Geometry struct {
-	GeoID   int64
-	Name    string
-	GeoType int
-	RelX    int
-	RelY    int
-	Color   [4]byte
-	Parent  int
-}
-
-func NewGeometry(name string, geoType, rel_x, rel_y int, r, g, b, a byte, parent int) *Geometry {
-	geo := &Geometry{
-		Name:    name,
-		GeoType: geoType,
-		RelX:    rel_x,
-		RelY:    rel_y,
-		Color:   [4]byte{r, g, b, a},
-		Parent:  parent,
-	}
-
-	return geo
-}
-
-func (hub *DataBase) AddGeometry(tempID int64, geo Geometry) (geo_id int64, err error) {
+func (hub *DataBase) addGeometry(tempID int64, geo templates.Geometry) (geo_id int64, err error) {
 	q := `
         INSERT INTO geometry VALUES (NULL, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
     `
@@ -47,30 +22,45 @@ func (hub *DataBase) AddGeometry(tempID int64, geo Geometry) (geo_id int64, err 
 	return
 }
 
-func (hub *DataBase) AddRectangle(geoID int64, width int, height int, rounding int) (err error) {
+func (hub *DataBase) AddRectangle(tempID int64, rect templates.Rectangle) (err error) {
 	q := `
         INSERT INTO rectangle VALUES (?, ?, ?, ?);
     `
 
-	_, err = hub.db.Exec(q, geoID, width, height, rounding)
+	geoID, err := hub.addGeometry(tempID, rect.Geometry)
+	if err != nil {
+		return
+	}
+
+	_, err = hub.db.Exec(q, geoID, rect.Width, rect.Height, rect.Rounding)
 	return
 }
 
-func (hub *DataBase) AddText(geoID int64, text string) (err error) {
+func (hub *DataBase) AddText(tempID int64, text templates.Text) (err error) {
 	q := `
         INSERT INTO text VALUES (?, ?);
     `
 
-	_, err = hub.db.Exec(q, geoID, text)
+	geoID, err := hub.addGeometry(tempID, text.Geometry)
+	if err != nil {
+		return
+	}
+
+	_, err = hub.db.Exec(q, geoID, text.Text)
 	return
 }
 
-func (hub *DataBase) AddCircle(geoID int64, innerRadius, outerRadius, startAngle, endAngle int) (err error) {
+func (hub *DataBase) AddCircle(tempID int64, circle templates.Circle) (err error) {
 	q := `
         INSERT INTO circle VALUES (?, ?, ?, ?, ?);
     `
 
-	_, err = hub.db.Exec(q, geoID, innerRadius, outerRadius, startAngle, endAngle)
+	geoID, err := hub.addGeometry(tempID, circle.Geometry)
+	if err != nil {
+		return
+	}
+
+	_, err = hub.db.Exec(q, geoID, circle.InnerRadius, circle.OuterRadius, circle.StartAngle, circle.EndAngle)
 	return
 }
 
@@ -96,62 +86,51 @@ func (hub *DataBase) GetGeometry(temp *templates.Template) (err error) {
 	}
 
 	var (
-		id     int64
-		name   string
-		typed  int
-		rel_x  int
-		rel_y  int
-		r      byte
-		g      byte
-		b      byte
-		a      byte
-		parent int
+		id    int64
+		geoID int
+		geo   templates.Geometry
 	)
-	geo_id := 0
 	for rows.Next() {
-		err = rows.Scan(&id, &name, &typed, &rel_x, &rel_y, &r, &g, &b, &a, &parent)
+		err = rows.Scan(&id, &geo.Name, &geo.GeoType, &geo.RelX, &geo.RelY,
+			&geo.Color[0], &geo.Color[1], &geo.Color[2], &geo.Color[3], &geo.Parent)
 		if err != nil {
 			return
 		}
 
-		temp.AddGeometry(name, geo_id, typed, nil)
-		temp.Geometry[geo_id].Visible["rel_x"] = true
-		temp.Geometry[geo_id].Visible["rel_y"] = true
-		temp.Geometry[geo_id].Visible["color"] = true
+		temp.AddGeometry(geo.Name, geoID, geo.GeoType, nil)
+		temp.Geometry[geoID].Visible["rel_x"] = true
+		temp.Geometry[geoID].Visible["rel_y"] = true
+		temp.Geometry[geoID].Visible["color"] = true
 
-		attribute.SetIntValue(temp.Geometry[geo_id].Attr["rel_x"], rel_x)
-		attribute.SetIntValue(temp.Geometry[geo_id].Attr["rel_y"], rel_y)
-
-		color := temp.Geometry[geo_id].Attr["color"].(*attribute.ColorAttribute)
-		color.Red = float64(r) / 255
-		color.Green = float64(g) / 255
-		color.Blue = float64(b) / 255
-		color.Alpha = float64(a) / 255
-
-		switch typed {
+		var attr templates.GeometryEncoder
+		switch geo.GeoType {
 		case props.RECT_PROP:
-			err = hub.GetRectangle(id, temp.Geometry[geo_id])
+			attr, err = hub.GetRectangle(id, geo)
 		case props.CIRCLE_PROP:
-			err = hub.GetCircle(id, temp.Geometry[geo_id])
+			attr, err = hub.GetCircle(id, geo)
 		case props.TEXT_PROP:
-			err = hub.GetText(id, temp.Geometry[geo_id])
+			attr, err = hub.GetText(id, geo)
 		default:
-			log.Printf("Prop type %s not implemented in chroma hub", props.PropType(typed))
-			geo_id++
+			log.Printf("Prop type %s not implemented in chroma hub", props.PropType(geo.GeoType))
+			geoID++
 			continue
 		}
-
 		if err != nil {
 			return
 		}
 
-		geo_id++
+		for name, a := range attr.Encode() {
+			temp.Geometry[geoID].Attr[name] = a
+			temp.Geometry[geoID].Visible[name] = true
+		}
+
+		geoID++
 	}
 
 	return
 }
 
-func (hub *DataBase) GetRectangle(geoID int64, prop *props.Property) (err error) {
+func (hub *DataBase) GetRectangle(geoID int64, geo templates.Geometry) (rect *templates.Rectangle, err error) {
 	q := `
         SELECT g.width, g.height, g.rounding
         FROM rectangle g 
@@ -159,39 +138,13 @@ func (hub *DataBase) GetRectangle(geoID int64, prop *props.Property) (err error)
     `
 
 	row := hub.db.QueryRow(q, geoID)
+	rect = templates.NewRectangle(geo, 0, 0, 0)
 
-	var (
-		width    int
-		height   int
-		rounding int
-	)
-	err = row.Scan(&width, &height, &rounding)
-	if err != nil {
-		return
-	}
-
-	err = attribute.SetIntValue(prop.Attr["width"], width)
-	if err != nil {
-		return
-	}
-
-	err = attribute.SetIntValue(prop.Attr["height"], height)
-	if err != nil {
-		return
-	}
-
-	err = attribute.SetIntValue(prop.Attr["rounding"], width)
-	if err != nil {
-		return
-	}
-
-	prop.Visible["width"] = true
-	prop.Visible["height"] = true
-	prop.Visible["rounding"] = true
+	err = row.Scan(&rect.Width, &rect.Height, &rect.Rounding)
 	return
 }
 
-func (hub *DataBase) GetCircle(geoID int64, prop *props.Property) (err error) {
+func (hub *DataBase) GetCircle(geoID int64, geo templates.Geometry) (c *templates.Circle, err error) {
 	q := `
         SELECT g.inner_radius, g.outer_radius, g.start_angle, g.end_angle
         FROM circle g 
@@ -199,47 +152,13 @@ func (hub *DataBase) GetCircle(geoID int64, prop *props.Property) (err error) {
     `
 
 	row := hub.db.QueryRow(q, geoID)
+	c = templates.NewCircle(geo, 0, 0, 0, 0)
 
-	var (
-		inner_radius int
-		outer_radius int
-		start_angle  int
-		end_angle    int
-	)
-	err = row.Scan(&inner_radius, &outer_radius, &start_angle, &end_angle)
-	if err != nil {
-		return
-	}
-
-	err = attribute.SetIntValue(prop.Attr["inner_radius"], inner_radius)
-	if err != nil {
-		return
-	}
-
-	err = attribute.SetIntValue(prop.Attr["outer_radius"], inner_radius)
-	if err != nil {
-		return
-	}
-
-	err = attribute.SetIntValue(prop.Attr["start_angle"], inner_radius)
-	if err != nil {
-		return
-	}
-
-	err = attribute.SetIntValue(prop.Attr["end_angle"], inner_radius)
-	if err != nil {
-		return
-	}
-
-	prop.Visible["inner_radius"] = true
-	prop.Visible["outer_radius"] = true
-	prop.Visible["start_angle"] = true
-	prop.Visible["end_angle"] = true
-
+	err = row.Scan(&c.InnerRadius, &c.OuterRadius, &c.StartAngle, &c.EndAngle)
 	return
 }
 
-func (hub *DataBase) GetText(geoID int64, prop *props.Property) (err error) {
+func (hub *DataBase) GetText(geoID int64, geo templates.Geometry) (t *templates.Text, err error) {
 	q := `
         SELECT g.text 
         FROM text g 
@@ -247,25 +166,8 @@ func (hub *DataBase) GetText(geoID int64, prop *props.Property) (err error) {
     `
 
 	row := hub.db.QueryRow(q, geoID)
+	t = templates.NewText(geo, "")
 
-	var text string
-	err = row.Scan(&text)
-	if err != nil {
-		return
-	}
-
-	if prop.Attr["string"] == nil {
-		err = fmt.Errorf("String attr missing")
-		return
-	}
-
-	attr, ok := prop.Attr["string"].(*attribute.StringAttribute)
-	if !ok {
-		err = fmt.Errorf("Attribute is not a StringAttribute")
-		return
-	}
-
-	attr.Value = text
-	prop.Visible["string"] = true
+	err = row.Scan(&t.Text)
 	return
 }

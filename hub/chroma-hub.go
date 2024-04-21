@@ -6,7 +6,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
-	"net"
 	"os"
 	"strconv"
 	"strings"
@@ -34,7 +33,7 @@ func HubApp(port int) {
 	ok := true
 	hubPort = port
 
-	StartHub(hub, port)
+	go hub.StartHub(port)
 
 	read := bufio.NewScanner(os.Stdin)
 	for ok {
@@ -58,15 +57,6 @@ func HubApp(port int) {
 	}
 }
 
-func StartHub(hub *DataBase, port int) {
-	ln, err := net.Listen("tcp", ":"+strconv.Itoa(port))
-	if err != nil {
-		log.Fatalf("Error creating server (%s)", err)
-	}
-
-	go hub.AcceptHubConn(ln)
-}
-
 /*
    Send graphics hub to client using the following grammar
 
@@ -83,7 +73,18 @@ func imported(hub *DataBase, inputs []string) {
 	case "archive":
 		err = hub.ImportArchive(inputs[1])
 	case "template":
-		err = hub.ImportTemplate(inputs[1])
+		buf, err := os.ReadFile(inputs[1])
+		if err != nil {
+			break
+		}
+
+		var temp templates.Template
+		err = json.Unmarshal(buf, &temp)
+		if err != nil {
+			break
+		}
+
+		err = hub.ImportTemplate(temp)
 	case "asset":
 		err = hub.ImportAsset(inputs[1:])
 	default:
@@ -118,15 +119,15 @@ func (hub *DataBase) ImportArchive(fileName string) error {
 		return err
 	}
 
-	// for _, temp := range archive.Templates {
-	// 	if _, ok := hub.Templates[temp.TempID]; ok {
-	// 		return fmt.Errorf("Template ID %d already exists", temp.TempID)
-	// 	}
-	//
-	// 	hub.Templates[temp.TempID] = temp
-	// 	s := fmt.Sprintf("Loaded Template %d (%s)", temp.TempID, temp.Title)
-	// 	printMessage(s)
-	// }
+	for _, temp := range archive.Templates {
+		if _, ok := hub.Templates[temp.TempID]; ok {
+			return fmt.Errorf("Template ID %d already exists", temp.TempID)
+		}
+
+		hub.ImportTemplate(*temp)
+		s := fmt.Sprintf("Loaded Template %d (%s)", temp.TempID, temp.Title)
+		printMessage(s)
+	}
 
 	for id := range archive.Assets {
 		hub.Assets[id] = archive.Assets[id]
@@ -160,29 +161,6 @@ func (hub *DataBase) ExportArchive(fileName string) {
 
 	s := fmt.Sprintf("Exported hub to %s", fileName)
 	printMessage(s)
-}
-
-func (hub *DataBase) ImportTemplate(fileName string) error {
-	buf, err := os.ReadFile(fileName)
-	if err != nil {
-		return err
-	}
-
-	var temp templates.Template
-	err = json.Unmarshal(buf, &temp)
-	if err != nil {
-		return err
-	}
-
-	// if _, ok := hub.Templates[temp.TempID]; ok {
-	// 	printMessage(fmt.Sprintf("Template %d already exists, overwriting", temp.TempID))
-	// }
-
-	// hub.Templates[temp.TempID] = &temp
-	// s := fmt.Sprintf("Loaded Template %d (%s)", temp.TempID, temp.Title)
-	// printMessage(s)
-
-	return nil
 }
 
 func (hub *DataBase) ExportTemplate(fileName string) error {

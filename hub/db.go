@@ -24,16 +24,16 @@ var geoTables = map[int]string{
 }
 
 type DataBase struct {
-	db     *sql.DB
-	temp   map[int]*templates.Template
-	Assets map[int][]byte
-	Dirs   map[int]string
-	Names  map[int]string
+	db        *sql.DB
+	Templates map[int]*templates.Template
+	Assets    map[int][]byte
+	Dirs      map[int]string
+	Names     map[int]string
 }
 
 func NewDataBase(numTemp int) *DataBase {
 	hub := &DataBase{}
-	hub.temp = make(map[int]*templates.Template, 100)
+	hub.Templates = make(map[int]*templates.Template, 100)
 	hub.Assets = make(map[int][]byte, 10)
 	hub.Dirs = make(map[int]string, 10)
 	hub.Names = make(map[int]string, 10)
@@ -131,6 +131,15 @@ func (hub *DataBase) TempIDs() (s string, err error) {
 	return
 }
 
+func (hub *DataBase) ImportTemplate(temp templates.Template) (err error) {
+	err = hub.AddTemplate(int64(temp.TempID), temp.Title, temp.Layer)
+	if err != nil {
+		return
+	}
+
+	return
+}
+
 func (hub *DataBase) AddTemplate(id int64, name string, layer int) (err error) {
 	// TODO: check for existing templates
 	q := `
@@ -142,7 +151,7 @@ func (hub *DataBase) AddTemplate(id int64, name string, layer int) (err error) {
 }
 
 func (hub *DataBase) GetTemplate(tempID int) (temp *templates.Template, err error) {
-	temp, ok := hub.temp[tempID]
+	temp, ok := hub.Templates[tempID]
 	if ok {
 		return
 	}
@@ -169,11 +178,15 @@ func (hub *DataBase) GetTemplate(tempID int) (temp *templates.Template, err erro
 	temp = templates.NewTemplate(name, tempID, layer, num_geo, 0)
 	err = hub.GetGeometry(temp)
 
-	hub.temp[tempID] = temp
+	hub.Templates[tempID] = temp
 	return
 }
 
-func (hub *DataBase) AcceptHubConn(ln net.Listener) {
+func (hub *DataBase) StartHub(port int) {
+	ln, err := net.Listen("tcp", ":"+strconv.Itoa(port))
+	if err != nil {
+		log.Fatalf("Error creating server (%s)", err)
+	}
 	defer ln.Close()
 
 	for {

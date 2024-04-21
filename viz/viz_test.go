@@ -4,6 +4,7 @@ import (
 	"chroma-viz/hub"
 	"chroma-viz/library/pages"
 	"chroma-viz/library/props"
+	"chroma-viz/library/templates"
 	"log"
 	"math/rand"
 	"net"
@@ -17,12 +18,14 @@ import (
 	"github.com/gotk3/gotk3/gtk"
 )
 
-var numTemplates = 1_000
+var numTemplates = 100
 var numPages = 1_000
 var numGeometries = 100
 
 func TestGui(t *testing.T) {
 	defer CloseViz()
+
+	createHub := true
 
 	f, err := os.Create("../perf/viz_test.prof")
 	if err != nil {
@@ -39,25 +42,27 @@ func TestGui(t *testing.T) {
 	importHook = importRandomPages
 	chromaHub := hub.NewDataBase(numTemplates)
 
-	// err = chromaHub.CleanDB()
-	// if err != nil {
-	// 	log.Print(err)
-	// }
-	//
-	// log.Printf("Cleaned out graphics hub")
-	//
-	// start := time.Now()
-	//
-	// var i int64
-	// for i = 1; i <= int64(numTemplates); i++ {
-	// 	randomTemplate(chromaHub, i)
-	// }
-	//
-	// end := time.Now()
-	// elapsed := end.Sub(start)
-	// log.Printf("Built Graphics Hub in %s\n", elapsed)
+	if createHub {
+		err = chromaHub.CleanDB()
+		if err != nil {
+			log.Print(err)
+		}
 
-	go hub.StartHub(chromaHub, 9000)
+		log.Printf("Cleaned out graphics hub")
+
+		start := time.Now()
+
+		var i int64
+		for i = 1; i <= int64(numTemplates); i++ {
+			randomTemplate(chromaHub, i)
+		}
+
+		end := time.Now()
+		elapsed := end.Sub(start)
+		log.Printf("Built Graphics Hub in %s\n", elapsed)
+	}
+
+	go chromaHub.StartHub(9000)
 
 	time.Sleep(time.Second)
 	InitialiseViz("./conf.json")
@@ -83,7 +88,7 @@ func randomTemplate(chromaHub *hub.DataBase, tempID int64) {
 		geoIndex := rand.Int() % len(geos)
 		prop := geos[geoIndex]
 
-		geo := hub.NewGeometry(
+		geo := templates.NewGeometry(
 			props.PropType(prop),
 			prop,
 			rand.Int()%2000,
@@ -95,29 +100,28 @@ func randomTemplate(chromaHub *hub.DataBase, tempID int64) {
 			0,
 		)
 
-		geo_id, err := chromaHub.AddGeometry(tempID, *geo)
-		if err != nil {
-			log.Fatalf("Error adding geometry (%s)", err)
-		}
-
 		switch prop {
 		case props.RECT_PROP:
-			err = chromaHub.AddRectangle(
-				geo_id,
+			rect := templates.NewRectangle(
+				*geo,
 				rand.Int()%1000,
 				rand.Int()%1000,
-				rand.Int()%100,
+				rand.Int()%10,
 			)
+			err = chromaHub.AddRectangle(tempID, *rect)
+
 		case props.CIRCLE_PROP:
-			err = chromaHub.AddCircle(
-				geo_id,
+			circle := templates.NewCircle(
+				*geo,
 				rand.Int()%1000,
 				rand.Int()%1000,
 				rand.Int()%1000,
 				rand.Int()%1000,
 			)
+			err = chromaHub.AddCircle(tempID, *circle)
 		case props.TEXT_PROP:
-			err = chromaHub.AddText(geo_id, "some text")
+			text := templates.NewText(*geo, "some text")
+			err = chromaHub.AddText(tempID, *text)
 		}
 
 		if err != nil {
