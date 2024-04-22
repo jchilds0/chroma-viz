@@ -22,13 +22,22 @@ func NewIntAttribute(name string) *IntAttribute {
 	return intAttr
 }
 
+func NewIntAttributeWithValue(name string, value int) *IntAttribute {
+	intAttr := &IntAttribute{
+		Name:  name,
+		Value: value,
+		Type:  INT,
+	}
+
+	return intAttr
+}
+
 func (intAttr *IntAttribute) String() string {
 	return fmt.Sprintf("%s=%d#", intAttr.Name, intAttr.Value)
 }
 
 func (intAttr *IntAttribute) Encode() string {
-	return fmt.Sprintf("{'name': '%s', 'value': '%d'}",
-		intAttr.Name, intAttr.Value)
+	return fmt.Sprintf("%d", intAttr.Value)
 }
 
 func (intAttr *IntAttribute) Decode(value string) (err error) {

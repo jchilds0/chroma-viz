@@ -21,13 +21,22 @@ func NewStringAttribute(name string) *StringAttribute {
 	return stringAttr
 }
 
+func NewStringAttributeWithValue(name string, text string) *StringAttribute {
+	stringAttr := &StringAttribute{
+		Name:  name,
+		Type:  STRING,
+		Value: text,
+	}
+
+	return stringAttr
+}
+
 func (stringAttr *StringAttribute) String() string {
 	return fmt.Sprintf("%s=%s#", stringAttr.Name, stringAttr.Value)
 }
 
 func (stringAttr *StringAttribute) Encode() string {
-	return fmt.Sprintf("{'name': '%s', 'value': '%s'}",
-		stringAttr.Name, stringAttr.Value)
+	return fmt.Sprintf("%s", stringAttr.Value)
 }
 
 func (stringAttr *StringAttribute) Decode(value string) error {

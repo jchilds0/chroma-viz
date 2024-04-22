@@ -4,12 +4,13 @@ import (
 	"bufio"
 	"chroma-viz/library/parser"
 	"fmt"
+	"log"
 	"strconv"
+	"strings"
 )
 
 // T -> {'id': 123, 'num_geo': 123, 'layer': 123, 'geometry': [G]}
-func parseTemplate(buf *bufio.Reader) (temp *Template, err error) {
-	data := make(map[string]string)
+func parseTemplate(buf *bufio.Reader) (temp Template, err error) {
 	parser.NextToken(buf)
 	parser.MatchToken('{', buf)
 
@@ -19,42 +20,33 @@ func parseTemplate(buf *bufio.Reader) (temp *Template, err error) {
 		parser.MatchToken(parser.STRING, buf)
 		parser.MatchToken(':', buf)
 
-		if name == "geometry" {
-			parser.MatchToken('[', buf)
-
-			var num_geo, num_keyframe, temp_id, layer int
-			num_geo, err = strconv.Atoi(data["num_geo"])
+		switch name {
+		case "id":
+			temp.TempID, err = strconv.ParseInt(parser.C_tok.Value, 10, 64)
 			if err != nil {
 				return
 			}
 
-			num_keyframe, err = strconv.Atoi(data["num_keyframe"])
+			parser.MatchToken(parser.INT, buf)
+		case "num_keyframe":
+			var numKey int
+			numKey, err = strconv.Atoi(parser.C_tok.Value)
 			if err != nil {
 				return
 			}
 
-			temp_id, err = strconv.Atoi(data["id"])
+			parser.MatchToken(parser.INT, buf)
+			temp.Keyframe = make([]Keyframe, 0, numKey)
+		case "num_geo":
+			var numGeo int
+			numGeo, err = strconv.Atoi(parser.C_tok.Value)
 			if err != nil {
 				return
 			}
 
-			layer, err = strconv.Atoi(data["layer"])
-			if err != nil {
-				return
-			}
-
-			if data["name"] == "" {
-				data["name"] = "Template"
-			}
-
-			temp = NewTemplate(data["name"], temp_id, layer, num_geo, num_keyframe)
-			temp.Geometry, err = parser.ParseProperty(buf, num_geo)
-			if err != nil {
-				return
-			}
-
-			parser.MatchToken(']', buf)
-		} else if name == "keyframe" {
+			parser.MatchToken(parser.INT, buf)
+			temp.Geometry = make([]IGeometry, 0, numGeo)
+		case "keyframe":
 			parser.MatchToken('[', buf)
 
 			var frame Keyframe
@@ -72,20 +64,27 @@ func parseTemplate(buf *bufio.Reader) (temp *Template, err error) {
 			}
 
 			parser.MatchToken(']', buf)
-		} else {
-			data[name] = parser.C_tok.Value
+		case "geometry":
+			parser.MatchToken('[', buf)
 
-			parser.NextToken(buf)
+			var geo IGeometry
+			for parser.C_tok.Tok == '{' {
+				geo, err = parseGeometry(buf)
+				if err != nil {
+					return
+				}
+
+				temp.Geometry = append(temp.Geometry, geo)
+
+				if parser.C_tok.Tok == ',' {
+					parser.MatchToken(',', buf)
+				}
+			}
+
+			parser.MatchToken(']', buf)
+		default:
+			log.Printf("Unknown template attribute %s", name)
 		}
-
-		if parser.C_tok.Tok == ',' {
-			parser.MatchToken(',', buf)
-		}
-	}
-
-	if temp == nil {
-		err = fmt.Errorf("Template not created")
-		return
 	}
 
 	return
@@ -107,29 +106,35 @@ func parseKeyframe(buf *bufio.Reader) (frame Keyframe, err error) {
 			return
 		}
 
-		if name == "frame_num" {
+		switch name {
+		case "frame_num":
 			num, err = strconv.Atoi(parser.C_tok.Value)
 			if err != nil {
 				return
 			}
 
 			frame.FrameNum = num
-		} else if name == "frame_geo" {
+		case "frame_geo":
 			num, err = strconv.Atoi(parser.C_tok.Value)
 			if err != nil {
 				return
 			}
 
 			frame.FrameGeo = num
-		} else if name == "frame_attr" {
+
+		case "frame_attr":
 			frame.FrameAttr = parser.C_tok.Value
-		} else if name == "mask" {
+
+		case "mask":
 			frame.Mask = (parser.C_tok.Value == "true")
-		} else if name == "expand" {
+
+		case "expand":
 			frame.Expand = (parser.C_tok.Value == "true")
-		} else if name == "user_frame" {
+
+		case "user_frame":
 			frame.FrameType = USER_FRAME
-		} else if name == "value" {
+
+		case "value":
 			num, err = strconv.Atoi(parser.C_tok.Value)
 			if err != nil {
 				return
@@ -137,7 +142,8 @@ func parseKeyframe(buf *bufio.Reader) (frame Keyframe, err error) {
 
 			frame.FrameType = SET_FRAME
 			frame.SetValue = num
-		} else if name == "bind_frame" {
+
+		case "bind_frame":
 			num, err = strconv.Atoi(parser.C_tok.Value)
 			if err != nil {
 				return
@@ -145,15 +151,19 @@ func parseKeyframe(buf *bufio.Reader) (frame Keyframe, err error) {
 
 			frame.BindFrame = num
 			frame.FrameType = BIND_FRAME
-		} else if name == "bind_geo" {
+		case "bind_geo":
 			num, err = strconv.Atoi(parser.C_tok.Value)
 			if err != nil {
 				return
 			}
 
 			frame.BindGeo = num
-		} else if name == "bind_attr" {
+
+		case "bind_attr":
 			frame.BindAttr = parser.C_tok.Value
+
+		default:
+			log.Printf("Unknown keyframe attribute %s", name)
 		}
 
 		err = parser.NextToken(buf)
@@ -170,4 +180,125 @@ func parseKeyframe(buf *bufio.Reader) (frame Keyframe, err error) {
 	}
 
 	return
+}
+
+func parseGeometry(buf *bufio.Reader) (geo IGeometry, err error) {
+	data := make(map[string]string, 10)
+	var geom Geometry
+	parser.MatchToken('{', buf)
+
+	for parser.C_tok.Tok == parser.STRING {
+		name := parser.C_tok.Value
+		parser.MatchToken(parser.STRING, buf)
+		parser.MatchToken(':', buf)
+
+		switch name {
+		case "id":
+			geom.GeoID, err = strconv.ParseInt(parser.C_tok.Value, 10, 64)
+			if err != nil {
+				return
+			}
+
+			err = parser.MatchToken(parser.INT, buf)
+			if err != nil {
+				return
+			}
+
+		case "name":
+			geom.Name = parser.C_tok.Value
+			err = parser.MatchToken(parser.STRING, buf)
+			if err != nil {
+				return
+			}
+
+		case "prop_type":
+			geom.GeoType, err = strconv.Atoi(parser.C_tok.Value)
+			if err != nil {
+				return
+			}
+
+			err = parser.MatchToken(parser.INT, buf)
+			if err != nil {
+				return
+			}
+		case "attr":
+			parser.MatchToken('[', buf)
+
+			for parser.C_tok.Tok == '{' {
+				name := parser.C_tok.Value
+				parser.MatchToken(parser.STRING, buf)
+				parser.MatchToken(',', buf)
+
+				data[name] = parser.C_tok.Value
+				parser.NextToken(buf)
+
+				parser.MatchToken('}', buf)
+
+				if parser.C_tok.Tok == ',' {
+					parser.MatchToken(',', buf)
+				}
+			}
+
+		default:
+			log.Printf("Unknown geometry attribute %s", name)
+		}
+	}
+
+	parser.MatchToken('}', buf)
+
+	geom.RelX, err = strconv.Atoi(data["rel_x"])
+	if err != nil {
+		return
+	}
+
+	geom.RelY, err = strconv.Atoi(data["rel_y"])
+	if err != nil {
+		return
+	}
+
+	color := strings.Split(data["color"], " ")
+	if len(color) != 4 {
+		err = fmt.Errorf("Incorrect number of colors (%s)", data["color"])
+	}
+
+	geom.Color = [4]byte{
+		formatColor(color[0]),
+		formatColor(color[1]),
+		formatColor(color[2]),
+		formatColor(color[3]),
+	}
+	geom.Parent, err = strconv.Atoi(data["parent"])
+	if err != nil {
+		return
+	}
+
+	switch geom.GeoType {
+	case GEO_RECT:
+		width, _ := strconv.Atoi(data["width"])
+		height, _ := strconv.Atoi(data["height"])
+		rounding, _ := strconv.Atoi(data["rounding"])
+
+		geo = NewRectangle(geom, width, height, rounding)
+	case GEO_CIRCLE:
+		inner, _ := strconv.Atoi(data["inner_radius"])
+		outer, _ := strconv.Atoi(data["outer_radius"])
+		start, _ := strconv.Atoi(data["start_angle"])
+		end, _ := strconv.Atoi(data["end_angle"])
+
+		geo = NewCircle(geom, inner, outer, start, end)
+	case GEO_TEXT:
+		geo = NewText(geom, data["string"])
+	}
+
+	return
+}
+
+func formatColor(s string) byte {
+	f, err := strconv.ParseFloat(s, 64)
+	if err != nil {
+		log.Print(err)
+		return 0
+	}
+
+	return byte(f * 255)
 }

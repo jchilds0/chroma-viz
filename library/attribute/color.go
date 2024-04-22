@@ -32,8 +32,7 @@ func (colorAttr *ColorAttribute) String() string {
 }
 
 func (colorAttr *ColorAttribute) Encode() string {
-	return fmt.Sprintf("{'name': '%s', 'value': '%f %f %f %f'}",
-		colorAttr.Name, colorAttr.Red, colorAttr.Green, colorAttr.Blue, colorAttr.Alpha)
+	return fmt.Sprintf("%f %f %f %f", colorAttr.Red, colorAttr.Green, colorAttr.Blue, colorAttr.Alpha)
 }
 
 func (colorAttr *ColorAttribute) Decode(value string) (err error) {

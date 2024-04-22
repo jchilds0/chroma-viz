@@ -6,6 +6,20 @@ import (
 	"log"
 )
 
+// tokens
+const (
+	INT = iota + 256
+	STRING
+)
+
+type Token struct {
+	Tok   int
+	Value string
+	buf   []rune
+}
+
+var C_tok Token
+
 func MatchToken(tok int, buf *bufio.Reader) (err error) {
 	if tok != C_tok.Tok {
 		err = fmt.Errorf("Incorrect token %s, expected %c", C_tok.Value, tok)

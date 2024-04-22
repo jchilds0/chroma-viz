@@ -13,16 +13,16 @@ const (
 )
 
 type Keyframe struct {
-	FrameNum       int
-	FrameGeo       int
-	FrameAttr      string
-	FrameType      int
-	SetValue       int
-	Mask           bool
-	Expand         bool
-	BindFrame      int
-	BindGeo        int
-	BindAttr       string
+	FrameNum  int
+	FrameGeo  int
+	FrameAttr string
+	FrameType int
+	SetValue  int
+	Mask      bool
+	Expand    bool
+	BindFrame int
+	BindGeo   int
+	BindAttr  string
 }
 
 func NewKeyFrame(num, geo int, attr string, ftype int) *Keyframe {
@@ -53,19 +53,19 @@ func (frame *Keyframe) Encode() (s string, err error) {
 	b.WriteString("', ")
 
 	b.WriteString("'mask': ")
-    if frame.Mask {
-        b.WriteString("'true'")
-    } else {
-        b.WriteString("'false'")
-    }
+	if frame.Mask {
+		b.WriteString("'true'")
+	} else {
+		b.WriteString("'false'")
+	}
 	b.WriteString(", ")
 
 	b.WriteString("'expand': ")
-    if frame.Expand {
-        b.WriteString("'true'")
-    } else {
-        b.WriteString("'false'")
-    }
+	if frame.Expand {
+		b.WriteString("'true'")
+	} else {
+		b.WriteString("'false'")
+	}
 	b.WriteString(", ")
 
 	switch frame.FrameType {

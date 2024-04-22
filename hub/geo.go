@@ -3,7 +3,6 @@ package hub
 import (
 	"chroma-viz/library/props"
 	"chroma-viz/library/templates"
-	"log"
 )
 
 func (hub *DataBase) addGeometry(tempID int64, geo templates.Geometry) (geo_id int64, err error) {
@@ -86,45 +85,33 @@ func (hub *DataBase) GetGeometry(temp *templates.Template) (err error) {
 	}
 
 	var (
-		id    int64
-		geoID int
-		geo   templates.Geometry
+		id   int64
+		geom templates.Geometry
 	)
 	for rows.Next() {
-		err = rows.Scan(&id, &geo.Name, &geo.GeoType, &geo.RelX, &geo.RelY,
-			&geo.Color[0], &geo.Color[1], &geo.Color[2], &geo.Color[3], &geo.Parent)
+		err = rows.Scan(&id, &geom.Name, &geom.GeoType, &geom.RelX, &geom.RelY,
+			&geom.Color[0], &geom.Color[1], &geom.Color[2], &geom.Color[3], &geom.Parent)
 		if err != nil {
 			return
 		}
 
-		temp.AddGeometry(geo.Name, geoID, geo.GeoType, nil)
-		temp.Geometry[geoID].Visible["rel_x"] = true
-		temp.Geometry[geoID].Visible["rel_y"] = true
-		temp.Geometry[geoID].Visible["color"] = true
-
-		var attr templates.GeometryEncoder
-		switch geo.GeoType {
+		var geo templates.IGeometry
+		switch geom.GeoType {
 		case props.RECT_PROP:
-			attr, err = hub.GetRectangle(id, geo)
+			geo, err = hub.GetRectangle(id, geom)
+
 		case props.CIRCLE_PROP:
-			attr, err = hub.GetCircle(id, geo)
+			geo, err = hub.GetCircle(id, geom)
+
 		case props.TEXT_PROP:
-			attr, err = hub.GetText(id, geo)
+			geo, err = hub.GetText(id, geom)
+
 		default:
-			log.Printf("Prop type %s not implemented in chroma hub", props.PropType(geo.GeoType))
-			geoID++
+			Logger("Prop type %s not implemented in chroma hub", props.PropType(geom.GeoType))
 			continue
 		}
-		if err != nil {
-			return
-		}
 
-		for name, a := range attr.Encode() {
-			temp.Geometry[geoID].Attr[name] = a
-			temp.Geometry[geoID].Visible[name] = true
-		}
-
-		geoID++
+		temp.Geometry = append(temp.Geometry, geo)
 	}
 
 	return

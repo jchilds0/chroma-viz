@@ -1,7 +1,15 @@
 package templates
 
 import (
-	"chroma-viz/library/attribute"
+	"fmt"
+	"strconv"
+	"strings"
+)
+
+const (
+	GEO_RECT = iota
+	GEO_CIRCLE
+	GEO_TEXT
 )
 
 type Geometry struct {
@@ -14,8 +22,9 @@ type Geometry struct {
 	Parent  int
 }
 
-type GeometryEncoder interface {
-	Encode() map[string]attribute.Attribute
+type IGeometry interface {
+	Geom() Geometry
+	Attributes() map[string]string
 }
 
 func NewGeometry(name string, geoType, rel_x, rel_y int, r, g, b, a byte, parent int) *Geometry {
@@ -31,25 +40,63 @@ func NewGeometry(name string, geoType, rel_x, rel_y int, r, g, b, a byte, parent
 	return geo
 }
 
-func (geo *Geometry) Encode() map[string]attribute.Attribute {
-	p := make(map[string]attribute.Attribute, 10)
+func (geo Geometry) Geom() Geometry {
+	return geo
+}
 
-	x := attribute.NewIntAttribute("rel_x")
-	x.Value = geo.RelX
-	p[x.Name] = x
+func (geo *Geometry) Attributes() map[string]string {
+	p := make(map[string]string, 10)
 
-	y := attribute.NewIntAttribute("rel_y")
-	y.Value = geo.RelY
-	p[y.Name] = y
+	p["rel_x"] = strconv.Itoa(geo.RelX)
+	p["rel_y"] = strconv.Itoa(geo.RelY)
+	p["parent"] = strconv.Itoa(geo.Parent)
 
-	color := attribute.NewColorAttribute("color")
-	color.Red = float64(geo.Color[0]) / 255
-	color.Green = float64(geo.Color[1]) / 255
-	color.Blue = float64(geo.Color[2]) / 255
-	color.Alpha = float64(geo.Color[3]) / 255
-	p[color.Name] = color
+	p["color"] = fmt.Sprintf("%f %f %f %f", geo.Color[0]/255,
+		geo.Color[1]/255, geo.Color[2]/255, geo.Color[3]/255)
 
 	return p
+}
+
+func EncodeGeometry(geo IGeometry) string {
+	var b strings.Builder
+
+	geom := geo.Geom()
+
+	b.WriteString("{")
+	b.WriteString("'id': ")
+	b.WriteString(strconv.Itoa(int(geom.GeoID)))
+	b.WriteString(", ")
+
+	b.WriteString("'name': '")
+	b.WriteString(geom.Name)
+	b.WriteString("', ")
+
+	b.WriteString("'prop_type': '")
+	b.WriteString("', ")
+
+	b.WriteString("'geo_type': '")
+	b.WriteString("', ")
+
+	// TODO: Visible
+
+	first := true
+	b.WriteString("'attr': [")
+	for name, value := range geo.Attributes() {
+		if !first {
+			b.WriteString(",")
+		}
+
+		first = false
+		b.WriteString("{'")
+		b.WriteString(name)
+		b.WriteString("': '")
+		b.WriteString(value)
+		b.WriteString("'}")
+	}
+
+	b.WriteString("]}")
+
+	return b.String()
 }
 
 type Rectangle struct {
@@ -70,20 +117,12 @@ func NewRectangle(geo Geometry, width, height, rounding int) *Rectangle {
 	return rect
 }
 
-func (rect *Rectangle) Encode() map[string]attribute.Attribute {
-	p := rect.Geometry.Encode()
+func (rect *Rectangle) Attributes() map[string]string {
+	p := rect.Geometry.Attributes()
 
-	width := attribute.NewIntAttribute("width")
-	width.Value = rect.Width
-	p[width.Name] = width
-
-	height := attribute.NewIntAttribute("height")
-	height.Value = rect.Height
-	p[height.Name] = height
-
-	rounding := attribute.NewIntAttribute("rounding")
-	rounding.Value = rect.Rounding
-	p[rounding.Name] = rounding
+	p["width"] = strconv.Itoa(rect.Width)
+	p["height"] = strconv.Itoa(rect.Height)
+	p["rounding"] = strconv.Itoa(rect.Rounding)
 
 	return p
 }
@@ -102,12 +141,10 @@ func NewText(geo Geometry, text string) *Text {
 	return t
 }
 
-func (text *Text) Encode() map[string]attribute.Attribute {
-	p := text.Geometry.Encode()
+func (text *Text) Attributes() map[string]string {
+	p := text.Geometry.Attributes()
 
-	t := attribute.NewStringAttribute("string")
-	t.Value = text.Text
-	p["string"] = t
+	p["string"] = text.Text
 
 	return p
 }
@@ -132,24 +169,13 @@ func NewCircle(geo Geometry, innerRadius, outerRadius, startAngle, endAngle int)
 	return c
 }
 
-func (circle *Circle) Encode() map[string]attribute.Attribute {
-	p := circle.Geometry.Encode()
+func (circle *Circle) Attributes() map[string]string {
+	p := circle.Geometry.Attributes()
 
-	innerRadius := attribute.NewIntAttribute("inner_radius")
-	innerRadius.Value = circle.InnerRadius
-	p[innerRadius.Name] = innerRadius
-
-	outerRadius := attribute.NewIntAttribute("outer_radius")
-	outerRadius.Value = circle.OuterRadius
-	p[outerRadius.Name] = outerRadius
-
-	startAngle := attribute.NewIntAttribute("start_angle")
-	startAngle.Value = circle.StartAngle
-	p[startAngle.Name] = startAngle
-
-	endAngle := attribute.NewIntAttribute("end_angle")
-	endAngle.Value = circle.EndAngle
-	p[endAngle.Name] = endAngle
+	p["inner_radius"] = strconv.Itoa(circle.InnerRadius)
+	p["outer_radius"] = strconv.Itoa(circle.OuterRadius)
+	p["start_angle"] = strconv.Itoa(circle.StartAngle)
+	p["end_angle"] = strconv.Itoa(circle.EndAngle)
 
 	return p
 }

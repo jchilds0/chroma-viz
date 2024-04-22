@@ -41,7 +41,6 @@ type Attribute interface {
 	Update(Editor) error
 	Copy(Attribute) error
 
-	// A -> {'name': string, 'value': string} | A, A
 	Encode() string
 	Decode(string) error
 }
@@ -130,14 +129,4 @@ type Editor interface {
 	Update(Attribute) error
 	Name() string
 	Expand() bool
-}
-
-func SetIntValue(attr Attribute, val int) error {
-	intAttr, ok := attr.(*IntAttribute)
-	if !ok {
-		return fmt.Errorf("Attribute is not an IntAttribute")
-	}
-
-	intAttr.Value = val
-	return nil
 }

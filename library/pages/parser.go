@@ -3,6 +3,7 @@ package pages
 import (
 	"bufio"
 	"chroma-viz/library/parser"
+	"chroma-viz/library/props"
 	"fmt"
 	"strconv"
 )
@@ -23,9 +24,9 @@ func parsePage(buf *bufio.Reader) (page *Page, err error) {
 		if name == "keyframe" {
 			parser.MatchToken('[', buf)
 
-            if (parser.C_tok.Tok == '{') {
-                parseKeyframe(buf)
-            }
+			if parser.C_tok.Tok == '{' {
+				parseKeyframe(buf)
+			}
 
 			parser.MatchToken(']', buf)
 		} else if name == "geometry" {
@@ -52,7 +53,7 @@ func parsePage(buf *bufio.Reader) (page *Page, err error) {
 			}
 
 			page = NewPage(0, temp_id, layer, num_geo, data["name"])
-			page.PropMap, err = parser.ParseProperty(buf, num_geo)
+			page.PropMap, err = props.ParseProperty(buf, num_geo)
 			if err != nil {
 				return
 			}

@@ -2,7 +2,6 @@ package templates
 
 import (
 	"bufio"
-	"chroma-viz/library/props"
 	"encoding/json"
 	"fmt"
 	"net"
@@ -22,25 +21,22 @@ import (
 */
 
 type Template struct {
-	Title       string
-	TempID      int
-	NumGeo      int
-	NumKeyframe int
-	Layer       int
-	Keyframe    []Keyframe
-	Geometry    map[int]*props.Property
+	Title    string
+	TempID   int64
+	Layer    int
+	Keyframe []Keyframe
+	Geometry []IGeometry
 }
 
-func NewTemplate(title string, id, layer, num_geo, num_keyframe int) *Template {
+func NewTemplate(title string, id int64, layer, num_keyframe, num_geo int) *Template {
 	temp := &Template{
-		Title:       title,
-		TempID:      id,
-		Layer:       layer,
-		NumKeyframe: num_keyframe,
+		Title:  title,
+		TempID: id,
+		Layer:  layer,
 	}
 
 	temp.Keyframe = make([]Keyframe, 0, num_keyframe)
-	temp.Geometry = make(map[int]*props.Property, num_geo)
+	temp.Geometry = make([]IGeometry, 0, num_geo)
 	return temp
 }
 
@@ -57,13 +53,6 @@ func (temp *Template) TemplateToListRow() (row *gtk.ListBoxRow, err error) {
 
 	row.Add(textView)
 	return
-}
-
-func (temp *Template) AddGeometry(name string, geo_id, typed int, visible map[string]bool) *props.Property {
-	temp.Geometry[geo_id] = props.NewProperty(typed, name, true, visible)
-	temp.NumGeo++
-
-	return temp.Geometry[geo_id]
 }
 
 func TextToBuffer(text string) (textView *gtk.TextView, err error) {
@@ -87,7 +76,7 @@ func (temp *Template) Encode() (s string, err error) {
 	b.WriteString("{")
 
 	b.WriteString("'id': ")
-	b.WriteString(strconv.Itoa(temp.TempID))
+	b.WriteString(strconv.FormatInt(temp.TempID, 10))
 	b.WriteString(", ")
 
 	b.WriteString("'num_geo': ")
@@ -124,20 +113,16 @@ func (temp *Template) Encode() (s string, err error) {
 	b.WriteString("],")
 
 	b.WriteString("'geometry': [")
+
 	first = true
 	var propStr string
-	for geo_id, prop := range temp.Geometry {
+	for _, geo := range temp.Geometry {
 		if !first {
 			b.WriteString(",")
 		}
 
 		first = false
-
-		propStr, err = prop.Encode(geo_id)
-		if err != nil {
-			return
-		}
-
+		propStr = EncodeGeometry(geo)
 		b.WriteString(propStr)
 	}
 
@@ -166,28 +151,16 @@ func ExportTemplate(temp *Template, filename string) error {
 	return nil
 }
 
-func (temp *Template) GetTemplateID() int {
-	return temp.TempID
-}
-
-func (temp *Template) GetLayer() int {
-	return temp.Layer
-}
-
-func (temp *Template) GetPropMap() map[int]*props.Property {
-	return temp.Geometry
-}
-
-func GetTemplate(hub net.Conn, tempid int) (*Template, error) {
+func GetTemplate(hub net.Conn, tempid int) (temp Template, err error) {
 	s := fmt.Sprintf("ver 0 1 temp %d;", tempid)
 
-	_, err := hub.Write([]byte(s))
+	_, err = hub.Write([]byte(s))
 	if err != nil {
-		return nil, err
+		return
 	}
 
 	buf := bufio.NewReader(hub)
-	temp, err := parseTemplate(buf)
+	temp, err = parseTemplate(buf)
 
 	return temp, err
 }

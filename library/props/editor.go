@@ -51,7 +51,7 @@ func NewPropertyEditor(typed int) (propEdit *PropertyEditor, err error) {
 	switch typed {
 	case RECT_PROP:
 		propEdit.editor["rel_x"], _ = attribute.NewIntEditor("x", -float64(width), float64(width))
-		propEdit.editor["rel_y"], _ = attribute.NewIntEditor("y", -float64(width), float64(height))
+		propEdit.editor["rel_y"], _ = attribute.NewIntEditor("y", -float64(height), float64(height))
 		propEdit.editor["width"], _ = attribute.NewIntEditor("Width", 0, float64(width))
 		propEdit.editor["height"], _ = attribute.NewIntEditor("Height", 0, float64(height))
 		propEdit.editor["rounding"], _ = attribute.NewIntEditor("Rounding", 0, float64(width))

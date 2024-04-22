@@ -11,12 +11,24 @@ import (
 	"strings"
 )
 
-var usage = "Usage: \n" +
-	"\t- import [archive|template] <filename>.json\n" +
-	"\t- import asset <filename>.png <directory> <name> <image id>\n" +
-	"\t- export [archive|template] <filename>.json"
+var usage = `Usage:
+    - import [archive|template] <filename>.json
+    - import asset <filename>.png <directory> <name> <image id>
+    - export [archive|template] <filename>.json
+    - clean 
+`
 
 var hubPort int
+
+func Logger(message string, args ...any) {
+	file, err := os.Open("./chroma_hub.log")
+	if err != nil {
+		log.Printf("Error opening log file (%s)", err)
+	}
+
+	s := log.Prefix() + fmt.Sprintf(message, args...)
+	file.Write([]byte(s))
+}
 
 func printMessage(s string) {
 	fmt.Printf("[Chroma Hub - %d]", hubPort)
@@ -41,16 +53,13 @@ func HubApp(port int) {
 		read.Scan()
 		input := strings.Split(read.Text(), " ")
 
-		if len(input) < 3 {
-			fmt.Println(usage)
-			continue
-		}
-
 		switch input[0] {
 		case "import":
 			imported(hub, input[1:])
 		case "export":
 			exported(hub, input[1:])
+		case "clean":
+			hub.CleanDB()
 		default:
 			fmt.Println(usage)
 		}
@@ -92,7 +101,7 @@ func imported(hub *DataBase, inputs []string) {
 	}
 
 	if err != nil {
-		log.Print(err)
+		Logger("CLI", "%s", err)
 	}
 }
 
@@ -145,18 +154,18 @@ func (hub *DataBase) ImportArchive(fileName string) error {
 func (hub *DataBase) ExportArchive(fileName string) {
 	file, err := os.Create(fileName)
 	if err != nil {
-		log.Fatalf("Couldn't open file (%s)", err)
+		Logger("Couldn't open file (%s)", err)
 	}
 	defer file.Close()
 
 	buf, err := json.Marshal(hub)
 	if err != nil {
-		log.Printf("Error encoding hub (%s)", err)
+		Logger("Error encoding hub (%s)", err)
 	}
 
 	_, err = file.Write(buf)
 	if err != nil {
-		log.Printf("Error writing hub (%s)", err)
+		Logger("Error writing hub (%s)", err)
 	}
 
 	s := fmt.Sprintf("Exported hub to %s", fileName)

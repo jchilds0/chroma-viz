@@ -3,6 +3,7 @@ package artist
 import (
 	"chroma-viz/library/attribute"
 	"chroma-viz/library/gtk_utils"
+	"chroma-viz/library/pages"
 	"chroma-viz/library/props"
 	"chroma-viz/library/templates"
 	"log"
@@ -20,7 +21,7 @@ func updateParentGeometry(model *gtk.TreeModel, iter *gtk.TreeIter, parentID int
 			continue
 		}
 
-		prop := template.Geometry[propID]
+		prop := page.PropMap[propID]
 		if prop == nil {
 			log.Print("Error getting prop")
 			ok = model.IterNext(iter)
@@ -52,10 +53,10 @@ with the heirachy arranged by the user, we walk the tree
 model. We add the geometries by depth, adding everything
 at depth 0, then depth 1 and so on.
 */
-func compressGeometry(temp, newTemp *templates.Template, tree *gtk.TreeModel) {
+func compressGeometry(page *pages.Page, temp *templates.Template, tree *gtk.TreeModel) {
 	// build geo id map
-	geoRename := make(map[int]int, len(template.Geometry))
-	geoIters := make([]*gtk.TreeIter, 0, len(template.Geometry))
+	geoRename := make(map[int]int, len(page.PropMap))
+	geoIters := make([]*gtk.TreeIter, 0, len(page.PropMap))
 
 	i := 1
 	first, ok := tree.GetIterFirst()
@@ -132,12 +133,12 @@ func compressGeometry(temp, newTemp *templates.Template, tree *gtk.TreeModel) {
 	}
 }
 
-func decompressGeometry(temp, newTemp *templates.Template) {
+func decompressGeometry(page *pages.Page, temp *templates.Template) {
 	// build a map of new geo id's to alloc geo id's
-	geoRename := make(map[int]int, len(template.Geometry))
+	geoRename := make(map[int]int, len(page.Geometry))
 
 	// alloc new geo id's
-	for id, geo := range newTemp.Geometry {
+	for id, geo := range temp.Geometry {
 		geom, ok := geoms[geo.PropType]
 		if !ok {
 			log.Printf("Missing Geom %s", props.PropType(geo.PropType))
@@ -154,7 +155,7 @@ func decompressGeometry(temp, newTemp *templates.Template) {
 	}
 
 	// copy newTemp geo to temp using geoRename
-	for id, geo := range newTemp.Geometry {
+	for id, geo := range temp.Geometry {
 		newID := geoRename[id]
 		temp.Geometry[newID] = geo
 
@@ -169,7 +170,7 @@ func decompressGeometry(temp, newTemp *templates.Template) {
 	}
 
 	// copy keyframes to temp
-	for _, frame := range newTemp.Keyframe {
+	for _, frame := range temp.Keyframe {
 		frame.FrameGeo = geoRename[frame.FrameGeo]
 		frame.BindGeo = geoRename[frame.BindGeo]
 		temp.Keyframe = append(temp.Keyframe, frame)
@@ -177,7 +178,7 @@ func decompressGeometry(temp, newTemp *templates.Template) {
 }
 
 func geometryToTreeView(tempView *TempTree, iter *gtk.TreeIter, propID int) {
-	for id, geo := range template.Geometry {
+	for id, geo := range page.Geometry {
 		parentAttr := geo.Attr["parent"]
 		if parentAttr == nil {
 			log.Print("Error getting parent attr")

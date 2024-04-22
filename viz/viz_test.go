@@ -25,7 +25,7 @@ var numGeometries = 100
 func TestGui(t *testing.T) {
 	defer CloseViz()
 
-	createHub := true
+	createHub := false
 
 	f, err := os.Create("../perf/viz_test.prof")
 	if err != nil {

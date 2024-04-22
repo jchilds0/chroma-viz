@@ -25,7 +25,7 @@ var geoTables = map[int]string{
 
 type DataBase struct {
 	db        *sql.DB
-	Templates map[int]*templates.Template
+	Templates map[int64]*templates.Template
 	Assets    map[int][]byte
 	Dirs      map[int]string
 	Names     map[int]string
@@ -33,7 +33,7 @@ type DataBase struct {
 
 func NewDataBase(numTemp int) *DataBase {
 	hub := &DataBase{}
-	hub.Templates = make(map[int]*templates.Template, 100)
+	hub.Templates = make(map[int64]*templates.Template, 100)
 	hub.Assets = make(map[int][]byte, 10)
 	hub.Dirs = make(map[int]string, 10)
 	hub.Names = make(map[int]string, 10)
@@ -41,7 +41,7 @@ func NewDataBase(numTemp int) *DataBase {
 	var err error
 	hub.db, err = sql.Open("mysql", "/chroma_hub")
 	if err != nil {
-		log.Println(err)
+		Logger("Error connecting to database (%s) ", err)
 	}
 
 	return hub
@@ -51,16 +51,16 @@ func NewDataBase(numTemp int) *DataBase {
 func (hub *DataBase) EncodeDB() (s string, err error) {
 	var b strings.Builder
 	first := true
-	maxTempID := 0
 	rows, err := hub.db.Query("SELECT t.templateID FROM template t;")
 	if err != nil {
 		return
 	}
 
 	var (
-		tempID  int
-		temp    *templates.Template
-		tempStr string
+		maxTempID int64
+		tempID    int64
+		temp      *templates.Template
+		tempStr   string
 	)
 	for rows.Next() {
 		err = rows.Scan(&tempID)
@@ -132,9 +132,27 @@ func (hub *DataBase) TempIDs() (s string, err error) {
 }
 
 func (hub *DataBase) ImportTemplate(temp templates.Template) (err error) {
-	err = hub.AddTemplate(int64(temp.TempID), temp.Title, temp.Layer)
+	err = hub.AddTemplate(temp.TempID, temp.Title, temp.Layer)
 	if err != nil {
 		return
+	}
+
+	for _, geo := range temp.Geometry {
+		geom := geo.Geom()
+
+		switch geom.GeoType {
+		case props.RECT_PROP:
+			hub.AddRectangle(temp.TempID, *geo.(*templates.Rectangle))
+
+		case props.CIRCLE_PROP:
+			hub.AddCircle(temp.TempID, *geo.(*templates.Circle))
+
+		case props.TEXT_PROP:
+			hub.AddText(temp.TempID, *geo.(*templates.Text))
+
+		default:
+			log.Printf("Unknown geometry type")
+		}
 	}
 
 	return
@@ -150,7 +168,7 @@ func (hub *DataBase) AddTemplate(id int64, name string, layer int) (err error) {
 	return
 }
 
-func (hub *DataBase) GetTemplate(tempID int) (temp *templates.Template, err error) {
+func (hub *DataBase) GetTemplate(tempID int64) (temp *templates.Template, err error) {
 	temp, ok := hub.Templates[tempID]
 	if ok {
 		return
@@ -171,7 +189,6 @@ func (hub *DataBase) GetTemplate(tempID int) (temp *templates.Template, err erro
 
 	row := hub.db.QueryRow(tempQuery, tempID)
 	if err = row.Scan(&name, &layer, &num_geo); err != nil {
-		log.Print("Error reading template values")
 		return
 	}
 
@@ -185,14 +202,14 @@ func (hub *DataBase) GetTemplate(tempID int) (temp *templates.Template, err erro
 func (hub *DataBase) StartHub(port int) {
 	ln, err := net.Listen("tcp", ":"+strconv.Itoa(port))
 	if err != nil {
-		log.Fatalf("Error creating server (%s)", err)
+		Logger("Error creating server (%s)", err)
 	}
 	defer ln.Close()
 
 	for {
 		conn, err := ln.Accept()
 		if err != nil {
-			log.Printf("Error accepting connection (%s)", err)
+			Logger("Error accepting connection (%s)", err)
 			continue
 		}
 
@@ -227,7 +244,7 @@ func (hub *DataBase) HandleConn(conn net.Conn) {
 		if err == io.EOF {
 			break
 		} else if err != nil {
-			log.Printf("Error reading request (%s)", err)
+			Logger("Error reading request (%s)", err)
 			continue
 		}
 
@@ -238,7 +255,7 @@ func (hub *DataBase) HandleConn(conn net.Conn) {
 		}
 
 		if cmds[1] != "0" || cmds[2] != "1" {
-			log.Fatalf("Request has incorrect ver %s %s, expected 0 1 (%s)", cmds[1], cmds[2], s)
+			Logger("Request has incorrect ver %s %s, expected 0 1 (%s)", cmds[1], cmds[2], s)
 			continue
 		}
 
@@ -246,7 +263,7 @@ func (hub *DataBase) HandleConn(conn net.Conn) {
 		case "full":
 			s, err = hub.EncodeDB()
 			if err != nil {
-				log.Print(err)
+				Logger("Error retrieving database (%s)", err)
 				continue
 			}
 
@@ -254,21 +271,21 @@ func (hub *DataBase) HandleConn(conn net.Conn) {
 		case "tempids":
 			s, err = hub.TempIDs()
 			if err != nil {
-				log.Print(err)
+				Logger("Error retrieving template IDs (%s)", err)
 				continue
 			}
 
 			_, err = conn.Write([]byte(s))
 		case "temp":
-			tempid, err := strconv.Atoi(cmds[4])
+			tempid, err := strconv.ParseInt(cmds[4], 10, 64)
 			if err != nil {
-				log.Print(err)
+				Logger("Error getting template id (%s)", err)
 				continue
 			}
 
 			template, err := hub.GetTemplate(tempid)
 			if err != nil {
-				log.Printf("Error getting template %d (%s)", tempid, err)
+				Logger("Error getting template %d (%s)", tempid, err)
 				continue
 			}
 
@@ -278,7 +295,7 @@ func (hub *DataBase) HandleConn(conn net.Conn) {
 			imageID, _ := strconv.Atoi(cmds[4])
 			image := hub.Assets[imageID]
 			if image == nil {
-				log.Printf("image %d does not exist", imageID)
+				Logger("Image %d does not exist", imageID)
 				_, err = conn.Write([]byte{0, 1, 0, 0})
 				_, err = conn.Write([]byte{0, 0, 0, 0})
 				continue
@@ -308,12 +325,12 @@ func (hub *DataBase) HandleConn(conn net.Conn) {
 			_, err = conn.Write(assetsJson)
 			_, err = conn.Write([]byte{0})
 		default:
-			log.Printf("Unknown request %s", string(req[:]))
+			Logger("Unknown request %s", string(req[:]))
 			continue
 		}
 
 		if err != nil {
-			log.Printf("Error responding to request %s (%s)", string(req[:]), err)
+			Logger("Error responding to request %s (%s)", string(req[:]), err)
 			continue
 		}
 	}

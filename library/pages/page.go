@@ -45,6 +45,27 @@ func NewPage(pageNum, tempID, layer, numGeo int, title string) *Page {
 	return page
 }
 
+func NewPageFromTemplate(temp *templates.Template) (page *Page) {
+	page = NewPage(0, int(temp.TempID), temp.Layer, len(temp.Geometry), temp.Title)
+
+	for i, geo := range temp.Geometry {
+		page.PropMap[i] = props.NewPropertyFromGeometry(geo)
+	}
+
+	return
+}
+
+func (page *Page) CreateTemplate() (temp *templates.Template) {
+	temp = templates.NewTemplate(page.Title, 0, page.Layer, 0, len(page.PropMap))
+
+	for _, prop := range page.PropMap {
+		geo := prop.CreateGeometry()
+		temp.Geometry = append(temp.Geometry, geo)
+	}
+
+	return nil
+}
+
 func GetPage(hub net.Conn, tempid int) (*Page, error) {
 	s := fmt.Sprintf("ver 0 1 temp %d;", tempid)
 
@@ -56,17 +77,6 @@ func GetPage(hub net.Conn, tempid int) (*Page, error) {
 	buf := bufio.NewReader(hub)
 	page, err := parsePage(buf)
 	return page, err
-}
-
-func (page *Page) CopyTemplate(temp *templates.Template) {
-	for i, geo := range temp.Geometry {
-		page.PropMap[i] = props.NewProperty(geo.PropType, geo.Name, false, geo.Visible)
-		prop := page.PropMap[i]
-
-		for name, attr := range prop.Attr {
-			attr.Copy(geo.Attr[name])
-		}
-	}
 }
 
 func (page *Page) PageToListRow() (row *gtk.ListBoxRow, err error) {

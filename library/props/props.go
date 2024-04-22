@@ -2,7 +2,9 @@ package props
 
 import (
 	"chroma-viz/library/attribute"
+	"chroma-viz/library/templates"
 	"encoding/json"
+	"log"
 	"strconv"
 	"strings"
 )
@@ -180,6 +182,96 @@ func NewProperty(typed int, name string, isTemp bool, visible map[string]bool) *
 	return prop
 }
 
+func NewPropertyFromGeometry(geo templates.IGeometry) (prop *Property) {
+	geom := geo.Geom()
+	prop = NewProperty(geom.GeoType, geom.Name, false, nil)
+
+	for name, value := range geo.Attributes() {
+		err := prop.Attr[name].Decode(value)
+		if err != nil {
+			log.Print(err)
+		}
+	}
+
+	return
+}
+
+func (prop *Property) CreateGeometry() (geom templates.IGeometry) {
+	var relX, relY, parent int
+	if attr, ok := prop.Attr["rel_x"]; ok {
+		relX, _ = strconv.Atoi(attr.Encode())
+	}
+
+	if attr, ok := prop.Attr["rel_y"]; ok {
+		relY, _ = strconv.Atoi(attr.Encode())
+	}
+
+	if attr, ok := prop.Attr["parent"]; ok {
+		parent, _ = strconv.Atoi(attr.Encode())
+	}
+
+	var r, g, b, a float64
+	if attr, ok := prop.Attr["color"]; ok {
+		color := strings.Split(attr.Encode(), " ")
+
+		r, _ = strconv.ParseFloat(color[0], 64)
+		g, _ = strconv.ParseFloat(color[1], 64)
+		b, _ = strconv.ParseFloat(color[2], 64)
+		a, _ = strconv.ParseFloat(color[3], 64)
+	}
+	geo := templates.NewGeometry(prop.Name, prop.PropType, relX, relY,
+		byte(r*255), byte(g*255), byte(b*255), byte(a*255), parent)
+
+	switch prop.PropType {
+	case RECT_PROP:
+		var width, height, rounding int
+		if attr, ok := prop.Attr["width"]; ok {
+			width, _ = strconv.Atoi(attr.Encode())
+		}
+
+		if attr, ok := prop.Attr["height"]; ok {
+			height, _ = strconv.Atoi(attr.Encode())
+		}
+
+		if attr, ok := prop.Attr["rounding"]; ok {
+			rounding, _ = strconv.Atoi(attr.Encode())
+		}
+
+		geom = templates.NewRectangle(*geo, width, height, rounding)
+	case CIRCLE_PROP:
+		var inner, outer, start, end int
+		if attr, ok := prop.Attr["inner_radius"]; ok {
+			inner, _ = strconv.Atoi(attr.Encode())
+		}
+
+		if attr, ok := prop.Attr["outer_radius"]; ok {
+			outer, _ = strconv.Atoi(attr.Encode())
+		}
+
+		if attr, ok := prop.Attr["start_angle"]; ok {
+			start, _ = strconv.Atoi(attr.Encode())
+		}
+
+		if attr, ok := prop.Attr["rounding"]; ok {
+			end, _ = strconv.Atoi(attr.Encode())
+		}
+
+		geom = templates.NewCircle(*geo, inner, outer, start, end)
+
+	case TEXT_PROP:
+		var text string
+		if attr, ok := prop.Attr["string"]; ok {
+			text = attr.Encode()
+		}
+
+		geom = templates.NewText(*geo, text)
+
+	default:
+	}
+
+	return
+}
+
 type PropertyJSON struct {
 	Name     string
 	PropType int
@@ -221,6 +313,7 @@ func (prop *Property) String() (s string) {
 	return
 }
 
+/* Deprecated: See library/templates/geo.go */
 // G -> {'id': 123, 'name': 'abc', 'prop_type': 'abc', 'geo_type': 'abc', 'visible': [...], 'attr': [A]} | G, G
 func (prop *Property) Encode(geo_id int) (s string, err error) {
 	var b strings.Builder

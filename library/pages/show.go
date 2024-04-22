@@ -27,8 +27,8 @@ func (show *Show) AddPage(page *Page) {
 func (show *Show) TempToPage(title string, temp *templates.Template) (page *Page, err error) {
 	show.NumPages++
 
-	page = NewPage(show.NumPages, temp.TempID, temp.Layer, temp.NumGeo, title)
-	page.CopyTemplate(temp)
+	//page = NewPage(show.NumPages, temp.TempID, temp.Layer, temp.NumGeo, title)
+	page = NewPageFromTemplate(temp)
 	if _, ok := show.Pages[page.PageNum]; ok {
 		err = fmt.Errorf("Page %d already exists", page.PageNum)
 		return

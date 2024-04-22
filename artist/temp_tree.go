@@ -95,7 +95,7 @@ func (temp *TempTree) createGeometryTree(propToEditor func(propID int)) (err err
 			return
 		}
 
-		geo := template.Geometry[geoID]
+		geo := page.PropMap[geoID]
 		if geo == nil {
 			log.Printf("Error getting geometry %d", geoID)
 			return
@@ -600,7 +600,7 @@ func (tempView *TempTree) addKeyframes(temp *templates.Template) {
 
 		iter := tempView.keyModel.Append(nil)
 		tempView.keyModel.SetValue(iter, FRAME_NUM, frame.FrameNum)
-		tempView.keyModel.SetValue(iter, FRAME_GEOMETRY, geo.Name)
+		tempView.keyModel.SetValue(iter, FRAME_GEOMETRY, geo.Geom().Name)
 		tempView.keyModel.SetValue(iter, FRAME_GEOMETRY_ID, frame.FrameGeo)
 		tempView.keyModel.SetValue(iter, FRAME_ATTR, frame.FrameAttr)
 		tempView.keyModel.SetValue(iter, FRAME_VALUE, frame.SetValue)
