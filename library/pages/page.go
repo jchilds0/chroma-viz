@@ -1,12 +1,9 @@
 package pages
 
 import (
-	"bufio"
 	"chroma-viz/library/props"
 	"chroma-viz/library/templates"
 	"encoding/json"
-	"fmt"
-	"net"
 	"os"
 	"strconv"
 
@@ -64,19 +61,6 @@ func (page *Page) CreateTemplate() (temp *templates.Template) {
 	}
 
 	return nil
-}
-
-func GetPage(hub net.Conn, tempid int) (*Page, error) {
-	s := fmt.Sprintf("ver 0 1 temp %d;", tempid)
-
-	_, err := hub.Write([]byte(s))
-	if err != nil {
-		return nil, err
-	}
-
-	buf := bufio.NewReader(hub)
-	page, err := parsePage(buf)
-	return page, err
 }
 
 func (page *Page) PageToListRow() (row *gtk.ListBoxRow, err error) {

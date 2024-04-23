@@ -28,6 +28,16 @@ func parseTemplate(buf *bufio.Reader) (temp Template, err error) {
 			}
 
 			parser.MatchToken(parser.INT, buf)
+		case "name":
+			temp.Title = parser.C_tok.Value
+			parser.MatchToken(parser.STRING, buf)
+		case "layer":
+			temp.Layer, err = strconv.Atoi(parser.C_tok.Value)
+			if err != nil {
+				return
+			}
+
+			parser.MatchToken(parser.INT, buf)
 		case "num_keyframe":
 			var numKey int
 			numKey, err = strconv.Atoi(parser.C_tok.Value)
@@ -84,6 +94,11 @@ func parseTemplate(buf *bufio.Reader) (temp Template, err error) {
 			parser.MatchToken(']', buf)
 		default:
 			log.Printf("Unknown template attribute %s", name)
+			parser.NextToken(buf)
+		}
+
+		if parser.C_tok.Tok == ',' {
+			parser.MatchToken(',', buf)
 		}
 	}
 
@@ -237,9 +252,28 @@ func parseGeometry(buf *bufio.Reader) (geo IGeometry, err error) {
 			parser.MatchToken('[', buf)
 
 			for parser.C_tok.Tok == '{' {
+				parser.MatchToken('{', buf)
+
+				if parser.C_tok.Value != "name" {
+					err = fmt.Errorf("Incorrect attribute %s", parser.C_tok.Value)
+					return
+				}
+
+				parser.MatchToken(parser.STRING, buf)
+				parser.MatchToken(':', buf)
+
 				name := parser.C_tok.Value
 				parser.MatchToken(parser.STRING, buf)
+
 				parser.MatchToken(',', buf)
+
+				if parser.C_tok.Value != "value" {
+					err = fmt.Errorf("Incorrect attribute %s", parser.C_tok.Value)
+					return
+				}
+
+				parser.MatchToken(parser.STRING, buf)
+				parser.MatchToken(':', buf)
 
 				data[name] = parser.C_tok.Value
 				parser.NextToken(buf)
@@ -251,8 +285,14 @@ func parseGeometry(buf *bufio.Reader) (geo IGeometry, err error) {
 				}
 			}
 
+			parser.MatchToken(']', buf)
 		default:
 			log.Printf("Unknown geometry attribute %s", name)
+			parser.NextToken(buf)
+		}
+
+		if parser.C_tok.Tok == ',' {
+			parser.MatchToken(',', buf)
 		}
 	}
 

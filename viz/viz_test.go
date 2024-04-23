@@ -3,6 +3,7 @@ package viz
 import (
 	"chroma-viz/hub"
 	"chroma-viz/library/pages"
+	"chroma-viz/library/props"
 	"chroma-viz/library/templates"
 	"fmt"
 	"log"
@@ -83,16 +84,17 @@ func randomTemplate(chromaHub *hub.DataBase, tempID int64) {
 	}
 
 	geos := []int{templates.GEO_RECT, templates.GEO_CIRCLE, templates.GEO_TEXT}
+	props := []int{props.RECT_PROP, props.CIRCLE_PROP, props.TEXT_PROP}
 
 	for j := 0; j < numGeometries; j++ {
 		geoIndex := rand.Int() % len(geos)
-		prop := geos[geoIndex]
+		geoI := geos[geoIndex]
 
 		geo := templates.NewGeometry(
 			j,
-			templates.GeoName[prop],
-			prop,
-			prop,
+			templates.GeoName[geoI],
+			props[geoIndex],
+			geos[geoIndex],
 			rand.Int()%2000,
 			rand.Int()%2000,
 			0,
@@ -100,7 +102,7 @@ func randomTemplate(chromaHub *hub.DataBase, tempID int64) {
 
 		color := fmt.Sprintf("%f %f %f %f", rand.Float64(), rand.Float64(), rand.Float64(), rand.Float64())
 
-		switch prop {
+		switch geos[geoIndex] {
 		case templates.GEO_RECT:
 			rect := templates.NewRectangle(
 				*geo,
@@ -114,10 +116,10 @@ func randomTemplate(chromaHub *hub.DataBase, tempID int64) {
 		case templates.GEO_CIRCLE:
 			circle := templates.NewCircle(
 				*geo,
-				rand.Int()%1000,
-				rand.Int()%1000,
-				rand.Int()%1000,
-				rand.Int()%1000,
+				rand.Int()%200,
+				rand.Int()%200,
+				rand.Int()%10,
+				rand.Int()%200,
 				color,
 			)
 			err = chromaHub.AddCircle(tempID, *circle)
@@ -138,12 +140,13 @@ func importRandomPages(hub net.Conn, tempTree *TempTree, showTree *ShowTree) {
 
 	for i := 0; i < numPages; i++ {
 		index := (rand.Int() % numTemplates) + 1
-		page, err := pages.GetPage(hub, index)
+		template, err := templates.GetTemplate(hub, index)
 		if err != nil {
-			log.Print(err)
-			continue
+			log.Fatal(err)
+			return
 		}
 
+		page := pages.NewPageFromTemplate(&template)
 		page.PageNum = showTree.show.NumPages
 		showTree.ImportPage(page)
 	}

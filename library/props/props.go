@@ -6,7 +6,6 @@ import (
 	"encoding/json"
 	"log"
 	"strconv"
-	"strings"
 )
 
 const padding = 10
@@ -184,13 +183,20 @@ func NewProperty(typed int, name string, isTemp bool, visible map[string]bool) *
 
 func NewPropertyFromGeometry(geo templates.IGeometry) (prop *Property) {
 	geom := geo.Geom()
-	prop = NewProperty(geom.GeoType, geom.Name, false, nil)
+	prop = NewProperty(geom.PropType, geom.Name, false, nil)
 
 	for name, value := range geo.Attributes() {
-		err := prop.Attr[name].Decode(value)
+		var err error
+
+		if attr, ok := prop.Attr[name]; ok {
+			err = attr.Decode(value)
+		}
+
 		if err != nil {
 			log.Print(err)
 		}
+
+		prop.Visible[name] = true
 	}
 
 	return
@@ -319,68 +325,6 @@ func (prop *Property) String() (s string) {
 
 		s += attr.String()
 	}
-	return
-}
-
-/* Deprecated: See library/templates/geo.go */
-// G -> {'id': 123, 'name': 'abc', 'prop_type': 'abc', 'geo_type': 'abc', 'visible': [...], 'attr': [A]} | G, G
-func (prop *Property) Encode(geo_id int) (s string, err error) {
-	var b strings.Builder
-	first := true
-	b.WriteString("{")
-
-	b.WriteString("'id': ")
-	b.WriteString(strconv.Itoa(geo_id))
-	b.WriteString(", ")
-
-	b.WriteString("'name': '")
-	b.WriteString(prop.Name)
-	b.WriteString("', ")
-
-	b.WriteString("'prop_type': '")
-	b.WriteString(PropType(prop.PropType))
-	b.WriteString("', ")
-
-	b.WriteString("'geo_type': '")
-	b.WriteString(GeoType(prop.PropType))
-	b.WriteString("', ")
-
-	b.WriteString("'visible': [")
-	for name, vis := range prop.Visible {
-		if !vis {
-			continue
-		}
-
-		if !first {
-			b.WriteString(",")
-		}
-
-		first = false
-		b.WriteString("'")
-		b.WriteString(name)
-		b.WriteString("': 'true'")
-	}
-	b.WriteString("], ")
-
-	first = true
-	b.WriteString("'attr': [")
-	for _, attr := range prop.Attr {
-		encode := attr.Encode()
-		if encode == "" {
-			continue
-		}
-
-		if !first {
-			b.WriteString(",")
-		}
-		first = false
-
-		b.WriteString(encode)
-	}
-
-	b.WriteString("]}")
-	s = b.String()
-
 	return
 }
 

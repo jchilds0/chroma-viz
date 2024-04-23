@@ -6,6 +6,7 @@ import (
 	"chroma-viz/library/gtk_utils"
 	"chroma-viz/library/pages"
 	"chroma-viz/library/tcp"
+	"chroma-viz/library/templates"
 	"fmt"
 	"log"
 	"net"
@@ -105,12 +106,13 @@ func VizGui(app *gtk.Application) {
 
 	showTree := NewShowTree(func(page *pages.Page) { edit.SetPage(page) })
 	tempTree := NewTempTree(func(tempid int) {
-		page, err := pages.GetPage(conn.hub.Conn, tempid)
+		template, err := templates.GetTemplate(conn.hub.Conn, tempid)
 		if err != nil {
 			log.Print(err)
 			return
 		}
 
+		page := pages.NewPageFromTemplate(&template)
 		showTree.ImportPage(page)
 	})
 
