@@ -60,7 +60,7 @@ func (page *Page) CreateTemplate() (temp *templates.Template) {
 		temp.Geometry = append(temp.Geometry, geo)
 	}
 
-	return nil
+	return temp
 }
 
 func (page *Page) PageToListRow() (row *gtk.ListBoxRow, err error) {

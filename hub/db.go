@@ -161,13 +161,21 @@ func (hub *DataBase) ImportTemplate(temp templates.Template) (err error) {
 	return
 }
 
-func (hub *DataBase) AddTemplate(id int64, name string, layer int) (err error) {
-	// TODO: check for existing templates
-	q := `
+func (hub *DataBase) AddTemplate(tempID int64, name string, layer int) (err error) {
+	// TODO: run as a transaction
+	deleteTemp := `
+        DELETE FROM template WHERE templateID = ?;
+    `
+	_, err = hub.db.Exec(deleteTemp, tempID)
+	if err != nil {
+		Logger(err.Error())
+	}
+
+	addTemp := `
         INSERT INTO template VALUES (?, ?, ?);
     `
 
-	_, err = hub.db.Exec(q, id, name, layer)
+	_, err = hub.db.Exec(addTemp, tempID, name, layer)
 	return
 }
 
@@ -278,7 +286,7 @@ func (hub *DataBase) HandleConn(conn net.Conn) {
 				continue
 			}
 
-			_, err = conn.Write([]byte(s))
+			_, err = conn.Write([]byte(s + string(props.END_OF_MESSAGE)))
 		case "temp":
 			tempid, err := strconv.ParseInt(cmds[4], 10, 64)
 			if err != nil {
@@ -293,7 +301,7 @@ func (hub *DataBase) HandleConn(conn net.Conn) {
 			}
 
 			s, _ := template.Encode()
-			_, err = conn.Write([]byte(s))
+			_, err = conn.Write([]byte(s + string(props.END_OF_MESSAGE)))
 		case "img":
 			imageID, _ := strconv.Atoi(cmds[4])
 			image := hub.Assets[imageID]

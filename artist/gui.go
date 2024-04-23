@@ -97,7 +97,9 @@ func ArtistGui(app *gtk.Application) {
 			return
 		}
 
+		page.TemplateID = int(template.TempID)
 		editView.UpdateProps()
+		SendPreview(editView.Page, tcp.UPDATE)
 		SendPreview(editView.Page, tcp.ANIMATE_ON)
 	})
 
@@ -237,7 +239,7 @@ func ArtistGui(app *gtk.Application) {
 		tempIDEntry.SetText("")
 		layerEntry.SetText("")
 
-		SendPreview(editView.Page, tcp.CLEAN)
+		SendPreview(editView.Page, tcp.UPDATE)
 	})
 
 	importTemplate.Connect("activate", func() {

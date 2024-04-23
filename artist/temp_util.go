@@ -12,24 +12,24 @@ import (
 )
 
 func artistPageToTemplate(page pages.Page, tempView *TempTree, tempID, title, layer string) (temp *templates.Template, err error) {
-	template := page.CreateTemplate()
-	template.Title = title
-	template.TempID, err = strconv.ParseInt(tempID, 10, 64)
+	temp = page.CreateTemplate()
+	temp.Title = title
+	temp.TempID, err = strconv.ParseInt(tempID, 10, 64)
 	if err != nil {
 		return
 	}
 
-	template.Layer, err = strconv.Atoi(layer)
+	temp.Layer, err = strconv.Atoi(layer)
 	if err != nil {
 		return
 	}
 
-	template.Keyframe = tempView.keyframes()
+	temp.Keyframe = tempView.keyframes()
 
 	// update parent
 	model := tempView.geoModel.ToTreeModel()
 	if iter, ok := model.GetIterFirst(); ok {
-		updateParentGeometry(template, model, iter, 0)
+		updateParentGeometry(temp, model, iter, 0)
 	}
 
 	return

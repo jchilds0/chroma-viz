@@ -21,7 +21,7 @@ const (
 	ANIMATE_ON
 	CONTINUE
 	ANIMATE_OFF
-	CLEAN
+	UPDATE
 )
 
 type Connection struct {
