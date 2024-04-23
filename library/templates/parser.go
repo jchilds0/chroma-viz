@@ -194,7 +194,7 @@ func parseGeometry(buf *bufio.Reader) (geo IGeometry, err error) {
 
 		switch name {
 		case "id":
-			geom.GeoID, err = strconv.ParseInt(parser.C_tok.Value, 10, 64)
+			geom.GeoID, err = strconv.Atoi(parser.C_tok.Value)
 			if err != nil {
 				return
 			}
@@ -211,7 +211,7 @@ func parseGeometry(buf *bufio.Reader) (geo IGeometry, err error) {
 				return
 			}
 
-		case "prop_type":
+		case "geo_type":
 			geom.GeoType, err = strconv.Atoi(parser.C_tok.Value)
 			if err != nil {
 				return
@@ -221,6 +221,18 @@ func parseGeometry(buf *bufio.Reader) (geo IGeometry, err error) {
 			if err != nil {
 				return
 			}
+
+		case "prop_type":
+			geom.PropType, err = strconv.Atoi(parser.C_tok.Value)
+			if err != nil {
+				return
+			}
+
+			err = parser.MatchToken(parser.INT, buf)
+			if err != nil {
+				return
+			}
+
 		case "attr":
 			parser.MatchToken('[', buf)
 
@@ -261,12 +273,6 @@ func parseGeometry(buf *bufio.Reader) (geo IGeometry, err error) {
 		err = fmt.Errorf("Incorrect number of colors (%s)", data["color"])
 	}
 
-	geom.Color = [4]byte{
-		formatColor(color[0]),
-		formatColor(color[1]),
-		formatColor(color[2]),
-		formatColor(color[3]),
-	}
 	geom.Parent, err = strconv.Atoi(data["parent"])
 	if err != nil {
 		return
@@ -278,16 +284,16 @@ func parseGeometry(buf *bufio.Reader) (geo IGeometry, err error) {
 		height, _ := strconv.Atoi(data["height"])
 		rounding, _ := strconv.Atoi(data["rounding"])
 
-		geo = NewRectangle(geom, width, height, rounding)
+		geo = NewRectangle(geom, width, height, rounding, data["color"])
 	case GEO_CIRCLE:
 		inner, _ := strconv.Atoi(data["inner_radius"])
 		outer, _ := strconv.Atoi(data["outer_radius"])
 		start, _ := strconv.Atoi(data["start_angle"])
 		end, _ := strconv.Atoi(data["end_angle"])
 
-		geo = NewCircle(geom, inner, outer, start, end)
+		geo = NewCircle(geom, inner, outer, start, end, data["color"])
 	case GEO_TEXT:
-		geo = NewText(geom, data["string"])
+		geo = NewText(geom, data["string"], data["color"])
 	}
 
 	return

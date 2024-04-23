@@ -1,7 +1,6 @@
 package templates
 
 import (
-	"fmt"
 	"strconv"
 	"strings"
 )
@@ -12,35 +11,42 @@ const (
 	GEO_TEXT
 )
 
+var GeoName = map[int]string{
+	GEO_RECT:   "rectangle",
+	GEO_CIRCLE: "circle",
+	GEO_TEXT:   "text",
+}
+
 type Geometry struct {
-	GeoID   int64
-	Name    string
-	GeoType int
-	RelX    int
-	RelY    int
-	Color   [4]byte
-	Parent  int
+	GeoID    int
+	Name     string
+	GeoType  int
+	PropType int
+	RelX     int
+	RelY     int
+	Parent   int
 }
 
 type IGeometry interface {
-	Geom() Geometry
+	Geom() *Geometry
 	Attributes() map[string]string
 }
 
-func NewGeometry(name string, geoType, rel_x, rel_y int, r, g, b, a byte, parent int) *Geometry {
+func NewGeometry(geoID int, name string, propType, geoType, rel_x, rel_y int, parent int) *Geometry {
 	geo := &Geometry{
-		Name:    name,
-		GeoType: geoType,
-		RelX:    rel_x,
-		RelY:    rel_y,
-		Color:   [4]byte{r, g, b, a},
-		Parent:  parent,
+		GeoID:    geoID,
+		Name:     name,
+		GeoType:  geoType,
+		PropType: propType,
+		RelX:     rel_x,
+		RelY:     rel_y,
+		Parent:   parent,
 	}
 
 	return geo
 }
 
-func (geo Geometry) Geom() Geometry {
+func (geo *Geometry) Geom() *Geometry {
 	return geo
 }
 
@@ -50,9 +56,6 @@ func (geo *Geometry) Attributes() map[string]string {
 	p["rel_x"] = strconv.Itoa(geo.RelX)
 	p["rel_y"] = strconv.Itoa(geo.RelY)
 	p["parent"] = strconv.Itoa(geo.Parent)
-
-	p["color"] = fmt.Sprintf("%f %f %f %f", geo.Color[0]/255,
-		geo.Color[1]/255, geo.Color[2]/255, geo.Color[3]/255)
 
 	return p
 }
@@ -71,11 +74,13 @@ func EncodeGeometry(geo IGeometry) string {
 	b.WriteString(geom.Name)
 	b.WriteString("', ")
 
-	b.WriteString("'prop_type': '")
-	b.WriteString("', ")
+	b.WriteString("'prop_type': ")
+	b.WriteString(strconv.Itoa(geom.PropType))
+	b.WriteString(", ")
 
-	b.WriteString("'geo_type': '")
-	b.WriteString("', ")
+	b.WriteString("'geo_type': ")
+	b.WriteString(strconv.Itoa(geom.GeoType))
+	b.WriteString(", ")
 
 	// TODO: Visible
 
@@ -87,9 +92,9 @@ func EncodeGeometry(geo IGeometry) string {
 		}
 
 		first = false
-		b.WriteString("{'")
+		b.WriteString("{'name': '")
 		b.WriteString(name)
-		b.WriteString("': '")
+		b.WriteString("', 'value': '")
 		b.WriteString(value)
 		b.WriteString("'}")
 	}
@@ -104,14 +109,16 @@ type Rectangle struct {
 	Width    int
 	Height   int
 	Rounding int
+	Color    string
 }
 
-func NewRectangle(geo Geometry, width, height, rounding int) *Rectangle {
+func NewRectangle(geo Geometry, width, height, rounding int, color string) *Rectangle {
 	rect := &Rectangle{
 		Geometry: geo,
 		Width:    width,
 		Height:   height,
 		Rounding: rounding,
+		Color:    color,
 	}
 
 	return rect
@@ -123,19 +130,22 @@ func (rect *Rectangle) Attributes() map[string]string {
 	p["width"] = strconv.Itoa(rect.Width)
 	p["height"] = strconv.Itoa(rect.Height)
 	p["rounding"] = strconv.Itoa(rect.Rounding)
+	p["color"] = rect.Color
 
 	return p
 }
 
 type Text struct {
 	Geometry
-	Text string
+	Text  string
+	Color string
 }
 
-func NewText(geo Geometry, text string) *Text {
+func NewText(geo Geometry, text, color string) *Text {
 	t := &Text{
 		Geometry: geo,
 		Text:     text,
+		Color:    color,
 	}
 
 	return t
@@ -145,6 +155,7 @@ func (text *Text) Attributes() map[string]string {
 	p := text.Geometry.Attributes()
 
 	p["string"] = text.Text
+	p["color"] = text.Color
 
 	return p
 }
@@ -155,15 +166,17 @@ type Circle struct {
 	OuterRadius int
 	StartAngle  int
 	EndAngle    int
+	Color       string
 }
 
-func NewCircle(geo Geometry, innerRadius, outerRadius, startAngle, endAngle int) *Circle {
+func NewCircle(geo Geometry, innerRadius, outerRadius, startAngle, endAngle int, color string) *Circle {
 	c := &Circle{
 		Geometry:    geo,
 		InnerRadius: innerRadius,
 		OuterRadius: outerRadius,
 		StartAngle:  startAngle,
 		EndAngle:    endAngle,
+		Color:       color,
 	}
 
 	return c
@@ -176,6 +189,7 @@ func (circle *Circle) Attributes() map[string]string {
 	p["outer_radius"] = strconv.Itoa(circle.OuterRadius)
 	p["start_angle"] = strconv.Itoa(circle.StartAngle)
 	p["end_angle"] = strconv.Itoa(circle.EndAngle)
+	p["color"] = circle.Color
 
 	return p
 }

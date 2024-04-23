@@ -58,8 +58,8 @@ func NewPageFromTemplate(temp *templates.Template) (page *Page) {
 func (page *Page) CreateTemplate() (temp *templates.Template) {
 	temp = templates.NewTemplate(page.Title, 0, page.Layer, 0, len(page.PropMap))
 
-	for _, prop := range page.PropMap {
-		geo := prop.CreateGeometry()
+	for geoID, prop := range page.PropMap {
+		geo := prop.CreateGeometry(geoID)
 		temp.Geometry = append(temp.Geometry, geo)
 	}
 

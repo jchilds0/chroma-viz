@@ -3,3 +3,8 @@ build/
 dist/
 log/
 perf/*.prof
+
+*.log
+*/*.log
+*.bak
+*/*.bak

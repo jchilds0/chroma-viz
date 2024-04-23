@@ -196,7 +196,7 @@ func NewPropertyFromGeometry(geo templates.IGeometry) (prop *Property) {
 	return
 }
 
-func (prop *Property) CreateGeometry() (geom templates.IGeometry) {
+func (prop *Property) CreateGeometry(geoID int) (geom templates.IGeometry) {
 	var relX, relY, parent int
 	if attr, ok := prop.Attr["rel_x"]; ok {
 		relX, _ = strconv.Atoi(attr.Encode())
@@ -210,21 +210,13 @@ func (prop *Property) CreateGeometry() (geom templates.IGeometry) {
 		parent, _ = strconv.Atoi(attr.Encode())
 	}
 
-	var r, g, b, a float64
-	if attr, ok := prop.Attr["color"]; ok {
-		color := strings.Split(attr.Encode(), " ")
-
-		r, _ = strconv.ParseFloat(color[0], 64)
-		g, _ = strconv.ParseFloat(color[1], 64)
-		b, _ = strconv.ParseFloat(color[2], 64)
-		a, _ = strconv.ParseFloat(color[3], 64)
-	}
-	geo := templates.NewGeometry(prop.Name, prop.PropType, relX, relY,
-		byte(r*255), byte(g*255), byte(b*255), byte(a*255), parent)
+	geo := templates.NewGeometry(geoID, prop.Name, prop.PropType, 0, relX, relY, parent)
 
 	switch prop.PropType {
 	case RECT_PROP:
 		var width, height, rounding int
+		color := "0 0 0 0"
+
 		if attr, ok := prop.Attr["width"]; ok {
 			width, _ = strconv.Atoi(attr.Encode())
 		}
@@ -237,9 +229,15 @@ func (prop *Property) CreateGeometry() (geom templates.IGeometry) {
 			rounding, _ = strconv.Atoi(attr.Encode())
 		}
 
-		geom = templates.NewRectangle(*geo, width, height, rounding)
+		if attr, ok := prop.Attr["color"]; ok {
+			color = attr.Encode()
+		}
+
+		geom = templates.NewRectangle(*geo, width, height, rounding, color)
 	case CIRCLE_PROP:
 		var inner, outer, start, end int
+		color := "0 0 0 0"
+
 		if attr, ok := prop.Attr["inner_radius"]; ok {
 			inner, _ = strconv.Atoi(attr.Encode())
 		}
@@ -256,17 +254,28 @@ func (prop *Property) CreateGeometry() (geom templates.IGeometry) {
 			end, _ = strconv.Atoi(attr.Encode())
 		}
 
-		geom = templates.NewCircle(*geo, inner, outer, start, end)
+		if attr, ok := prop.Attr["color"]; ok {
+			color = attr.Encode()
+		}
+
+		geom = templates.NewCircle(*geo, inner, outer, start, end, color)
 
 	case TEXT_PROP:
 		var text string
+		color := "0 0 0 0"
+
 		if attr, ok := prop.Attr["string"]; ok {
 			text = attr.Encode()
 		}
 
-		geom = templates.NewText(*geo, text)
+		if attr, ok := prop.Attr["color"]; ok {
+			color = attr.Encode()
+		}
+
+		geom = templates.NewText(*geo, text, color)
 
 	default:
+		log.Printf("Error: creating geom %s not implemented", GeoType(prop.PropType))
 	}
 
 	return

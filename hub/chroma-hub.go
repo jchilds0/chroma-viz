@@ -9,6 +9,7 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"time"
 )
 
 var usage = `Usage:
@@ -21,12 +22,13 @@ var usage = `Usage:
 var hubPort int
 
 func Logger(message string, args ...any) {
-	file, err := os.Open("./chroma_hub.log")
+	file, err := os.Create("./chroma_hub.log")
 	if err != nil {
 		log.Printf("Error opening log file (%s)", err)
 	}
 
-	s := log.Prefix() + fmt.Sprintf(message, args...)
+	t := time.Now()
+	s := fmt.Sprintf("[%s]\t", t.Format("2006-01-02 15:04:05")) + fmt.Sprintf(message, args...)
 	file.Write([]byte(s))
 }
 

@@ -3,8 +3,8 @@ package viz
 import (
 	"chroma-viz/hub"
 	"chroma-viz/library/pages"
-	"chroma-viz/library/props"
 	"chroma-viz/library/templates"
+	"fmt"
 	"log"
 	"math/rand"
 	"net"
@@ -82,45 +82,47 @@ func randomTemplate(chromaHub *hub.DataBase, tempID int64) {
 		log.Fatalf("Error adding template (%s)", err)
 	}
 
-	geos := []int{props.RECT_PROP, props.TEXT_PROP, props.CIRCLE_PROP}
+	geos := []int{templates.GEO_RECT, templates.GEO_CIRCLE, templates.GEO_TEXT}
 
 	for j := 0; j < numGeometries; j++ {
 		geoIndex := rand.Int() % len(geos)
 		prop := geos[geoIndex]
 
 		geo := templates.NewGeometry(
-			props.PropType(prop),
+			j,
+			templates.GeoName[prop],
+			prop,
 			prop,
 			rand.Int()%2000,
 			rand.Int()%2000,
-			byte(rand.Int()%255),
-			byte(rand.Int()%255),
-			byte(rand.Int()%255),
-			byte(rand.Int()%255),
 			0,
 		)
 
+		color := fmt.Sprintf("%f %f %f %f", rand.Float64(), rand.Float64(), rand.Float64(), rand.Float64())
+
 		switch prop {
-		case props.RECT_PROP:
+		case templates.GEO_RECT:
 			rect := templates.NewRectangle(
 				*geo,
 				rand.Int()%1000,
 				rand.Int()%1000,
 				rand.Int()%10,
+				color,
 			)
 			err = chromaHub.AddRectangle(tempID, *rect)
 
-		case props.CIRCLE_PROP:
+		case templates.GEO_CIRCLE:
 			circle := templates.NewCircle(
 				*geo,
 				rand.Int()%1000,
 				rand.Int()%1000,
 				rand.Int()%1000,
 				rand.Int()%1000,
+				color,
 			)
 			err = chromaHub.AddCircle(tempID, *circle)
-		case props.TEXT_PROP:
-			text := templates.NewText(*geo, "some text")
+		case templates.GEO_TEXT:
+			text := templates.NewText(*geo, "some text", color)
 			err = chromaHub.AddText(tempID, *text)
 		}
 

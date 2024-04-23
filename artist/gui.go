@@ -44,6 +44,8 @@ var page = pages.NewPage(0, 0, 0, 10, "")
 var geoms map[int]*geom
 
 func ArtistGui(app *gtk.Application) {
+	var tempIDEntry, titleEntry, layerEntry *gtk.Entry
+
 	win, err := gtk.ApplicationWindowNew(app)
 	if err != nil {
 		log.Fatalf("Error starting artist gui (%s)", err)
@@ -68,14 +70,32 @@ func ArtistGui(app *gtk.Application) {
 	}
 
 	editView.AddAction("Save", true, func() {
-		// sync parent attrs
-		geoModel := tempView.geoModel.ToTreeModel()
-		if iter, ok := geoModel.GetIterFirst(); ok {
-			updateParentGeometry(geoModel, iter, 0)
+		title, err := titleEntry.GetText()
+		if err != nil {
+			log.Print(err)
 		}
 
-		template := page.CreateTemplate()
-		template.Keyframe = tempView.keyframes()
+		layer, err := layerEntry.GetText()
+		if err != nil {
+			log.Print(err)
+		}
+
+		tempID, err := tempIDEntry.GetText()
+		if err != nil {
+			log.Print(err)
+		}
+
+		template, err := artistPageToTemplate(*page, tempView, tempID, title, layer)
+		if err != nil {
+			log.Printf("Error creating template (%s)", err)
+			return
+		}
+
+		err = chromaHub.ImportTemplate(*template)
+		if err != nil {
+			log.Printf("Error sending template to chroma hub (%s)", err)
+			return
+		}
 
 		editView.UpdateProps()
 		SendPreview(editView.Page, tcp.ANIMATE_ON)
@@ -128,17 +148,17 @@ func ArtistGui(app *gtk.Application) {
 
 	box.PackStart(body, true, true, 0)
 
-	titleEntry, err := gtk_utils.BuilderGetObject[*gtk.Entry](builder, "title")
+	titleEntry, err = gtk_utils.BuilderGetObject[*gtk.Entry](builder, "title")
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	tempIDEntry, err := gtk_utils.BuilderGetObject[*gtk.Entry](builder, "tempid")
+	tempIDEntry, err = gtk_utils.BuilderGetObject[*gtk.Entry](builder, "tempid")
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	layerEntry, err := gtk_utils.BuilderGetObject[*gtk.Entry](builder, "layer")
+	layerEntry, err = gtk_utils.BuilderGetObject[*gtk.Entry](builder, "layer")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -525,8 +545,8 @@ func guiImportPage(win *gtk.ApplicationWindow, tempView *TempTree) (title, tempI
 		tempID = strconv.FormatInt(temp.TempID, 10)
 		layer = strconv.Itoa(temp.Layer)
 
-		decompressGeometry(page, &temp)
-		geometryToTreeView(tempView, nil, 0)
+		page = pages.NewPageFromTemplate(&temp)
+		geometryToTreeView(page, tempView, nil, 0)
 
 		tempView.addKeyframes(&temp)
 
@@ -553,30 +573,12 @@ func guiExportPage(win *gtk.ApplicationWindow, tempView *TempTree, title, tempID
 	if res == gtk.RESPONSE_ACCEPT {
 		filename := dialog.GetFilename()
 
-		// get keyframes
-		tempIDInt, err := strconv.ParseInt(tempID, 10, 64)
+		template, err := artistPageToTemplate(*page, tempView, tempID, title, layer)
 		if err != nil {
-			return err
+			return fmt.Errorf("Error creating template (%s)", err)
 		}
 
-		layerInt, err := strconv.Atoi(layer)
-		if err != nil {
-			return err
-		}
-
-		newTemp := templates.NewTemplate(title, tempIDInt, layerInt, 10, 10)
-		newTemp.Keyframe = tempView.keyframes()
-
-		// sync parent attrs
-		model := tempView.geoModel.ToTreeModel()
-		if iter, ok := model.GetIterFirst(); ok {
-			updateParentGeometry(model, iter, 0)
-		}
-
-		compressGeometry(page, newTemp, tempView.geoModel.ToTreeModel())
-
-		// TODO: sync visible attrs to template
-		err = templates.ExportTemplate(newTemp, filename)
+		err = templates.ExportTemplate(template, filename)
 		if err != nil {
 			return err
 		}

@@ -65,6 +65,7 @@ func (hub *DataBase) EncodeDB() (s string, err error) {
 	for rows.Next() {
 		err = rows.Scan(&tempID)
 		if err != nil {
+			err = fmt.Errorf("Scan TempID: %s", err)
 			return
 		}
 
@@ -77,11 +78,13 @@ func (hub *DataBase) EncodeDB() (s string, err error) {
 		first = false
 		temp, err = hub.GetTemplate(tempID)
 		if err != nil {
+			err = fmt.Errorf("Retrieve Template: %s", err)
 			return
 		}
 
 		tempStr, err = temp.Encode()
 		if err != nil {
+			err = fmt.Errorf("Encode Template: %s", err)
 			return
 		}
 
