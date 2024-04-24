@@ -15,7 +15,8 @@ import (
 var usage = `Usage:
     - import [archive|template] <filename>.json
     - import asset <filename>.png <directory> <name> <image id>
-    - export [archive|template] <filename>.json
+    - export archive <filename>.json
+    - export template <template id> <filename>.json
     - clean 
 `
 
@@ -46,6 +47,9 @@ func HubApp(port int) {
 	hub := NewDataBase(1_000)
 	ok := true
 	hubPort = port
+
+	temp, _ := templates.NewTemplateFromFile("temp-15.json")
+	hub.ImportTemplate(*temp)
 
 	go hub.StartHub(port)
 
@@ -80,39 +84,71 @@ func HubApp(port int) {
 
 func imported(hub *DataBase, inputs []string) {
 	var err error
+
+	if len(inputs) == 0 {
+		fmt.Println(usage)
+		return
+	}
+
 	switch inputs[0] {
 	case "archive":
+		if len(inputs) != 2 {
+			fmt.Println(usage)
+			return
+		}
+
 		err = hub.ImportArchive(inputs[1])
 	case "template":
-		buf, err := os.ReadFile(inputs[1])
+		if len(inputs) != 2 {
+			fmt.Println(usage)
+			return
+		}
+
+		var temp *templates.Template
+		temp, err = templates.NewTemplateFromFile(inputs[1])
 		if err != nil {
 			break
 		}
 
-		var temp templates.Template
-		err = json.Unmarshal(buf, &temp)
-		if err != nil {
-			break
-		}
-
-		err = hub.ImportTemplate(temp)
+		err = hub.ImportTemplate(*temp)
 	case "asset":
+		if len(inputs) != 5 {
+			fmt.Println(usage)
+			return
+		}
+
 		err = hub.ImportAsset(inputs[1:])
 	default:
 		fmt.Println(usage)
 	}
 
 	if err != nil {
-		Logger("CLI", "%s", err)
+		Logger("CLI: %s", err)
 	}
 }
 
 func exported(hub *DataBase, inputs []string) {
 	switch inputs[0] {
 	case "archive":
+		if len(inputs) != 2 {
+			fmt.Println(usage)
+			return
+		}
+
 		hub.ExportArchive(inputs[1])
 	case "template":
-		hub.ExportTemplate(inputs[1])
+		if len(inputs) != 3 {
+			fmt.Println(usage)
+			return
+		}
+
+		tempID, err := strconv.ParseInt(inputs[1], 10, 64)
+		if err != nil {
+			Logger("CLI: %s", err)
+			return
+		}
+
+		hub.ExportTemplate(inputs[2], tempID)
 	default:
 		fmt.Println(usage)
 	}
@@ -174,8 +210,14 @@ func (hub *DataBase) ExportArchive(fileName string) {
 	printMessage(s)
 }
 
-func (hub *DataBase) ExportTemplate(fileName string) error {
-	return fmt.Errorf("Not implemented")
+func (hub *DataBase) ExportTemplate(fileName string, tempID int64) error {
+	temp, err := hub.GetTemplate(tempID)
+	if err != nil {
+		return err
+	}
+
+	err = temp.ExportTemplate(fileName)
+	return err
 }
 
 func (hub *DataBase) ImportAsset(args []string) (err error) {

@@ -144,14 +144,29 @@ func (hub *DataBase) ImportTemplate(temp templates.Template) (err error) {
 		geom := geo.Geom()
 
 		switch geom.GeoType {
-		case props.RECT_PROP:
-			hub.AddRectangle(temp.TempID, *geo.(*templates.Rectangle))
+		case templates.GEO_RECT:
+			rect, ok := geo.(*templates.Rectangle)
+			if !ok {
+				continue
+			}
 
-		case props.CIRCLE_PROP:
-			hub.AddCircle(temp.TempID, *geo.(*templates.Circle))
+			hub.AddRectangle(temp.TempID, *rect)
 
-		case props.TEXT_PROP:
-			hub.AddText(temp.TempID, *geo.(*templates.Text))
+		case templates.GEO_CIRCLE:
+			circle, ok := geo.(*templates.Circle)
+			if !ok {
+				continue
+			}
+
+			hub.AddCircle(temp.TempID, *circle)
+
+		case templates.GEO_TEXT:
+			text, ok := geo.(*templates.Text)
+			if !ok {
+				continue
+			}
+
+			hub.AddText(temp.TempID, *text)
 
 		default:
 			log.Printf("Unknown geometry type")

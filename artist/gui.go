@@ -580,7 +580,7 @@ func guiExportPage(win *gtk.ApplicationWindow, tempView *TempTree, title, tempID
 			return fmt.Errorf("Error creating template (%s)", err)
 		}
 
-		err = templates.ExportTemplate(template, filename)
+		err = template.ExportTemplate(filename)
 		if err != nil {
 			return err
 		}

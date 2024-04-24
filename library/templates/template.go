@@ -28,6 +28,16 @@ type Template struct {
 	Geometry []IGeometry
 }
 
+type templateJSON struct {
+	Title     string
+	TempID    int64
+	Layer     int
+	Keyframe  []Keyframe
+	Rectangle []*Rectangle
+	Circle    []*Circle
+	Text      []*Text
+}
+
 func NewTemplate(title string, id int64, layer, num_keyframe, num_geo int) *Template {
 	temp := &Template{
 		Title:  title,
@@ -38,6 +48,42 @@ func NewTemplate(title string, id int64, layer, num_keyframe, num_geo int) *Temp
 	temp.Keyframe = make([]Keyframe, 0, num_keyframe)
 	temp.Geometry = make([]IGeometry, 0, num_geo)
 	return temp
+}
+
+func NewTemplateFromFile(fileName string) (temp *Template, err error) {
+	buf, err := os.ReadFile(fileName)
+	if err != nil {
+		return
+	}
+
+	var tempJSON templateJSON
+	err = json.Unmarshal(buf, &tempJSON)
+	if err != nil {
+		return
+	}
+
+	numGeo := len(tempJSON.Rectangle) + len(tempJSON.Circle) + len(tempJSON.Text)
+	temp = NewTemplate(
+		tempJSON.Title,
+		tempJSON.TempID,
+		tempJSON.Layer,
+		len(tempJSON.Keyframe),
+		numGeo,
+	)
+
+	for _, rect := range tempJSON.Rectangle {
+		temp.Geometry = append(temp.Geometry, rect)
+	}
+
+	for _, circle := range tempJSON.Circle {
+		temp.Geometry = append(temp.Geometry, circle)
+	}
+
+	for _, text := range tempJSON.Text {
+		temp.Geometry = append(temp.Geometry, text)
+	}
+
+	return
 }
 
 func (temp *Template) TemplateToListRow() (row *gtk.ListBoxRow, err error) {
@@ -131,14 +177,35 @@ func (temp *Template) Encode() (s string, err error) {
 	return
 }
 
-func ExportTemplate(temp *Template, filename string) error {
+func (temp *Template) ExportTemplate(filename string) error {
 	file, err := os.Create(filename)
 	if err != nil {
 		return err
 	}
 	defer file.Close()
 
-	buf, err := json.Marshal(temp)
+	var tempJSON templateJSON
+
+	tempJSON.Title = temp.Title
+	tempJSON.TempID = temp.TempID
+	tempJSON.Layer = temp.Layer
+	tempJSON.Keyframe = temp.Keyframe
+	tempJSON.Rectangle = make([]*Rectangle, 0, len(temp.Geometry))
+	tempJSON.Circle = make([]*Circle, 0, len(temp.Geometry))
+	tempJSON.Text = make([]*Text, 0, len(temp.Geometry))
+
+	for _, geo := range temp.Geometry {
+		switch geo.Geom().GeoType {
+		case GEO_RECT:
+			tempJSON.Rectangle = append(tempJSON.Rectangle, geo.(*Rectangle))
+		case GEO_TEXT:
+			tempJSON.Text = append(tempJSON.Text, geo.(*Text))
+		case GEO_CIRCLE:
+			tempJSON.Circle = append(tempJSON.Circle, geo.(*Circle))
+		}
+	}
+
+	buf, err := json.Marshal(tempJSON)
 	if err != nil {
 		return err
 	}
