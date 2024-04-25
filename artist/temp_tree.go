@@ -2,7 +2,9 @@ package artist
 
 import (
 	"chroma-viz/library/gtk_utils"
+	"chroma-viz/library/pages"
 	"chroma-viz/library/templates"
+	"fmt"
 	"log"
 	"strconv"
 
@@ -22,6 +24,7 @@ const (
 	FRAME_GEOMETRY
 	FRAME_GEOMETRY_ID
 	FRAME_ATTR
+	FRAME_ATTR_ID
 	FRAME_VALUE
 	FRAME_USER_VALUE
 	FRAME_MASK
@@ -167,6 +170,7 @@ func (temp *TempTree) createKeyTree() (err error) {
 		glib.TYPE_STRING,  // Geometry Name
 		glib.TYPE_INT,     // Geometry Num
 		glib.TYPE_STRING,  // Geometry Attr
+		glib.TYPE_INT,     // Geometry Attr ID
 		glib.TYPE_INT,     // Value Entry
 		glib.TYPE_BOOLEAN, // User Value Selector
 		glib.TYPE_BOOLEAN, // Mask Parent
@@ -475,142 +479,174 @@ func (tempView *TempTree) removeKeys(geoID int) {
 	}
 }
 
-func (tempView *TempTree) keyframes() []templates.Keyframe {
-	count := 0
+func (tempView *TempTree) keyframes(temp *templates.Template) {
 	iter, ok := tempView.keyModel.GetIterFirst()
-
-	for ok {
-		count++
-		ok = tempView.keyModel.IterNext(iter)
-	}
-
-	frames := make([]templates.Keyframe, count)
-	i := 0
-	iter, ok = tempView.keyModel.GetIterFirst()
 	keyModel := tempView.keyModel.ToTreeModel()
 
+	var valueStr, bindFrame, bindGeo, bindAttr string
+	var user bool
+
 	for ok {
-		num, err := gtk_utils.ModelGetValue[int](keyModel, iter, FRAME_NUM)
+		frame, err := tempView.getKeyframe(iter)
 		if err != nil {
-			log.Print(err)
-			break
+			goto ERROR
 		}
 
-		geo, err := gtk_utils.ModelGetValue[int](keyModel, iter, FRAME_GEOMETRY_ID)
+		user, err = gtk_utils.ModelGetValue[bool](keyModel, iter, FRAME_USER_VALUE)
 		if err != nil {
-			log.Print(err)
-			break
+			goto ERROR
 		}
 
-		attr, err := gtk_utils.ModelGetValue[string](keyModel, iter, FRAME_ATTR)
-		if err != nil {
-			log.Print(err)
-			break
-		}
-
-		value, err := gtk_utils.ModelGetValue[int](keyModel, iter, FRAME_VALUE)
-		if err != nil {
-			log.Print(err)
-			break
-		}
-
-		user, err := gtk_utils.ModelGetValue[bool](keyModel, iter, FRAME_USER_VALUE)
-		if err != nil {
-			log.Print(err)
-			break
-		}
-
-		mask, err := gtk_utils.ModelGetValue[bool](keyModel, iter, FRAME_MASK)
-		if err != nil {
-			log.Print(err)
-			break
-		}
-
-		expand, err := gtk_utils.ModelGetValue[bool](keyModel, iter, FRAME_EXPAND)
-		if err != nil {
-			log.Print(err)
-			break
-		}
-
-		/*
-					s, err := gtk_utils.ModelGetValue[string](keyModel, iter, FRAME_VALUE_FRAME)
-					if err != nil {
-						log.Print(err)
-						break
-					}
-
-			        bindNum, err := strconv.Atoi(s)
-			        if err != nil {
-			            log.Print(err)
-			        }
-
-					s, err = gtk_utils.ModelGetValue[string](keyModel, iter, FRAME_VALUE_GEO)
-					if err != nil {
-						log.Print(err)
-						break
-					}
-
-			        bindGeo, err := strconv.Atoi(s)
-			        if err != nil {
-			            log.Print(err)
-			        }
-
-					bindAttr, err := gtk_utils.ModelGetValue[string](keyModel, iter, FRAME_ATTR)
-					if err != nil {
-						log.Print(err)
-						break
-					}
-
-		*/
-
-		var ftype int
 		if user {
-			ftype = templates.USER_FRAME
-		} else {
-			ftype = templates.SET_FRAME
+			keyframe := templates.NewUserFrame(frame)
+			temp.UserFrame = append(temp.UserFrame, *keyframe)
+
+			ok = tempView.keyModel.IterNext(iter)
+			continue
 		}
 
-		frames[i] = templates.Keyframe{
-			FrameNum:  num,
-			FrameGeo:  geo,
-			FrameAttr: attr,
-			FrameType: ftype,
-			SetValue:  value,
-			Expand:    expand,
-			Mask:      mask,
-			// BindFrame: bindNum,
-			// BindGeo:   bindGeo,
-			// BindAttr:  bindAttr,
+		valueStr, err = gtk_utils.ModelGetValue[string](keyModel, iter, FRAME_VALUE)
+		if err != nil {
+			goto ERROR
 		}
 
-		i++
+		if valueStr != "" {
+			value, _ := strconv.Atoi(valueStr)
+			keyframe := templates.NewSetFrame(frame, value)
+
+			temp.SetFrame = append(temp.SetFrame, *keyframe)
+			ok = tempView.keyModel.IterNext(iter)
+			continue
+		}
+
+		bindFrame, err = gtk_utils.ModelGetValue[string](keyModel, iter, FRAME_BIND_FRAME)
+		if err != nil {
+			goto ERROR
+		}
+
+		bindGeo, err = gtk_utils.ModelGetValue[string](keyModel, iter, FRAME_BIND_GEO)
+		if err != nil {
+			goto ERROR
+		}
+
+		bindAttr, err = gtk_utils.ModelGetValue[string](keyModel, iter, FRAME_BIND_ATTR)
+		if err != nil {
+			goto ERROR
+		}
+
+		if bindFrame != "" && bindGeo != "" && bindAttr != "" {
+			frameNum, _ := strconv.Atoi(bindFrame)
+			geoNum, _ := strconv.Atoi(bindGeo)
+			attrNum, _ := strconv.Atoi(bindAttr)
+
+			bind := templates.NewKeyFrame(frameNum, geoNum, attrNum, 0, false, false)
+
+			keyframe := templates.NewBindFrame(frame, *bind)
+			temp.BindFrame = append(temp.BindFrame, *keyframe)
+			ok = tempView.keyModel.IterNext(iter)
+			continue
+		}
+
+		err = fmt.Errorf("Can't determine keyframe type")
+
+	ERROR:
+		log.Printf("Error getting keyframe (%s)", err)
 		ok = tempView.keyModel.IterNext(iter)
+		continue
 	}
-
-	return frames
 }
 
-func (tempView *TempTree) addKeyframes(temp *templates.Template) {
-	for _, frame := range temp.Keyframe {
-		geo := temp.Geometry[frame.FrameGeo]
+func (tempView *TempTree) getKeyframe(iter *gtk.TreeIter) (frame templates.Keyframe, err error) {
+	keyModel := tempView.keyModel.ToTreeModel()
+
+	frame.FrameNum, err = gtk_utils.ModelGetValue[int](keyModel, iter, FRAME_NUM)
+	if err != nil {
+		return
+	}
+
+	frame.GeoID, err = gtk_utils.ModelGetValue[int](keyModel, iter, FRAME_GEOMETRY_ID)
+	if err != nil {
+		return
+	}
+
+	frame.GeoAttr, err = gtk_utils.ModelGetValue[int](keyModel, iter, FRAME_ATTR_ID)
+	if err != nil {
+		return
+	}
+
+	frame.Mask, err = gtk_utils.ModelGetValue[bool](keyModel, iter, FRAME_MASK)
+	if err != nil {
+		return
+	}
+
+	frame.Expand, err = gtk_utils.ModelGetValue[bool](keyModel, iter, FRAME_EXPAND)
+	if err != nil {
+		return
+	}
+
+	return
+}
+
+func (tempView *TempTree) addKeyframes(page *pages.Page, temp *templates.Template) {
+	for _, frame := range temp.UserFrame {
+		geo := page.PropMap[frame.FrameNum]
 		if geo == nil {
-			log.Printf("Missing geometry %d for keyframe", frame.FrameGeo)
+			log.Printf("Missing geometry %d for keyframe", frame.FrameNum)
 			continue
 		}
 
 		iter := tempView.keyModel.Append(nil)
 		tempView.keyModel.SetValue(iter, FRAME_NUM, frame.FrameNum)
-		tempView.keyModel.SetValue(iter, FRAME_GEOMETRY, geo.Geom().Name)
-		tempView.keyModel.SetValue(iter, FRAME_GEOMETRY_ID, frame.FrameGeo)
-		tempView.keyModel.SetValue(iter, FRAME_ATTR, frame.FrameAttr)
-		tempView.keyModel.SetValue(iter, FRAME_VALUE, frame.SetValue)
-		tempView.keyModel.SetValue(iter, FRAME_USER_VALUE, frame.FrameType == templates.USER_FRAME)
+		tempView.keyModel.SetValue(iter, FRAME_GEOMETRY, geo.Name)
+		tempView.keyModel.SetValue(iter, FRAME_GEOMETRY_ID, frame.GeoID)
+		tempView.keyModel.SetValue(iter, FRAME_ATTR, templates.GeoName[frame.GeoAttr])
+		tempView.keyModel.SetValue(iter, FRAME_ATTR_ID, frame.GeoAttr)
 		tempView.keyModel.SetValue(iter, FRAME_MASK, frame.Mask)
 		tempView.keyModel.SetValue(iter, FRAME_EXPAND, frame.Expand)
-		tempView.keyModel.SetValue(iter, FRAME_BIND_FRAME, frame.BindFrame)
-		tempView.keyModel.SetValue(iter, FRAME_BIND_GEO, frame.BindGeo)
-		tempView.keyModel.SetValue(iter, FRAME_BIND_ATTR, frame.BindAttr)
+
+		tempView.keyModel.SetValue(iter, FRAME_USER_VALUE, true)
 	}
+
+	for _, frame := range temp.BindFrame {
+		geo := page.PropMap[frame.FrameNum]
+		if geo == nil {
+			log.Printf("Missing geometry %d for keyframe", frame.FrameNum)
+			continue
+		}
+
+		iter := tempView.keyModel.Append(nil)
+		tempView.keyModel.SetValue(iter, FRAME_NUM, frame.FrameNum)
+		tempView.keyModel.SetValue(iter, FRAME_GEOMETRY, geo.Name)
+		tempView.keyModel.SetValue(iter, FRAME_GEOMETRY_ID, frame.GeoID)
+		tempView.keyModel.SetValue(iter, FRAME_ATTR, templates.GeoName[frame.GeoAttr])
+		tempView.keyModel.SetValue(iter, FRAME_ATTR_ID, frame.GeoAttr)
+		tempView.keyModel.SetValue(iter, FRAME_MASK, frame.Mask)
+		tempView.keyModel.SetValue(iter, FRAME_EXPAND, frame.Expand)
+
+		tempView.keyModel.SetValue(iter, FRAME_BIND_FRAME, frame.Bind.FrameNum)
+		tempView.keyModel.SetValue(iter, FRAME_BIND_GEO, frame.Bind.GeoID)
+		tempView.keyModel.SetValue(iter, FRAME_BIND_ATTR, frame.Bind.GeoAttr)
+	}
+
+	for _, frame := range temp.SetFrame {
+		geo := page.PropMap[frame.FrameNum]
+		if geo == nil {
+			log.Printf("Missing geometry %d for keyframe", frame.FrameNum)
+			continue
+		}
+
+		iter := tempView.keyModel.Append(nil)
+		tempView.keyModel.SetValue(iter, FRAME_NUM, frame.FrameNum)
+		tempView.keyModel.SetValue(iter, FRAME_GEOMETRY, geo.Name)
+		tempView.keyModel.SetValue(iter, FRAME_GEOMETRY_ID, frame.GeoID)
+		tempView.keyModel.SetValue(iter, FRAME_ATTR, templates.GeoName[frame.GeoAttr])
+		tempView.keyModel.SetValue(iter, FRAME_ATTR_ID, frame.GeoAttr)
+		tempView.keyModel.SetValue(iter, FRAME_MASK, frame.Mask)
+		tempView.keyModel.SetValue(iter, FRAME_EXPAND, frame.Expand)
+
+		tempView.keyModel.SetValue(iter, FRAME_VALUE, frame.Value)
+	}
+
 }
 
 func (tempView *TempTree) AddGeoRow(iter *gtk.TreeIter, name, propName string, propNum int) {

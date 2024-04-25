@@ -550,7 +550,7 @@ func guiImportPage(win *gtk.ApplicationWindow, tempView *TempTree) (title, tempI
 		page = pages.NewPageFromTemplate(&temp)
 		geometryToTreeView(page, tempView, nil, 0)
 
-		tempView.addKeyframes(&temp)
+		tempView.addKeyframes(page, &temp)
 
 		// set temp switch to true to send all props to chroma engine
 		for _, geo := range page.PropMap {

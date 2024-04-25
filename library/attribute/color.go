@@ -36,9 +36,13 @@ func (colorAttr *ColorAttribute) Encode() string {
 }
 
 func (colorAttr *ColorAttribute) Decode(value string) (err error) {
+	if value == "" {
+		return
+	}
+
 	s := strings.Split(value, " ")
 	if len(s) < 4 {
-		err = fmt.Errorf("Error decoding color attr")
+		err = fmt.Errorf("Error decoding color attr (%s)", value)
 		return
 	}
 

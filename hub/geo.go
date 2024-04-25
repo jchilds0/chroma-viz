@@ -78,38 +78,46 @@ func (hub *DataBase) GetGeometry(temp *templates.Template) (err error) {
 		return
 	}
 
-	var (
-		geom templates.Geometry
-	)
+	var geo templates.Geometry
 	for rows.Next() {
-		err = rows.Scan(&geom.GeoID, &geom.Name, &geom.PropType, &geom.GeoType, &geom.RelX, &geom.RelY, &geom.Parent)
+		err = rows.Scan(&geo.GeoID, &geo.Name, &geo.PropType, &geo.GeoType, &geo.RelX, &geo.RelY, &geo.Parent)
 		if err != nil {
 			return
 		}
 
-		var geo templates.IGeometry
-		switch geom.GeoType {
+		switch geo.GeoType {
 		case templates.GEO_RECT:
-			geo, err = hub.GetRectangle(temp.TempID, geom)
+			var rect templates.Rectangle
+			rect, err = hub.GetRectangle(temp.TempID, geo)
+
+			temp.Rectangle = append(temp.Rectangle, rect)
 
 		case templates.GEO_CIRCLE:
-			geo, err = hub.GetCircle(temp.TempID, geom)
+			var circle templates.Circle
+			circle, err = hub.GetCircle(temp.TempID, geo)
+
+			temp.Circle = append(temp.Circle, circle)
 
 		case templates.GEO_TEXT:
-			geo, err = hub.GetText(temp.TempID, geom)
+			var text templates.Text
+			text, err = hub.GetText(temp.TempID, geo)
+
+			temp.Text = append(temp.Text, text)
 
 		default:
-			Logger("Geo type %s not implemented in chroma hub", templates.GeoName[geom.GeoType])
+			Logger("Geo type %s not implemented in chroma hub", templates.GeoName[geo.GeoType])
 			continue
 		}
 
-		temp.Geometry = append(temp.Geometry, geo)
+		if err != nil {
+			return
+		}
 	}
 
 	return
 }
 
-func (hub *DataBase) GetRectangle(tempID int64, geo templates.Geometry) (rect *templates.Rectangle, err error) {
+func (hub *DataBase) GetRectangle(tempID int64, geo templates.Geometry) (rect templates.Rectangle, err error) {
 	q := `
         SELECT g.width, g.height, g.rounding, g.color
         FROM rectangle g 
@@ -126,12 +134,12 @@ func (hub *DataBase) GetRectangle(tempID int64, geo templates.Geometry) (rect *t
 		err = fmt.Errorf("Rectangle: %s", err)
 	}
 
-	rect = templates.NewRectangle(geo, width, height, rounding, color)
+	rect = *templates.NewRectangle(geo, width, height, rounding, color)
 
 	return
 }
 
-func (hub *DataBase) GetCircle(tempID int64, geo templates.Geometry) (c *templates.Circle, err error) {
+func (hub *DataBase) GetCircle(tempID int64, geo templates.Geometry) (c templates.Circle, err error) {
 	q := `
         SELECT g.inner_radius, g.outer_radius, g.start_angle, g.end_angle, g.color
         FROM circle g 
@@ -148,12 +156,12 @@ func (hub *DataBase) GetCircle(tempID int64, geo templates.Geometry) (c *templat
 		err = fmt.Errorf("Circle: %s", err)
 	}
 
-	c = templates.NewCircle(geo, inner, outer, start, end, color)
+	c = *templates.NewCircle(geo, inner, outer, start, end, color)
 
 	return
 }
 
-func (hub *DataBase) GetText(tempID int64, geo templates.Geometry) (t *templates.Text, err error) {
+func (hub *DataBase) GetText(tempID int64, geo templates.Geometry) (t templates.Text, err error) {
 	q := `
         SELECT g.text, g.color
         FROM text g 
@@ -169,7 +177,7 @@ func (hub *DataBase) GetText(tempID int64, geo templates.Geometry) (t *templates
 		err = fmt.Errorf("Text: %s", err)
 	}
 
-	t = templates.NewText(geo, text, color)
+	t = *templates.NewText(geo, text, color)
 
 	return
 }

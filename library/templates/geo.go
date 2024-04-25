@@ -27,11 +27,6 @@ type Geometry struct {
 	Parent   int
 }
 
-type IGeometry interface {
-	Geom() *Geometry
-	Attributes() map[string]string
-}
-
 func NewGeometry(geoID int, name string, propType, geoType, rel_x, rel_y int, parent int) *Geometry {
 	geo := &Geometry{
 		GeoID:    geoID,
@@ -60,33 +55,31 @@ func (geo *Geometry) Attributes() map[string]string {
 	return p
 }
 
-func EncodeGeometry(geo IGeometry) string {
+func EncodeGeometry(geo Geometry, attr map[string]string) string {
 	var b strings.Builder
-
-	geom := geo.Geom()
 
 	b.WriteString("{")
 	b.WriteString("'id': ")
-	b.WriteString(strconv.Itoa(int(geom.GeoID)))
+	b.WriteString(strconv.Itoa(int(geo.GeoID)))
 	b.WriteString(", ")
 
 	b.WriteString("'name': '")
-	b.WriteString(geom.Name)
+	b.WriteString(geo.Name)
 	b.WriteString("', ")
 
 	b.WriteString("'prop_type': ")
-	b.WriteString(strconv.Itoa(geom.PropType))
+	b.WriteString(strconv.Itoa(geo.PropType))
 	b.WriteString(", ")
 
 	b.WriteString("'geo_type': ")
-	b.WriteString(strconv.Itoa(geom.GeoType))
+	b.WriteString(strconv.Itoa(geo.GeoType))
 	b.WriteString(", ")
 
 	// TODO: Visible
 
 	first := true
 	b.WriteString("'attr': [")
-	for name, value := range geo.Attributes() {
+	for name, value := range attr {
 		if !first {
 			b.WriteString(",")
 		}

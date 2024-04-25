@@ -181,11 +181,10 @@ func NewProperty(typed int, name string, isTemp bool, visible map[string]bool) *
 	return prop
 }
 
-func NewPropertyFromGeometry(geo templates.IGeometry) (prop *Property) {
-	geom := geo.Geom()
-	prop = NewProperty(geom.PropType, geom.Name, false, nil)
+func NewPropertyFromGeometry(geo templates.Geometry, attrMap map[string]string) (prop *Property) {
+	prop = NewProperty(geo.PropType, geo.Name, false, nil)
 
-	for name, value := range geo.Attributes() {
+	for name, value := range attrMap {
 		var err error
 
 		if attr, ok := prop.Attr[name]; ok {
@@ -202,7 +201,7 @@ func NewPropertyFromGeometry(geo templates.IGeometry) (prop *Property) {
 	return
 }
 
-func (prop *Property) CreateGeometry(geoID int) (geom templates.IGeometry) {
+func (prop *Property) CreateGeometry(temp *templates.Template, geoID int) {
 	var relX, relY, parent int
 	if attr, ok := prop.Attr["rel_x"]; ok {
 		relX, _ = strconv.Atoi(attr.Encode())
@@ -239,7 +238,8 @@ func (prop *Property) CreateGeometry(geoID int) (geom templates.IGeometry) {
 			color = attr.Encode()
 		}
 
-		geom = templates.NewRectangle(*geo, width, height, rounding, color)
+		rect := templates.NewRectangle(*geo, width, height, rounding, color)
+		temp.Rectangle = append(temp.Rectangle, *rect)
 	case CIRCLE_PROP:
 		var inner, outer, start, end int
 		color := "0 0 0 0"
@@ -264,21 +264,23 @@ func (prop *Property) CreateGeometry(geoID int) (geom templates.IGeometry) {
 			color = attr.Encode()
 		}
 
-		geom = templates.NewCircle(*geo, inner, outer, start, end, color)
+		circle := templates.NewCircle(*geo, inner, outer, start, end, color)
+		temp.Circle = append(temp.Circle, *circle)
 
 	case TEXT_PROP:
-		var text string
+		var s string
 		color := "0 0 0 0"
 
 		if attr, ok := prop.Attr["string"]; ok {
-			text = attr.Encode()
+			s = attr.Encode()
 		}
 
 		if attr, ok := prop.Attr["color"]; ok {
 			color = attr.Encode()
 		}
 
-		geom = templates.NewText(*geo, text, color)
+		text := templates.NewText(*geo, s, color)
+		temp.Text = append(temp.Text, *text)
 
 	default:
 		log.Printf("Error: creating geom %s not implemented", GeoType(prop.PropType))

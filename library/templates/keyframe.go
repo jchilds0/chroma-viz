@@ -1,7 +1,6 @@
 package templates
 
 import (
-	"fmt"
 	"strconv"
 	"strings"
 )
@@ -13,47 +12,55 @@ const (
 )
 
 type Keyframe struct {
-	FrameNum  int
-	FrameGeo  int
-	FrameAttr string
-	FrameType int
-	SetValue  int
-	Mask      bool
-	Expand    bool
-	BindFrame int
-	BindGeo   int
-	BindAttr  string
+	FrameNum int
+	GeoID    int
+	GeoAttr  int
+	Type     int
+	Mask     bool
+	Expand   bool
 }
 
-func NewKeyFrame(num, geo int, attr string, ftype int) *Keyframe {
+func NewKeyFrame(num, geo, attr, ftype int, mask, expand bool) *Keyframe {
 	frame := &Keyframe{
-		FrameNum:  num,
-		FrameGeo:  geo,
-		FrameAttr: attr,
-		FrameType: ftype,
+		FrameNum: num,
+		GeoID:    geo,
+		GeoAttr:  attr,
+		Type:     ftype,
+		Mask:     mask,
+		Expand:   expand,
 	}
 
 	return frame
 }
 
-func (frame *Keyframe) Encode() (s string, err error) {
+func (key *Keyframe) Key() *Keyframe {
+	return key
+}
+
+func EncodeKeyframe(frame Keyframe, attr map[string]string) (s string, err error) {
 	var b strings.Builder
+	key := frame.Key()
+
 	b.WriteString("{")
 
 	b.WriteString("'frame_num': ")
-	b.WriteString(strconv.Itoa(frame.FrameNum))
+	b.WriteString(strconv.Itoa(key.FrameNum))
 	b.WriteString(", ")
 
 	b.WriteString("'frame_geo': ")
-	b.WriteString(strconv.Itoa(frame.FrameGeo))
+	b.WriteString(strconv.Itoa(key.GeoID))
 	b.WriteString(", ")
 
-	b.WriteString("'frame_attr': '")
-	b.WriteString(frame.FrameAttr)
-	b.WriteString("', ")
+	b.WriteString("'frame_attr': ")
+	b.WriteString(strconv.Itoa(key.GeoAttr))
+	b.WriteString(", ")
+
+	b.WriteString("'frame_type': ")
+	b.WriteString(strconv.Itoa(key.Type))
+	b.WriteString(", ")
 
 	b.WriteString("'mask': ")
-	if frame.Mask {
+	if key.Mask {
 		b.WriteString("'true'")
 	} else {
 		b.WriteString("'false'")
@@ -61,40 +68,84 @@ func (frame *Keyframe) Encode() (s string, err error) {
 	b.WriteString(", ")
 
 	b.WriteString("'expand': ")
-	if frame.Expand {
+	if key.Expand {
 		b.WriteString("'true'")
 	} else {
 		b.WriteString("'false'")
 	}
 	b.WriteString(", ")
 
-	switch frame.FrameType {
-	case USER_FRAME:
-		b.WriteString("'user_frame': ")
-		b.WriteString("'true'")
+	first := true
+	for name, value := range attr {
+		if !first {
+			b.WriteString(",")
+		}
 
-	case BIND_FRAME:
-		b.WriteString("'bind_frame': ")
-		b.WriteString(strconv.Itoa(frame.BindFrame))
-		b.WriteString(", ")
-
-		b.WriteString("'bind_geo': ")
-		b.WriteString(strconv.Itoa(frame.BindGeo))
-		b.WriteString(", ")
-
-		b.WriteString("'bind_attr': '")
-		b.WriteString(frame.BindAttr)
+		first = false
 		b.WriteString("'")
-
-	case SET_FRAME:
-		b.WriteString("'value': ")
-		b.WriteString(strconv.Itoa(frame.SetValue))
-
-	default:
-		err = fmt.Errorf("Unknown frame type %d", frame.FrameType)
+		b.WriteString(name)
+		b.WriteString("': ")
+		b.WriteString(value)
+		b.WriteString("'")
 	}
 
 	b.WriteString("}")
 	s = b.String()
 	return
+}
+
+type BindFrame struct {
+	Keyframe
+	Bind Keyframe
+}
+
+func NewBindFrame(frame, bind Keyframe) *BindFrame {
+	return &BindFrame{
+		Keyframe: frame,
+		Bind:     bind,
+	}
+}
+
+func (frame *BindFrame) Attributes() map[string]string {
+	bind := frame.Bind
+
+	return map[string]string{
+		"'bind_frame'": strconv.Itoa(bind.FrameNum),
+		"'bind_geo'":   strconv.Itoa(bind.GeoID),
+		"'bind_attr'":  strconv.Itoa(bind.GeoAttr),
+	}
+}
+
+type SetFrame struct {
+	Keyframe
+	Value int
+}
+
+func NewSetFrame(frame Keyframe, value int) *SetFrame {
+	return &SetFrame{
+		Keyframe: frame,
+		Value:    value,
+	}
+}
+
+func (set *SetFrame) Attributes() map[string]string {
+	return map[string]string{
+		"'value'": strconv.Itoa(set.Value),
+	}
+}
+
+type UserFrame struct {
+	Keyframe
+}
+
+func NewUserFrame(frame Keyframe) *UserFrame {
+	return &UserFrame{Keyframe: frame}
+}
+
+func (user *UserFrame) Attributes() map[string]string {
+	p := map[string]string{
+		"user_frame": "'true'",
+	}
+
+	return p
 }

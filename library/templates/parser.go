@@ -28,9 +28,11 @@ func parseTemplate(buf *bufio.Reader) (temp Template, err error) {
 			}
 
 			parser.MatchToken(parser.INT, buf)
+
 		case "name":
 			temp.Title = parser.C_tok.Value
 			parser.MatchToken(parser.STRING, buf)
+
 		case "layer":
 			temp.Layer, err = strconv.Atoi(parser.C_tok.Value)
 			if err != nil {
@@ -38,35 +40,27 @@ func parseTemplate(buf *bufio.Reader) (temp Template, err error) {
 			}
 
 			parser.MatchToken(parser.INT, buf)
+
 		case "num_keyframe":
-			var numKey int
-			numKey, err = strconv.Atoi(parser.C_tok.Value)
-			if err != nil {
-				return
-			}
-
 			parser.MatchToken(parser.INT, buf)
-			temp.Keyframe = make([]Keyframe, 0, numKey)
+			temp.BindFrame = make([]BindFrame, 10)
+			temp.SetFrame = make([]SetFrame, 10)
+			temp.UserFrame = make([]UserFrame, 10)
+
 		case "num_geo":
-			var numGeo int
-			numGeo, err = strconv.Atoi(parser.C_tok.Value)
-			if err != nil {
-				return
-			}
-
 			parser.MatchToken(parser.INT, buf)
-			temp.Geometry = make([]IGeometry, 0, numGeo)
+			temp.Rectangle = make([]Rectangle, 10)
+			temp.Circle = make([]Circle, 10)
+			temp.Text = make([]Text, 10)
+
 		case "keyframe":
 			parser.MatchToken('[', buf)
 
-			var frame Keyframe
 			for parser.C_tok.Tok == '{' {
-				frame, err = parseKeyframe(buf)
+				parseKeyframe(&temp, buf)
 				if err != nil {
 					return
 				}
-
-				temp.Keyframe = append(temp.Keyframe, frame)
 
 				if parser.C_tok.Tok == ',' {
 					parser.MatchToken(',', buf)
@@ -74,17 +68,15 @@ func parseTemplate(buf *bufio.Reader) (temp Template, err error) {
 			}
 
 			parser.MatchToken(']', buf)
+
 		case "geometry":
 			parser.MatchToken('[', buf)
 
-			var geo IGeometry
 			for parser.C_tok.Tok == '{' {
-				geo, err = parseGeometry(buf)
+				err = parseGeometry(&temp, buf)
 				if err != nil {
 					return
 				}
-
-				temp.Geometry = append(temp.Geometry, geo)
 
 				if parser.C_tok.Tok == ',' {
 					parser.MatchToken(',', buf)
@@ -92,6 +84,7 @@ func parseTemplate(buf *bufio.Reader) (temp Template, err error) {
 			}
 
 			parser.MatchToken(']', buf)
+
 		default:
 			log.Printf("Unknown template attribute %s", name)
 			parser.NextToken(buf)
@@ -105,99 +98,63 @@ func parseTemplate(buf *bufio.Reader) (temp Template, err error) {
 	return
 }
 
-func parseKeyframe(buf *bufio.Reader) (frame Keyframe, err error) {
-	var num int
+func parseKeyframe(temp *Template, buf *bufio.Reader) {
+	data := make(map[string]string, 10)
 	parser.MatchToken('{', buf)
 
 	for parser.C_tok.Tok == parser.STRING {
 		name := parser.C_tok.Value
-		err = parser.MatchToken(parser.STRING, buf)
-		if err != nil {
-			return
-		}
 
-		err = parser.MatchToken(':', buf)
-		if err != nil {
-			return
-		}
+		parser.MatchToken(parser.STRING, buf)
+		parser.MatchToken(':', buf)
 
-		switch name {
-		case "frame_num":
-			num, err = strconv.Atoi(parser.C_tok.Value)
-			if err != nil {
-				return
-			}
+		value := parser.C_tok.Value
+		parser.NextToken(buf)
 
-			frame.FrameNum = num
-		case "frame_geo":
-			num, err = strconv.Atoi(parser.C_tok.Value)
-			if err != nil {
-				return
-			}
-
-			frame.FrameGeo = num
-
-		case "frame_attr":
-			frame.FrameAttr = parser.C_tok.Value
-
-		case "mask":
-			frame.Mask = (parser.C_tok.Value == "true")
-
-		case "expand":
-			frame.Expand = (parser.C_tok.Value == "true")
-
-		case "user_frame":
-			frame.FrameType = USER_FRAME
-
-		case "value":
-			num, err = strconv.Atoi(parser.C_tok.Value)
-			if err != nil {
-				return
-			}
-
-			frame.FrameType = SET_FRAME
-			frame.SetValue = num
-
-		case "bind_frame":
-			num, err = strconv.Atoi(parser.C_tok.Value)
-			if err != nil {
-				return
-			}
-
-			frame.BindFrame = num
-			frame.FrameType = BIND_FRAME
-		case "bind_geo":
-			num, err = strconv.Atoi(parser.C_tok.Value)
-			if err != nil {
-				return
-			}
-
-			frame.BindGeo = num
-
-		case "bind_attr":
-			frame.BindAttr = parser.C_tok.Value
-
-		default:
-			log.Printf("Unknown keyframe attribute %s", name)
-		}
-
-		err = parser.NextToken(buf)
-		if err != nil {
-			return
-		}
+		data[name] = value
 
 		if parser.C_tok.Tok == ',' {
-			err = parser.MatchToken(',', buf)
-			if err != nil {
-				return
-			}
+			parser.MatchToken(',', buf)
 		}
+	}
+
+	frameNum, _ := strconv.Atoi(data["frame_num"])
+	geoID, _ := strconv.Atoi(data["frame_geo"])
+	geoAttr, _ := strconv.Atoi(data["frame_attr"])
+	frameType, _ := strconv.Atoi(data["frame_type"])
+
+	mask := (data["mask"] == "true")
+	expand := (data["expand"] == "true")
+
+	keyframe := NewKeyFrame(frameNum, geoID, geoAttr, frameType, mask, expand)
+
+	switch keyframe.Type {
+	case BIND_FRAME:
+		bindNum, _ := strconv.Atoi(data["bind_frame"])
+		bindGeo, _ := strconv.Atoi(data["bind_geo"])
+		bindAttr, _ := strconv.Atoi(data["bind_attr"])
+
+		bind := NewKeyFrame(bindNum, bindGeo, bindAttr, 0, false, false)
+		frame := NewBindFrame(*keyframe, *bind)
+
+		temp.BindFrame = append(temp.BindFrame, *frame)
+
+	case USER_FRAME:
+		frame := NewUserFrame(*keyframe)
+
+		temp.UserFrame = append(temp.UserFrame, *frame)
+
+	case SET_FRAME:
+		value, _ := strconv.Atoi(data["value"])
+		frame := NewSetFrame(*keyframe, value)
+		temp.SetFrame = append(temp.SetFrame, *frame)
+
 	}
 
 	return
 }
 
-func parseGeometry(buf *bufio.Reader) (geo IGeometry, err error) {
+func parseGeometry(temp *Template, buf *bufio.Reader) (err error) {
 	data := make(map[string]string, 10)
 	var geom Geometry
 	parser.MatchToken('{', buf)
@@ -324,16 +281,22 @@ func parseGeometry(buf *bufio.Reader) (geo IGeometry, err error) {
 		height, _ := strconv.Atoi(data["height"])
 		rounding, _ := strconv.Atoi(data["rounding"])
 
-		geo = NewRectangle(geom, width, height, rounding, data["color"])
+		rect := NewRectangle(geom, width, height, rounding, data["color"])
+		temp.Rectangle = append(temp.Rectangle, *rect)
+
 	case GEO_CIRCLE:
 		inner, _ := strconv.Atoi(data["inner_radius"])
 		outer, _ := strconv.Atoi(data["outer_radius"])
 		start, _ := strconv.Atoi(data["start_angle"])
 		end, _ := strconv.Atoi(data["end_angle"])
 
-		geo = NewCircle(geom, inner, outer, start, end, data["color"])
+		circle := NewCircle(geom, inner, outer, start, end, data["color"])
+		temp.Circle = append(temp.Circle, *circle)
+
 	case GEO_TEXT:
-		geo = NewText(geom, data["string"], data["color"])
+		text := NewText(geom, data["string"], data["color"])
+		temp.Text = append(temp.Text, *text)
+
 	}
 
 	return

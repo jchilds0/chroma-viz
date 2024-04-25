@@ -48,9 +48,6 @@ func HubApp(port int) {
 	ok := true
 	hubPort = port
 
-	temp, _ := templates.NewTemplateFromFile("temp-15.json")
-	hub.ImportTemplate(*temp)
-
 	go hub.StartHub(port)
 
 	read := bufio.NewScanner(os.Stdin)
@@ -104,13 +101,13 @@ func imported(hub *DataBase, inputs []string) {
 			return
 		}
 
-		var temp *templates.Template
+		var temp templates.Template
 		temp, err = templates.NewTemplateFromFile(inputs[1])
 		if err != nil {
 			break
 		}
 
-		err = hub.ImportTemplate(*temp)
+		err = hub.ImportTemplate(temp)
 	case "asset":
 		if len(inputs) != 5 {
 			fmt.Println(usage)

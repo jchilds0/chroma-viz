@@ -24,7 +24,7 @@ func artistPageToTemplate(page pages.Page, tempView *TempTree, tempID, title, la
 		return
 	}
 
-	temp.Keyframe = tempView.keyframes()
+	tempView.keyframes(temp)
 
 	// update parent
 	model := tempView.geoModel.ToTreeModel()
@@ -45,15 +45,30 @@ func updateParentGeometry(template *templates.Template, model *gtk.TreeModel, it
 			continue
 		}
 
-		var geom *templates.Geometry
-		for _, geo := range template.Geometry {
-			geom = geo.Geom()
-
-			if geom.GeoID != geoID {
+		for _, geo := range template.Rectangle {
+			if geo.GeoID != geoID {
 				continue
 			}
 
-			geom.Parent = parentID
+			geo.Parent = parentID
+			break
+		}
+
+		for _, geo := range template.Text {
+			if geo.GeoID != geoID {
+				continue
+			}
+
+			geo.Parent = parentID
+			break
+		}
+
+		for _, geo := range template.Circle {
+			if geo.GeoID != geoID {
+				continue
+			}
+
+			geo.Parent = parentID
 			break
 		}
 

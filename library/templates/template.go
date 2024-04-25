@@ -21,66 +21,44 @@ import (
 */
 
 type Template struct {
-	Title    string
-	TempID   int64
-	Layer    int
-	Keyframe []Keyframe
-	Geometry []IGeometry
-}
-
-type templateJSON struct {
 	Title     string
 	TempID    int64
 	Layer     int
-	Keyframe  []Keyframe
-	Rectangle []*Rectangle
-	Circle    []*Circle
-	Text      []*Text
+	UserFrame []UserFrame
+	SetFrame  []SetFrame
+	BindFrame []BindFrame
+	Rectangle []Rectangle
+	Circle    []Circle
+	Text      []Text
 }
 
-func NewTemplate(title string, id int64, layer, num_keyframe, num_geo int) *Template {
+func NewTemplate(title string, id int64, layer, num_key, num_geo int) *Template {
 	temp := &Template{
 		Title:  title,
 		TempID: id,
 		Layer:  layer,
 	}
 
-	temp.Keyframe = make([]Keyframe, 0, num_keyframe)
-	temp.Geometry = make([]IGeometry, 0, num_geo)
+	temp.UserFrame = make([]UserFrame, 0, num_key)
+	temp.SetFrame = make([]SetFrame, 0, num_key)
+	temp.BindFrame = make([]BindFrame, 0, num_key)
+
+	temp.Rectangle = make([]Rectangle, 0, num_geo)
+	temp.Circle = make([]Circle, 0, num_geo)
+	temp.Text = make([]Text, 0, num_geo)
+
 	return temp
 }
 
-func NewTemplateFromFile(fileName string) (temp *Template, err error) {
+func NewTemplateFromFile(fileName string) (temp Template, err error) {
 	buf, err := os.ReadFile(fileName)
 	if err != nil {
 		return
 	}
 
-	var tempJSON templateJSON
-	err = json.Unmarshal(buf, &tempJSON)
+	err = json.Unmarshal(buf, &temp)
 	if err != nil {
 		return
-	}
-
-	numGeo := len(tempJSON.Rectangle) + len(tempJSON.Circle) + len(tempJSON.Text)
-	temp = NewTemplate(
-		tempJSON.Title,
-		tempJSON.TempID,
-		tempJSON.Layer,
-		len(tempJSON.Keyframe),
-		numGeo,
-	)
-
-	for _, rect := range tempJSON.Rectangle {
-		temp.Geometry = append(temp.Geometry, rect)
-	}
-
-	for _, circle := range tempJSON.Circle {
-		temp.Geometry = append(temp.Geometry, circle)
-	}
-
-	for _, text := range tempJSON.Text {
-		temp.Geometry = append(temp.Geometry, text)
 	}
 
 	return
@@ -119,6 +97,10 @@ func TextToBuffer(text string) (textView *gtk.TextView, err error) {
 // T -> {'id': num, 'num_geo': num, 'layer': num, 'geometry': [G]} | T, T
 func (temp *Template) Encode() (s string, err error) {
 	var b strings.Builder
+
+	num_geo := len(temp.Rectangle) + len(temp.Circle) + len(temp.Text)
+	num_key := len(temp.BindFrame) + len(temp.UserFrame) + len(temp.SetFrame)
+
 	b.WriteString("{")
 
 	b.WriteString("'id': ")
@@ -126,11 +108,11 @@ func (temp *Template) Encode() (s string, err error) {
 	b.WriteString(", ")
 
 	b.WriteString("'num_geo': ")
-	b.WriteString(strconv.Itoa(len(temp.Geometry)))
+	b.WriteString(strconv.Itoa(num_geo))
 	b.WriteString(", ")
 
 	b.WriteString("'num_keyframe': ")
-	b.WriteString(strconv.Itoa(len(temp.Keyframe)))
+	b.WriteString(strconv.Itoa(num_key))
 	b.WriteString(", ")
 
 	b.WriteString("'name': '")
@@ -141,38 +123,98 @@ func (temp *Template) Encode() (s string, err error) {
 	b.WriteString(strconv.Itoa(temp.Layer))
 	b.WriteString(", ")
 
-	b.WriteString("'keyframe': [")
-	first := true
-	var frameStr string
-	for _, frame := range temp.Keyframe {
-		if !first {
-			b.WriteString(",")
-		}
-		first = false
+	{
 
-		frameStr, err = frame.Encode()
-		if err != nil {
-			return
+		b.WriteString("'keyframe': [")
+
+		first := true
+		var frameStr string
+
+		for _, frame := range temp.UserFrame {
+			if !first {
+				b.WriteString(",")
+			}
+			first = false
+
+			frameStr, err = EncodeKeyframe(frame.Keyframe, frame.Attributes())
+			if err != nil {
+				return
+			}
+			b.WriteString(frameStr)
 		}
-		b.WriteString(frameStr)
+
+		for _, frame := range temp.BindFrame {
+			if !first {
+				b.WriteString(",")
+			}
+			first = false
+
+			frameStr, err = EncodeKeyframe(frame.Keyframe, frame.Attributes())
+			if err != nil {
+				return
+			}
+			b.WriteString(frameStr)
+		}
+
+		for _, frame := range temp.SetFrame {
+			if !first {
+				b.WriteString(",")
+			}
+			first = false
+
+			frameStr, err = EncodeKeyframe(frame.Keyframe, frame.Attributes())
+			if err != nil {
+				return
+			}
+			b.WriteString(frameStr)
+		}
+
+		b.WriteString("],")
+
 	}
-	b.WriteString("],")
 
-	b.WriteString("'geometry': [")
+	{
 
-	first = true
-	var propStr string
-	for _, geo := range temp.Geometry {
-		if !first {
-			b.WriteString(",")
+		b.WriteString("'geometry': [")
+
+		first := true
+		var propStr string
+
+		for _, geo := range temp.Rectangle {
+			if !first {
+				b.WriteString(",")
+			}
+
+			first = false
+			propStr = EncodeGeometry(geo.Geometry, geo.Attributes())
+			b.WriteString(propStr)
 		}
 
-		first = false
-		propStr = EncodeGeometry(geo)
-		b.WriteString(propStr)
+		for _, geo := range temp.Circle {
+			if !first {
+				b.WriteString(",")
+			}
+
+			first = false
+			propStr = EncodeGeometry(geo.Geometry, geo.Attributes())
+			b.WriteString(propStr)
+		}
+
+		for _, geo := range temp.Text {
+			if !first {
+				b.WriteString(",")
+			}
+
+			first = false
+			propStr = EncodeGeometry(geo.Geometry, geo.Attributes())
+			b.WriteString(propStr)
+		}
+
+		b.WriteString("]")
+
 	}
 
-	b.WriteString("]}")
+	b.WriteString("}")
 	s = b.String()
 	return
 }
@@ -184,28 +226,7 @@ func (temp *Template) ExportTemplate(filename string) error {
 	}
 	defer file.Close()
 
-	var tempJSON templateJSON
-
-	tempJSON.Title = temp.Title
-	tempJSON.TempID = temp.TempID
-	tempJSON.Layer = temp.Layer
-	tempJSON.Keyframe = temp.Keyframe
-	tempJSON.Rectangle = make([]*Rectangle, 0, len(temp.Geometry))
-	tempJSON.Circle = make([]*Circle, 0, len(temp.Geometry))
-	tempJSON.Text = make([]*Text, 0, len(temp.Geometry))
-
-	for _, geo := range temp.Geometry {
-		switch geo.Geom().GeoType {
-		case GEO_RECT:
-			tempJSON.Rectangle = append(tempJSON.Rectangle, geo.(*Rectangle))
-		case GEO_TEXT:
-			tempJSON.Text = append(tempJSON.Text, geo.(*Text))
-		case GEO_CIRCLE:
-			tempJSON.Circle = append(tempJSON.Circle, geo.(*Circle))
-		}
-	}
-
-	buf, err := json.Marshal(tempJSON)
+	buf, err := json.Marshal(temp)
 	if err != nil {
 		return err
 	}

@@ -8,7 +8,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"log"
 	"net"
 	"strconv"
 	"strings"
@@ -140,37 +139,28 @@ func (hub *DataBase) ImportTemplate(temp templates.Template) (err error) {
 		return
 	}
 
-	for _, geo := range temp.Geometry {
-		geom := geo.Geom()
+	for _, bind := range temp.BindFrame {
+		hub.AddBindFrame(temp.TempID, bind)
+	}
 
-		switch geom.GeoType {
-		case templates.GEO_RECT:
-			rect, ok := geo.(*templates.Rectangle)
-			if !ok {
-				continue
-			}
+	for _, set := range temp.SetFrame {
+		hub.AddSetFrame(temp.TempID, set)
+	}
 
-			hub.AddRectangle(temp.TempID, *rect)
+	for _, user := range temp.UserFrame {
+		hub.AddUserFrame(temp.TempID, user)
+	}
 
-		case templates.GEO_CIRCLE:
-			circle, ok := geo.(*templates.Circle)
-			if !ok {
-				continue
-			}
+	for _, rect := range temp.Rectangle {
+		hub.AddRectangle(temp.TempID, rect)
+	}
 
-			hub.AddCircle(temp.TempID, *circle)
+	for _, text := range temp.Text {
+		hub.AddText(temp.TempID, text)
+	}
 
-		case templates.GEO_TEXT:
-			text, ok := geo.(*templates.Text)
-			if !ok {
-				continue
-			}
-
-			hub.AddText(temp.TempID, *text)
-
-		default:
-			log.Printf("Unknown geometry type")
-		}
+	for _, circle := range temp.Circle {
+		hub.AddCircle(temp.TempID, circle)
 	}
 
 	return
