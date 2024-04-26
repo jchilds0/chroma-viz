@@ -4,7 +4,6 @@ import (
 	"chroma-viz/library/gtk_utils"
 	"chroma-viz/library/pages"
 	"chroma-viz/library/templates"
-	"fmt"
 	"log"
 	"strconv"
 
@@ -483,7 +482,7 @@ func (tempView *TempTree) keyframes(temp *templates.Template) {
 	iter, ok := tempView.keyModel.GetIterFirst()
 	keyModel := tempView.keyModel.ToTreeModel()
 
-	var valueStr, bindFrame, bindGeo, bindAttr string
+	var bindFrame, bindGeo, bindAttr string
 	var user bool
 
 	for ok {
@@ -501,20 +500,6 @@ func (tempView *TempTree) keyframes(temp *templates.Template) {
 			keyframe := templates.NewUserFrame(frame)
 			temp.UserFrame = append(temp.UserFrame, *keyframe)
 
-			ok = tempView.keyModel.IterNext(iter)
-			continue
-		}
-
-		valueStr, err = gtk_utils.ModelGetValue[string](keyModel, iter, FRAME_VALUE)
-		if err != nil {
-			goto ERROR
-		}
-
-		if valueStr != "" {
-			value, _ := strconv.Atoi(valueStr)
-			keyframe := templates.NewSetFrame(frame, value)
-
-			temp.SetFrame = append(temp.SetFrame, *keyframe)
 			ok = tempView.keyModel.IterNext(iter)
 			continue
 		}
@@ -547,7 +532,15 @@ func (tempView *TempTree) keyframes(temp *templates.Template) {
 			continue
 		}
 
-		err = fmt.Errorf("Can't determine keyframe type")
+		{
+			var value int
+			value, err = gtk_utils.ModelGetValue[int](keyModel, iter, FRAME_VALUE)
+			keyframe := templates.NewSetFrame(frame, value)
+
+			temp.SetFrame = append(temp.SetFrame, *keyframe)
+			ok = tempView.keyModel.IterNext(iter)
+			continue
+		}
 
 	ERROR:
 		log.Printf("Error getting keyframe (%s)", err)

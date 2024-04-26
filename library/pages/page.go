@@ -47,15 +47,15 @@ func NewPageFromTemplate(temp *templates.Template) (page *Page) {
 	page = NewPage(0, int(temp.TempID), temp.Layer, numGeo, temp.Title)
 
 	for _, geo := range temp.Rectangle {
-		page.PropMap[geo.GeoID] = props.NewPropertyFromGeometry(geo.Geometry, geo.Attributes())
+		page.PropMap[geo.GeoNum] = props.NewPropertyFromGeometry(geo.Geometry, geo.Attributes())
 	}
 
 	for _, geo := range temp.Text {
-		page.PropMap[geo.GeoID] = props.NewPropertyFromGeometry(geo.Geometry, geo.Attributes())
+		page.PropMap[geo.GeoNum] = props.NewPropertyFromGeometry(geo.Geometry, geo.Attributes())
 	}
 
 	for _, geo := range temp.Circle {
-		page.PropMap[geo.GeoID] = props.NewPropertyFromGeometry(geo.Geometry, geo.Attributes())
+		page.PropMap[geo.GeoNum] = props.NewPropertyFromGeometry(geo.Geometry, geo.Attributes())
 	}
 
 	return

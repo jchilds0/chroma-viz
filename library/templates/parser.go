@@ -118,6 +118,8 @@ func parseKeyframe(temp *Template, buf *bufio.Reader) {
 		}
 	}
 
+	parser.MatchToken('}', buf)
+
 	frameNum, _ := strconv.Atoi(data["frame_num"])
 	geoID, _ := strconv.Atoi(data["frame_geo"])
 	geoAttr, _ := strconv.Atoi(data["frame_attr"])
@@ -166,7 +168,7 @@ func parseGeometry(temp *Template, buf *bufio.Reader) (err error) {
 
 		switch name {
 		case "id":
-			geom.GeoID, err = strconv.Atoi(parser.C_tok.Value)
+			geom.GeoNum, err = strconv.Atoi(parser.C_tok.Value)
 			if err != nil {
 				return
 			}

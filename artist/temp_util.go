@@ -46,7 +46,7 @@ func updateParentGeometry(template *templates.Template, model *gtk.TreeModel, it
 		}
 
 		for _, geo := range template.Rectangle {
-			if geo.GeoID != geoID {
+			if geo.GeoNum != geoID {
 				continue
 			}
 
@@ -55,7 +55,7 @@ func updateParentGeometry(template *templates.Template, model *gtk.TreeModel, it
 		}
 
 		for _, geo := range template.Text {
-			if geo.GeoID != geoID {
+			if geo.GeoNum != geoID {
 				continue
 			}
 
@@ -64,7 +64,7 @@ func updateParentGeometry(template *templates.Template, model *gtk.TreeModel, it
 		}
 
 		for _, geo := range template.Circle {
-			if geo.GeoID != geoID {
+			if geo.GeoNum != geoID {
 				continue
 			}
 

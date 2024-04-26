@@ -86,7 +86,6 @@ func EncodeKeyframe(frame Keyframe, attr map[string]string) (s string, err error
 		b.WriteString(name)
 		b.WriteString("': ")
 		b.WriteString(value)
-		b.WriteString("'")
 	}
 
 	b.WriteString("}")
@@ -100,6 +99,8 @@ type BindFrame struct {
 }
 
 func NewBindFrame(frame, bind Keyframe) *BindFrame {
+	frame.Type = BIND_FRAME
+
 	return &BindFrame{
 		Keyframe: frame,
 		Bind:     bind,
@@ -110,9 +111,9 @@ func (frame *BindFrame) Attributes() map[string]string {
 	bind := frame.Bind
 
 	return map[string]string{
-		"'bind_frame'": strconv.Itoa(bind.FrameNum),
-		"'bind_geo'":   strconv.Itoa(bind.GeoID),
-		"'bind_attr'":  strconv.Itoa(bind.GeoAttr),
+		"bind_frame": strconv.Itoa(bind.FrameNum),
+		"bind_geo":   strconv.Itoa(bind.GeoID),
+		"bind_attr":  strconv.Itoa(bind.GeoAttr),
 	}
 }
 
@@ -122,6 +123,8 @@ type SetFrame struct {
 }
 
 func NewSetFrame(frame Keyframe, value int) *SetFrame {
+	frame.Type = SET_FRAME
+
 	return &SetFrame{
 		Keyframe: frame,
 		Value:    value,
@@ -130,7 +133,7 @@ func NewSetFrame(frame Keyframe, value int) *SetFrame {
 
 func (set *SetFrame) Attributes() map[string]string {
 	return map[string]string{
-		"'value'": strconv.Itoa(set.Value),
+		"value": strconv.Itoa(set.Value),
 	}
 }
 
@@ -139,6 +142,8 @@ type UserFrame struct {
 }
 
 func NewUserFrame(frame Keyframe) *UserFrame {
+	frame.Type = USER_FRAME
+
 	return &UserFrame{Keyframe: frame}
 }
 

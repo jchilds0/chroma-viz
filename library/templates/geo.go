@@ -18,7 +18,7 @@ var GeoName = map[int]string{
 }
 
 type Geometry struct {
-	GeoID    int
+	GeoNum   int
 	Name     string
 	GeoType  int
 	PropType int
@@ -29,7 +29,7 @@ type Geometry struct {
 
 func NewGeometry(geoID int, name string, propType, geoType, rel_x, rel_y int, parent int) *Geometry {
 	geo := &Geometry{
-		GeoID:    geoID,
+		GeoNum:   geoID,
 		Name:     name,
 		GeoType:  geoType,
 		PropType: propType,
@@ -60,7 +60,7 @@ func EncodeGeometry(geo Geometry, attr map[string]string) string {
 
 	b.WriteString("{")
 	b.WriteString("'id': ")
-	b.WriteString(strconv.Itoa(int(geo.GeoID)))
+	b.WriteString(strconv.Itoa(int(geo.GeoNum)))
 	b.WriteString(", ")
 
 	b.WriteString("'name': '")

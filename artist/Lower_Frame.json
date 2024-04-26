@@ -1,0 +1,44 @@
+{
+    "Title": "Lower Frame",
+    "TempID": 1,
+    "Layer": 0,
+    "UserFrame": [
+        {
+            "FrameNum": 1,
+            "GeoID": 1,
+            "GeoAttr": 6,
+            "Type": 1,
+            "Mask": false,
+            "Expand": true
+        }
+    ],
+    "SetFrame": [
+        {
+            "FrameNum": 0,
+            "GeoID": 1,
+            "GeoAttr": 6,
+            "Type": 0,
+            "Mask": false,
+            "Expand": false,
+            "Value": 0
+        }
+    ],
+    "BindFrame": [],
+    "Rectangle": [
+        {
+            "GeoNum": 1,
+            "Name": "Rectangle",
+            "GeoType": 0,
+            "PropType": 0,
+            "RelX": 100,
+            "RelY": 100,
+            "Parent": 0,
+            "Width": 200,
+            "Height": 100,
+            "Rounding": 10,
+            "Color": "1.000000 1.000000 1.000000 1.000000"
+        }
+    ],
+    "Circle": [],
+    "Text": []
+}

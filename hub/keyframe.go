@@ -37,7 +37,7 @@ func (hub *DataBase) AddBindFrame(tempID int64, frame templates.BindFrame) (err 
 
 func (hub *DataBase) AddUserFrame(tempID int64, frame templates.UserFrame) (err error) {
 	q := `
-        INSERT INTO userFrame VALUES (?, ?);
+        INSERT INTO userFrame VALUES (?);
     `
 
 	frameID, err := hub.addKeyframe(tempID, frame.Keyframe)
@@ -45,13 +45,13 @@ func (hub *DataBase) AddUserFrame(tempID int64, frame templates.UserFrame) (err 
 		return
 	}
 
-	_, err = hub.db.Exec(q, frameID, tempID)
+	_, err = hub.db.Exec(q, frameID)
 	return
 }
 
 func (hub *DataBase) AddSetFrame(tempID int64, frame templates.SetFrame) (err error) {
 	q := `
-        INSERT INTO setFrame VALUES (?, ?, ?);
+        INSERT INTO setFrame VALUES (?, ?);
     `
 
 	frameID, err := hub.addKeyframe(tempID, frame.Keyframe)
@@ -59,6 +59,6 @@ func (hub *DataBase) AddSetFrame(tempID int64, frame templates.SetFrame) (err er
 		return
 	}
 
-	_, err = hub.db.Exec(q, frameID, tempID, frame.Value)
+	_, err = hub.db.Exec(q, frameID, frame.Value)
 	return
 }

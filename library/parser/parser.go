@@ -19,9 +19,11 @@ type Token struct {
 }
 
 var C_tok Token
+var b []rune = make([]rune, 0, 100)
 
 func MatchToken(tok int, buf *bufio.Reader) (err error) {
 	if tok != C_tok.Tok {
+		log.Printf("Buffer: %s", string(b))
 		err = fmt.Errorf("Incorrect token %s, expected %c", C_tok.Value, tok)
 		log.Println(err)
 		return
@@ -47,7 +49,7 @@ WS:
 			break WS
 		}
 
-		peek, _, err = buf.ReadRune()
+		peek, _, err = readRune(buf)
 		if err != nil {
 			return
 		}
@@ -63,7 +65,7 @@ WS:
 		peek = ' '
 
 		for {
-			c, _, err = buf.ReadRune()
+			c, _, err = readRune(buf)
 			if err != nil {
 				return
 			}
@@ -82,7 +84,7 @@ WS:
 			tok.buf[bufLength] = peek
 			bufLength++
 
-			peek, _, err = buf.ReadRune()
+			peek, _, err = readRune(buf)
 			if err != nil {
 				return
 			}
@@ -92,7 +94,7 @@ WS:
 			tok.buf[bufLength] = peek
 			bufLength++
 
-			peek, _, err = buf.ReadRune()
+			peek, _, err = readRune(buf)
 			if err != nil {
 				return
 			}
@@ -104,5 +106,16 @@ WS:
 	}
 
 	tok.Value = string(tok.buf[:bufLength])
+	return
+}
+
+func readRune(buf *bufio.Reader) (r rune, n int, err error) {
+	r, n, err = buf.ReadRune()
+
+	b = append(b, r)
+	if len(b) == 100 {
+		b = b[1:]
+	}
+
 	return
 }

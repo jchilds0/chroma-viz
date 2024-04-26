@@ -139,29 +139,59 @@ func (hub *DataBase) ImportTemplate(temp templates.Template) (err error) {
 		return
 	}
 
-	for _, bind := range temp.BindFrame {
-		hub.AddBindFrame(temp.TempID, bind)
-	}
-
-	for _, set := range temp.SetFrame {
-		hub.AddSetFrame(temp.TempID, set)
-	}
-
-	for _, user := range temp.UserFrame {
-		hub.AddUserFrame(temp.TempID, user)
-	}
-
 	for _, rect := range temp.Rectangle {
-		hub.AddRectangle(temp.TempID, rect)
+		err = hub.AddRectangle(temp.TempID, rect)
+
+		if err != nil {
+			err = fmt.Errorf("Error adding rect: %s", err)
+			return
+		}
 	}
 
 	for _, text := range temp.Text {
-		hub.AddText(temp.TempID, text)
+		err = hub.AddText(temp.TempID, text)
+
+		if err != nil {
+			err = fmt.Errorf("Error adding text: %s", err)
+			return
+		}
 	}
 
 	for _, circle := range temp.Circle {
-		hub.AddCircle(temp.TempID, circle)
+		err = hub.AddCircle(temp.TempID, circle)
+
+		if err != nil {
+			err = fmt.Errorf("Error adding circle: %s", err)
+			return
+		}
 	}
+
+	for _, bind := range temp.BindFrame {
+		err = hub.AddBindFrame(temp.TempID, bind)
+		if err != nil {
+			err = fmt.Errorf("Error adding bind frame: %s", err)
+			return
+		}
+	}
+
+	for _, set := range temp.SetFrame {
+		err = hub.AddSetFrame(temp.TempID, set)
+
+		if err != nil {
+			err = fmt.Errorf("Error adding set frame: %s", err)
+			return
+		}
+	}
+
+	for _, user := range temp.UserFrame {
+		err = hub.AddUserFrame(temp.TempID, user)
+		if err != nil {
+			err = fmt.Errorf("Error adding user frame: %s", err)
+			return
+		}
+	}
+
+	hub.Templates[temp.TempID] = &temp
 
 	return
 }
