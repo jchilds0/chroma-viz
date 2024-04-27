@@ -29,14 +29,13 @@ const (
 	NUM_PROPS
 )
 
-var StringToProp map[string]int = map[string]int{
-	"rect":   RECT_PROP,
-	"text":   TEXT_PROP,
-	"circle": CIRCLE_PROP,
-	"graph":  GRAPH_PROP,
-	"ticker": TICKER_PROP,
-	"clock":  CLOCK_PROP,
-	"image":  IMAGE_PROP,
+var PropToGeo map[int]int = map[int]int{
+	RECT_PROP:   templates.GEO_RECT,
+	TEXT_PROP:   templates.GEO_TEXT,
+	CIRCLE_PROP: templates.GEO_CIRCLE,
+	TICKER_PROP: templates.GEO_TEXT,
+	CLOCK_PROP:  templates.GEO_TEXT,
+	//IMAGE_PROP:  templates.GEO_IMAGE,
 }
 
 func PropType(prop int) string {
@@ -53,27 +52,6 @@ func PropType(prop int) string {
 		return "ticker"
 	case CLOCK_PROP:
 		return "clock"
-	case IMAGE_PROP:
-		return "image"
-	default:
-		return ""
-	}
-}
-
-func GeoType(prop int) string {
-	switch prop {
-	case RECT_PROP:
-		return "rect"
-	case TEXT_PROP:
-		return "text"
-	case CIRCLE_PROP:
-		return "circle"
-	case GRAPH_PROP:
-		return "graph"
-	case TICKER_PROP:
-		return "text"
-	case CLOCK_PROP:
-		return "text"
 	case IMAGE_PROP:
 		return "image"
 	default:
@@ -215,7 +193,7 @@ func (prop *Property) CreateGeometry(temp *templates.Template, geoID int) {
 		parent, _ = strconv.Atoi(attr.Encode())
 	}
 
-	geo := templates.NewGeometry(geoID, prop.Name, prop.PropType, 0, relX, relY, parent)
+	geo := templates.NewGeometry(geoID, prop.Name, prop.PropType, PropToGeo[prop.PropType], relX, relY, parent)
 
 	switch prop.PropType {
 	case RECT_PROP:
@@ -283,7 +261,7 @@ func (prop *Property) CreateGeometry(temp *templates.Template, geoID int) {
 		temp.Text = append(temp.Text, *text)
 
 	default:
-		log.Printf("Error: creating geom %s not implemented", GeoType(prop.PropType))
+		log.Printf("Error: creating geom %s not implemented", PropType(prop.PropType))
 	}
 
 	return

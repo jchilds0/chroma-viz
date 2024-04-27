@@ -3,7 +3,6 @@ package artist
 import (
 	"chroma-viz/hub"
 	"chroma-viz/library/config"
-	"chroma-viz/library/props"
 	"chroma-viz/library/tcp"
 	"log"
 )
@@ -17,27 +16,6 @@ func InitialiseArtist(fileName string) {
 	if err != nil {
 		log.Fatal(err)
 	}
-
-	geo := []string{"rect", "text", "circle", "graph", "image", "ticker", "clock"}
-	geo_count := 10
-	geoms = make(map[int]*geom, len(geo))
-
-	index := 1
-	for _, name := range geo {
-		geoms[props.StringToProp[name]] = newGeom(index, geo_count)
-		index += geo_count
-	}
-
-	//chromaHub.AddTemplate(0, "artist", 0)
-
-	// var total int
-	// for i := range geo {
-	// 	for j := 0; j < geo_count; j++ {
-	// 		chromaHub.AddGeometry(0, total, geo[i])
-	// 		total++
-	// 	}
-	// }
-	go chromaHub.StartHub(conf.HubPort)
 
 	artistHub := tcp.NewConnection("Hub", conf.HubAddr, conf.HubPort)
 	artistHub.Connect()

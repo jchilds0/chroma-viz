@@ -215,10 +215,11 @@ func (hub *DataBase) AddTemplate(tempID int64, name string, layer int) (err erro
 }
 
 func (hub *DataBase) GetTemplate(tempID int64) (temp *templates.Template, err error) {
-	temp, ok := hub.Templates[tempID]
-	if ok {
-		return
-	}
+	// Needs template versioning to update correctly
+	// temp, ok := hub.Templates[tempID]
+	// if ok {
+	// 	return
+	// }
 
 	tempQuery := `
         SELECT t.Name, t.Layer, COUNT(*)
@@ -240,6 +241,28 @@ func (hub *DataBase) GetTemplate(tempID int64) (temp *templates.Template, err er
 
 	temp = templates.NewTemplate(name, tempID, layer, num_geo, 0)
 	err = hub.GetGeometry(temp)
+	if err != nil {
+		err = fmt.Errorf("Geometry: %s", err)
+		return
+	}
+
+	err = hub.GetSetFrame(temp)
+	if err != nil {
+		err = fmt.Errorf("Set Frame: %s", err)
+		return
+	}
+
+	err = hub.GetBindFrames(temp)
+	if err != nil {
+		err = fmt.Errorf("Bind Frame: %s", err)
+		return
+	}
+
+	err = hub.GetUserFrames(temp)
+	if err != nil {
+		err = fmt.Errorf("User Frame: %s", err)
+		return
+	}
 
 	hub.Templates[tempID] = temp
 	return

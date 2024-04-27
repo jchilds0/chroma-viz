@@ -2,7 +2,6 @@ package artist
 
 import (
 	"chroma-viz/hub"
-	"chroma-viz/library/attribute"
 	"chroma-viz/library/config"
 	"chroma-viz/library/editor"
 	"chroma-viz/library/gtk_utils"
@@ -15,6 +14,7 @@ import (
 	"log"
 	"os"
 	"strconv"
+	"time"
 
 	"github.com/gotk3/gotk3/glib"
 	"github.com/gotk3/gotk3/gtk"
@@ -41,7 +41,6 @@ func SendPreview(page tcp.Animator, action int) {
 }
 
 var page = pages.NewPage(0, 0, 0, 10, "")
-var geoms map[int]*geom
 
 func ArtistGui(app *gtk.Application) {
 	var tempIDEntry, titleEntry, layerEntry *gtk.Entry
@@ -100,6 +99,7 @@ func ArtistGui(app *gtk.Application) {
 		page.TemplateID = int(template.TempID)
 		editView.UpdateProps()
 		SendPreview(editView.Page, tcp.UPDATE)
+		time.Sleep(50 * time.Millisecond)
 		SendPreview(editView.Page, tcp.ANIMATE_ON)
 	})
 
@@ -330,6 +330,7 @@ func ArtistGui(app *gtk.Application) {
 			return
 		}
 
+		log.Printf("Added geo %s with id %d", name, propNum)
 		iter := tempView.geoModel.Append(nil)
 		tempView.AddGeoRow(iter, name, name, propNum)
 	})
@@ -483,18 +484,19 @@ func AddProp(label string) (id int, err error) {
 		return 0, fmt.Errorf("Unknown label %s", label)
 	}
 
-	geom, ok := geoms[geo_typed]
-	if !ok {
-		return 0, fmt.Errorf("Unknown geom %s", label)
-	}
+	ok = true
+	for id = 1; ok; id++ {
+		prop, ok := page.PropMap[id]
+		if !ok {
+			break
+		}
 
-	id, err = geom.allocGeom()
-	if err != nil {
-		return
+		if prop == nil {
+			break
+		}
 	}
 
 	page.PropMap[id] = props.NewProperty(geo_typed, label, true, nil)
-	page.PropMap[id].Attr["parent"] = attribute.NewIntAttribute("parent")
 	return
 }
 
@@ -505,13 +507,6 @@ func RemoveProp(propID int) {
 		return
 	}
 
-	geom, ok := geoms[prop.PropType]
-	if !ok {
-		log.Printf("No geom with prop type %d", prop.PropType)
-		return
-	}
-
-	geom.freeGeom(propID)
 	page.PropMap[propID] = nil
 }
 
