@@ -30,6 +30,7 @@ type Template struct {
 	Rectangle []Rectangle
 	Circle    []Circle
 	Text      []Text
+	Asset     []Asset
 }
 
 func NewTemplate(title string, id int64, layer, num_key, num_geo int) *Template {
@@ -46,6 +47,7 @@ func NewTemplate(title string, id int64, layer, num_key, num_geo int) *Template 
 	temp.Rectangle = make([]Rectangle, 0, num_geo)
 	temp.Circle = make([]Circle, 0, num_geo)
 	temp.Text = make([]Text, 0, num_geo)
+	temp.Asset = make([]Asset, 0, num_geo)
 
 	return temp
 }

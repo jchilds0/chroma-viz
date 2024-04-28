@@ -334,7 +334,6 @@ func ArtistGui(app *gtk.Application) {
 			return
 		}
 
-		log.Printf("Added geo %s with id %d", name, propNum)
 		iter := tempView.geoModel.Append(nil)
 		tempView.AddGeoRow(iter, name, name, propNum)
 	})

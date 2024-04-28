@@ -35,7 +35,7 @@ var PropToGeo map[int]int = map[int]int{
 	CIRCLE_PROP: templates.GEO_CIRCLE,
 	TICKER_PROP: templates.GEO_TEXT,
 	CLOCK_PROP:  templates.GEO_TEXT,
-	//IMAGE_PROP:  templates.GEO_IMAGE,
+	IMAGE_PROP:  templates.GEO_IMAGE,
 }
 
 func PropType(prop int) string {
@@ -249,6 +249,24 @@ func (prop *Property) CreateGeometry(temp *templates.Template, geoID int) {
 
 		text := templates.NewText(*geo, s, color)
 		temp.Text = append(temp.Text, *text)
+
+	case IMAGE_PROP:
+		var image_id, s string
+
+		if attr, ok := prop.Attr["image_id"]; ok {
+			image_id = attr.Encode()
+		}
+
+		id, _ := strconv.Atoi(image_id)
+
+		if attr, ok := prop.Attr["scale"]; ok {
+			s = attr.Encode()
+		}
+
+		scale, _ := strconv.ParseFloat(s, 64)
+
+		a := templates.NewAsset(*geo, "", "", id, scale)
+		temp.Asset = append(temp.Asset, *a)
 
 	default:
 		log.Printf("Error: creating geom %s not implemented", PropType(prop.PropType))

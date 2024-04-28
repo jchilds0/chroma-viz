@@ -62,12 +62,17 @@ func (hub *DataBase) AddCircle(tempID int64, circle templates.Circle) (err error
 	return
 }
 
-func (hub *DataBase) AddAsset(geoID int64, dir, name string, id int) (err error) {
+func (hub *DataBase) AddAsset(tempID int64, a templates.Asset) (err error) {
 	q := `
-        INSERT INTO asset VALUES (?, ?, ?, ?);
+        INSERT INTO asset VALUES (?, ?, ?, ?, ?);
     `
 
-	_, err = hub.db.Exec(q, geoID, dir, name, id)
+	geoID, err := hub.addGeometry(tempID, a.Geometry)
+	if err != nil {
+		return
+	}
+
+	_, err = hub.db.Exec(q, geoID, a.Dir, a.Name, a.ID, a.Scale)
 	return
 }
 
@@ -185,6 +190,45 @@ func (hub *DataBase) GetTexts(temp *templates.Template) (err error) {
 
 		t := templates.NewText(geo, text, color)
 		temp.Text = append(temp.Text, *t)
+	}
+
+	return
+}
+
+func (hub *DataBase) GetAssets(temp *templates.Template) (err error) {
+	q := `
+        SELECT a.geometryID, a.directory, a.name, a.assetID, a.scale
+        FROM asset a 
+        INNER JOIN geometry g 
+        ON a.geometryID = g.geometryID 
+        WHERE g.templateID = ?;
+    `
+
+	rows, err := hub.db.Query(q, temp.TempID)
+	if err != nil {
+		return
+	}
+
+	var (
+		geoID, assetID int64
+		geo            templates.Geometry
+		dir, name      string
+		scale          float64
+	)
+
+	for rows.Next() {
+		err = rows.Scan(&geoID, &dir, &name, &assetID, &scale)
+		if err != nil {
+			return
+		}
+
+		geo, err = hub.GetGeometry(geoID)
+		if err != nil {
+			return
+		}
+
+		a := templates.NewAsset(geo, name, dir, int(assetID), scale)
+		temp.Asset = append(temp.Asset, *a)
 	}
 
 	return

@@ -9,12 +9,14 @@ const (
 	GEO_RECT = iota
 	GEO_CIRCLE
 	GEO_TEXT
+	GEO_IMAGE
 )
 
 var GeoName = map[int]string{
 	GEO_RECT:   "rectangle",
 	GEO_CIRCLE: "circle",
 	GEO_TEXT:   "text",
+	GEO_IMAGE:  "image",
 }
 
 type Geometry struct {
@@ -184,5 +186,33 @@ func (circle *Circle) Attributes() map[string]string {
 	p["end_angle"] = strconv.Itoa(circle.EndAngle)
 	p["color"] = circle.Color
 
+	return p
+}
+
+type Asset struct {
+	Geometry
+	Dir   string
+	Name  string
+	ID    int
+	Scale float64
+}
+
+func NewAsset(geo Geometry, name, dir string, id int, scale float64) *Asset {
+	a := &Asset{
+		Geometry: geo,
+		Dir:      dir,
+		Name:     name,
+		ID:       id,
+		Scale:    scale,
+	}
+
+	return a
+}
+
+func (a *Asset) Attributes() map[string]string {
+	p := a.Geometry.Attributes()
+
+	p["image_id"] = strconv.Itoa(a.ID)
+	p["scale"] = strconv.FormatFloat(a.Scale, 'f', 10, 64)
 	return p
 }

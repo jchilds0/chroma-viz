@@ -38,6 +38,15 @@ func (hub *DataBase) ImportTemplate(temp templates.Template) (err error) {
 		}
 	}
 
+	for _, asset := range temp.Asset {
+		err = hub.AddAsset(temp.TempID, asset)
+
+		if err != nil {
+			err = fmt.Errorf("Error adding asset: %s", err)
+			return
+		}
+	}
+
 	for _, bind := range temp.BindFrame {
 		err = hub.AddBindFrame(temp.TempID, bind)
 		if err != nil {
@@ -127,6 +136,12 @@ func (hub *DataBase) GetTemplate(tempID int64) (temp *templates.Template, err er
 	err = hub.GetTexts(temp)
 	if err != nil {
 		err = fmt.Errorf("Text: %s", err)
+		return
+	}
+
+	err = hub.GetAssets(temp)
+	if err != nil {
+		err = fmt.Errorf("Assets: %s", err)
 		return
 	}
 
