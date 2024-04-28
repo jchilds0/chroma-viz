@@ -11,6 +11,43 @@ const (
 	BIND_FRAME
 )
 
+const (
+	ATTR_COLOR = iota
+	ATTR_POS_X
+	ATTR_POS_Y
+	ATTR_REL_X
+	ATTR_REL_Y
+	ATTR_PARENT
+	ATTR_WIDTH
+	ATTR_HEIGHT
+	ATTR_ROUNDING
+	ATTR_INNER_RADIUS
+	ATTR_OUTER_RADIUS
+	ATTR_START_ANGLE
+	ATTR_END_ANGLE
+	ATTR_TEXT
+	ATTR_SCALE
+	ATTR_GRAPH_NODE
+	ATTR_NUM_NODE
+	ATTR_GRAPH_TYPE
+	ATTR_IMAGE_ID
+)
+
+var StringToAttr = map[string]int{
+	"pos_x":        ATTR_POS_X,
+	"pos_y":        ATTR_POS_Y,
+	"rel_x":        ATTR_REL_X,
+	"rel_y":        ATTR_REL_Y,
+	"parent":       ATTR_PARENT,
+	"width":        ATTR_WIDTH,
+	"height":       ATTR_HEIGHT,
+	"rounding":     ATTR_ROUNDING,
+	"inner_radius": ATTR_INNER_RADIUS,
+	"outer_radius": ATTR_OUTER_RADIUS,
+	"start_angle":  ATTR_START_ANGLE,
+	"end_angle":    ATTR_END_ANGLE,
+}
+
 type Keyframe struct {
 	FrameNum int
 	GeoID    int

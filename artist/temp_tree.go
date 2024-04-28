@@ -582,9 +582,9 @@ func (tempView *TempTree) getKeyframe(iter *gtk.TreeIter) (frame templates.Keyfr
 
 func (tempView *TempTree) addKeyframes(page *pages.Page, temp *templates.Template) {
 	for _, frame := range temp.UserFrame {
-		geo := page.PropMap[frame.FrameNum]
+		geo := page.PropMap[frame.GeoID]
 		if geo == nil {
-			log.Printf("Missing geometry %d for keyframe", frame.FrameNum)
+			log.Printf("Missing geometry %d for userframe", frame.FrameNum)
 			continue
 		}
 
@@ -601,9 +601,9 @@ func (tempView *TempTree) addKeyframes(page *pages.Page, temp *templates.Templat
 	}
 
 	for _, frame := range temp.BindFrame {
-		geo := page.PropMap[frame.FrameNum]
+		geo := page.PropMap[frame.GeoID]
 		if geo == nil {
-			log.Printf("Missing geometry %d for keyframe", frame.FrameNum)
+			log.Printf("Missing geometry %d for bindframe", frame.FrameNum)
 			continue
 		}
 
@@ -622,9 +622,9 @@ func (tempView *TempTree) addKeyframes(page *pages.Page, temp *templates.Templat
 	}
 
 	for _, frame := range temp.SetFrame {
-		geo := page.PropMap[frame.FrameNum]
+		geo := page.PropMap[frame.GeoID]
 		if geo == nil {
-			log.Printf("Missing geometry %d for keyframe", frame.FrameNum)
+			log.Printf("Missing geometry %d for setframe", frame.FrameNum)
 			continue
 		}
 
@@ -658,6 +658,7 @@ func (tempView *TempTree) AddKeyRow(iter *gtk.TreeIter, geoName string, geoID in
 	tempView.keyModel.SetValue(iter, FRAME_GEOMETRY, geoName)
 	tempView.keyModel.SetValue(iter, FRAME_GEOMETRY_ID, geoID)
 	tempView.keyModel.SetValue(iter, FRAME_ATTR, attrName)
+	tempView.keyModel.SetValue(iter, FRAME_ATTR_ID, templates.StringToAttr[attrName])
 }
 
 func (tempView *TempTree) Clean() {

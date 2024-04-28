@@ -42,16 +42,26 @@ func parseTemplate(buf *bufio.Reader) (temp Template, err error) {
 			parser.MatchToken(parser.INT, buf)
 
 		case "num_keyframe":
+			num, err := strconv.Atoi(parser.C_tok.Value)
+			if err != nil {
+				num = 10
+			}
+
 			parser.MatchToken(parser.INT, buf)
-			temp.BindFrame = make([]BindFrame, 10)
-			temp.SetFrame = make([]SetFrame, 10)
-			temp.UserFrame = make([]UserFrame, 10)
+			temp.BindFrame = make([]BindFrame, 0, num)
+			temp.SetFrame = make([]SetFrame, 0, num)
+			temp.UserFrame = make([]UserFrame, 0, num)
 
 		case "num_geo":
+			num, err := strconv.Atoi(parser.C_tok.Value)
+			if err != nil {
+				num = 10
+			}
+
 			parser.MatchToken(parser.INT, buf)
-			temp.Rectangle = make([]Rectangle, 10)
-			temp.Circle = make([]Circle, 10)
-			temp.Text = make([]Text, 10)
+			temp.Rectangle = make([]Rectangle, 0, num)
+			temp.Circle = make([]Circle, 0, num)
+			temp.Text = make([]Text, 0, num)
 
 		case "keyframe":
 			parser.MatchToken('[', buf)

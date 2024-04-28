@@ -104,24 +104,22 @@ func NewProperty(typed int, name string, isTemp bool, visible map[string]bool) *
 
 	prop.Attr = make(map[string]attribute.Attribute, 10)
 
+	prop.Attr["rel_x"] = attribute.NewIntAttribute("rel_x")
+	prop.Attr["rel_y"] = attribute.NewIntAttribute("rel_y")
+	prop.Attr["parent"] = attribute.NewIntAttribute("parent")
+
 	switch typed {
 	case RECT_PROP:
-		prop.Attr["rel_x"] = attribute.NewIntAttribute("rel_x")
-		prop.Attr["rel_y"] = attribute.NewIntAttribute("rel_y")
 		prop.Attr["width"] = attribute.NewIntAttribute("width")
 		prop.Attr["height"] = attribute.NewIntAttribute("height")
 		prop.Attr["rounding"] = attribute.NewIntAttribute("rounding")
 		prop.Attr["color"] = attribute.NewColorAttribute("color")
 
 	case TEXT_PROP:
-		prop.Attr["rel_x"] = attribute.NewIntAttribute("rel_x")
-		prop.Attr["rel_y"] = attribute.NewIntAttribute("rel_y")
 		prop.Attr["string"] = attribute.NewStringAttribute("string")
 		prop.Attr["color"] = attribute.NewColorAttribute("color")
 
 	case CIRCLE_PROP:
-		prop.Attr["rel_x"] = attribute.NewIntAttribute("rel_x")
-		prop.Attr["rel_y"] = attribute.NewIntAttribute("rel_y")
 		prop.Attr["inner_radius"] = attribute.NewIntAttribute("inner_radius")
 		prop.Attr["outer_radius"] = attribute.NewIntAttribute("outer_radius")
 		prop.Attr["start_angle"] = attribute.NewIntAttribute("start_angle")
@@ -129,26 +127,18 @@ func NewProperty(typed int, name string, isTemp bool, visible map[string]bool) *
 		prop.Attr["color"] = attribute.NewColorAttribute("color")
 
 	case GRAPH_PROP:
-		prop.Attr["rel_x"] = attribute.NewIntAttribute("rel_x")
-		prop.Attr["rel_y"] = attribute.NewIntAttribute("rel_y")
 		prop.Attr["graph_node"], _ = attribute.NewListAttribute("graph_node", 2, false)
 		prop.Attr["color"] = attribute.NewColorAttribute("color")
 
 	case TICKER_PROP:
-		prop.Attr["rel_x"] = attribute.NewIntAttribute("rel_x")
-		prop.Attr["rel_y"] = attribute.NewIntAttribute("rel_y")
 		prop.Attr["string"], _ = attribute.NewListAttribute("string", 1, true)
 		prop.Attr["color"] = attribute.NewColorAttribute("color")
 
 	case CLOCK_PROP:
-		prop.Attr["rel_x"] = attribute.NewIntAttribute("rel_x")
-		prop.Attr["rel_y"] = attribute.NewIntAttribute("rel_y")
 		prop.Attr["string"] = attribute.NewClockAttribute("string")
 		prop.Attr["color"] = attribute.NewColorAttribute("color")
 
 	case IMAGE_PROP:
-		prop.Attr["rel_x"] = attribute.NewIntAttribute("rel_x")
-		prop.Attr["rel_y"] = attribute.NewIntAttribute("rel_y")
 		prop.Attr["scale"] = attribute.NewFloatAttribute("scale")
 		prop.Attr["image_id"] = attribute.NewAssetAttribute("image_id")
 

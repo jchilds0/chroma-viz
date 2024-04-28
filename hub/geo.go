@@ -71,10 +71,25 @@ func (hub *DataBase) AddAsset(geoID int64, dir, name string, id int) (err error)
 	return
 }
 
-func (hub *DataBase) GetGeometry(temp *templates.Template) (err error) {
+func (hub *DataBase) GetGeometry(geoID int64) (geo templates.Geometry, err error) {
 	q := `
-        SELECT g.geometryID, g.geo_num, g.name, g.prop_type, g.geo_type, g.rel_x, g.rel_y, g.parent
+        SELECT g.geo_num, g.name, g.prop_type, g.geo_type, g.rel_x, g.rel_y, g.parent
         FROM geometry g 
+        WHERE g.geometryID = ?;
+    `
+
+	row := hub.db.QueryRow(q, geoID)
+
+	err = row.Scan(&geo.GeoNum, &geo.Name, &geo.PropType, &geo.GeoType, &geo.RelX, &geo.RelY, &geo.Parent)
+	return
+}
+
+func (hub *DataBase) GetRectangles(temp *templates.Template) (err error) {
+	q := `
+        SELECT r.geometryID, r.width, r.height, r.rounding, r.color
+        FROM rectangle r 
+        INNER JOIN geometry g
+        ON r.geometryID = g.geometryID
         WHERE g.templateID = ?;
     `
 
@@ -83,107 +98,94 @@ func (hub *DataBase) GetGeometry(temp *templates.Template) (err error) {
 		return
 	}
 
-	var geo templates.Geometry
 	var geoID int64
-	for rows.Next() {
-		err = rows.Scan(&geoID, &geo.GeoNum, &geo.Name, &geo.PropType, &geo.GeoType, &geo.RelX, &geo.RelY, &geo.Parent)
-		if err != nil {
-			return
-		}
-
-		switch geo.GeoType {
-		case templates.GEO_RECT:
-			var rect templates.Rectangle
-			rect, err = hub.GetRectangle(geoID, geo)
-
-			temp.Rectangle = append(temp.Rectangle, rect)
-
-		case templates.GEO_CIRCLE:
-			var circle templates.Circle
-			circle, err = hub.GetCircle(geoID, geo)
-
-			temp.Circle = append(temp.Circle, circle)
-
-		case templates.GEO_TEXT:
-			var text templates.Text
-			text, err = hub.GetText(geoID, geo)
-
-			temp.Text = append(temp.Text, text)
-
-		default:
-			Logger("Geo type %s not implemented in chroma hub", templates.GeoName[geo.GeoType])
-			continue
-		}
-
-		if err != nil {
-			return
-		}
-	}
-
-	return
-}
-
-func (hub *DataBase) GetRectangle(geoID int64, geo templates.Geometry) (rect templates.Rectangle, err error) {
-	q := `
-        SELECT g.width, g.height, g.rounding, g.color
-        FROM rectangle g 
-        WHERE g.geometryID = ?;
-    `
-
-	row := hub.db.QueryRow(q, geoID)
-
+	var geo templates.Geometry
 	var width, height, rounding int
 	var color string
 
-	err = row.Scan(&width, &height, &rounding, &color)
-	if err != nil {
-		err = fmt.Errorf("Rectangle: %s", err)
-	}
+	for rows.Next() {
+		err = rows.Scan(&geoID, &width, &height, &rounding, &color)
+		if err != nil {
+			return
+		}
 
-	rect = *templates.NewRectangle(geo, width, height, rounding, color)
+		geo, err = hub.GetGeometry(geoID)
+		if err != nil {
+			return
+		}
+
+		rect := templates.NewRectangle(geo, width, height, rounding, color)
+		temp.Rectangle = append(temp.Rectangle, *rect)
+	}
 
 	return
 }
 
-func (hub *DataBase) GetCircle(geoID int64, geo templates.Geometry) (c templates.Circle, err error) {
+func (hub *DataBase) GetCircles(temp *templates.Template) (err error) {
 	q := `
-        SELECT g.inner_radius, g.outer_radius, g.start_angle, g.end_angle, g.color
-        FROM circle g 
-        WHERE g.geometryID = ?;
+        SELECT c.geometryID, c.inner_radius, c.outer_radius, c.start_angle, c.end_angle, c.color
+        FROM circle c
+        INNER JOIN geometry g
+        ON c.geometryID = g.geometryID
+        WHERE g.templateID = ?;
     `
 
-	row := hub.db.QueryRow(q, geoID)
+	rows, err := hub.db.Query(q, temp.TempID)
 
 	var inner, outer, start, end int
 	var color string
+	var geoID int64
+	var geo templates.Geometry
 
-	err = row.Scan(&inner, &outer, &start, &end, &color)
-	if err != nil {
-		err = fmt.Errorf("Circle: %s", err)
+	for rows.Next() {
+		err = rows.Scan(&geoID, &inner, &outer, &start, &end, &color)
+		if err != nil {
+			return
+		}
+
+		geo, err = hub.GetGeometry(geoID)
+		if err != nil {
+			return
+		}
+
+		c := templates.NewCircle(geo, inner, outer, start, end, color)
+		temp.Circle = append(temp.Circle, *c)
 	}
-
-	c = *templates.NewCircle(geo, inner, outer, start, end, color)
 
 	return
 }
 
-func (hub *DataBase) GetText(geoID int64, geo templates.Geometry) (t templates.Text, err error) {
+func (hub *DataBase) GetTexts(temp *templates.Template) (err error) {
 	q := `
-        SELECT g.text, g.color
-        FROM text g 
-        WHERE g.geometryID = ?;
+        SELECT t.geometryID, t.text, t.color
+        FROM text t
+        INNER JOIN geometry g
+        ON g.geometryID = t.geometryID
+        WHERE g.templateID = ?;
     `
 
-	row := hub.db.QueryRow(q, geoID)
-
-	var text, color string
-
-	err = row.Scan(&text, &color)
+	rows, err := hub.db.Query(q, temp.TempID)
 	if err != nil {
-		err = fmt.Errorf("Text: %s", err)
+		return
 	}
 
-	t = *templates.NewText(geo, text, color)
+	var text, color string
+	var geoID int64
+	var geo templates.Geometry
+	for rows.Next() {
+		err = rows.Scan(&geoID, &text, &color)
+		if err != nil {
+			err = fmt.Errorf("Text: %s", err)
+		}
+
+		geo, err = hub.GetGeometry(geoID)
+		if err != nil {
+			return
+		}
+
+		t := templates.NewText(geo, text, color)
+		temp.Text = append(temp.Text, *t)
+	}
 
 	return
 }

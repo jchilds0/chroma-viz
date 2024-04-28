@@ -72,16 +72,19 @@ func ArtistGui(app *gtk.Application) {
 		title, err := titleEntry.GetText()
 		if err != nil {
 			log.Print(err)
+			return
 		}
 
 		layer, err := layerEntry.GetText()
 		if err != nil {
 			log.Print(err)
+			return
 		}
 
 		tempID, err := tempIDEntry.GetText()
 		if err != nil {
 			log.Print(err)
+			return
 		}
 
 		template, err := artistPageToTemplate(*page, tempView, tempID, title, layer)
@@ -97,6 +100,7 @@ func ArtistGui(app *gtk.Application) {
 		}
 
 		page.TemplateID = int(template.TempID)
+		editView.Page = page
 		editView.UpdateProps()
 		SendPreview(editView.Page, tcp.UPDATE)
 		time.Sleep(50 * time.Millisecond)

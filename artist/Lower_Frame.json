@@ -1,5 +1,5 @@
 {
-    "Title": "Lower Frame",
+    "Title": "LF",
     "TempID": 1,
     "Layer": 0,
     "UserFrame": [
@@ -33,12 +33,35 @@
             "RelX": 100,
             "RelY": 100,
             "Parent": 0,
-            "Width": 200,
-            "Height": 100,
-            "Rounding": 10,
-            "Color": "1.000000 1.000000 1.000000 1.000000"
+            "Width": 40,
+            "Height": 150,
+            "Rounding": 20,
+            "Color": "0.109804 0.443137 0.486275 1.000000"
         }
     ],
     "Circle": [],
-    "Text": []
+    "Text": [
+        {
+            "GeoNum": 2,
+            "Name": "Subtitle",
+            "GeoType": 2,
+            "PropType": 1,
+            "RelX": 120,
+            "RelY": 20,
+            "Parent": 1,
+            "Text": "lower frame subtitle",
+            "Color": "1.000000 1.000000 1.000000 1.000000"
+        },
+        {
+            "GeoNum": 3,
+            "Name": "Title",
+            "GeoType": 2,
+            "PropType": 1,
+            "RelX": 120,
+            "RelY": 90,
+            "Parent": 1,
+            "Text": "Title",
+            "Color": "1.000000 1.000000 1.000000 1.000000"
+        }
+    ]
 }
