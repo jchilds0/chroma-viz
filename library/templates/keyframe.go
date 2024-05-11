@@ -48,6 +48,21 @@ var StringToAttr = map[string]int{
 	"end_angle":    ATTR_END_ANGLE,
 }
 
+var AttrToString = map[int]string{
+	ATTR_POS_X:        "pos_x",
+	ATTR_POS_Y:        "pos_y",
+	ATTR_REL_X:        "rel_x",
+	ATTR_REL_Y:        "rel_y",
+	ATTR_PARENT:       "parent",
+	ATTR_WIDTH:        "width",
+	ATTR_HEIGHT:       "height",
+	ATTR_ROUNDING:     "rounding",
+	ATTR_INNER_RADIUS: "inner_radius",
+	ATTR_OUTER_RADIUS: "outer_radius",
+	ATTR_START_ANGLE:  "start_angle",
+	ATTR_END_ANGLE:    "end_angle",
+}
+
 type Keyframe struct {
 	FrameNum int
 	GeoID    int

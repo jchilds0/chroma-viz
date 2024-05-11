@@ -3,6 +3,7 @@ package artist
 import (
 	"chroma-viz/library/gtk_utils"
 	"chroma-viz/library/pages"
+	"chroma-viz/library/props"
 	"chroma-viz/library/templates"
 	"log"
 	"strconv"
@@ -589,14 +590,7 @@ func (tempView *TempTree) addKeyframes(page *pages.Page, temp *templates.Templat
 		}
 
 		iter := tempView.keyModel.Append(nil)
-		tempView.keyModel.SetValue(iter, FRAME_NUM, frame.FrameNum)
-		tempView.keyModel.SetValue(iter, FRAME_GEOMETRY, geo.Name)
-		tempView.keyModel.SetValue(iter, FRAME_GEOMETRY_ID, frame.GeoID)
-		tempView.keyModel.SetValue(iter, FRAME_ATTR, templates.GeoName[frame.GeoAttr])
-		tempView.keyModel.SetValue(iter, FRAME_ATTR_ID, frame.GeoAttr)
-		tempView.keyModel.SetValue(iter, FRAME_MASK, frame.Mask)
-		tempView.keyModel.SetValue(iter, FRAME_EXPAND, frame.Expand)
-
+		tempView.updateBaseKeyframe(iter, frame.Key(), geo)
 		tempView.keyModel.SetValue(iter, FRAME_USER_VALUE, true)
 	}
 
@@ -608,13 +602,7 @@ func (tempView *TempTree) addKeyframes(page *pages.Page, temp *templates.Templat
 		}
 
 		iter := tempView.keyModel.Append(nil)
-		tempView.keyModel.SetValue(iter, FRAME_NUM, frame.FrameNum)
-		tempView.keyModel.SetValue(iter, FRAME_GEOMETRY, geo.Name)
-		tempView.keyModel.SetValue(iter, FRAME_GEOMETRY_ID, frame.GeoID)
-		tempView.keyModel.SetValue(iter, FRAME_ATTR, templates.GeoName[frame.GeoAttr])
-		tempView.keyModel.SetValue(iter, FRAME_ATTR_ID, frame.GeoAttr)
-		tempView.keyModel.SetValue(iter, FRAME_MASK, frame.Mask)
-		tempView.keyModel.SetValue(iter, FRAME_EXPAND, frame.Expand)
+		tempView.updateBaseKeyframe(iter, frame.Key(), geo)
 
 		tempView.keyModel.SetValue(iter, FRAME_BIND_FRAME, frame.Bind.FrameNum)
 		tempView.keyModel.SetValue(iter, FRAME_BIND_GEO, frame.Bind.GeoID)
@@ -629,16 +617,20 @@ func (tempView *TempTree) addKeyframes(page *pages.Page, temp *templates.Templat
 		}
 
 		iter := tempView.keyModel.Append(nil)
-		tempView.keyModel.SetValue(iter, FRAME_NUM, frame.FrameNum)
-		tempView.keyModel.SetValue(iter, FRAME_GEOMETRY, geo.Name)
-		tempView.keyModel.SetValue(iter, FRAME_GEOMETRY_ID, frame.GeoID)
-		tempView.keyModel.SetValue(iter, FRAME_ATTR, templates.GeoName[frame.GeoAttr])
-		tempView.keyModel.SetValue(iter, FRAME_ATTR_ID, frame.GeoAttr)
-		tempView.keyModel.SetValue(iter, FRAME_MASK, frame.Mask)
-		tempView.keyModel.SetValue(iter, FRAME_EXPAND, frame.Expand)
+		tempView.updateBaseKeyframe(iter, frame.Key(), geo)
 
 		tempView.keyModel.SetValue(iter, FRAME_VALUE, frame.Value)
 	}
+}
+
+func (tempView *TempTree) updateBaseKeyframe(iter *gtk.TreeIter, frame *templates.Keyframe, geo *props.Property) {
+	tempView.keyModel.SetValue(iter, FRAME_NUM, frame.FrameNum)
+	tempView.keyModel.SetValue(iter, FRAME_GEOMETRY, geo.Name)
+	tempView.keyModel.SetValue(iter, FRAME_GEOMETRY_ID, frame.GeoID)
+	tempView.keyModel.SetValue(iter, FRAME_ATTR, templates.AttrToString[frame.GeoAttr])
+	tempView.keyModel.SetValue(iter, FRAME_ATTR_ID, frame.GeoAttr)
+	tempView.keyModel.SetValue(iter, FRAME_MASK, frame.Mask)
+	tempView.keyModel.SetValue(iter, FRAME_EXPAND, frame.Expand)
 
 }
 

@@ -10,6 +10,22 @@
             "Type": 1,
             "Mask": false,
             "Expand": true
+        },
+        {
+            "FrameNum": 0,
+            "GeoID": 3,
+            "GeoAttr": 3,
+            "Type": 1,
+            "Mask": true,
+            "Expand": false
+        },
+        {
+            "FrameNum": 0,
+            "GeoID": 2,
+            "GeoAttr": 3,
+            "Type": 1,
+            "Mask": true,
+            "Expand": false
         }
     ],
     "SetFrame": [
@@ -42,17 +58,6 @@
     "Circle": [],
     "Text": [
         {
-            "GeoNum": 2,
-            "Name": "Subtitle",
-            "GeoType": 2,
-            "PropType": 1,
-            "RelX": 120,
-            "RelY": 20,
-            "Parent": 1,
-            "Text": "lower frame subtitle",
-            "Color": "1.000000 1.000000 1.000000 1.000000"
-        },
-        {
             "GeoNum": 3,
             "Name": "Title",
             "GeoType": 2,
@@ -62,6 +67,18 @@
             "Parent": 1,
             "Text": "Title",
             "Color": "1.000000 1.000000 1.000000 1.000000"
+        },
+        {
+            "GeoNum": 2,
+            "Name": "Subtitle",
+            "GeoType": 2,
+            "PropType": 1,
+            "RelX": 120,
+            "RelY": 20,
+            "Parent": 1,
+            "Text": "lower frame subtitle",
+            "Color": "1.000000 1.000000 1.000000 1.000000"
         }
-    ]
+    ],
+    "Asset": []
 }
