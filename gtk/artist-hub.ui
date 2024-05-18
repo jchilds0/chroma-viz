@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+    <object class="GtkBox" id="box">
+        <child>
+            <object class="GtkButton">
+                <property name="label">Close</property>
+            </object>
+        </child>
+
+        <child>
+            <object class="GtkButton">
+                <property name="label">Open</property>
+            </object>
+        </child>
+    </object>
+</interface>

@@ -655,12 +655,31 @@ func (tempView *TempTree) AddKeyRow(iter *gtk.TreeIter, geoName string, geoID in
 
 func (tempView *TempTree) Clean() {
 	var err error
-	tempView.geoModel, err = gtk.TreeStoreNew(
-		glib.TYPE_STRING, glib.TYPE_STRING, glib.TYPE_INT)
+	tempView.geoModel, err = gtk.TreeStoreNew(glib.TYPE_STRING, glib.TYPE_STRING, glib.TYPE_INT)
 	if err != nil {
 		log.Print(err)
 		return
 	}
 
 	tempView.geoView.SetModel(tempView.geoModel)
+
+	tempView.keyModel, err = gtk.TreeStoreNew(
+		glib.TYPE_INT,
+		glib.TYPE_STRING,
+		glib.TYPE_INT,
+		glib.TYPE_STRING,
+		glib.TYPE_INT,
+		glib.TYPE_INT,
+		glib.TYPE_BOOLEAN,
+		glib.TYPE_BOOLEAN,
+		glib.TYPE_BOOLEAN,
+		glib.TYPE_STRING,
+		glib.TYPE_STRING,
+		glib.TYPE_STRING,
+	)
+	if err != nil {
+		return
+	}
+
+	tempView.keyView.SetModel(tempView.keyModel)
 }

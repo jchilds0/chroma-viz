@@ -19,14 +19,14 @@ import (
 	"github.com/gotk3/gotk3/gtk"
 )
 
-var numTemplates = 100
+var numTemplates = 1_000
 var numPages = 1_000
 var numGeometries = 100
 
 func TestGui(t *testing.T) {
 	defer CloseViz()
 
-	createHub := true
+	createHub := false
 
 	f, err := os.Create("../perf/viz_test.prof")
 	if err != nil {
@@ -86,7 +86,7 @@ func randomTemplate(chromaHub *hub.DataBase, tempID int64) {
 	geos := []int{templates.GEO_RECT, templates.GEO_CIRCLE, templates.GEO_TEXT}
 	props := []int{props.RECT_PROP, props.CIRCLE_PROP, props.TEXT_PROP}
 
-	for j := 0; j < numGeometries; j++ {
+	for j := 1; j < numGeometries; j++ {
 		geoIndex := rand.Int() % len(geos)
 		geoI := geos[geoIndex]
 

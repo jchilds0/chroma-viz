@@ -25,17 +25,10 @@ func artistPageToTemplate(page pages.Page, tempView *TempTree, tempID, title, la
 	}
 
 	tempView.keyframes(temp)
-
-	// update parent
-	model := tempView.geoModel.ToTreeModel()
-	if iter, ok := model.GetIterFirst(); ok {
-		updateParentGeometry(temp, model, iter, 0)
-	}
-
 	return
 }
 
-func updateParentGeometry(template *templates.Template, model *gtk.TreeModel, iter *gtk.TreeIter, parentID int) {
+func updateParentGeometry(page *pages.Page, model *gtk.TreeModel, iter *gtk.TreeIter, parentID int) {
 	ok := true
 	for ok {
 		geoID, err := gtk_utils.ModelGetValue[int](model, iter, GEO_NUM)
@@ -45,36 +38,23 @@ func updateParentGeometry(template *templates.Template, model *gtk.TreeModel, it
 			continue
 		}
 
-		for i, geo := range template.Rectangle {
-			if geo.GeoNum != geoID {
-				continue
-			}
-
-			template.Rectangle[i].Parent = parentID
-			break
+		attr := page.PropMap[geoID].Attr["parent"]
+		if attr == nil {
+			log.Printf("Missing parent attr")
+			return
 		}
 
-		for i, geo := range template.Text {
-			if geo.GeoNum != geoID {
-				continue
-			}
-
-			template.Text[i].Parent = parentID
-			break
+		intAttr, ok := attr.(*attribute.IntAttribute)
+		if !ok {
+			log.Printf("Missing int attr")
+			return
 		}
 
-		for i, geo := range template.Circle {
-			if geo.GeoNum != geoID {
-				continue
-			}
-
-			template.Circle[i].Parent = parentID
-			break
-		}
+		intAttr.Value = parentID
 
 		var childIter gtk.TreeIter
 		if ok = model.IterChildren(iter, &childIter); ok {
-			updateParentGeometry(template, model, &childIter, geoID)
+			updateParentGeometry(page, model, &childIter, geoID)
 		}
 
 		ok = model.IterNext(iter)
@@ -97,6 +77,11 @@ func geometryToTreeView(page *pages.Page, tempView *TempTree, iter *gtk.TreeIter
 
 		newRow := tempView.geoModel.Append(iter)
 		tempView.AddGeoRow(newRow, geo.Name, geo_name[geo.PropType], id)
+
+		if id == propID {
+			continue
+		}
+
 		geometryToTreeView(page, tempView, newRow, id)
 	}
 }

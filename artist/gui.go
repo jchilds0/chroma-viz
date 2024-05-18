@@ -23,6 +23,7 @@ import (
 var conn map[string]*tcp.Connection
 var conf *config.Config
 var chromaHub *hub.DataBase
+var hubConn *tcp.Connection
 
 func SendPreview(page tcp.Animator, action int) {
 	if page == nil {
@@ -69,25 +70,7 @@ func ArtistGui(app *gtk.Application) {
 	}
 
 	editView.AddAction("Save", true, func() {
-		title, err := titleEntry.GetText()
-		if err != nil {
-			log.Print(err)
-			return
-		}
-
-		layer, err := layerEntry.GetText()
-		if err != nil {
-			log.Print(err)
-			return
-		}
-
-		tempID, err := tempIDEntry.GetText()
-		if err != nil {
-			log.Print(err)
-			return
-		}
-
-		template, err := artistPageToTemplate(*page, tempView, tempID, title, layer)
+		template, err := exportPage(tempView, titleEntry, tempIDEntry, layerEntry)
 		if err != nil {
 			log.Printf("Error creating template (%s)", err)
 			return
@@ -99,9 +82,9 @@ func ArtistGui(app *gtk.Application) {
 			return
 		}
 
-		page.TemplateID = int(template.TempID)
 		editView.Page = page
 		editView.UpdateProps()
+
 		SendPreview(editView.Page, tcp.UPDATE)
 		time.Sleep(50 * time.Millisecond)
 		SendPreview(editView.Page, tcp.ANIMATE_ON)
@@ -133,8 +116,11 @@ func ArtistGui(app *gtk.Application) {
 	newTemplate := glib.SimpleActionNew("new_template", nil)
 	app.AddAction(newTemplate)
 
-	importTemplate := glib.SimpleActionNew("import_template", nil)
-	app.AddAction(importTemplate)
+	importTemplateJSON := glib.SimpleActionNew("import_template_json", nil)
+	app.AddAction(importTemplateJSON)
+
+	importTemplateHub := glib.SimpleActionNew("import_template_hub", nil)
+	app.AddAction(importTemplateHub)
 
 	exportTemplate := glib.SimpleActionNew("export_template", nil)
 	app.AddAction(exportTemplate)
@@ -246,36 +232,90 @@ func ArtistGui(app *gtk.Application) {
 		SendPreview(editView.Page, tcp.UPDATE)
 	})
 
-	importTemplate.Connect("activate", func() {
-		title, tempID, layer, err := guiImportPage(win, tempView)
+	importTemplateJSON.Connect("activate", func() {
+		dialog, err := gtk.FileChooserDialogNewWith2Buttons(
+			"Import Page", win, gtk.FILE_CHOOSER_ACTION_OPEN,
+			"_Cancel", gtk.RESPONSE_CANCEL, "_Open", gtk.RESPONSE_ACCEPT)
 		if err != nil {
-			log.Print(err)
+			return
 		}
+		defer dialog.Destroy()
 
-		titleEntry.SetText(title)
-		tempIDEntry.SetText(tempID)
-		layerEntry.SetText(layer)
+		res := dialog.Run()
+		if res == gtk.RESPONSE_ACCEPT {
+			filename := dialog.GetFilename()
+
+			var buf []byte
+			buf, err = os.ReadFile(filename)
+			if err != nil {
+				return
+			}
+
+			var temp templates.Template
+			err = json.Unmarshal(buf, &temp)
+			if err != nil {
+				return
+			}
+
+			importPage(&temp, tempView, titleEntry, tempIDEntry, layerEntry)
+		}
+	})
+
+	importTemplateHub.Connect("activate", func() {
+		dialog := NewTemplateChooserDialog(&win.Window)
+		defer dialog.Destroy()
+
+		dialog.ImportTemplates(hubConn.Conn)
+		res := dialog.Run()
+		if res == gtk.RESPONSE_ACCEPT {
+			selection, err := dialog.treeView.GetSelection()
+			if err != nil {
+				log.Print("No template selected")
+				return
+			}
+
+			_, iter, ok := selection.GetSelected()
+			if !ok {
+				log.Print("No template selected")
+				return
+			}
+
+			tempID, err := gtk_utils.ModelGetValue[int](dialog.treeList.ToTreeModel(), iter, 1)
+
+			template, err := templates.GetTemplate(hubConn.Conn, tempID)
+			if err != nil {
+				log.Printf("Error importing template: %s", err)
+				return
+			}
+
+			importPage(&template, tempView, titleEntry, tempIDEntry, layerEntry)
+		}
 	})
 
 	exportTemplate.Connect("activate", func() {
-		title, err := titleEntry.GetText()
+		dialog, err := gtk.FileChooserDialogNewWith2Buttons(
+			"Save Template", win, gtk.FILE_CHOOSER_ACTION_SAVE,
+			"_Cancel", gtk.RESPONSE_CANCEL, "_Save", gtk.RESPONSE_ACCEPT)
 		if err != nil {
 			log.Print(err)
+			return
 		}
+		defer dialog.Destroy()
 
-		layer, err := layerEntry.GetText()
-		if err != nil {
-			log.Print(err)
-		}
+		dialog.SetCurrentName(page.Title + ".json")
+		res := dialog.Run()
+		if res == gtk.RESPONSE_ACCEPT {
+			filename := dialog.GetFilename()
 
-		tempID, err := tempIDEntry.GetText()
-		if err != nil {
-			log.Print(err)
-		}
+			template, err := exportPage(tempView, tempIDEntry, titleEntry, layerEntry)
+			if err != nil {
+				log.Printf("Error exporting template (%s)", err)
+			}
 
-		err = guiExportPage(win, tempView, title, tempID, layer)
-		if err != nil {
-			log.Print(err)
+			err = template.ExportTemplate(filename)
+			if err != nil {
+				log.Printf("Error exporting template (%s)", err)
+			}
 		}
 	})
 
@@ -513,76 +553,49 @@ func RemoveProp(propID int) {
 	page.PropMap[propID] = nil
 }
 
-func guiImportPage(win *gtk.ApplicationWindow, tempView *TempTree) (title, tempID, layer string, err error) {
-	dialog, err := gtk.FileChooserDialogNewWith2Buttons(
-		"Import Page", win, gtk.FILE_CHOOSER_ACTION_OPEN,
-		"_Cancel", gtk.RESPONSE_CANCEL, "_Open", gtk.RESPONSE_ACCEPT)
+func importPage(temp *templates.Template, tempView *TempTree, titleEntry, tempIDEntry, layerEntry *gtk.Entry) {
+	titleEntry.SetText(temp.Title)
+	tempIDEntry.SetText(strconv.FormatInt(temp.TempID, 10))
+	layerEntry.SetText(strconv.Itoa(temp.Layer))
+
+	page = pages.NewPageFromTemplate(temp)
+
+	tempView.Clean()
+	geometryToTreeView(page, tempView, nil, 0)
+	tempView.addKeyframes(page, temp)
+
+	// set temp switch to true to send all props to chroma engine
+	for _, geo := range page.PropMap {
+		geo.SetTemp(true)
+	}
+}
+
+func exportPage(tempView *TempTree, titleEntry, tempIDEntry, layerEntry *gtk.Entry) (temp *templates.Template, err error) {
+	title, err := titleEntry.GetText()
 	if err != nil {
 		return
 	}
-	defer dialog.Destroy()
 
-	res := dialog.Run()
-	if res == gtk.RESPONSE_ACCEPT {
-		filename := dialog.GetFilename()
+	layer, err := layerEntry.GetText()
+	if err != nil {
+		return
+	}
 
-		var buf []byte
-		buf, err = os.ReadFile(filename)
-		if err != nil {
-			return
-		}
+	tempID, err := tempIDEntry.GetText()
+	if err != nil {
+		return
+	}
 
-		var temp templates.Template
-		err = json.Unmarshal(buf, &temp)
-		if err != nil {
-			return
-		}
+	// update geometry parents
+	model := tempView.geoModel.ToTreeModel()
+	if iter, ok := model.GetIterFirst(); ok {
+		updateParentGeometry(page, model, iter, 0)
+	}
 
-		// reset temp view geometry
-		tempView.Clean()
-
-		title = temp.Title
-		tempID = strconv.FormatInt(temp.TempID, 10)
-		layer = strconv.Itoa(temp.Layer)
-
-		page = pages.NewPageFromTemplate(&temp)
-		geometryToTreeView(page, tempView, nil, 0)
-
-		tempView.addKeyframes(page, &temp)
-
-		// set temp switch to true to send all props to chroma engine
-		for _, geo := range page.PropMap {
-			geo.SetTemp(true)
-		}
+	temp, err = artistPageToTemplate(*page, tempView, tempID, title, layer)
+	if err != nil {
+		return
 	}
 
 	return
-}
-
-func guiExportPage(win *gtk.ApplicationWindow, tempView *TempTree, title, tempID, layer string) error {
-	dialog, err := gtk.FileChooserDialogNewWith2Buttons(
-		"Save Template", win, gtk.FILE_CHOOSER_ACTION_SAVE,
-		"_Cancel", gtk.RESPONSE_CANCEL, "_Save", gtk.RESPONSE_ACCEPT)
-	if err != nil {
-		return err
-	}
-	defer dialog.Destroy()
-
-	dialog.SetCurrentName(page.Title + ".json")
-	res := dialog.Run()
-	if res == gtk.RESPONSE_ACCEPT {
-		filename := dialog.GetFilename()
-
-		template, err := artistPageToTemplate(*page, tempView, tempID, title, layer)
-		if err != nil {
-			return fmt.Errorf("Error creating template (%s)", err)
-		}
-
-		err = template.ExportTemplate(filename)
-		if err != nil {
-			return err
-		}
-	}
-
-	return nil
 }

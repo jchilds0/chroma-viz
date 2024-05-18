@@ -8,10 +8,17 @@
           <attribute name="label">New Template</attribute>
           <attribute name="action">app.new_template</attribute>
         </item>
-        <item>
-          <attribute name ="label">Import Template</attribute>
-          <attribute name="action">app.import_template</attribute>
-        </item>
+        <submenu>
+          <attribute name="label">Import Template</attribute>
+          <item>
+            <attribute name ="label">From JSON</attribute>
+            <attribute name="action">app.import_template_json</attribute>
+          </item>
+          <item>
+            <attribute name ="label">From Chroma Hub</attribute>
+            <attribute name="action">app.import_template_hub</attribute>
+          </item>
+        </submenu>
         <item>
           <attribute name ="label">Export Template</attribute>
           <attribute name="action">app.export_template</attribute>

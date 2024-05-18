@@ -17,8 +17,8 @@ func InitialiseArtist(fileName string) {
 		log.Fatal(err)
 	}
 
-	artistHub := tcp.NewConnection("Hub", conf.HubAddr, conf.HubPort)
-	artistHub.Connect()
+	hubConn = tcp.NewConnection("Hub", conf.HubAddr, conf.HubPort)
+	hubConn.Connect()
 
 	for _, c := range conf.Connections {
 		conn[c.Name] = tcp.NewConnection(c.Name, c.Address, c.Port)
