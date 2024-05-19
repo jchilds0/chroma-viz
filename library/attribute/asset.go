@@ -141,8 +141,7 @@ func (asset *AssetAttribute) Copy(attr Attribute) (err error) {
 }
 
 func (asset *AssetAttribute) Encode() string {
-	return fmt.Sprintf("{'name': '%s', 'value': '%d'}",
-		asset.Name, asset.Value)
+	return strconv.Itoa(asset.Value)
 }
 
 func (asset *AssetAttribute) Decode(s string) (err error) {

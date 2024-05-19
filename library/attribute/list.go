@@ -109,8 +109,7 @@ func (listAttr *ListAttribute) Encode() (s string) {
 		}
 
 		row, _ := listAttr.encodeRow(listAttr.selectedIter)
-		return fmt.Sprintf("{'name': '%s', 'value': '%s'}",
-			listAttr.Name, strings.Join(row, " "))
+		return strings.Join(row, " ")
 	}
 
 	s = fmt.Sprintf("{'name': 'num_node', 'value': '%d'}", listAttr.NumCols-1)

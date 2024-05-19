@@ -65,6 +65,10 @@ func (page *Page) CreateTemplate() (temp *templates.Template) {
 	temp = templates.NewTemplate(page.Title, 0, page.Layer, 0, len(page.PropMap))
 
 	for geoID, prop := range page.PropMap {
+		if prop == nil {
+			continue
+		}
+
 		prop.CreateGeometry(temp, geoID)
 	}
 

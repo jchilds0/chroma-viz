@@ -27,8 +27,7 @@ func (floatAttr *FloatAttribute) String() string {
 }
 
 func (floatAttr *FloatAttribute) Encode() string {
-	return fmt.Sprintf("{'name': '%s', 'value': '%f'}",
-		floatAttr.Name, floatAttr.Value)
+	return strconv.FormatFloat(floatAttr.Value, 'f', 10, 64)
 }
 
 func (floatAttr *FloatAttribute) Decode(value string) (err error) {

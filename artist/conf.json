@@ -5,12 +5,6 @@
     "PreviewName": "chroma-engine",
     "Connections": [
         {
-            "Name": "Engine",
-            "Address": "127.0.0.1",
-            "Port": 6800,
-            "Type": "preview"
-        },
-        {
             "Name": "Preview",
             "Address": "127.0.0.1",
             "Port": 6100,

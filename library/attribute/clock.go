@@ -65,8 +65,7 @@ func (clockAttr *ClockAttribute) String() string {
 }
 
 func (clockAttr *ClockAttribute) Encode() string {
-	return fmt.Sprintf("{'name': '%s', 'value': '%s'}",
-		clockAttr.Name, clockAttr.CurrentTime)
+	return clockAttr.CurrentTime
 }
 
 func (clockAttr *ClockAttribute) Decode(value string) (err error) {
