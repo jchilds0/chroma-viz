@@ -57,5 +57,7 @@ func main() {
 		return
 	}
 
-	app.Run([]string{})
+	if app != nil {
+		app.Run([]string{})
+	}
 }

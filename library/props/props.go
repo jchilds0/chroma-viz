@@ -22,7 +22,6 @@ const (
 	RECT_PROP = iota
 	TEXT_PROP
 	CIRCLE_PROP
-	GRAPH_PROP
 	TICKER_PROP
 	CLOCK_PROP
 	IMAGE_PROP
@@ -46,8 +45,6 @@ func PropType(prop int) string {
 		return "text"
 	case CIRCLE_PROP:
 		return "circle"
-	case GRAPH_PROP:
-		return "graph"
 	case TICKER_PROP:
 		return "ticker"
 	case CLOCK_PROP:
@@ -124,10 +121,6 @@ func NewProperty(typed int, name string, isTemp bool, visible map[string]bool) *
 		prop.Attr["outer_radius"] = attribute.NewIntAttribute("outer_radius")
 		prop.Attr["start_angle"] = attribute.NewIntAttribute("start_angle")
 		prop.Attr["end_angle"] = attribute.NewIntAttribute("end_angle")
-		prop.Attr["color"] = attribute.NewColorAttribute("color")
-
-	case GRAPH_PROP:
-		prop.Attr["graph_node"], _ = attribute.NewListAttribute("graph_node", 2, false)
 		prop.Attr["color"] = attribute.NewColorAttribute("color")
 
 	case TICKER_PROP:
@@ -235,7 +228,7 @@ func (prop *Property) CreateGeometry(temp *templates.Template, geoID int) {
 		circle := templates.NewCircle(*geo, inner, outer, start, end, color)
 		temp.Circle = append(temp.Circle, *circle)
 
-	case TEXT_PROP:
+	case TEXT_PROP, TICKER_PROP, CLOCK_PROP:
 		var s string
 		color := "0 0 0 0"
 
@@ -269,7 +262,7 @@ func (prop *Property) CreateGeometry(temp *templates.Template, geoID int) {
 		temp.Asset = append(temp.Asset, *a)
 
 	default:
-		log.Printf("Error: creating geom %s not implemented", PropType(prop.PropType))
+		log.Printf("Error creating geom %s: Not Implemented", PropType(prop.PropType))
 	}
 
 	return

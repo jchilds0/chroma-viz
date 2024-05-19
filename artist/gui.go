@@ -62,7 +62,10 @@ func ArtistGui(app *gtk.Application) {
 	tempView, err := NewTempTree(
 		func(propID int) {
 			prop := page.PropMap[propID]
-			editView.SetProperty(prop)
+			err := editView.SetProperty(prop)
+			if err != nil {
+				log.Printf("Error sending prop %d to editor: %s", propID, err)
+			}
 		},
 	)
 	if err != nil {
@@ -505,7 +508,6 @@ var geo_type = map[string]int{
 	"Rectangle": props.RECT_PROP,
 	"Circle":    props.CIRCLE_PROP,
 	"Text":      props.TEXT_PROP,
-	"Graph":     props.GRAPH_PROP,
 	"Ticker":    props.TICKER_PROP,
 	"Clock":     props.CLOCK_PROP,
 	"Image":     props.IMAGE_PROP,
@@ -515,7 +517,6 @@ var geo_name = map[int]string{
 	props.RECT_PROP:   "Rectangle",
 	props.CIRCLE_PROP: "Circle",
 	props.TEXT_PROP:   "Text",
-	props.GRAPH_PROP:  "Graph",
 	props.TICKER_PROP: "Ticker",
 	props.CLOCK_PROP:  "Clock",
 	props.IMAGE_PROP:  "Image",

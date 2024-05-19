@@ -10,7 +10,10 @@ import (
 func InitialiseArtist(fileName string) {
 	var err error
 	conn = make(map[string]*tcp.Connection)
-	chromaHub = hub.NewDataBase(10)
+	chromaHub, err = hub.NewDataBase(10)
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	conf, err = config.ImportConfig(fileName)
 	if err != nil {

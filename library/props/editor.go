@@ -29,10 +29,11 @@ import (
 */
 
 type PropertyEditor struct {
-	PropType int
-	Box      *gtk.Box
-	editor   map[string]attribute.Editor
-	visible  map[string]*gtk.CheckButton
+	PropType  int
+	Scroll    *gtk.ScrolledWindow
+	ScrollBox *gtk.Box
+	editor    map[string]attribute.Editor
+	visible   map[string]*gtk.CheckButton
 }
 
 func NewPropertyEditor(typed int) (propEdit *PropertyEditor, err error) {
@@ -41,58 +42,52 @@ func NewPropertyEditor(typed int) (propEdit *PropertyEditor, err error) {
 	height := 1080
 
 	propEdit.editor = make(map[string]attribute.Editor, 10)
-	propEdit.Box, err = gtk.BoxNew(gtk.ORIENTATION_VERTICAL, 0)
+	propEdit.Scroll, err = gtk.ScrolledWindowNew(nil, nil)
 	if err != nil {
 		return
 	}
 
-	propEdit.Box.SetVisible(true)
+	propEdit.Scroll.SetVisible(true)
+	propEdit.Scroll.SetVExpand(true)
+
+	propEdit.ScrollBox, err = gtk.BoxNew(gtk.ORIENTATION_VERTICAL, 0)
+	if err != nil {
+		return
+	}
+
+	propEdit.ScrollBox.SetVisible(true)
+	propEdit.Scroll.Add(propEdit.ScrollBox)
+
+	propEdit.editor["rel_x"], _ = attribute.NewIntEditor("x", -float64(width), float64(width))
+	propEdit.editor["rel_y"], _ = attribute.NewIntEditor("y", -float64(height), float64(height))
 
 	switch typed {
 	case RECT_PROP:
-		propEdit.editor["rel_x"], _ = attribute.NewIntEditor("x", -float64(width), float64(width))
-		propEdit.editor["rel_y"], _ = attribute.NewIntEditor("y", -float64(height), float64(height))
 		propEdit.editor["width"], _ = attribute.NewIntEditor("Width", 0, float64(width))
 		propEdit.editor["height"], _ = attribute.NewIntEditor("Height", 0, float64(height))
 		propEdit.editor["rounding"], _ = attribute.NewIntEditor("Rounding", 0, float64(width))
 		propEdit.editor["color"], _ = attribute.NewColorEditor("Color")
 
 	case TEXT_PROP:
-		propEdit.editor["rel_x"], _ = attribute.NewIntEditor("x", 0, float64(width))
-		propEdit.editor["rel_y"], _ = attribute.NewIntEditor("y", 0, float64(height))
 		propEdit.editor["string"], _ = attribute.NewStringEditor("Text")
 		propEdit.editor["color"], _ = attribute.NewColorEditor("Color")
 
 	case CIRCLE_PROP:
-		propEdit.editor["rel_x"], _ = attribute.NewIntEditor("Center x", 0, float64(width))
-		propEdit.editor["rel_y"], _ = attribute.NewIntEditor("Center y", 0, float64(height))
 		propEdit.editor["inner_radius"], _ = attribute.NewIntEditor("Inner Radius", 0, float64(width))
 		propEdit.editor["outer_radius"], _ = attribute.NewIntEditor("Outer Radius", 0, float64(width))
 		propEdit.editor["start_angle"], _ = attribute.NewIntEditor("Start Angle", 0, 360)
 		propEdit.editor["end_angle"], _ = attribute.NewIntEditor("End Angle", 0, 360)
 		propEdit.editor["color"], _ = attribute.NewColorEditor("Color")
 
-	case GRAPH_PROP:
-		propEdit.editor["rel_x"], _ = attribute.NewIntEditor("x", 0, float64(width))
-		propEdit.editor["rel_y"], _ = attribute.NewIntEditor("y", 0, float64(height))
-		propEdit.editor["graph_node"], _ = attribute.NewListEditor("Graph", []string{"x Pos", "y Pos"})
-		propEdit.editor["color"], _ = attribute.NewColorEditor("Color")
-
 	case TICKER_PROP:
-		propEdit.editor["rel_x"], _ = attribute.NewIntEditor("x", 0, float64(width))
-		propEdit.editor["rel_y"], _ = attribute.NewIntEditor("y", 0, float64(height))
 		propEdit.editor["string"], _ = attribute.NewListEditor("Ticker", []string{"Text"})
 		propEdit.editor["color"], _ = attribute.NewColorEditor("Color")
 
 	case CLOCK_PROP:
-		propEdit.editor["rel_x"], _ = attribute.NewIntEditor("x", 0, float64(width))
-		propEdit.editor["rel_y"], _ = attribute.NewIntEditor("y", 0, float64(height))
 		propEdit.editor["string"], _ = attribute.NewClockEditor("Time")
 		propEdit.editor["color"], _ = attribute.NewColorEditor("Color")
 
 	case IMAGE_PROP:
-		propEdit.editor["rel_x"], _ = attribute.NewIntEditor("x", 0, float64(width))
-		propEdit.editor["rel_y"], _ = attribute.NewIntEditor("y", 0, float64(height))
 		propEdit.editor["scale"], _ = attribute.NewFloatEditor("Scale", 0.01, 10, 0.01)
 		propEdit.editor["image_id"] = attribute.NewAssetEditor("Image")
 
@@ -108,7 +103,6 @@ var PropAttrs = map[int][]string{
 	RECT_PROP:   {"rel_x", "rel_y", "width", "height", "rounding", "color"},
 	TEXT_PROP:   {"rel_x", "rel_y", "color", "string"},
 	CIRCLE_PROP: {"rel_x", "rel_y", "inner_radius", "outer_radius", "start_angle", "end_angle", "color"},
-	GRAPH_PROP:  {"rel_x", "rel_y", "color", "graph_node"},
 	TICKER_PROP: {"rel_x", "rel_y", "color", "string"},
 	CLOCK_PROP:  {"rel_x", "rel_y", "color", "string"},
 	IMAGE_PROP:  {"rel_x", "rel_y", "scale", "image_id"},
@@ -128,7 +122,7 @@ func (propEdit *PropertyEditor) AddEditors() (err error) {
 			continue
 		}
 
-		propEdit.Box.PackStart(edit.Box(), edit.Expand(), edit.Expand(), padding)
+		propEdit.ScrollBox.PackStart(edit.Box(), edit.Expand(), edit.Expand(), padding)
 	}
 
 	return

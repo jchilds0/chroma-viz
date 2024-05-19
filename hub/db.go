@@ -8,7 +8,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"log"
 	"net"
 	"strconv"
 	"strings"
@@ -31,21 +30,26 @@ type DataBase struct {
 	Names     map[int]string
 }
 
-func NewDataBase(numTemp int) *DataBase {
-	hub := &DataBase{}
+func NewDataBase(numTemp int) (hub *DataBase, err error) {
+	hub = &DataBase{}
 	hub.Templates = make(map[int64]*templates.Template, 100)
 	hub.Assets = make(map[int][]byte, 10)
 	hub.Dirs = make(map[int]string, 10)
 	hub.Names = make(map[int]string, 10)
 
-	var err error
 	hub.db, err = sql.Open("mysql", "/chroma_hub")
 	if err != nil {
-		Logger("Error connecting to database (%s) ", err)
-		log.Fatal("Couldn't connect to database: %s", err)
+		err = fmt.Errorf("Error opening database: %s", err)
+		return
 	}
 
-	return hub
+	err = hub.db.Ping()
+	if err != nil {
+		err = fmt.Errorf("Error connecting to database: %s", err)
+		return
+	}
+
+	return
 }
 
 // S -> {'num_temp': num, 'templates': [T]}

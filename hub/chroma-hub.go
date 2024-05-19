@@ -44,7 +44,12 @@ func printMessage(s string) {
 }
 
 func HubApp(port int) {
-	hub := NewDataBase(1_000)
+	hub, err := NewDataBase(1_000)
+	if err != nil {
+		printMessage(err.Error())
+		return
+	}
+
 	ok := true
 	hubPort = port
 

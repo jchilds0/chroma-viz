@@ -19,14 +19,14 @@ import (
 	"github.com/gotk3/gotk3/gtk"
 )
 
-var numTemplates = 1_000
+var numTemplates = 100
 var numPages = 1_000
 var numGeometries = 100
 
 func TestGui(t *testing.T) {
 	defer CloseViz()
 
-	createHub := false
+	createHub := true
 
 	f, err := os.Create("../perf/viz_test.prof")
 	if err != nil {
@@ -41,7 +41,10 @@ func TestGui(t *testing.T) {
 	)
 
 	importHook = importRandomPages
-	chromaHub := hub.NewDataBase(numTemplates)
+	chromaHub, err := hub.NewDataBase(numTemplates)
+	if err != nil {
+		t.Error(err)
+	}
 
 	if createHub {
 		err = chromaHub.CleanDB()

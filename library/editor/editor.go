@@ -4,6 +4,7 @@ import (
 	"chroma-viz/library/pages"
 	"chroma-viz/library/props"
 	"chroma-viz/library/tcp"
+	"fmt"
 
 	"github.com/gotk3/gotk3/gtk"
 )
@@ -183,7 +184,7 @@ func (editor *Editor) SetPage(page *pages.Page) (err error) {
 		}
 
 		propEdit.UpdateEditor(prop)
-		editor.tabs.AppendPage(propEdit.Box, label)
+		editor.tabs.AppendPage(propEdit.Scroll, label)
 		propCount[typed]++
 		editor.pairs = append(editor.pairs, Pairing{prop: prop, editor: propEdit})
 	}
@@ -203,9 +204,13 @@ func (editor *Editor) SetProperty(prop *props.Property) (err error) {
 	}
 
 	editor.pairs = nil
-	propEdit := editor.propEdit[prop.PropType][0]
+	propEdit := editor.propEdit[prop.PropType]
+	if propEdit == nil || len(propEdit) <= 0 {
+		err = fmt.Errorf("Prop edit %s is nil", props.PropType(prop.PropType))
+		return
+	}
 
-	visibleBox, err := propEdit.CreateVisibleEditor()
+	visibleBox, err := propEdit[0].CreateVisibleEditor()
 	if err != nil {
 		return
 	}
@@ -215,10 +220,10 @@ func (editor *Editor) SetProperty(prop *props.Property) (err error) {
 		return
 	}
 
-	propEdit.UpdateEditorAllProp(prop)
-	editor.pairs = []Pairing{{prop: prop, editor: propEdit}}
+	propEdit[0].UpdateEditorAllProp(prop)
+	editor.pairs = []Pairing{{prop: prop, editor: propEdit[0]}}
 
-	editor.tabs.AppendPage(propEdit.Box, geoLabel)
+	editor.tabs.AppendPage(propEdit[0].Scroll, geoLabel)
 	editor.tabs.AppendPage(visibleBox, visibleLabel)
 	return
 }
