@@ -128,17 +128,26 @@ func (propEdit *PropertyEditor) AddEditors() (err error) {
 	return
 }
 
-func (propEdit *PropertyEditor) CreateVisibleEditor() (box *gtk.Box, err error) {
+func (propEdit *PropertyEditor) CreateVisibleEditor() (scrollBox *gtk.ScrolledWindow, err error) {
 	widthChars := 12
 	order := PropAttrs[propEdit.PropType]
 	propEdit.visible = make(map[string]*gtk.CheckButton)
 
-	box, err = gtk.BoxNew(gtk.ORIENTATION_VERTICAL, 0)
+	scrollBox, err = gtk.ScrolledWindowNew(nil, nil)
+	if err != nil {
+		return
+	}
+
+	scrollBox.SetVisible(true)
+	scrollBox.SetVExpand(true)
+
+	box, err := gtk.BoxNew(gtk.ORIENTATION_VERTICAL, 0)
 	if err != nil {
 		return
 	}
 
 	box.SetVisible(true)
+	scrollBox.Add(box)
 
 	row, err := gtk.BoxNew(gtk.ORIENTATION_HORIZONTAL, 0)
 	if err != nil {
