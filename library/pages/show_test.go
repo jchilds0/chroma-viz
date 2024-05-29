@@ -10,7 +10,7 @@ func TestImportShow(t *testing.T) {
 	show := NewShow()
 	show.ImportShow("test_show.json")
 
-	if len(show.Pages) != 4 {
+	if len(show.Pages) != 3 {
 		t.Errorf("Incorrect number of pages (len(show.Pages) = %d)", len(show.Pages))
 	}
 
@@ -37,10 +37,6 @@ func TestImportShow(t *testing.T) {
 			rectPropTest(t, page.PropMap[0], 0, 0, 1920, 75)
 			rectPropTest(t, page.PropMap[1], 1700, 25, 400, 100)
 			tickerPropTest(t, page.PropMap[2], 25, 20, "Hello there", "world")
-		case "Graph":
-			rectPropTest(t, page.PropMap[0], 50, 100, 570, 240)
-			graphPropTest(t, page.PropMap[1], 25, 25)
-			textPropTest(t, page.PropMap[2], 50, 175, "Step Graph")
 		default:
 			t.Errorf("Unknown page %s", page.Title)
 		}
@@ -86,7 +82,7 @@ func circlePropTest(t *testing.T, prop *props.Property, x, y, ir, or, sa, ea int
 
 func clockPropTest(t *testing.T, prop *props.Property, x, y int) {
 	if prop.PropType != props.CLOCK_PROP {
-		t.Errorf("Prop %s is not a clock prop", prop.Name)
+		t.Errorf("Prop %s is not a clock prop (type %s)", prop.Name, props.PropType(prop.PropType))
 		return
 	}
 
@@ -96,18 +92,7 @@ func clockPropTest(t *testing.T, prop *props.Property, x, y int) {
 
 func tickerPropTest(t *testing.T, prop *props.Property, x, y int, s ...string) {
 	if prop.PropType != props.TICKER_PROP {
-		t.Errorf("Prop %s is not a ticker prop", prop.Name)
-		return
-	}
-
-	intAttrTest(t, prop.Attr["x"], x)
-	intAttrTest(t, prop.Attr["y"], y)
-	// check list store values
-}
-
-func graphPropTest(t *testing.T, prop *props.Property, x, y int) {
-	if prop.PropType != props.GRAPH_PROP {
-		t.Errorf("Prop %s is not a graph prop", prop.Name)
+		t.Errorf("Prop %s is not a ticker prop (type %s)", prop.Name, props.PropType(prop.PropType))
 		return
 	}
 

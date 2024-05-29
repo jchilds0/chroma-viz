@@ -199,161 +199,6 @@
                 }
             }
         },
-        "2": {
-            "Box": null,
-            "PageNum": 2,
-            "Title": "Graph",
-            "TemplateID": 3,
-            "Layer": 0,
-            "PropMap": {
-                "0": {
-                    "Name": "Background",
-                    "PropType": 0,
-                    "Visible": {
-                        "color": false,
-                        "height": true,
-                        "parent": false,
-                        "rounding": false,
-                        "width": true,
-                        "x": true,
-                        "y": true
-                    },
-                    "Attr": {
-                        "color": {
-                            "FileName": "color",
-                            "ChromaName": "color",
-                            "Type": 6,
-                            "Red": 1,
-                            "Green": 1,
-                            "Blue": 1,
-                            "Alpha": 1
-                        },
-                        "height": {
-                            "FileName": "height",
-                            "ChromaName": "height",
-                            "Type": 1,
-                            "Value": 240
-                        },
-                        "width": {
-                            "FileName": "width",
-                            "ChromaName": "width",
-                            "Type": 1,
-                            "Value": 570
-                        },
-                        "x": {
-                            "FileName": "x",
-                            "ChromaName": "rel_x",
-                            "Type": 1,
-                            "Value": 50
-                        },
-                        "y": {
-                            "FileName": "y",
-                            "ChromaName": "rel_y",
-                            "Type": 1,
-                            "Value": 100
-                        }
-                    }
-                },
-                "1": {
-                    "Name": "Graph",
-                    "PropType": 3,
-                    "Visible": {
-                        "color": false,
-                        "graph_type": false,
-                        "node": true,
-                        "parent": false,
-                        "x": true,
-                        "y": true
-                    },
-                    "Attr": {
-                        "color": {
-                            "FileName": "color",
-                            "ChromaName": "color",
-                            "Type": 6,
-                            "Red": 1,
-                            "Green": 1,
-                            "Blue": 1,
-                            "Alpha": 1
-                        },
-                        "node": {
-                            "FileName": "node",
-                            "ChromaName": "graph_node",
-                            "Type": 5,
-                            "NumCols": 2,
-                            "Selected": false,
-                            "ListStore": [
-                                [
-                                    "0",
-                                    "0"
-                                ],
-                                [
-                                    "100",
-                                    "50"
-                                ],
-                                [
-                                    "70",
-                                    "10"
-                                ]
-                            ],
-                            "MarshalJSON": {},
-                            "UnmarshalJSON": {}
-                        },
-                        "x": {
-                            "FileName": "x",
-                            "ChromaName": "rel_x",
-                            "Type": 1,
-                            "Value": 25
-                        },
-                        "y": {
-                            "FileName": "y",
-                            "ChromaName": "rel_y",
-                            "Type": 1,
-                            "Value": 25
-                        }
-                    }
-                },
-                "2": {
-                    "Name": "Title",
-                    "PropType": 1,
-                    "Visible": {
-                        "color": false,
-                        "parent": false,
-                        "string": true,
-                        "x": true,
-                        "y": true
-                    },
-                    "Attr": {
-                        "color": {
-                            "FileName": "color",
-                            "ChromaName": "color",
-                            "Type": 6,
-                            "Red": 1,
-                            "Green": 1,
-                            "Blue": 1,
-                            "Alpha": 1
-                        },
-                        "string": {
-                            "FileName": "string",
-                            "ChromaName": "string",
-                            "Type": 2,
-                            "Value": "Step Graph"
-                        },
-                        "x": {
-                            "FileName": "x",
-                            "ChromaName": "rel_x",
-                            "Type": 1,
-                            "Value": 50
-                        },
-                        "y": {
-                            "FileName": "y",
-                            "ChromaName": "rel_y",
-                            "Type": 1,
-                            "Value": 175
-                        }
-                    }
-                }
-            }
-        },
         "3": {
             "Box": null,
             "PageNum": 3,
@@ -458,7 +303,7 @@
                 },
                 "2": {
                     "Name": "Ticker",
-                    "PropType": 4,
+                    "PropType": 3,
                     "Visible": {
                         "color": false,
                         "parent": false,
@@ -968,7 +813,7 @@
                 },
                 "9": {
                     "Name": "Clock",
-                    "PropType": 5,
+                    "PropType": 4,
                     "Visible": {
                         "clock": true,
                         "color": false,
