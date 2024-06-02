@@ -35,12 +35,11 @@ type Keyframe struct {
 	Expand   bool
 }
 
-func NewKeyFrame(num, geo int, attr, ftype string, mask, expand bool) *Keyframe {
+func NewKeyFrame(num, geo int, attr string, mask, expand bool) *Keyframe {
 	frame := &Keyframe{
 		FrameNum: num,
 		GeoID:    geo,
 		GeoAttr:  attr,
-		Type:     ftype,
 		Mask:     mask,
 		Expand:   expand,
 	}

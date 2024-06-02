@@ -522,7 +522,7 @@ func (tempView *TempTree) keyframes(temp *templates.Template) {
 			frameNum, _ := strconv.Atoi(bindFrame)
 			geoNum, _ := strconv.Atoi(bindGeo)
 
-			bind := templates.NewKeyFrame(frameNum, geoNum, bindAttr, templates.BIND_FRAME, false, false)
+			bind := templates.NewKeyFrame(frameNum, geoNum, bindAttr, false, false)
 
 			keyframe := templates.NewBindFrame(frame, *bind)
 			temp.BindFrame = append(temp.BindFrame, *keyframe)

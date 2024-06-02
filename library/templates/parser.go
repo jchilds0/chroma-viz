@@ -136,14 +136,14 @@ func parseKeyframe(temp *Template, buf *bufio.Reader) {
 	mask := (data["mask"] == "true")
 	expand := (data["expand"] == "true")
 
-	keyframe := NewKeyFrame(frameNum, geoID, data["frame_attr"], data["frame_type"], mask, expand)
+	keyframe := NewKeyFrame(frameNum, geoID, data["frame_attr"], mask, expand)
 
 	switch keyframe.Type {
 	case BIND_FRAME:
 		bindNum, _ := strconv.Atoi(data["bind_frame"])
 		bindGeo, _ := strconv.Atoi(data["bind_geo"])
 
-		bind := NewKeyFrame(bindNum, bindGeo, data["bind_attr"], BIND_FRAME, false, false)
+		bind := NewKeyFrame(bindNum, bindGeo, data["bind_attr"], false, false)
 		frame := NewBindFrame(*keyframe, *bind)
 
 		temp.BindFrame = append(temp.BindFrame, *frame)

@@ -86,16 +86,15 @@ func randomTemplate(chromaHub *hub.DataBase, tempID int64) {
 		log.Fatalf("Error adding template (%s)", err)
 	}
 
-	geos := []int{templates.GEO_RECT, templates.GEO_CIRCLE, templates.GEO_TEXT}
-	props := []int{props.RECT_PROP, props.CIRCLE_PROP, props.TEXT_PROP}
+	geos := []string{templates.GEO_RECT, templates.GEO_CIRCLE, templates.GEO_TEXT}
+	props := []string{props.RECT_PROP, props.CIRCLE_PROP, props.TEXT_PROP}
 
 	for j := 1; j < numGeometries; j++ {
 		geoIndex := rand.Int() % len(geos)
-		geoI := geos[geoIndex]
 
 		geo := templates.NewGeometry(
 			j,
-			templates.GeoName[geoI],
+			props[geoIndex],
 			props[geoIndex],
 			geos[geoIndex],
 			rand.Int()%2000,
@@ -129,6 +128,24 @@ func randomTemplate(chromaHub *hub.DataBase, tempID int64) {
 		case templates.GEO_TEXT:
 			text := templates.NewText(*geo, "some text", color)
 			err = chromaHub.AddText(tempID, *text)
+		}
+
+		if j%3 == 0 {
+			var tempFrame *templates.Keyframe
+			if j%2 == 0 {
+				tempFrame = templates.NewKeyFrame(0, j, "rel_x", false, false)
+			} else {
+				tempFrame = templates.NewKeyFrame(0, j, "rel_y", false, false)
+			}
+
+			startFrame := templates.NewSetFrame(*tempFrame, rand.Int()%2000)
+			chromaHub.AddSetFrame(tempID, *startFrame)
+
+			tempFrame.FrameNum = 1
+
+			endFrame := templates.NewUserFrame(*tempFrame)
+			chromaHub.AddUserFrame(tempID, *endFrame)
+
 		}
 
 		if err != nil {
