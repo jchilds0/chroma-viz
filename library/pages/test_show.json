@@ -10,7 +10,7 @@
             "PropMap": {
                 "0": {
                     "Name": "Background",
-                    "PropType": 0,
+                    "PropType": "rect",
                     "Visible": {
                         "color": false,
                         "height": true,
@@ -58,7 +58,7 @@
                 },
                 "1": {
                     "Name": "Circle",
-                    "PropType": 2,
+                    "PropType": "circle",
                     "Visible": {
                         "color": false,
                         "end_angle": true,
@@ -119,7 +119,7 @@
                 },
                 "2": {
                     "Name": "Title",
-                    "PropType": 1,
+                    "PropType": "text",
                     "Visible": {
                         "color": false,
                         "parent": false,
@@ -159,7 +159,7 @@
                 },
                 "3": {
                     "Name": "Subtitle",
-                    "PropType": 1,
+                    "PropType": "text",
                     "Visible": {
                         "color": false,
                         "parent": false,
@@ -208,7 +208,7 @@
             "PropMap": {
                 "0": {
                     "Name": "Background",
-                    "PropType": 0,
+                    "PropType": "rect",
                     "Visible": {
                         "color": false,
                         "height": true,
@@ -255,7 +255,7 @@
                 },
                 "1": {
                     "Name": "Box",
-                    "PropType": 0,
+                    "PropType": "rect",
                     "Visible": {
                         "color": false,
                         "height": true,
@@ -303,7 +303,7 @@
                 },
                 "2": {
                     "Name": "Ticker",
-                    "PropType": 3,
+                    "PropType": "ticker",
                     "Visible": {
                         "color": false,
                         "parent": false,
@@ -363,7 +363,7 @@
             "PropMap": {
                 "0": {
                     "Name": "Background",
-                    "PropType": 0,
+                    "PropType": "rect",
                     "Visible": {
                         "color": false,
                         "height": true,
@@ -411,7 +411,7 @@
                 },
                 "1": {
                     "Name": "Circle",
-                    "PropType": 2,
+                    "PropType": "circle",
                     "Visible": {
                         "color": false,
                         "end_angle": true,
@@ -472,7 +472,7 @@
                 },
                 "10": {
                     "Name": "Period",
-                    "PropType": 1,
+                    "PropType": "text",
                     "Visible": {
                         "color": false,
                         "parent": false,
@@ -512,7 +512,7 @@
                 },
                 "2": {
                     "Name": "Left Split",
-                    "PropType": 0,
+                    "PropType": "rect",
                     "Visible": {
                         "color": false,
                         "height": true,
@@ -559,7 +559,7 @@
                 },
                 "3": {
                     "Name": "Team 1",
-                    "PropType": 1,
+                    "PropType": "text",
                     "Visible": {
                         "color": false,
                         "parent": false,
@@ -599,7 +599,7 @@
                 },
                 "4": {
                     "Name": "Score 1",
-                    "PropType": 1,
+                    "PropType": "text",
                     "Visible": {
                         "color": false,
                         "parent": false,
@@ -639,7 +639,7 @@
                 },
                 "5": {
                     "Name": "Mid Split",
-                    "PropType": 0,
+                    "PropType": "rect",
                     "Visible": {
                         "color": false,
                         "height": true,
@@ -686,7 +686,7 @@
                 },
                 "6": {
                     "Name": "Team 2",
-                    "PropType": 1,
+                    "PropType": "text",
                     "Visible": {
                         "color": false,
                         "parent": false,
@@ -726,7 +726,7 @@
                 },
                 "7": {
                     "Name": "Score 2",
-                    "PropType": 1,
+                    "PropType": "text",
                     "Visible": {
                         "color": false,
                         "parent": false,
@@ -766,7 +766,7 @@
                 },
                 "8": {
                     "Name": "Right Split",
-                    "PropType": 0,
+                    "PropType": "rect",
                     "Visible": {
                         "color": false,
                         "height": true,
@@ -813,7 +813,7 @@
                 },
                 "9": {
                     "Name": "Clock",
-                    "PropType": 4,
+                    "PropType": "clock",
                     "Visible": {
                         "clock": true,
                         "color": false,

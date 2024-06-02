@@ -82,7 +82,7 @@ func circlePropTest(t *testing.T, prop *props.Property, x, y, ir, or, sa, ea int
 
 func clockPropTest(t *testing.T, prop *props.Property, x, y int) {
 	if prop.PropType != props.CLOCK_PROP {
-		t.Errorf("Prop %s is not a clock prop (type %s)", prop.Name, props.PropType(prop.PropType))
+		t.Errorf("Prop %s is not a clock prop (type %s)", prop.Name, prop.PropType)
 		return
 	}
 
@@ -92,7 +92,7 @@ func clockPropTest(t *testing.T, prop *props.Property, x, y int) {
 
 func tickerPropTest(t *testing.T, prop *props.Property, x, y int, s ...string) {
 	if prop.PropType != props.TICKER_PROP {
-		t.Errorf("Prop %s is not a ticker prop (type %s)", prop.Name, props.PropType(prop.PropType))
+		t.Errorf("Prop %s is not a ticker prop (type %s)", prop.Name, prop.PropType)
 		return
 	}
 
