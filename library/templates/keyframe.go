@@ -6,73 +6,36 @@ import (
 )
 
 const (
-	SET_FRAME = iota
-	USER_FRAME
-	BIND_FRAME
+	BIND_FRAME = "bind-frame"
+	SET_FRAME  = "set-frame"
+	USER_FRAME = "user-frame"
 )
 
-const (
-	ATTR_COLOR = iota
-	ATTR_POS_X
-	ATTR_POS_Y
-	ATTR_REL_X
-	ATTR_REL_Y
-	ATTR_PARENT
-	ATTR_WIDTH
-	ATTR_HEIGHT
-	ATTR_ROUNDING
-	ATTR_INNER_RADIUS
-	ATTR_OUTER_RADIUS
-	ATTR_START_ANGLE
-	ATTR_END_ANGLE
-	ATTR_TEXT
-	ATTR_SCALE
-	ATTR_GRAPH_NODE
-	ATTR_NUM_NODE
-	ATTR_GRAPH_TYPE
-	ATTR_IMAGE_ID
-)
-
-var StringToAttr = map[string]int{
-	"pos_x":        ATTR_POS_X,
-	"pos_y":        ATTR_POS_Y,
-	"rel_x":        ATTR_REL_X,
-	"rel_y":        ATTR_REL_Y,
-	"parent":       ATTR_PARENT,
-	"width":        ATTR_WIDTH,
-	"height":       ATTR_HEIGHT,
-	"rounding":     ATTR_ROUNDING,
-	"inner_radius": ATTR_INNER_RADIUS,
-	"outer_radius": ATTR_OUTER_RADIUS,
-	"start_angle":  ATTR_START_ANGLE,
-	"end_angle":    ATTR_END_ANGLE,
-}
-
-var AttrToString = map[int]string{
-	ATTR_POS_X:        "pos_x",
-	ATTR_POS_Y:        "pos_y",
-	ATTR_REL_X:        "rel_x",
-	ATTR_REL_Y:        "rel_y",
-	ATTR_PARENT:       "parent",
-	ATTR_WIDTH:        "width",
-	ATTR_HEIGHT:       "height",
-	ATTR_ROUNDING:     "rounding",
-	ATTR_INNER_RADIUS: "inner_radius",
-	ATTR_OUTER_RADIUS: "outer_radius",
-	ATTR_START_ANGLE:  "start_angle",
-	ATTR_END_ANGLE:    "end_angle",
+var keyframeAttrs = map[string]bool{
+	"pos_x":        true,
+	"pos_y":        true,
+	"rel_x":        true,
+	"rel_y":        true,
+	"parent":       true,
+	"width":        true,
+	"height":       true,
+	"rounding":     true,
+	"inner_radius": true,
+	"outer_radius": true,
+	"start_angle":  true,
+	"end_angle":    true,
 }
 
 type Keyframe struct {
 	FrameNum int
 	GeoID    int
-	GeoAttr  int
-	Type     int
+	GeoAttr  string
+	Type     string
 	Mask     bool
 	Expand   bool
 }
 
-func NewKeyFrame(num, geo, attr, ftype int, mask, expand bool) *Keyframe {
+func NewKeyFrame(num, geo int, attr, ftype string, mask, expand bool) *Keyframe {
 	frame := &Keyframe{
 		FrameNum: num,
 		GeoID:    geo,
@@ -103,13 +66,13 @@ func EncodeKeyframe(frame Keyframe, attr map[string]string) (s string, err error
 	b.WriteString(strconv.Itoa(key.GeoID))
 	b.WriteString(", ")
 
-	b.WriteString("'frame_attr': ")
-	b.WriteString(strconv.Itoa(key.GeoAttr))
-	b.WriteString(", ")
+	b.WriteString("'frame_attr': '")
+	b.WriteString(key.GeoAttr)
+	b.WriteString("', ")
 
-	b.WriteString("'frame_type': ")
-	b.WriteString(strconv.Itoa(key.Type))
-	b.WriteString(", ")
+	b.WriteString("'frame_type': '")
+	b.WriteString(key.Type)
+	b.WriteString("', ")
 
 	b.WriteString("'mask': ")
 	if key.Mask {
@@ -165,7 +128,7 @@ func (frame *BindFrame) Attributes() map[string]string {
 	return map[string]string{
 		"bind_frame": strconv.Itoa(bind.FrameNum),
 		"bind_geo":   strconv.Itoa(bind.GeoID),
-		"bind_attr":  strconv.Itoa(bind.GeoAttr),
+		"bind_attr":  bind.GeoAttr,
 	}
 }
 

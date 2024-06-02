@@ -132,21 +132,18 @@ func parseKeyframe(temp *Template, buf *bufio.Reader) {
 
 	frameNum, _ := strconv.Atoi(data["frame_num"])
 	geoID, _ := strconv.Atoi(data["frame_geo"])
-	geoAttr, _ := strconv.Atoi(data["frame_attr"])
-	frameType, _ := strconv.Atoi(data["frame_type"])
 
 	mask := (data["mask"] == "true")
 	expand := (data["expand"] == "true")
 
-	keyframe := NewKeyFrame(frameNum, geoID, geoAttr, frameType, mask, expand)
+	keyframe := NewKeyFrame(frameNum, geoID, data["frame_attr"], data["frame_type"], mask, expand)
 
 	switch keyframe.Type {
 	case BIND_FRAME:
 		bindNum, _ := strconv.Atoi(data["bind_frame"])
 		bindGeo, _ := strconv.Atoi(data["bind_geo"])
-		bindAttr, _ := strconv.Atoi(data["bind_attr"])
 
-		bind := NewKeyFrame(bindNum, bindGeo, bindAttr, 0, false, false)
+		bind := NewKeyFrame(bindNum, bindGeo, data["bind_attr"], BIND_FRAME, false, false)
 		frame := NewBindFrame(*keyframe, *bind)
 
 		temp.BindFrame = append(temp.BindFrame, *frame)
@@ -196,23 +193,15 @@ func parseGeometry(temp *Template, buf *bufio.Reader) (err error) {
 			}
 
 		case "geo_type":
-			geom.GeoType, err = strconv.Atoi(parser.C_tok.Value)
-			if err != nil {
-				return
-			}
-
-			err = parser.MatchToken(parser.INT, buf)
+			geom.GeoType = parser.C_tok.Value
+			err = parser.MatchToken(parser.STRING, buf)
 			if err != nil {
 				return
 			}
 
 		case "prop_type":
-			geom.PropType, err = strconv.Atoi(parser.C_tok.Value)
-			if err != nil {
-				return
-			}
-
-			err = parser.MatchToken(parser.INT, buf)
+			geom.PropType = parser.C_tok.Value
+			err = parser.MatchToken(parser.STRING, buf)
 			if err != nil {
 				return
 			}

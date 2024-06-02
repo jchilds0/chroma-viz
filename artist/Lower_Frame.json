@@ -6,24 +6,24 @@
         {
             "FrameNum": 1,
             "GeoID": 1,
-            "GeoAttr": 6,
-            "Type": 1,
+            "GeoAttr": "width",
+            "Type": "user-frame",
             "Mask": false,
             "Expand": true
         },
         {
             "FrameNum": 0,
             "GeoID": 3,
-            "GeoAttr": 3,
-            "Type": 1,
+            "GeoAttr": "rel_x",
+            "Type": "user-frame",
             "Mask": true,
             "Expand": false
         },
         {
             "FrameNum": 0,
             "GeoID": 2,
-            "GeoAttr": 3,
-            "Type": 1,
+            "GeoAttr": "rel_x",
+            "Type": "user-frame",
             "Mask": true,
             "Expand": false
         }
@@ -32,8 +32,8 @@
         {
             "FrameNum": 0,
             "GeoID": 1,
-            "GeoAttr": 6,
-            "Type": 0,
+            "GeoAttr": "width",
+            "Type": "set-frame",
             "Mask": false,
             "Expand": false,
             "Value": 0
@@ -44,8 +44,8 @@
         {
             "GeoNum": 1,
             "Name": "Rectangle",
-            "GeoType": 0,
-            "PropType": 0,
+            "GeoType": "rect",
+            "PropType": "rect",
             "RelX": 100,
             "RelY": 100,
             "Parent": 0,
@@ -60,8 +60,8 @@
         {
             "GeoNum": 3,
             "Name": "Title",
-            "GeoType": 2,
-            "PropType": 1,
+            "GeoType": "text",
+            "PropType": "text",
             "RelX": 120,
             "RelY": 90,
             "Parent": 1,
@@ -71,8 +71,8 @@
         {
             "GeoNum": 2,
             "Name": "Subtitle",
-            "GeoType": 2,
-            "PropType": 1,
+            "GeoType": "text",
+            "PropType": "text",
             "RelX": 120,
             "RelY": 20,
             "Parent": 1,

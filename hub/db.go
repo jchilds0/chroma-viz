@@ -15,11 +15,11 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 )
 
-var geoTables = map[int]string{
-	props.RECT_PROP:   "rectangle",
-	props.TEXT_PROP:   "text",
-	props.CIRCLE_PROP: "circle",
-	props.IMAGE_PROP:  "asset",
+var geoTables = map[string]string{
+	templates.GEO_RECT:   "rectangle",
+	templates.GEO_TEXT:   "text",
+	templates.GEO_CIRCLE: "circle",
+	templates.GEO_IMAGE:  "asset",
 }
 
 type DataBase struct {

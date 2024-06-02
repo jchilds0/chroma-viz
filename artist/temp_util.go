@@ -76,7 +76,7 @@ func geometryToTreeView(page *pages.Page, tempView *TempTree, iter *gtk.TreeIter
 		}
 
 		newRow := tempView.geoModel.Append(iter)
-		tempView.AddGeoRow(newRow, geo.Name, geo_name[geo.PropType], id)
+		tempView.AddGeoRow(newRow, geo.Name, geoNames[geo.PropType], id)
 
 		if id == propID {
 			continue

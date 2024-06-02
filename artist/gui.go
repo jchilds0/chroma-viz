@@ -10,7 +10,6 @@ import (
 	"chroma-viz/library/tcp"
 	"chroma-viz/library/templates"
 	"encoding/json"
-	"fmt"
 	"log"
 	"os"
 	"strconv"
@@ -54,7 +53,7 @@ func ArtistGui(app *gtk.Application) {
 	win.SetDefaultSize(800, 600)
 	win.SetTitle("Chroma Artist")
 
-	editView, err := editor.NewEditor(func(page tcp.Animator, action int) {}, SendPreview)
+	editView, err := editor.NewEditor()
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -85,16 +84,16 @@ func ArtistGui(app *gtk.Application) {
 			return
 		}
 
-		editView.Page = page
+		editView.CurrentPage = page
 		editView.UpdateProps()
 
-		SendPreview(editView.Page, tcp.UPDATE)
+		SendPreview(editView.CurrentPage, tcp.UPDATE)
 		time.Sleep(50 * time.Millisecond)
-		SendPreview(editView.Page, tcp.ANIMATE_ON)
+		SendPreview(editView.CurrentPage, tcp.ANIMATE_ON)
 	})
 
 	editView.PropertyEditor()
-	editView.Page = page
+	editView.CurrentPage = page
 
 	preview := setupPreviewWindow(conf.HubPort, conf.PreviewDirectory, conf.PreviewName)
 
@@ -158,10 +157,12 @@ func ArtistGui(app *gtk.Application) {
 		log.Fatal(err)
 	}
 
-	geoSelector, err := gtk_utils.BuilderGetObject[*gtk.ComboBoxText](builder, "geo-selector")
+	geoSelector, err := gtk_utils.BuilderGetObject[*gtk.ComboBox](builder, "geo-selector")
 	if err != nil {
 		log.Fatal(err)
 	}
+
+	geoSelectorModel(geoSelector)
 
 	addGeo, err := gtk_utils.BuilderGetObject[*gtk.Button](builder, "add-geo")
 	if err != nil {
@@ -232,7 +233,7 @@ func ArtistGui(app *gtk.Application) {
 		tempIDEntry.SetText("")
 		layerEntry.SetText("")
 
-		SendPreview(editView.Page, tcp.UPDATE)
+		SendPreview(editView.CurrentPage, tcp.UPDATE)
 	})
 
 	importTemplateJSON.Connect("activate", func() {
@@ -365,20 +366,32 @@ func ArtistGui(app *gtk.Application) {
 	})
 
 	addGeo.Connect("clicked", func() {
-		name := geoSelector.GetActiveText()
-		if name == "" {
+		iter, err := geoSelector.GetActiveIter()
+		if err != nil {
 			log.Print("No geometry selected")
 			return
 		}
 
-		propNum, err := AddProp(name)
+		model, err := geoSelector.GetModel()
+		if err != nil {
+			log.Printf("Error getting geometry model: %s", err)
+			return
+		}
+
+		propType, err := gtk_utils.ModelGetValue[string](model.ToTreeModel(), iter, 0)
+		if err != nil {
+			log.Printf("Error getting geometry model: %s", err)
+			return
+		}
+
+		propNum, err := AddProp(propType)
 		if err != nil {
 			log.Print(err)
 			return
 		}
 
-		iter := tempView.geoModel.Append(nil)
-		tempView.AddGeoRow(iter, name, name, propNum)
+		iter = tempView.geoModel.Append(nil)
+		tempView.AddGeoRow(iter, propType, propType, propNum)
 	})
 
 	removeGeo.Connect("clicked", func() {
@@ -504,16 +517,7 @@ func ArtistGui(app *gtk.Application) {
 	win.ShowAll()
 }
 
-var geo_type = map[string]int{
-	"Rectangle": props.RECT_PROP,
-	"Circle":    props.CIRCLE_PROP,
-	"Text":      props.TEXT_PROP,
-	"Ticker":    props.TICKER_PROP,
-	"Clock":     props.CLOCK_PROP,
-	"Image":     props.IMAGE_PROP,
-}
-
-var geo_name = map[int]string{
+var geoNames = map[string]string{
 	props.RECT_PROP:   "Rectangle",
 	props.CIRCLE_PROP: "Circle",
 	props.TEXT_PROP:   "Text",
@@ -522,13 +526,33 @@ var geo_name = map[int]string{
 	props.IMAGE_PROP:  "Image",
 }
 
-func AddProp(label string) (id int, err error) {
-	geo_typed, ok := geo_type[label]
-	if !ok {
-		return 0, fmt.Errorf("Unknown label %s", label)
+func geoSelectorModel(combo *gtk.ComboBox) (err error) {
+	model, err := gtk.ListStoreNew(glib.TYPE_STRING, glib.TYPE_STRING)
+	if err != nil {
+		return
 	}
 
-	ok = true
+	for propName, name := range geoNames {
+		iter := model.Append()
+
+		model.SetValue(iter, 0, propName)
+		model.SetValue(iter, 1, name)
+	}
+
+	cell, err := gtk.CellRendererTextNew()
+	if err != nil {
+		return
+	}
+
+	combo.SetModel(model)
+	combo.CellLayout.PackStart(cell, true)
+	combo.CellLayout.AddAttribute(cell, "text", 1)
+	combo.SetActive(1)
+	return
+}
+
+func AddProp(propType string) (id int, err error) {
+	ok := true
 	for id = 1; ok; id++ {
 		prop, ok := page.PropMap[id]
 		if !ok {
@@ -540,7 +564,7 @@ func AddProp(label string) (id int, err error) {
 		}
 	}
 
-	page.PropMap[id] = props.NewProperty(geo_typed, label, true, nil)
+	page.PropMap[id] = props.NewProperty(propType, geoNames[propType], true, nil)
 	return
 }
 

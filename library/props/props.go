@@ -19,41 +19,21 @@ const (
 )
 
 const (
-	RECT_PROP = iota
-	TEXT_PROP
-	CIRCLE_PROP
-	TICKER_PROP
-	CLOCK_PROP
-	IMAGE_PROP
-	NUM_PROPS
+	RECT_PROP   = "rect"
+	TEXT_PROP   = "text"
+	CIRCLE_PROP = "circle"
+	TICKER_PROP = "ticker"
+	CLOCK_PROP  = "clock"
+	IMAGE_PROP  = "image"
 )
 
-var PropToGeo map[int]int = map[int]int{
+var PropToGeo = map[string]string{
 	RECT_PROP:   templates.GEO_RECT,
 	TEXT_PROP:   templates.GEO_TEXT,
 	CIRCLE_PROP: templates.GEO_CIRCLE,
 	TICKER_PROP: templates.GEO_TEXT,
 	CLOCK_PROP:  templates.GEO_TEXT,
 	IMAGE_PROP:  templates.GEO_IMAGE,
-}
-
-func PropType(prop int) string {
-	switch prop {
-	case RECT_PROP:
-		return "rect"
-	case TEXT_PROP:
-		return "text"
-	case CIRCLE_PROP:
-		return "circle"
-	case TICKER_PROP:
-		return "ticker"
-	case CLOCK_PROP:
-		return "clock"
-	case IMAGE_PROP:
-		return "image"
-	default:
-		return ""
-	}
 }
 
 /*
@@ -86,13 +66,13 @@ func PropType(prop int) string {
 
 type Property struct {
 	Name     string
-	PropType int
+	PropType string
 	Visible  map[string]bool
 	Attr     map[string]attribute.Attribute
 	temp     bool
 }
 
-func NewProperty(typed int, name string, isTemp bool, visible map[string]bool) *Property {
+func NewProperty(typed, name string, isTemp bool, visible map[string]bool) *Property {
 	prop := &Property{Name: name, PropType: typed, Visible: visible, temp: isTemp}
 
 	if visible == nil {
@@ -262,7 +242,7 @@ func (prop *Property) CreateGeometry(temp *templates.Template, geoID int) {
 		temp.Asset = append(temp.Asset, *a)
 
 	default:
-		log.Printf("Error creating geom %s: Not Implemented", PropType(prop.PropType))
+		log.Printf("Error creating geom %s: Not Implemented", prop.PropType)
 	}
 
 	return
@@ -270,7 +250,7 @@ func (prop *Property) CreateGeometry(temp *templates.Template, geoID int) {
 
 type PropertyJSON struct {
 	Name     string
-	PropType int
+	PropType string
 	Visible  map[string]bool
 	Attr     map[string]attribute.AttributeJSON
 }

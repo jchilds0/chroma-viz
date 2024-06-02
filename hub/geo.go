@@ -78,7 +78,7 @@ func (hub *DataBase) AddAsset(tempID int64, a templates.Asset) (err error) {
 
 func (hub *DataBase) GetGeometry(geoID int64) (geo templates.Geometry, err error) {
 	q := `
-        SELECT g.geo_num, g.name, g.prop_type, g.geo_type, g.rel_x, g.rel_y, g.parent
+        SELECT g.geoNum, g.name, g.propType, g.geoType, g.rel_x, g.rel_y, g.parent
         FROM geometry g 
         WHERE g.geometryID = ?;
     `

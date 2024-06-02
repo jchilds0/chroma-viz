@@ -99,7 +99,7 @@ func VizGui(app *gtk.Application) {
 	elapsed := end.Sub(start)
 	log.Printf("Imported Assets in %s", elapsed)
 
-	edit, err := editor.NewEditor(SendEngine, SendPreview)
+	edit, err := editor.NewEditor()
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -116,12 +116,12 @@ func VizGui(app *gtk.Application) {
 		showTree.ImportPage(page)
 	})
 
-	edit.AddAction("Take On", true, func() { SendEngine(edit.Page, tcp.ANIMATE_ON) })
-	edit.AddAction("Continue", true, func() { SendEngine(edit.Page, tcp.CONTINUE) })
-	edit.AddAction("Take Off", true, func() { SendEngine(edit.Page, tcp.ANIMATE_OFF) })
+	edit.AddAction("Take On", true, func() { SendEngine(edit.CurrentPage, tcp.ANIMATE_ON) })
+	edit.AddAction("Continue", true, func() { SendEngine(edit.CurrentPage, tcp.CONTINUE) })
+	edit.AddAction("Take Off", true, func() { SendEngine(edit.CurrentPage, tcp.ANIMATE_OFF) })
 	edit.AddAction("Save", false, func() {
 		edit.UpdateProps()
-		SendPreview(edit.Page, tcp.ANIMATE_ON)
+		SendPreview(edit.CurrentPage, tcp.ANIMATE_ON)
 	})
 	edit.PageEditor()
 

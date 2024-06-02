@@ -29,15 +29,15 @@ import (
 */
 
 type PropertyEditor struct {
-	PropType  int
+	PropType  string
 	Scroll    *gtk.ScrolledWindow
 	ScrollBox *gtk.Box
 	editor    map[string]attribute.Editor
 	visible   map[string]*gtk.CheckButton
 }
 
-func NewPropertyEditor(typed int) (propEdit *PropertyEditor, err error) {
-	propEdit = &PropertyEditor{PropType: typed}
+func NewPropertyEditor(propType string) (propEdit *PropertyEditor, err error) {
+	propEdit = &PropertyEditor{PropType: propType}
 	width := 1920
 	height := 1080
 
@@ -61,7 +61,7 @@ func NewPropertyEditor(typed int) (propEdit *PropertyEditor, err error) {
 	propEdit.editor["rel_x"], _ = attribute.NewIntEditor("x", -float64(width), float64(width))
 	propEdit.editor["rel_y"], _ = attribute.NewIntEditor("y", -float64(height), float64(height))
 
-	switch typed {
+	switch propEdit.PropType {
 	case RECT_PROP:
 		propEdit.editor["width"], _ = attribute.NewIntEditor("Width", 0, float64(width))
 		propEdit.editor["height"], _ = attribute.NewIntEditor("Height", 0, float64(height))
@@ -92,14 +92,14 @@ func NewPropertyEditor(typed int) (propEdit *PropertyEditor, err error) {
 		propEdit.editor["image_id"] = attribute.NewAssetEditor("Image")
 
 	default:
-		return nil, fmt.Errorf("Unknown Prop %d", typed)
+		return nil, fmt.Errorf("Unknown Prop Type %s", propType)
 	}
 
 	propEdit.AddEditors()
 	return
 }
 
-var PropAttrs = map[int][]string{
+var PropAttrs = map[string][]string{
 	RECT_PROP:   {"rel_x", "rel_y", "width", "height", "rounding", "color"},
 	TEXT_PROP:   {"rel_x", "rel_y", "color", "string"},
 	CIRCLE_PROP: {"rel_x", "rel_y", "inner_radius", "outer_radius", "start_angle", "end_angle", "color"},
@@ -112,7 +112,7 @@ func (propEdit *PropertyEditor) AddEditors() (err error) {
 	order := PropAttrs[propEdit.PropType]
 
 	if len(order) == 0 {
-		err = fmt.Errorf("Prop order for %d has length 0", propEdit.PropType)
+		err = fmt.Errorf("Prop order for %s has length 0", propEdit.PropType)
 		return
 	}
 

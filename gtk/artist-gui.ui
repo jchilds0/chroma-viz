@@ -89,15 +89,7 @@
 
                         <!-- geo selector -->
                         <child>
-                          <object class="GtkComboBoxText" id="geo-selector">
-                            <items>
-                              <item id="rect">Rectangle</item>
-                              <item id="circ">Circle</item>
-                              <item id="text">Text</item>
-                              <item id="ticker">Ticker</item>
-                              <item id="clock">Clock</item>
-                              <item id="image">Image</item>
-                            </items>
+                          <object class="GtkComboBox" id="geo-selector">
                           </object>
 
                           <packing>

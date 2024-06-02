@@ -24,7 +24,6 @@ const (
 	FRAME_GEOMETRY
 	FRAME_GEOMETRY_ID
 	FRAME_ATTR
-	FRAME_ATTR_ID
 	FRAME_VALUE
 	FRAME_USER_VALUE
 	FRAME_MASK
@@ -170,7 +169,6 @@ func (temp *TempTree) createKeyTree() (err error) {
 		glib.TYPE_STRING,  // Geometry Name
 		glib.TYPE_INT,     // Geometry Num
 		glib.TYPE_STRING,  // Geometry Attr
-		glib.TYPE_INT,     // Geometry Attr ID
 		glib.TYPE_INT,     // Value Entry
 		glib.TYPE_BOOLEAN, // User Value Selector
 		glib.TYPE_BOOLEAN, // Mask Parent
@@ -523,9 +521,8 @@ func (tempView *TempTree) keyframes(temp *templates.Template) {
 		if bindFrame != "" && bindGeo != "" && bindAttr != "" {
 			frameNum, _ := strconv.Atoi(bindFrame)
 			geoNum, _ := strconv.Atoi(bindGeo)
-			attrNum, _ := strconv.Atoi(bindAttr)
 
-			bind := templates.NewKeyFrame(frameNum, geoNum, attrNum, 0, false, false)
+			bind := templates.NewKeyFrame(frameNum, geoNum, bindAttr, templates.BIND_FRAME, false, false)
 
 			keyframe := templates.NewBindFrame(frame, *bind)
 			temp.BindFrame = append(temp.BindFrame, *keyframe)
@@ -563,7 +560,7 @@ func (tempView *TempTree) getKeyframe(iter *gtk.TreeIter) (frame templates.Keyfr
 		return
 	}
 
-	frame.GeoAttr, err = gtk_utils.ModelGetValue[int](keyModel, iter, FRAME_ATTR_ID)
+	frame.GeoAttr, err = gtk_utils.ModelGetValue[string](keyModel, iter, FRAME_ATTR)
 	if err != nil {
 		return
 	}
@@ -627,8 +624,7 @@ func (tempView *TempTree) updateBaseKeyframe(iter *gtk.TreeIter, frame *template
 	tempView.keyModel.SetValue(iter, FRAME_NUM, frame.FrameNum)
 	tempView.keyModel.SetValue(iter, FRAME_GEOMETRY, geo.Name)
 	tempView.keyModel.SetValue(iter, FRAME_GEOMETRY_ID, frame.GeoID)
-	tempView.keyModel.SetValue(iter, FRAME_ATTR, templates.AttrToString[frame.GeoAttr])
-	tempView.keyModel.SetValue(iter, FRAME_ATTR_ID, frame.GeoAttr)
+	tempView.keyModel.SetValue(iter, FRAME_ATTR, frame.GeoAttr)
 	tempView.keyModel.SetValue(iter, FRAME_MASK, frame.Mask)
 	tempView.keyModel.SetValue(iter, FRAME_EXPAND, frame.Expand)
 
@@ -650,7 +646,6 @@ func (tempView *TempTree) AddKeyRow(iter *gtk.TreeIter, geoName string, geoID in
 	tempView.keyModel.SetValue(iter, FRAME_GEOMETRY, geoName)
 	tempView.keyModel.SetValue(iter, FRAME_GEOMETRY_ID, geoID)
 	tempView.keyModel.SetValue(iter, FRAME_ATTR, attrName)
-	tempView.keyModel.SetValue(iter, FRAME_ATTR_ID, templates.StringToAttr[attrName])
 }
 
 func (tempView *TempTree) Clean() {

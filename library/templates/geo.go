@@ -6,30 +6,23 @@ import (
 )
 
 const (
-	GEO_RECT = iota
-	GEO_CIRCLE
-	GEO_TEXT
-	GEO_IMAGE
+	GEO_RECT   = "rect"
+	GEO_CIRCLE = "circle"
+	GEO_TEXT   = "text"
+	GEO_IMAGE  = "image"
 )
-
-var GeoName = map[int]string{
-	GEO_RECT:   "rectangle",
-	GEO_CIRCLE: "circle",
-	GEO_TEXT:   "text",
-	GEO_IMAGE:  "image",
-}
 
 type Geometry struct {
 	GeoNum   int
 	Name     string
-	GeoType  int
-	PropType int
+	GeoType  string
+	PropType string
 	RelX     int
 	RelY     int
 	Parent   int
 }
 
-func NewGeometry(geoID int, name string, propType, geoType, rel_x, rel_y int, parent int) *Geometry {
+func NewGeometry(geoID int, name, propType, geoType string, rel_x, rel_y, parent int) *Geometry {
 	geo := &Geometry{
 		GeoNum:   geoID,
 		Name:     name,
@@ -69,13 +62,13 @@ func EncodeGeometry(geo Geometry, attr map[string]string) string {
 	b.WriteString(geo.Name)
 	b.WriteString("', ")
 
-	b.WriteString("'prop_type': ")
-	b.WriteString(strconv.Itoa(geo.PropType))
-	b.WriteString(", ")
+	b.WriteString("'prop_type': '")
+	b.WriteString(geo.PropType)
+	b.WriteString("', ")
 
-	b.WriteString("'geo_type': ")
-	b.WriteString(strconv.Itoa(geo.GeoType))
-	b.WriteString(", ")
+	b.WriteString("'geo_type': '")
+	b.WriteString(geo.GeoType)
+	b.WriteString("', ")
 
 	// TODO: Visible
 

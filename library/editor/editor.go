@@ -9,23 +9,26 @@ import (
 	"github.com/gotk3/gotk3/gtk"
 )
 
+var propList = []string{
+	props.RECT_PROP, props.TEXT_PROP, props.CIRCLE_PROP,
+	props.TICKER_PROP, props.CLOCK_PROP, props.IMAGE_PROP,
+}
+
 type Pairing struct {
 	prop   *props.Property
 	editor *props.PropertyEditor
 }
 
 type Editor struct {
-	Box      *gtk.Box
-	tabs     *gtk.Notebook
-	header   *gtk.HeaderBar
-	actions  *gtk.Box
-	propBox  *gtk.Box
-	Page     tcp.Animator
-	pairs    []Pairing
-	propEdit [][]*props.PropertyEditor
+	Box            *gtk.Box
+	tabs           *gtk.Notebook
+	actions        *gtk.Box
+	CurrentPage    tcp.Animator
+	propEditPairs  []Pairing
+	propertyEditor map[string][]*props.PropertyEditor
 }
 
-func NewEditor(sendEngine, sendPreview func(tcp.Animator, int)) (editor *Editor, err error) {
+func NewEditor() (editor *Editor, err error) {
 	editor = &Editor{}
 
 	editor.Box, err = gtk.BoxNew(gtk.ORIENTATION_VERTICAL, 0)
@@ -42,6 +45,10 @@ func NewEditor(sendEngine, sendPreview func(tcp.Animator, int)) (editor *Editor,
 	return
 }
 
+/*
+ * Add a button to the editor box with label 'label'
+ * which triggers action 'action' when clicked.
+ */
 func (editor *Editor) AddAction(label string, start bool, action func()) (err error) {
 	button, err := gtk.ButtonNewWithLabel(label)
 	if err != nil {
@@ -59,6 +66,10 @@ func (editor *Editor) AddAction(label string, start bool, action func()) (err er
 	return
 }
 
+/*
+ * Init the editor to load pages, i.e. a
+ * tab for each property in the current page
+ */
 func (editor *Editor) PageEditor() (err error) {
 	editor.tabs, err = gtk.NotebookNew()
 	if err != nil {
@@ -81,14 +92,15 @@ func (editor *Editor) PageEditor() (err error) {
 	editor.Box.PackStart(editor.tabs, true, true, 0)
 
 	// prop editors
-	editor.propEdit = make([][]*props.PropertyEditor, props.NUM_PROPS)
+	editor.propertyEditor = make(map[string][]*props.PropertyEditor, len(propList))
+	initNumPropEdits := 10
 
-	for i := range editor.propEdit {
-		num := 10
-		editor.propEdit[i] = make([]*props.PropertyEditor, num)
+	for _, p := range propList {
+		editor.propertyEditor[p] = make([]*props.PropertyEditor, initNumPropEdits)
 
-		for j := 0; j < num; j++ {
-			editor.propEdit[i][j], err = props.NewPropertyEditor(i)
+		for j := 0; j < initNumPropEdits; j++ {
+			editor.propertyEditor[p][j], err = props.NewPropertyEditor(p)
+
 			if err != nil {
 				return
 			}
@@ -98,6 +110,11 @@ func (editor *Editor) PageEditor() (err error) {
 	return
 }
 
+/*
+ * Init the editor to load properties, i.e.
+ * a tab with the property attributes and
+ * a tab with the visibility editor
+ */
 func (editor *Editor) PropertyEditor() (err error) {
 	editor.tabs, err = gtk.NotebookNew()
 	if err != nil {
@@ -118,14 +135,15 @@ func (editor *Editor) PropertyEditor() (err error) {
 	editor.Box.PackStart(editor.tabs, true, true, 0)
 
 	// prop editors
-	editor.propEdit = make([][]*props.PropertyEditor, props.NUM_PROPS)
+	editor.propertyEditor = make(map[string][]*props.PropertyEditor, len(propList))
+	initNumPropEdits := 10
 
-	for i := range editor.propEdit {
-		num := 1
-		editor.propEdit[i] = make([]*props.PropertyEditor, num)
+	for _, p := range propList {
+		editor.propertyEditor[p] = make([]*props.PropertyEditor, initNumPropEdits)
 
-		for j := 0; j < num; j++ {
-			editor.propEdit[i][j], err = props.NewPropertyEditor(i)
+		for j := 0; j < initNumPropEdits; j++ {
+			editor.propertyEditor[p][j], err = props.NewPropertyEditor(p)
+
 			if err != nil {
 				return
 			}
@@ -135,8 +153,11 @@ func (editor *Editor) PropertyEditor() (err error) {
 	return
 }
 
+/*
+ * Store the editor values in the properties
+ */
 func (edit *Editor) UpdateProps() {
-	for _, item := range edit.pairs {
+	for _, item := range edit.propEditPairs {
 		if item.prop == nil {
 			continue
 		}
@@ -145,19 +166,21 @@ func (edit *Editor) UpdateProps() {
 	}
 }
 
+/*
+ * Load page 'page' into the editor
+ */
 func (editor *Editor) SetPage(page *pages.Page) (err error) {
 	num_pages := editor.tabs.GetNPages()
 	for i := 0; i < num_pages; i++ {
 		editor.tabs.RemovePage(0)
 	}
 
-	editor.Page = page
-	editor.pairs = make([]Pairing, 0, 10)
-	propCount := make([]int, props.NUM_PROPS)
+	editor.CurrentPage = page
+	editor.propEditPairs = make([]Pairing, 0, 10)
+	propCount := make(map[string]int, len(propList))
 
 	var label *gtk.Label
-
-	for _, prop := range editor.Page.GetPropMap() {
+	for _, prop := range editor.CurrentPage.GetPropMap() {
 		if prop == nil {
 			continue
 		}
@@ -170,28 +193,31 @@ func (editor *Editor) SetPage(page *pages.Page) (err error) {
 
 		// pair up with prop editor
 		var propEdit *props.PropertyEditor
-
-		if propCount[typed] == len(editor.propEdit[typed]) {
+		if propCount[typed] == len(editor.propertyEditor[typed]) {
 			// we ran out of editors, add a new one
 			propEdit, err = props.NewPropertyEditor(typed)
 			if err != nil {
 				return
 			}
 
-			editor.propEdit[typed] = append(editor.propEdit[typed], propEdit)
+			editor.propertyEditor[typed] = append(editor.propertyEditor[typed], propEdit)
 		} else {
-			propEdit = editor.propEdit[typed][propCount[typed]]
+			propEdit = editor.propertyEditor[typed][propCount[typed]]
 		}
 
 		propEdit.UpdateEditor(prop)
 		editor.tabs.AppendPage(propEdit.Scroll, label)
+		editor.propEditPairs = append(editor.propEditPairs, Pairing{prop: prop, editor: propEdit})
+
 		propCount[typed]++
-		editor.pairs = append(editor.pairs, Pairing{prop: prop, editor: propEdit})
 	}
 
 	return
 }
 
+/*
+ * Load property 'prop' into the editor
+ */
 func (editor *Editor) SetProperty(prop *props.Property) (err error) {
 	num_pages := editor.tabs.GetNPages()
 	for i := 0; i < num_pages; i++ {
@@ -203,10 +229,10 @@ func (editor *Editor) SetProperty(prop *props.Property) (err error) {
 		return
 	}
 
-	editor.pairs = nil
-	propEdit := editor.propEdit[prop.PropType]
+	editor.propEditPairs = nil
+	propEdit := editor.propertyEditor[prop.PropType]
 	if propEdit == nil || len(propEdit) <= 0 {
-		err = fmt.Errorf("Prop edit %s is nil", props.PropType(prop.PropType))
+		err = fmt.Errorf("Prop edit %s is nil", prop.PropType)
 		return
 	}
 
@@ -221,7 +247,7 @@ func (editor *Editor) SetProperty(prop *props.Property) (err error) {
 	}
 
 	propEdit[0].UpdateEditorAllProp(prop)
-	editor.pairs = []Pairing{{prop: prop, editor: propEdit[0]}}
+	editor.propEditPairs = []Pairing{{prop: prop, editor: propEdit[0]}}
 
 	editor.tabs.AppendPage(propEdit[0].Scroll, geoLabel)
 	editor.tabs.AppendPage(visibleBox, visibleLabel)
