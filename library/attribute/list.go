@@ -1,7 +1,7 @@
 package attribute
 
 import (
-	"chroma-viz/library/gtk_utils"
+	"chroma-viz/library/util"
 	"encoding/json"
 	"fmt"
 	"log"
@@ -83,7 +83,7 @@ func (listAttr *ListAttribute) stringRow(iter *gtk.TreeIter) (s string, err erro
 	s = listAttr.Name + "="
 
 	for j := 0; j < listAttr.NumCols-1; j++ {
-		item, err = gtk_utils.ModelGetValue[string](model, iter, j)
+		item, err = util.ModelGetValue[string](model, iter, j)
 		if err != nil {
 			return
 		}
@@ -91,7 +91,7 @@ func (listAttr *ListAttribute) stringRow(iter *gtk.TreeIter) (s string, err erro
 		s = s + item + " "
 	}
 
-	item, err = gtk_utils.ModelGetValue[string](model, iter, listAttr.NumCols-1)
+	item, err = util.ModelGetValue[string](model, iter, listAttr.NumCols-1)
 	if err != nil {
 		return
 	}
@@ -199,7 +199,7 @@ func (listAttr *ListAttribute) encodeRow(iter *gtk.TreeIter) (row []string, err 
 	model := &listAttr.ListStore.TreeModel
 
 	for j := 0; j < listAttr.NumCols; j++ {
-		row[j], err = gtk_utils.ModelGetValue[string](model, iter, j)
+		row[j], err = util.ModelGetValue[string](model, iter, j)
 		if err != nil {
 			err = fmt.Errorf("Error encoding list attr row (%s)", err)
 			return

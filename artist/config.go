@@ -2,29 +2,28 @@ package artist
 
 import (
 	"chroma-viz/hub"
-	"chroma-viz/library/config"
-	"chroma-viz/library/tcp"
+	"chroma-viz/library"
 	"log"
 )
 
 func InitialiseArtist(fileName string) {
 	var err error
-	conn = make(map[string]*tcp.Connection)
+	conn = make(map[string]*library.Connection)
 	chromaHub, err = hub.NewDataBase(10)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	conf, err = config.ImportConfig(fileName)
+	conf, err = library.ImportConfig(fileName)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	hubConn = tcp.NewConnection("Hub", conf.HubAddr, conf.HubPort)
+	hubConn = library.NewConnection("Hub", conf.HubAddr, conf.HubPort)
 	hubConn.Connect()
 
 	for _, c := range conf.Connections {
-		conn[c.Name] = tcp.NewConnection(c.Name, c.Address, c.Port)
+		conn[c.Name] = library.NewConnection(c.Name, c.Address, c.Port)
 	}
 
 }

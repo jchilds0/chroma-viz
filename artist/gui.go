@@ -2,13 +2,11 @@ package artist
 
 import (
 	"chroma-viz/hub"
-	"chroma-viz/library/config"
-	"chroma-viz/library/editor"
-	"chroma-viz/library/gtk_utils"
+	"chroma-viz/library"
 	"chroma-viz/library/pages"
 	"chroma-viz/library/props"
-	"chroma-viz/library/tcp"
 	"chroma-viz/library/templates"
+	"chroma-viz/library/util"
 	"encoding/json"
 	"log"
 	"os"
@@ -19,12 +17,12 @@ import (
 	"github.com/gotk3/gotk3/gtk"
 )
 
-var conn map[string]*tcp.Connection
-var conf *config.Config
+var conn map[string]*library.Connection
+var conf *library.Config
 var chromaHub *hub.DataBase
-var hubConn *tcp.Connection
+var hubConn *library.Connection
 
-func SendPreview(page tcp.Animator, action int) {
+func SendPreview(page library.Animator, action int) {
 	if page == nil {
 		log.Println("SendPreview recieved nil page")
 		return
@@ -53,7 +51,7 @@ func ArtistGui(app *gtk.Application) {
 	win.SetDefaultSize(800, 600)
 	win.SetTitle("Chroma Artist")
 
-	editView, err := editor.NewEditor()
+	editView, err := library.NewEditor()
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -87,9 +85,9 @@ func ArtistGui(app *gtk.Application) {
 		editView.CurrentPage = page
 		editView.UpdateProps()
 
-		SendPreview(editView.CurrentPage, tcp.UPDATE)
+		SendPreview(editView.CurrentPage, library.UPDATE)
 		time.Sleep(50 * time.Millisecond)
-		SendPreview(editView.CurrentPage, tcp.ANIMATE_ON)
+		SendPreview(editView.CurrentPage, library.ANIMATE_ON)
 	})
 
 	editView.PropertyEditor()
@@ -135,87 +133,87 @@ func ArtistGui(app *gtk.Application) {
 		log.Fatal(err)
 	}
 
-	body, err := gtk_utils.BuilderGetObject[*gtk.Paned](builder, "body")
+	body, err := util.BuilderGetObject[*gtk.Paned](builder, "body")
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	box.PackStart(body, true, true, 0)
 
-	titleEntry, err = gtk_utils.BuilderGetObject[*gtk.Entry](builder, "title")
+	titleEntry, err = util.BuilderGetObject[*gtk.Entry](builder, "title")
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	tempIDEntry, err = gtk_utils.BuilderGetObject[*gtk.Entry](builder, "tempid")
+	tempIDEntry, err = util.BuilderGetObject[*gtk.Entry](builder, "tempid")
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	layerEntry, err = gtk_utils.BuilderGetObject[*gtk.Entry](builder, "layer")
+	layerEntry, err = util.BuilderGetObject[*gtk.Entry](builder, "layer")
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	geoSelector, err := gtk_utils.BuilderGetObject[*gtk.ComboBox](builder, "geo-selector")
+	geoSelector, err := util.BuilderGetObject[*gtk.ComboBox](builder, "geo-selector")
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	geoSelectorModel(geoSelector)
 
-	addGeo, err := gtk_utils.BuilderGetObject[*gtk.Button](builder, "add-geo")
+	addGeo, err := util.BuilderGetObject[*gtk.Button](builder, "add-geo")
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	removeGeo, err := gtk_utils.BuilderGetObject[*gtk.Button](builder, "remove-geo")
+	removeGeo, err := util.BuilderGetObject[*gtk.Button](builder, "remove-geo")
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	geoScroll, err := gtk_utils.BuilderGetObject[*gtk.ScrolledWindow](builder, "geo-win")
+	geoScroll, err := util.BuilderGetObject[*gtk.ScrolledWindow](builder, "geo-win")
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	geoScroll.Add(tempView.geoView)
 
-	keyScroll, err := gtk_utils.BuilderGetObject[*gtk.ScrolledWindow](builder, "key-win")
+	keyScroll, err := util.BuilderGetObject[*gtk.ScrolledWindow](builder, "key-win")
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	keyScroll.Add(tempView.keyView)
 
-	keyGeo, err := gtk_utils.BuilderGetObject[*gtk.ComboBox](builder, "key-geo")
+	keyGeo, err := util.BuilderGetObject[*gtk.ComboBox](builder, "key-geo")
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	keyAttr, err := gtk_utils.BuilderGetObject[*gtk.ComboBoxText](builder, "key-attr")
+	keyAttr, err := util.BuilderGetObject[*gtk.ComboBoxText](builder, "key-attr")
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	addKey, err := gtk_utils.BuilderGetObject[*gtk.Button](builder, "add-key")
+	addKey, err := util.BuilderGetObject[*gtk.Button](builder, "add-key")
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	removeKey, err := gtk_utils.BuilderGetObject[*gtk.Button](builder, "remove-key")
+	removeKey, err := util.BuilderGetObject[*gtk.Button](builder, "remove-key")
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	editBox, err := gtk_utils.BuilderGetObject[*gtk.Box](builder, "edit")
+	editBox, err := util.BuilderGetObject[*gtk.Box](builder, "edit")
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	editBox.PackStart(editView.Box, true, true, 0)
 
-	prevBox, err := gtk_utils.BuilderGetObject[*gtk.Box](builder, "preview")
+	prevBox, err := util.BuilderGetObject[*gtk.Box](builder, "preview")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -233,7 +231,7 @@ func ArtistGui(app *gtk.Application) {
 		tempIDEntry.SetText("")
 		layerEntry.SetText("")
 
-		SendPreview(editView.CurrentPage, tcp.UPDATE)
+		SendPreview(editView.CurrentPage, library.UPDATE)
 	})
 
 	importTemplateJSON.Connect("activate", func() {
@@ -284,7 +282,7 @@ func ArtistGui(app *gtk.Application) {
 				return
 			}
 
-			tempID, err := gtk_utils.ModelGetValue[int](dialog.treeList.ToTreeModel(), iter, 1)
+			tempID, err := util.ModelGetValue[int](dialog.treeList.ToTreeModel(), iter, 1)
 
 			template, err := templates.GetTemplate(hubConn.Conn, tempID)
 			if err != nil {
@@ -378,7 +376,7 @@ func ArtistGui(app *gtk.Application) {
 			return
 		}
 
-		propType, err := gtk_utils.ModelGetValue[string](model.ToTreeModel(), iter, 0)
+		propType, err := util.ModelGetValue[string](model.ToTreeModel(), iter, 0)
 		if err != nil {
 			log.Printf("Error getting geometry model: %s", err)
 			return
@@ -408,7 +406,7 @@ func ArtistGui(app *gtk.Application) {
 		}
 
 		model := tempView.geoModel.ToTreeModel()
-		geoID, err := gtk_utils.ModelGetValue[int](model, iter, GEO_NUM)
+		geoID, err := util.ModelGetValue[int](model, iter, GEO_NUM)
 		if err != nil {
 			log.Printf("Error getting prop id (%s)", err)
 			return
@@ -437,7 +435,7 @@ func ArtistGui(app *gtk.Application) {
 			return
 		}
 
-		geoID, err := gtk_utils.ModelGetValue[int](tempView.geoList.ToTreeModel(), iter, GEO_NUM)
+		geoID, err := util.ModelGetValue[int](tempView.geoList.ToTreeModel(), iter, GEO_NUM)
 		if err != nil {
 			log.Printf("Error getting geo id (%s)", err)
 			return
@@ -459,13 +457,13 @@ func ArtistGui(app *gtk.Application) {
 
 		model := tempView.geoList.ToTreeModel()
 
-		geo, err := gtk_utils.ModelGetValue[string](model, iter, GEO_NAME)
+		geo, err := util.ModelGetValue[string](model, iter, GEO_NAME)
 		if err != nil {
 			log.Printf("Error getting geo name (%s)", err)
 			return
 		}
 
-		geoID, err := gtk_utils.ModelGetValue[int](model, iter, GEO_NUM)
+		geoID, err := util.ModelGetValue[int](model, iter, GEO_NUM)
 		if err != nil {
 			log.Printf("Error getting geo id (%s)", err)
 			return
@@ -509,9 +507,9 @@ func ArtistGui(app *gtk.Application) {
 	button.SetLabel("Exit")
 	button.Connect("clicked", func() { gtk.MainQuit() })
 
-	for name, render := range conn {
-		eng := NewEngineWidget(name, render)
-		lowerBox.PackStart(eng.button)
+	for _, render := range conn {
+		eng := library.NewEngineWidget(render)
+		lowerBox.PackStart(eng.Button)
 	}
 
 	win.ShowAll()

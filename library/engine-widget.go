@@ -1,7 +1,6 @@
-package artist
+package library
 
 import (
-	"chroma-viz/library/tcp"
 	"log"
 
 	"github.com/gotk3/gotk3/cairo"
@@ -14,15 +13,15 @@ const (
 )
 
 type EngineWidget struct {
-	button *gtk.Button
-	conn   *tcp.Connection
+	Button *gtk.Button
+	conn   *Connection
 }
 
-func NewEngineWidget(name string, conn *tcp.Connection) *EngineWidget {
+func NewEngineWidget(conn *Connection) *EngineWidget {
 	var err error
 	eng := &EngineWidget{conn: conn}
 
-	eng.button, err = gtk.ButtonNew()
+	eng.Button, err = gtk.ButtonNew()
 	if err != nil {
 		log.Fatalf("Error creating engine widget (%s)", err)
 	}
@@ -32,9 +31,9 @@ func NewEngineWidget(name string, conn *tcp.Connection) *EngineWidget {
 		log.Fatalf("Error creating engine widget (%s)", err)
 	}
 
-	eng.button.Add(box)
+	eng.Button.Add(box)
 
-	label, err := gtk.LabelNew(name + " ")
+	label, err := gtk.LabelNew(conn.Name + " ")
 	if err != nil {
 		log.Fatalf("Error creating engine widget (%s)", err)
 	}
@@ -48,7 +47,7 @@ func NewEngineWidget(name string, conn *tcp.Connection) *EngineWidget {
 
 	box.PackStart(area, true, true, 0)
 
-	eng.button.Connect("clicked", func() {
+	eng.Button.Connect("clicked", func() {
 		if !eng.conn.IsConnected() {
 			eng.conn.Connect()
 			go eng.conn.Watcher(func() { area.QueueDraw() })
@@ -70,7 +69,7 @@ func NewEngineWidget(name string, conn *tcp.Connection) *EngineWidget {
 			cr.Fill()
 		})
 
-	eng.button.QueueDraw()
+	eng.Button.QueueDraw()
 
 	return eng
 }

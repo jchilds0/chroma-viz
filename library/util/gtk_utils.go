@@ -1,4 +1,4 @@
-package gtk_utils
+package util
 
 import (
 	"fmt"

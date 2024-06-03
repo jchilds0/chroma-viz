@@ -1,9 +1,8 @@
-package editor
+package library
 
 import (
 	"chroma-viz/library/pages"
 	"chroma-viz/library/props"
-	"chroma-viz/library/tcp"
 	"fmt"
 
 	"github.com/gotk3/gotk3/gtk"
@@ -23,7 +22,7 @@ type Editor struct {
 	Box            *gtk.Box
 	tabs           *gtk.Notebook
 	actions        *gtk.Box
-	CurrentPage    tcp.Animator
+	CurrentPage    *pages.Page
 	propEditPairs  []Pairing
 	propertyEditor map[string][]*props.PropertyEditor
 }

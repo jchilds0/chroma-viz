@@ -1,4 +1,4 @@
-package tcp
+package library
 
 import (
 	"chroma-viz/library/props"

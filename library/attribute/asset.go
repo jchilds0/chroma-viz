@@ -2,7 +2,7 @@ package attribute
 
 import (
 	"bufio"
-	"chroma-viz/library/gtk_utils"
+	"chroma-viz/library/util"
 	"encoding/json"
 	"fmt"
 	"net"
@@ -125,7 +125,7 @@ func (asset *AssetAttribute) Update(edit Editor) (err error) {
 	selection, err = assetEdit.assets.GetSelection()
 	_, selected, _ := selection.GetSelected()
 
-	asset.Value, err = gtk_utils.ModelGetValue[int](assetEdit.assetsStore.ToTreeModel(), selected, IMAGE_ID)
+	asset.Value, err = util.ModelGetValue[int](assetEdit.assetsStore.ToTreeModel(), selected, IMAGE_ID)
 	return err
 }
 
@@ -248,7 +248,7 @@ func (asset *AssetEditor) GetAssets(iter *gtk.TreeIter) *assetNode {
 		parentNode = rootNode
 	}
 
-	name, _ := gtk_utils.ModelGetValue[string](asset.dirsStore.ToTreeModel(), iter, 0)
+	name, _ := util.ModelGetValue[string](asset.dirsStore.ToTreeModel(), iter, 0)
 	return parentNode.childNodes[name]
 }
 

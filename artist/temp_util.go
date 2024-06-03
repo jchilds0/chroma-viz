@@ -2,9 +2,9 @@ package artist
 
 import (
 	"chroma-viz/library/attribute"
-	"chroma-viz/library/gtk_utils"
 	"chroma-viz/library/pages"
 	"chroma-viz/library/templates"
+	"chroma-viz/library/util"
 	"log"
 	"strconv"
 
@@ -31,7 +31,7 @@ func artistPageToTemplate(page pages.Page, tempView *TempTree, tempID, title, la
 func updateParentGeometry(page *pages.Page, model *gtk.TreeModel, iter *gtk.TreeIter, parentID int) {
 	ok := true
 	for ok {
-		geoID, err := gtk_utils.ModelGetValue[int](model, iter, GEO_NUM)
+		geoID, err := util.ModelGetValue[int](model, iter, GEO_NUM)
 		if err != nil {
 			log.Print("Error getting prop id")
 			ok = model.IterNext(iter)

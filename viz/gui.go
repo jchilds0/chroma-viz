@@ -1,12 +1,11 @@
 package viz
 
 import (
+	"chroma-viz/library"
 	"chroma-viz/library/attribute"
-	"chroma-viz/library/editor"
-	"chroma-viz/library/gtk_utils"
 	"chroma-viz/library/pages"
-	"chroma-viz/library/tcp"
 	"chroma-viz/library/templates"
+	"chroma-viz/library/util"
 	"fmt"
 	"log"
 	"net"
@@ -19,20 +18,20 @@ import (
 var conn *GuiConn = NewGuiConn()
 
 type GuiConn struct {
-	hub  *tcp.Connection
-	eng  []*tcp.Connection
-	prev []*tcp.Connection
+	hub  *library.Connection
+	eng  []*library.Connection
+	prev []*library.Connection
 }
 
 func NewGuiConn() *GuiConn {
 	gui := &GuiConn{}
-	gui.eng = make([]*tcp.Connection, 0, 10)
-	gui.prev = make([]*tcp.Connection, 0, 10)
+	gui.eng = make([]*library.Connection, 0, 10)
+	gui.prev = make([]*library.Connection, 0, 10)
 
 	return gui
 }
 
-func SendPreview(page tcp.Animator, action int) {
+func SendPreview(page library.Animator, action int) {
 	if page == nil {
 		log.Println("SendPreview recieved nil page")
 		return
@@ -48,7 +47,7 @@ func SendPreview(page tcp.Animator, action int) {
 	}
 }
 
-func SendEngine(page tcp.Animator, action int) {
+func SendEngine(page library.Animator, action int) {
 	if page == nil {
 		log.Println("SendEngine recieved nil page")
 		return
@@ -99,7 +98,7 @@ func VizGui(app *gtk.Application) {
 	elapsed := end.Sub(start)
 	log.Printf("Imported Assets in %s", elapsed)
 
-	edit, err := editor.NewEditor()
+	edit, err := library.NewEditor()
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -116,12 +115,12 @@ func VizGui(app *gtk.Application) {
 		showTree.ImportPage(page)
 	})
 
-	edit.AddAction("Take On", true, func() { SendEngine(edit.CurrentPage, tcp.ANIMATE_ON) })
-	edit.AddAction("Continue", true, func() { SendEngine(edit.CurrentPage, tcp.CONTINUE) })
-	edit.AddAction("Take Off", true, func() { SendEngine(edit.CurrentPage, tcp.ANIMATE_OFF) })
+	edit.AddAction("Take On", true, func() { SendEngine(edit.CurrentPage, library.ANIMATE_ON) })
+	edit.AddAction("Continue", true, func() { SendEngine(edit.CurrentPage, library.CONTINUE) })
+	edit.AddAction("Take Off", true, func() { SendEngine(edit.CurrentPage, library.ANIMATE_OFF) })
 	edit.AddAction("Save", false, func() {
 		edit.UpdateProps()
-		SendPreview(edit.CurrentPage, tcp.ANIMATE_ON)
+		SendPreview(edit.CurrentPage, library.ANIMATE_ON)
 	})
 	edit.PageEditor()
 
@@ -203,35 +202,35 @@ func VizGui(app *gtk.Application) {
 		log.Fatal(err)
 	}
 
-	body, err := gtk_utils.BuilderGetObject[*gtk.Paned](builder, "body")
+	body, err := util.BuilderGetObject[*gtk.Paned](builder, "body")
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	box.PackStart(body, true, true, 0)
 
-	tempScroll, err := gtk_utils.BuilderGetObject[*gtk.ScrolledWindow](builder, "templates-win")
+	tempScroll, err := util.BuilderGetObject[*gtk.ScrolledWindow](builder, "templates-win")
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	tempScroll.Add(tempTree.treeView)
 
-	showScroll, err := gtk_utils.BuilderGetObject[*gtk.ScrolledWindow](builder, "show-win")
+	showScroll, err := util.BuilderGetObject[*gtk.ScrolledWindow](builder, "show-win")
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	showScroll.Add(showTree.treeView)
 
-	editBox, err := gtk_utils.BuilderGetObject[*gtk.Box](builder, "edit")
+	editBox, err := util.BuilderGetObject[*gtk.Box](builder, "edit")
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	editBox.PackStart(edit.Box, true, true, 0)
 
-	prevBox, err := gtk_utils.BuilderGetObject[*gtk.Box](builder, "preview")
+	prevBox, err := util.BuilderGetObject[*gtk.Box](builder, "preview")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -260,8 +259,8 @@ func VizGui(app *gtk.Application) {
 			continue
 		}
 
-		eng := NewEngineWidget(c)
-		lowerBox.PackStart(eng.button)
+		eng := library.NewEngineWidget(c)
+		lowerBox.PackStart(eng.Button)
 	}
 
 	for _, c := range conn.prev {
@@ -269,8 +268,8 @@ func VizGui(app *gtk.Application) {
 			continue
 		}
 
-		eng := NewEngineWidget(c)
-		lowerBox.PackStart(eng.button)
+		eng := library.NewEngineWidget(c)
+		lowerBox.PackStart(eng.Button)
 	}
 
 	win.ShowAll()
@@ -351,12 +350,12 @@ func guiExportPage(win *gtk.ApplicationWindow, showTree *ShowTree) error {
 	}
 
 	model := &showTree.treeList.TreeModel
-	title, err := gtk_utils.ModelGetValue[string](model, iter, TITLE)
+	title, err := util.ModelGetValue[string](model, iter, TITLE)
 	if err != nil {
 		return err
 	}
 
-	pageNum, err := gtk_utils.ModelGetValue[int](model, iter, PAGENUM)
+	pageNum, err := util.ModelGetValue[int](model, iter, PAGENUM)
 	if err != nil {
 		return err
 	}
@@ -400,7 +399,7 @@ func guiDeletePage(show *ShowTree) error {
 	}
 
 	model := &show.treeList.TreeModel
-	pageNum, err := gtk_utils.ModelGetValue[int](model, iter, PAGENUM)
+	pageNum, err := util.ModelGetValue[int](model, iter, PAGENUM)
 	if err != nil {
 		return err
 	}

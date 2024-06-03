@@ -2,7 +2,7 @@ package viz
 
 import (
 	"bufio"
-	"chroma-viz/library/gtk_utils"
+	"chroma-viz/library/util"
 	"fmt"
 	"log"
 	"net"
@@ -70,7 +70,7 @@ func NewTempTree(templateToShow func(int)) *TempTree {
 			}
 
 			model := &temp.treeList.TreeModel
-			tempID, err := gtk_utils.ModelGetValue[int](model, iter, 1)
+			tempID, err := util.ModelGetValue[int](model, iter, 1)
 			if err != nil {
 				log.Fatalf("Error sending template to show (%s)", err)
 			}

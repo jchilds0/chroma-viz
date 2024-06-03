@@ -1,11 +1,11 @@
 package viz
 
 import (
+	"chroma-viz/library"
 	"chroma-viz/library/attribute"
-	"chroma-viz/library/gtk_utils"
 	"chroma-viz/library/pages"
 	"chroma-viz/library/props"
-	"chroma-viz/library/tcp"
+	"chroma-viz/library/util"
 	"log"
 
 	"github.com/gotk3/gotk3/glib"
@@ -70,7 +70,7 @@ func NewShowTree(pageToEditor func(*pages.Page)) *ShowTree {
 					}
 
 					model := &showTree.treeList.TreeModel
-					pageNum, err := gtk_utils.ModelGetValue[int](model, iter, PAGENUM)
+					pageNum, err := util.ModelGetValue[int](model, iter, PAGENUM)
 					if err != nil {
 						log.Printf("Error editing page (%s)", err)
 						return
@@ -123,14 +123,14 @@ func NewShowTree(pageToEditor func(*pages.Page)) *ShowTree {
 			}
 
 			model := &showTree.treeList.TreeModel
-			pageNum, err := gtk_utils.ModelGetValue[int](model, iter, PAGENUM)
+			pageNum, err := util.ModelGetValue[int](model, iter, PAGENUM)
 			if err != nil {
 				log.Printf("Error editing page (%s)", err)
 				return
 			}
 
 			pageToEditor(showTree.show.Pages[pageNum])
-			SendPreview(showTree.show.Pages[pageNum], tcp.ANIMATE_ON)
+			SendPreview(showTree.show.Pages[pageNum], library.ANIMATE_ON)
 		})
 
 	return showTree
@@ -164,7 +164,7 @@ func (showTree *ShowTree) ImportPage(page *pages.Page) {
 			continue
 		}
 
-		clockAttr.SetClock(func() { SendEngine(page, tcp.CONTINUE) })
+		clockAttr.SetClock(func() { SendEngine(page, library.CONTINUE) })
 	}
 
 	showTree.treeList.Set(

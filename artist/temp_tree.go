@@ -1,10 +1,10 @@
 package artist
 
 import (
-	"chroma-viz/library/gtk_utils"
 	"chroma-viz/library/pages"
 	"chroma-viz/library/props"
 	"chroma-viz/library/templates"
+	"chroma-viz/library/util"
 	"log"
 	"strconv"
 
@@ -91,7 +91,7 @@ func (temp *TempTree) createGeometryTree(propToEditor func(propID int)) (err err
 		}
 
 		model := temp.geoModel.ToTreeModel()
-		geoID, err := gtk_utils.ModelGetValue[int](model, iter, GEO_NUM)
+		geoID, err := util.ModelGetValue[int](model, iter, GEO_NUM)
 		if err != nil {
 			log.Printf("Error editing geometry (%s)", err)
 			return
@@ -144,7 +144,7 @@ func (temp *TempTree) createGeometryTree(propToEditor func(propID int)) (err err
 			}
 
 			model := &temp.geoModel.TreeModel
-			propID, err := gtk_utils.ModelGetValue[int](model, iter, GEO_NUM)
+			propID, err := util.ModelGetValue[int](model, iter, GEO_NUM)
 			if err != nil {
 				log.Printf("Error sending prop to editor (%s)", err)
 				return
@@ -322,7 +322,7 @@ func (temp *TempTree) createKeyTree() (err error) {
 
 					model := temp.keyModel.ToTreeModel()
 
-					state, err := gtk_utils.ModelGetValue[bool](model, iter, cols[i])
+					state, err := util.ModelGetValue[bool](model, iter, cols[i])
 					if err != nil {
 						log.Printf("Error toggling toggle (%s)", err)
 						return
@@ -400,7 +400,7 @@ func (tempView *TempTree) updateGeometry(geoID int, name string) {
 	model := tempView.geoList.ToTreeModel()
 
 	for ok {
-		currentID, err := gtk_utils.ModelGetValue[int](model, iter, GEO_NUM)
+		currentID, err := util.ModelGetValue[int](model, iter, GEO_NUM)
 		if err != nil {
 			log.Printf("Error getting geometry (%s)", err)
 			ok = model.IterNext(iter)
@@ -420,7 +420,7 @@ func (tempView *TempTree) removeGeometry(geoID int) {
 	model := tempView.geoList.ToTreeModel()
 
 	for ok {
-		currentID, err := gtk_utils.ModelGetValue[int](model, iter, GEO_NUM)
+		currentID, err := util.ModelGetValue[int](model, iter, GEO_NUM)
 		if err != nil {
 			log.Printf("Error getting geometry (%s)", err)
 			ok = tempView.geoList.IterNext(iter)
@@ -441,7 +441,7 @@ func (tempView *TempTree) updateKeys(geoID int, name string) {
 	model := tempView.keyModel.ToTreeModel()
 
 	for ok {
-		currentID, err := gtk_utils.ModelGetValue[int](model, iter, FRAME_GEOMETRY_ID)
+		currentID, err := util.ModelGetValue[int](model, iter, FRAME_GEOMETRY_ID)
 		if err != nil {
 			log.Printf("Error getting keyframe geo id (%s)", err)
 			ok = model.IterNext(iter)
@@ -461,7 +461,7 @@ func (tempView *TempTree) removeKeys(geoID int) {
 	model := tempView.keyModel.ToTreeModel()
 
 	for ok {
-		currentID, err := gtk_utils.ModelGetValue[int](model, iter, FRAME_GEOMETRY_ID)
+		currentID, err := util.ModelGetValue[int](model, iter, FRAME_GEOMETRY_ID)
 		if err != nil {
 			log.Printf("Error getting keyframe geo id (%s)", err)
 			ok = tempView.keyModel.IterNext(iter)
@@ -490,7 +490,7 @@ func (tempView *TempTree) keyframes(temp *templates.Template) {
 			goto ERROR
 		}
 
-		user, err = gtk_utils.ModelGetValue[bool](keyModel, iter, FRAME_USER_VALUE)
+		user, err = util.ModelGetValue[bool](keyModel, iter, FRAME_USER_VALUE)
 		if err != nil {
 			goto ERROR
 		}
@@ -503,17 +503,17 @@ func (tempView *TempTree) keyframes(temp *templates.Template) {
 			continue
 		}
 
-		bindFrame, err = gtk_utils.ModelGetValue[string](keyModel, iter, FRAME_BIND_FRAME)
+		bindFrame, err = util.ModelGetValue[string](keyModel, iter, FRAME_BIND_FRAME)
 		if err != nil {
 			goto ERROR
 		}
 
-		bindGeo, err = gtk_utils.ModelGetValue[string](keyModel, iter, FRAME_BIND_GEO)
+		bindGeo, err = util.ModelGetValue[string](keyModel, iter, FRAME_BIND_GEO)
 		if err != nil {
 			goto ERROR
 		}
 
-		bindAttr, err = gtk_utils.ModelGetValue[string](keyModel, iter, FRAME_BIND_ATTR)
+		bindAttr, err = util.ModelGetValue[string](keyModel, iter, FRAME_BIND_ATTR)
 		if err != nil {
 			goto ERROR
 		}
@@ -532,7 +532,7 @@ func (tempView *TempTree) keyframes(temp *templates.Template) {
 
 		{
 			var value int
-			value, err = gtk_utils.ModelGetValue[int](keyModel, iter, FRAME_VALUE)
+			value, err = util.ModelGetValue[int](keyModel, iter, FRAME_VALUE)
 			keyframe := templates.NewSetFrame(frame, value)
 
 			temp.SetFrame = append(temp.SetFrame, *keyframe)
@@ -550,27 +550,27 @@ func (tempView *TempTree) keyframes(temp *templates.Template) {
 func (tempView *TempTree) getKeyframe(iter *gtk.TreeIter) (frame templates.Keyframe, err error) {
 	keyModel := tempView.keyModel.ToTreeModel()
 
-	frame.FrameNum, err = gtk_utils.ModelGetValue[int](keyModel, iter, FRAME_NUM)
+	frame.FrameNum, err = util.ModelGetValue[int](keyModel, iter, FRAME_NUM)
 	if err != nil {
 		return
 	}
 
-	frame.GeoID, err = gtk_utils.ModelGetValue[int](keyModel, iter, FRAME_GEOMETRY_ID)
+	frame.GeoID, err = util.ModelGetValue[int](keyModel, iter, FRAME_GEOMETRY_ID)
 	if err != nil {
 		return
 	}
 
-	frame.GeoAttr, err = gtk_utils.ModelGetValue[string](keyModel, iter, FRAME_ATTR)
+	frame.GeoAttr, err = util.ModelGetValue[string](keyModel, iter, FRAME_ATTR)
 	if err != nil {
 		return
 	}
 
-	frame.Mask, err = gtk_utils.ModelGetValue[bool](keyModel, iter, FRAME_MASK)
+	frame.Mask, err = util.ModelGetValue[bool](keyModel, iter, FRAME_MASK)
 	if err != nil {
 		return
 	}
 
-	frame.Expand, err = gtk_utils.ModelGetValue[bool](keyModel, iter, FRAME_EXPAND)
+	frame.Expand, err = util.ModelGetValue[bool](keyModel, iter, FRAME_EXPAND)
 	if err != nil {
 		return
 	}

@@ -1,20 +1,19 @@
 package viz
 
 import (
-	"chroma-viz/library/config"
-	"chroma-viz/library/tcp"
+	"chroma-viz/library"
 	"fmt"
 	"log"
 )
 
-var conf *config.Config
+var conf *library.Config
 
 func AddConnection(name, conn_type, ip string, port int) error {
 	if conn_type == "engine" {
-		conn.eng = append(conn.eng, tcp.NewConnection(name, ip, port))
+		conn.eng = append(conn.eng, library.NewConnection(name, ip, port))
 		return nil
 	} else if conn_type == "preview" {
-		conn.prev = append(conn.prev, tcp.NewConnection(name, ip, port))
+		conn.prev = append(conn.prev, library.NewConnection(name, ip, port))
 		return nil
 	}
 
@@ -23,12 +22,12 @@ func AddConnection(name, conn_type, ip string, port int) error {
 
 func InitialiseViz(configFile string) {
 	var err error
-	conf, err = config.ImportConfig(configFile)
+	conf, err = library.ImportConfig(configFile)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	conn.hub = tcp.NewConnection("Hub", conf.HubAddr, conf.HubPort)
+	conn.hub = library.NewConnection("Hub", conf.HubAddr, conf.HubPort)
 	conn.hub.Connect()
 
 	for _, c := range conf.Connections {
