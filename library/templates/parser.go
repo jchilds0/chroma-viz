@@ -138,8 +138,14 @@ func parseKeyframe(temp *Template, buf *bufio.Reader) {
 
 	keyframe := NewKeyFrame(frameNum, geoID, data["frame_attr"], mask, expand)
 
-	switch keyframe.Type {
-	case BIND_FRAME:
+	if data["user_frame"] == "true" {
+		frame := NewUserFrame(*keyframe)
+		temp.UserFrame = append(temp.UserFrame, *frame)
+	} else if _, ok := data["value"]; ok {
+		value, _ := strconv.Atoi(data["value"])
+		frame := NewSetFrame(*keyframe, value)
+		temp.SetFrame = append(temp.SetFrame, *frame)
+	} else {
 		bindNum, _ := strconv.Atoi(data["bind_frame"])
 		bindGeo, _ := strconv.Atoi(data["bind_geo"])
 
@@ -147,17 +153,6 @@ func parseKeyframe(temp *Template, buf *bufio.Reader) {
 		frame := NewBindFrame(*keyframe, *bind)
 
 		temp.BindFrame = append(temp.BindFrame, *frame)
-
-	case USER_FRAME:
-		frame := NewUserFrame(*keyframe)
-
-		temp.UserFrame = append(temp.UserFrame, *frame)
-
-	case SET_FRAME:
-		value, _ := strconv.Atoi(data["value"])
-		frame := NewSetFrame(*keyframe, value)
-		temp.SetFrame = append(temp.SetFrame, *frame)
-
 	}
 
 	return

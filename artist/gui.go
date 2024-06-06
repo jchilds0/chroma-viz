@@ -33,6 +33,10 @@ func SendPreview(page library.Animator, action int) {
 			continue
 		}
 
+		if !c.IsConnected() {
+			continue
+		}
+
 		c.SetPage <- page
 		c.SetAction <- action
 	}
@@ -309,7 +313,7 @@ func ArtistGui(app *gtk.Application) {
 		if res == gtk.RESPONSE_ACCEPT {
 			filename := dialog.GetFilename()
 
-			template, err := exportPage(tempView, tempIDEntry, titleEntry, layerEntry)
+			template, err := exportPage(tempView, titleEntry, tempIDEntry, layerEntry)
 			if err != nil {
 				log.Printf("Error exporting template (%s)", err)
 			}
@@ -585,7 +589,11 @@ func importPage(temp *templates.Template, tempView *TempTree, titleEntry, tempID
 
 	tempView.Clean()
 	geometryToTreeView(page, tempView, nil, 0)
-	tempView.addKeyframes(page, temp)
+	tempView.addKeyframes(temp)
+
+	for id, geo := range page.PropMap {
+		tempView.updateKeys(id, geo.Name)
+	}
 
 	// set temp switch to true to send all props to chroma engine
 	for _, geo := range page.PropMap {

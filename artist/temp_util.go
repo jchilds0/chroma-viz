@@ -29,12 +29,13 @@ func artistPageToTemplate(page pages.Page, tempView *TempTree, tempID, title, la
 }
 
 func updateParentGeometry(page *pages.Page, model *gtk.TreeModel, iter *gtk.TreeIter, parentID int) {
-	ok := true
-	for ok {
+	nextIterExists := true
+
+	for nextIterExists {
 		geoID, err := util.ModelGetValue[int](model, iter, GEO_NUM)
 		if err != nil {
 			log.Print("Error getting prop id")
-			ok = model.IterNext(iter)
+			nextIterExists = model.IterNext(iter)
 			continue
 		}
 
@@ -57,7 +58,7 @@ func updateParentGeometry(page *pages.Page, model *gtk.TreeModel, iter *gtk.Tree
 			updateParentGeometry(page, model, &childIter, geoID)
 		}
 
-		ok = model.IterNext(iter)
+		nextIterExists = model.IterNext(iter)
 	}
 }
 

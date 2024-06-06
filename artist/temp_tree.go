@@ -1,8 +1,6 @@
 package artist
 
 import (
-	"chroma-viz/library/pages"
-	"chroma-viz/library/props"
 	"chroma-viz/library/templates"
 	"chroma-viz/library/util"
 	"log"
@@ -578,28 +576,16 @@ func (tempView *TempTree) getKeyframe(iter *gtk.TreeIter) (frame templates.Keyfr
 	return
 }
 
-func (tempView *TempTree) addKeyframes(page *pages.Page, temp *templates.Template) {
+func (tempView *TempTree) addKeyframes(temp *templates.Template) {
 	for _, frame := range temp.UserFrame {
-		geo := page.PropMap[frame.GeoID]
-		if geo == nil {
-			log.Printf("Missing geometry %d for userframe", frame.FrameNum)
-			continue
-		}
-
 		iter := tempView.keyModel.Append(nil)
-		tempView.updateBaseKeyframe(iter, frame.Key(), geo)
+		tempView.updateBaseKeyframe(iter, frame.Key())
 		tempView.keyModel.SetValue(iter, FRAME_USER_VALUE, true)
 	}
 
 	for _, frame := range temp.BindFrame {
-		geo := page.PropMap[frame.GeoID]
-		if geo == nil {
-			log.Printf("Missing geometry %d for bindframe", frame.FrameNum)
-			continue
-		}
-
 		iter := tempView.keyModel.Append(nil)
-		tempView.updateBaseKeyframe(iter, frame.Key(), geo)
+		tempView.updateBaseKeyframe(iter, frame.Key())
 
 		tempView.keyModel.SetValue(iter, FRAME_BIND_FRAME, frame.Bind.FrameNum)
 		tempView.keyModel.SetValue(iter, FRAME_BIND_GEO, frame.Bind.GeoID)
@@ -607,27 +593,19 @@ func (tempView *TempTree) addKeyframes(page *pages.Page, temp *templates.Templat
 	}
 
 	for _, frame := range temp.SetFrame {
-		geo := page.PropMap[frame.GeoID]
-		if geo == nil {
-			log.Printf("Missing geometry %d for setframe", frame.FrameNum)
-			continue
-		}
-
 		iter := tempView.keyModel.Append(nil)
-		tempView.updateBaseKeyframe(iter, frame.Key(), geo)
+		tempView.updateBaseKeyframe(iter, frame.Key())
 
 		tempView.keyModel.SetValue(iter, FRAME_VALUE, frame.Value)
 	}
 }
 
-func (tempView *TempTree) updateBaseKeyframe(iter *gtk.TreeIter, frame *templates.Keyframe, geo *props.Property) {
+func (tempView *TempTree) updateBaseKeyframe(iter *gtk.TreeIter, frame *templates.Keyframe) {
 	tempView.keyModel.SetValue(iter, FRAME_NUM, frame.FrameNum)
-	tempView.keyModel.SetValue(iter, FRAME_GEOMETRY, geo.Name)
 	tempView.keyModel.SetValue(iter, FRAME_GEOMETRY_ID, frame.GeoID)
 	tempView.keyModel.SetValue(iter, FRAME_ATTR, frame.GeoAttr)
 	tempView.keyModel.SetValue(iter, FRAME_MASK, frame.Mask)
 	tempView.keyModel.SetValue(iter, FRAME_EXPAND, frame.Expand)
-
 }
 
 func (tempView *TempTree) AddGeoRow(iter *gtk.TreeIter, name, propName string, propNum int) {
@@ -649,32 +627,6 @@ func (tempView *TempTree) AddKeyRow(iter *gtk.TreeIter, geoName string, geoID in
 }
 
 func (tempView *TempTree) Clean() {
-	var err error
-	tempView.geoModel, err = gtk.TreeStoreNew(glib.TYPE_STRING, glib.TYPE_STRING, glib.TYPE_INT)
-	if err != nil {
-		log.Print(err)
-		return
-	}
-
-	tempView.geoView.SetModel(tempView.geoModel)
-
-	tempView.keyModel, err = gtk.TreeStoreNew(
-		glib.TYPE_INT,
-		glib.TYPE_STRING,
-		glib.TYPE_INT,
-		glib.TYPE_STRING,
-		glib.TYPE_INT,
-		glib.TYPE_INT,
-		glib.TYPE_BOOLEAN,
-		glib.TYPE_BOOLEAN,
-		glib.TYPE_BOOLEAN,
-		glib.TYPE_STRING,
-		glib.TYPE_STRING,
-		glib.TYPE_STRING,
-	)
-	if err != nil {
-		return
-	}
-
-	tempView.keyView.SetModel(tempView.keyModel)
+	tempView.geoModel.Clear()
+	tempView.keyModel.Clear()
 }

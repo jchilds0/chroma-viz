@@ -100,9 +100,6 @@ func TextToBuffer(text string) (textView *gtk.TextView, err error) {
 func (temp *Template) Encode() (s string, err error) {
 	var b strings.Builder
 
-	num_geo := len(temp.Rectangle) + len(temp.Circle) + len(temp.Text)
-	num_key := len(temp.BindFrame) + len(temp.UserFrame) + len(temp.SetFrame)
-
 	b.WriteString("{")
 
 	b.WriteString("'id': ")
@@ -110,11 +107,11 @@ func (temp *Template) Encode() (s string, err error) {
 	b.WriteString(", ")
 
 	b.WriteString("'num_geo': ")
-	b.WriteString(strconv.Itoa(num_geo))
+	b.WriteString(strconv.Itoa(temp.numGeo() + 1))
 	b.WriteString(", ")
 
 	b.WriteString("'num_keyframe': ")
-	b.WriteString(strconv.Itoa(num_key))
+	b.WriteString(strconv.Itoa(temp.numKeyframe()))
 	b.WriteString(", ")
 
 	b.WriteString("'name': '")
@@ -253,4 +250,32 @@ func GetTemplate(hub net.Conn, tempid int) (temp Template, err error) {
 	temp, err = parseTemplate(buf)
 
 	return temp, err
+}
+
+func (temp *Template) numGeo() (maxID int) {
+	for _, rect := range temp.Rectangle {
+		maxID = max(maxID, rect.GeoNum)
+	}
+
+	for _, circle := range temp.Circle {
+		maxID = max(maxID, circle.GeoNum)
+	}
+
+	for _, text := range temp.Text {
+		maxID = max(maxID, text.GeoNum)
+	}
+
+	for _, img := range temp.Asset {
+		maxID = max(maxID, img.GeoNum)
+	}
+
+	return
+}
+
+func (temp *Template) numKeyframe() (numKey int) {
+	numKey += len(temp.UserFrame)
+	numKey += len(temp.SetFrame)
+	numKey += len(temp.BindFrame)
+
+	return
 }
