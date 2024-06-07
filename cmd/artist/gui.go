@@ -1,8 +1,8 @@
-package artist
+package main
 
 import (
-	"chroma-viz/hub"
 	"chroma-viz/library"
+	"chroma-viz/library/hub"
 	"chroma-viz/library/pages"
 	"chroma-viz/library/props"
 	"chroma-viz/library/templates"
@@ -111,7 +111,7 @@ func ArtistGui(app *gtk.Application) {
 
 	/* Menu layout */
 	builder, err := gtk.BuilderNew()
-	if err := builder.AddFromFile("./gtk/artist-menu.ui"); err != nil {
+	if err := builder.AddFromFile("artist/menu.ui"); err != nil {
 		log.Fatalf("Error starting artist gui (%s)", err)
 	}
 
@@ -136,7 +136,7 @@ func ArtistGui(app *gtk.Application) {
 
 	/* Body layout */
 	builder, err = gtk.BuilderNew()
-	if err := builder.AddFromFile("./gtk/artist-gui.ui"); err != nil {
+	if err := builder.AddFromFile("./artist/gui.ui"); err != nil {
 		log.Fatal(err)
 	}
 

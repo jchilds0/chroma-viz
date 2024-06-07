@@ -1,4 +1,4 @@
-package artist
+package main
 
 import (
 	"bufio"

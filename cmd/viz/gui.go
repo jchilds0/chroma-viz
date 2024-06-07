@@ -1,4 +1,4 @@
-package viz
+package main
 
 import (
 	"chroma-viz/library"
@@ -137,7 +137,7 @@ func VizGui(app *gtk.Application) {
 
 	/* Menu layout */
 	builder, err := gtk.BuilderNew()
-	if err := builder.AddFromFile(conf.InstallDirectory + "gtk/viz-menu.ui"); err != nil {
+	if err := builder.AddFromFile("viz/menu.ui"); err != nil {
 		log.Fatal(err)
 	}
 
@@ -201,7 +201,7 @@ func VizGui(app *gtk.Application) {
 
 	/* Body layout */
 	builder, err = gtk.BuilderNew()
-	if err := builder.AddFromFile(conf.InstallDirectory + "gtk/viz-gui.ui"); err != nil {
+	if err := builder.AddFromFile("viz/gui.ui"); err != nil {
 		log.Fatal(err)
 	}
 

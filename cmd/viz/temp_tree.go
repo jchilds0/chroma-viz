@@ -1,4 +1,4 @@
-package viz
+package main
 
 import (
 	"bufio"
