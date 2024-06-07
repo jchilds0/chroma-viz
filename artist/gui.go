@@ -97,7 +97,10 @@ func ArtistGui(app *gtk.Application) {
 	editView.PropertyEditor()
 	editView.CurrentPage = page
 
-	preview := setupPreviewWindow(conf.HubPort, conf.PreviewDirectory, conf.PreviewName)
+	preview, err := library.SetupPreviewWindow(*conf)
+	if err != nil {
+		log.Fatalf("Error setting up preview window: %s", err)
+	}
 
 	box, err := gtk.BoxNew(gtk.ORIENTATION_VERTICAL, 0)
 	if err != nil {

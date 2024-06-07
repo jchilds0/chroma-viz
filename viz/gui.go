@@ -79,7 +79,10 @@ func VizGui(app *gtk.Application) {
 	win.SetDefaultSize(800, 600)
 	win.SetTitle("Chroma Viz")
 
-	preview := setupPreviewWindow(conf.PreviewDirectory, conf.PreviewName)
+	preview, err := library.SetupPreviewWindow(*conf)
+	if err != nil {
+		log.Fatalf("Error setting up preview window: %s", err)
+	}
 
 	box, err := gtk.BoxNew(gtk.ORIENTATION_VERTICAL, 0)
 	if err != nil {
