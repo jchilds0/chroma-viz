@@ -197,7 +197,7 @@ func (prop *Property) CreateGeometry(temp *templates.Template, geoID int) {
 			start, _ = strconv.Atoi(attr.Encode())
 		}
 
-		if attr, ok := prop.Attr["rounding"]; ok {
+		if attr, ok := prop.Attr["end_angle"]; ok {
 			end, _ = strconv.Atoi(attr.Encode())
 		}
 

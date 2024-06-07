@@ -94,15 +94,16 @@ func (colorAttr *ColorAttribute) Update(edit Editor) (err error) {
 	colorAttr.Red = rgba.GetRed()
 	colorAttr.Green = rgba.GetGreen()
 	colorAttr.Blue = rgba.GetBlue()
-	colorAttr.Alpha = rgba.GetAlpha()
+	colorAttr.Alpha = colorEdit.opacity.GetValue()
 
 	return
 }
 
 type ColorEditor struct {
-	box   *gtk.Box
-	color *gtk.ColorButton
-	name  string
+	box     *gtk.Box
+	color   *gtk.ColorButton
+	opacity *gtk.Scale
+	name    string
 }
 
 func NewColorEditor(name string) (colorEdit *ColorEditor, err error) {
@@ -114,14 +115,14 @@ func NewColorEditor(name string) (colorEdit *ColorEditor, err error) {
 	}
 
 	colorEdit.box.SetVisible(true)
-	label, err := gtk.LabelNew(name)
+	label1, err := gtk.LabelNew(name)
 	if err != nil {
 		return
 	}
 
-	label.SetVisible(true)
-	label.SetWidthChars(12)
-	colorEdit.box.PackStart(label, false, false, padding)
+	label1.SetVisible(true)
+	label1.SetWidthChars(12)
+	colorEdit.box.PackStart(label1, false, false, padding)
 
 	colorEdit.color, err = gtk.ColorButtonNew()
 	if err != nil {
@@ -130,6 +131,23 @@ func NewColorEditor(name string) (colorEdit *ColorEditor, err error) {
 
 	colorEdit.color.SetVisible(true)
 	colorEdit.box.PackStart(colorEdit.color, false, false, padding)
+
+	label2, err := gtk.LabelNew("Opacity")
+	if err != nil {
+		return
+	}
+
+	label2.SetVisible(true)
+	label2.SetWidthChars(12)
+	colorEdit.box.PackStart(label2, false, false, padding)
+
+	colorEdit.opacity, err = gtk.ScaleNewWithRange(gtk.ORIENTATION_HORIZONTAL, 0, 1, 0.01)
+	if err != nil {
+		return
+	}
+
+	colorEdit.opacity.SetVisible(true)
+	colorEdit.box.PackStart(colorEdit.opacity, true, true, padding)
 
 	return
 }
@@ -152,6 +170,7 @@ func (colorEdit *ColorEditor) Update(attr Attribute) error {
 	)
 
 	colorEdit.color.SetRGBA(rgb)
+	colorEdit.opacity.SetValue(colorAttr.Alpha)
 
 	return nil
 }
