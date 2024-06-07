@@ -12,6 +12,7 @@ import (
 )
 
 var profile = flag.String("profile", "", "write profile to file")
+var configPath = flag.String("c", "viz/conf.json", "config json")
 var conf *library.Config
 
 func main() {
@@ -27,7 +28,7 @@ func main() {
 	defer closeViz()
 
 	var err error
-	conf, err = library.ImportConfig("viz/conf.json")
+	conf, err = library.ImportConfig(*configPath)
 	if err != nil {
 		log.Fatal(err)
 	}

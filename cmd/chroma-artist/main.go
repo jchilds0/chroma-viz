@@ -13,6 +13,7 @@ import (
 )
 
 var profile = flag.String("profile", "", "write profile to file")
+var configPath = flag.String("c", "artist/conf.json", "config json")
 
 func main() {
 	flag.Parse()
@@ -34,7 +35,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	conf, err = library.ImportConfig("artist/conf.json")
+	conf, err = library.ImportConfig(*configPath)
 	if err != nil {
 		log.Fatal(err)
 	}

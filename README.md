@@ -28,38 +28,26 @@ https://github.com/jchilds0/chroma-viz/assets/71675740/f082ce39-5cac-478f-8d35-f
 ## Installation
 
 - Install and build [Chroma Engine][chroma-engine].
-- Set the `engDir` constants in `viz/preview.go` and `artist/preview.go` to the location of the Chroma Engine binary.
+- Set the `PreviewDirectory` in `viz/conf.json` and `artist/conf.json` to the location of the Chroma Engine binary.
+- Setup an sql database with the schema in `hub/chroma_hub.sql`
+- Build all programs to `bin`
+```
+make all
+```
 
 ### Chroma Hub 
 
-- Setup an sql database with the schema in `hub/chroma_hub.sql`
-- Run Chroma Hub and import archives to Chroma Hub using CLI,
-```
-go run main.go -mode hub
-```
--  Or build the test db and run Chroma Hub,
-```
-cd viz
-go test
-cd ..
-go run main.go -mode hub
-```
+- Run Chroma Hub `chroma-hub`
+- Import archives/templates or generate random templates using CLI
 
 ### Chroma Viz
 
-- Setup Chroma Hub
-- Run 
-```
-go run main.go -mode viz
-```
+- Run Chroma Hub
+- Run `chroma-viz`
 
 ### Chroma Artist 
 
-- Setup Chroma Hub
-- Run 
-```
-go run main.go -mode artist 
-```
+- Run `chroma-artist`
 
 ## Disclaimer
 

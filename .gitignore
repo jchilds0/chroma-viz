@@ -1,5 +1,5 @@
 .cache/
-build/
+bin/
 log/
 perf/*.prof
 

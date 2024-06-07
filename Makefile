@@ -1,13 +1,15 @@
-.PHONY: artist
+.PHONY: artist hub viz build
 artist:
-	go build -o ./bin ./cmd/artist/
+	go build -o ./bin ./cmd/chroma-artist/
 
-.PHONY: hub
 hub: 
-	go build -o ./bin ./cmd/chroma_hub/
+	go build -o ./bin ./cmd/chroma-hub/
 
-.PHONY: viz
 viz: 
-	go build -o ./bin ./cmd/viz/
+	go build -o ./bin ./cmd/chroma-viz/
 
-all: artist hub viz
+build: 
+	go build -o ./bin ./cmd/chroma-viz/
+	go build -o ./bin ./cmd/chroma-hub/
+	go build -o ./bin ./cmd/chroma-artist/
+
