@@ -19,6 +19,9 @@ Chroma Artist can be used to design templates, which can be imported to [Chroma 
 
 - Tree View for creating the heirachy of geometry elements
 - Set which parameters of each geometry can be edited in Chroma Viz
+- Add Keyframes to geometries to create animations
+
+https://github.com/jchilds0/chroma-viz/assets/71675740/f082ce39-5cac-478f-8d35-f394881ed7d5
 
 ![Chroma_Engine](data/chroma-artist.png)
 
@@ -27,28 +30,36 @@ Chroma Artist can be used to design templates, which can be imported to [Chroma 
 - Install and build [Chroma Engine][chroma-engine].
 - Set the `engDir` constants in `viz/preview.go` and `artist/preview.go` to the location of the Chroma Engine binary.
 
-### Chroma Viz
+### Chroma Hub 
 
-- Run Chroma Hub
-
+- Setup an sql database with the schema in `hub/chroma_hub.sql`
+- Run Chroma Hub and import archives to Chroma Hub using CLI,
 ```
 go run main.go -mode hub
 ```
-- Import archives to Chroma Hub using CLI.
-- Run 
-
+-  Or build the test db and run Chroma Hub,
 ```
-go run main.go -mode viz -hub [127.0.0.1:9000]
+cd viz
+go test
+cd ..
+go run main.go -mode hub
+```
+
+### Chroma Viz
+
+- Setup Chroma Hub
+- Run 
+```
+go run main.go -mode viz
 ```
 
 ### Chroma Artist 
 
+- Setup Chroma Hub
 - Run 
-
 ```
 go run main.go -mode artist 
 ```
-
 
 ## Disclaimer
 
