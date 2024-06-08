@@ -478,7 +478,7 @@ func ArtistGui(app *gtk.Application) {
 
 		attr := keyAttr.GetActiveText()
 
-		tempView.AddKeyRow(tempView.keyModel.Append(nil), geo, geoID, attr)
+		tempView.AddKeyRow(geo, geoID, attr)
 	})
 
 	removeKey.Connect("clicked", func() {

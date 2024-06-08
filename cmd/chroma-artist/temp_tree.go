@@ -34,7 +34,7 @@ const (
 
 type TempTree struct {
 	geoModel *gtk.TreeStore
-	keyModel *gtk.TreeStore
+	keyModel *gtk.ListStore
 	geoView  *gtk.TreeView
 	geoList  *gtk.TreeStore
 	keyView  *gtk.TreeView
@@ -162,7 +162,7 @@ func (temp *TempTree) createKeyTree() (err error) {
 
 	temp.keyView.Set("reorderable", true)
 
-	temp.keyModel, err = gtk.TreeStoreNew(
+	temp.keyModel, err = gtk.ListStoreNew(
 		glib.TYPE_INT,     // Frame Num
 		glib.TYPE_STRING,  // Geometry Name
 		glib.TYPE_INT,     // Geometry Num
@@ -193,6 +193,8 @@ func (temp *TempTree) createKeyTree() (err error) {
 		}
 
 		frameNumCell.SetProperty("editable", true)
+		frameNumCell.SetProperty("xalign", 1.0)
+		frameNumCell.SetProperty("xpad", 15)
 		frameNumCell.Connect("edited", func(cell *gtk.CellRendererText, path, text string) {
 			iter, err := temp.keyModel.GetIterFromString(path)
 			if err != nil {
@@ -213,6 +215,9 @@ func (temp *TempTree) createKeyTree() (err error) {
 		if err != nil {
 			return
 		}
+
+		column.SetResizable(true)
+		column.SetExpand(true)
 		temp.keyView.AppendColumn(column)
 
 	}
@@ -233,6 +238,8 @@ func (temp *TempTree) createKeyTree() (err error) {
 			return
 		}
 
+		column.SetResizable(true)
+		column.SetExpand(true)
 		temp.keyView.AppendColumn(column)
 
 	}
@@ -253,6 +260,8 @@ func (temp *TempTree) createKeyTree() (err error) {
 			return
 		}
 
+		column.SetResizable(true)
+		column.SetExpand(true)
 		temp.keyView.AppendColumn(column)
 
 	}
@@ -269,6 +278,8 @@ func (temp *TempTree) createKeyTree() (err error) {
 		}
 
 		valueCell.SetProperty("editable", true)
+		valueCell.SetProperty("xalign", 1.0)
+		valueCell.SetProperty("xpad", 15)
 		valueCell.Connect("edited", func(cell *gtk.CellRendererText, path, text string) {
 			iter, err := temp.keyModel.GetIterFromString(path)
 			if err != nil {
@@ -290,6 +301,8 @@ func (temp *TempTree) createKeyTree() (err error) {
 			return
 		}
 
+		column.SetResizable(true)
+		column.SetExpand(true)
 		temp.keyView.AppendColumn(column)
 
 	}
@@ -334,61 +347,65 @@ func (temp *TempTree) createKeyTree() (err error) {
 				return
 			}
 
+			column.SetResizable(true)
+			column.SetExpand(true)
 			temp.keyView.AppendColumn(column)
 		}
 
 	}
 
 	// Derived Value
-	{
+	/*
+		{
 
-		var valueText, valueCell *gtk.CellRendererText
-		var column *gtk.TreeViewColumn
+			var valueText, valueCell *gtk.CellRendererText
+			var column *gtk.TreeViewColumn
 
-		column, err = gtk.TreeViewColumnNew()
-		if err != nil {
-			return
-		}
-
-		column.SetTitle("Value From Keyframe")
-
-		names := []string{"Frame", "Geometry", "Attr"}
-		cols := []int{FRAME_BIND_FRAME, FRAME_BIND_GEO, FRAME_BIND_ATTR}
-
-		for i, name := range names {
-			valueText, err = gtk.CellRendererTextNew()
+			column, err = gtk.TreeViewColumnNew()
 			if err != nil {
 				return
 			}
 
-			valueText.SetProperty("text", name+": ")
+			column.SetTitle("Value From Keyframe")
 
-			valueCell, err = gtk.CellRendererTextNew()
-			if err != nil {
-				return
-			}
+			names := []string{"Frame", "Geometry", "Attr"}
+			cols := []int{FRAME_BIND_FRAME, FRAME_BIND_GEO, FRAME_BIND_ATTR}
 
-			valueCell.SetProperty("editable", true)
-
-			column.PackStart(valueText, false)
-			column.PackStart(valueCell, true)
-
-			column.AddAttribute(valueCell, "text", cols[i])
-
-			valueCell.Connect("edited", func(cell *gtk.CellRendererText, path, text string) {
-				iter, err := temp.keyModel.GetIterFromString(path)
+			for i, name := range names {
+				valueText, err = gtk.CellRendererTextNew()
 				if err != nil {
-					log.Printf("Error editing geometry (%s)", err)
 					return
 				}
 
-				temp.keyModel.SetValue(iter, cols[i], text)
-			})
+				valueText.SetProperty("text", name+": ")
+
+				valueCell, err = gtk.CellRendererTextNew()
+				if err != nil {
+					return
+				}
+
+				valueCell.SetProperty("editable", true)
+
+				column.PackStart(valueText, false)
+				column.PackStart(valueCell, true)
+
+				column.AddAttribute(valueCell, "text", cols[i])
+
+				valueCell.Connect("edited", func(cell *gtk.CellRendererText, path, text string) {
+					iter, err := temp.keyModel.GetIterFromString(path)
+					if err != nil {
+						log.Printf("Error editing geometry (%s)", err)
+						return
+					}
+
+					temp.keyModel.SetValue(iter, cols[i], text)
+				})
+			}
+
+			temp.keyView.AppendColumn(column)
+
 		}
-
-		temp.keyView.AppendColumn(column)
-
-	}
+	*/
 
 	return nil
 }
@@ -578,13 +595,13 @@ func (tempView *TempTree) getKeyframe(iter *gtk.TreeIter) (frame templates.Keyfr
 
 func (tempView *TempTree) addKeyframes(temp *templates.Template) {
 	for _, frame := range temp.UserFrame {
-		iter := tempView.keyModel.Append(nil)
+		iter := tempView.keyModel.Append()
 		tempView.updateBaseKeyframe(iter, frame.Key())
 		tempView.keyModel.SetValue(iter, FRAME_USER_VALUE, true)
 	}
 
 	for _, frame := range temp.BindFrame {
-		iter := tempView.keyModel.Append(nil)
+		iter := tempView.keyModel.Append()
 		tempView.updateBaseKeyframe(iter, frame.Key())
 
 		tempView.keyModel.SetValue(iter, FRAME_BIND_FRAME, frame.Bind.FrameNum)
@@ -593,7 +610,7 @@ func (tempView *TempTree) addKeyframes(temp *templates.Template) {
 	}
 
 	for _, frame := range temp.SetFrame {
-		iter := tempView.keyModel.Append(nil)
+		iter := tempView.keyModel.Append()
 		tempView.updateBaseKeyframe(iter, frame.Key())
 
 		tempView.keyModel.SetValue(iter, FRAME_VALUE, frame.Value)
@@ -619,7 +636,9 @@ func (tempView *TempTree) AddGeoRow(iter *gtk.TreeIter, name, propName string, p
 	tempView.geoList.SetValue(newIter, GEO_NUM, propNum)
 }
 
-func (tempView *TempTree) AddKeyRow(iter *gtk.TreeIter, geoName string, geoID int, attrName string) {
+func (tempView *TempTree) AddKeyRow(geoName string, geoID int, attrName string) {
+	iter := tempView.keyModel.Append()
+
 	tempView.keyModel.SetValue(iter, FRAME_NUM, 0)
 	tempView.keyModel.SetValue(iter, FRAME_GEOMETRY, geoName)
 	tempView.keyModel.SetValue(iter, FRAME_GEOMETRY_ID, geoID)
@@ -629,4 +648,5 @@ func (tempView *TempTree) AddKeyRow(iter *gtk.TreeIter, geoName string, geoID in
 func (tempView *TempTree) Clean() {
 	tempView.geoModel.Clear()
 	tempView.keyModel.Clear()
+	tempView.geoList.Clear()
 }
