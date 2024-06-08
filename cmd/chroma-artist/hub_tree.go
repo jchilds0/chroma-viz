@@ -52,7 +52,7 @@ func NewTemplateChooserDialog(win *gtk.Window) *TemplateChooserDialog {
 		log.Fatal(err)
 	}
 
-	dialogContent.PackStart(box, true, true, 0)
+	dialogContent.PackStart(box, true, true, 10)
 
 	scroll, err := gtk.ScrolledWindowNew(nil, nil)
 	if err != nil {

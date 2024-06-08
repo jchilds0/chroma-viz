@@ -6,31 +6,33 @@ import (
 	"chroma-viz/library/pages"
 	"chroma-viz/library/props"
 	"chroma-viz/library/util"
+	"fmt"
 	"log"
 
 	"github.com/gotk3/gotk3/glib"
 	"github.com/gotk3/gotk3/gtk"
 )
 
-const NUMCOL = 3
-
 const (
 	PAGENUM = iota
 	TITLE
-	TEMPLATEID
+	TEMPLATE_ID
+	TEMPLATE_NAME
+	NUM_COL
 )
 
 var KEYTITLE = map[int]string{
-	PAGENUM:    "Page Num",
-	TITLE:      "Title",
-	TEMPLATEID: "Template ID",
+	PAGENUM:       "Page Num",
+	TITLE:         "Title",
+	TEMPLATE_ID:   "Template ID",
+	TEMPLATE_NAME: "Template Name",
 }
 
 type ShowTree struct {
 	treeView *gtk.TreeView
 	treeList *gtk.ListStore
 	show     *pages.Show
-	columns  [NUMCOL]bool
+	columns  map[int]bool
 }
 
 func NewShowTree(pageToEditor func(*pages.Page)) *ShowTree {
@@ -44,12 +46,17 @@ func NewShowTree(pageToEditor func(*pages.Page)) *ShowTree {
 
 	showTree.show = pages.NewShow()
 	showTree.treeView.SetReorderable(true)
-	showTree.columns = [NUMCOL]bool{true, true, true}
+	showTree.columns = make(map[int]bool, NUM_COL)
+
+	showTree.columns[PAGENUM] = true
+	showTree.columns[TITLE] = true
+	showTree.columns[TEMPLATE_ID] = true
+	showTree.columns[TEMPLATE_NAME] = true
 
 	// create tree columns
 	var column *gtk.TreeViewColumn
-	for key := range showTree.columns {
-		if showTree.columns[key] == false {
+	for key := 0; key < NUM_COL; key++ {
+		if !showTree.columns[key] {
 			continue
 		}
 
@@ -90,6 +97,8 @@ func NewShowTree(pageToEditor func(*pages.Page)) *ShowTree {
 				log.Fatalf("Error creating show (%s)", err)
 			}
 
+			column.SetExpand(true)
+
 		default:
 			cell, err := gtk.CellRendererTextNew()
 			if err != nil {
@@ -103,10 +112,11 @@ func NewShowTree(pageToEditor func(*pages.Page)) *ShowTree {
 
 		}
 
+		column.SetResizable(true)
 		showTree.treeView.AppendColumn(column)
 	}
 
-	showTree.treeList, err = gtk.ListStoreNew(glib.TYPE_INT, glib.TYPE_STRING, glib.TYPE_INT)
+	showTree.treeList, err = gtk.ListStoreNew(glib.TYPE_INT, glib.TYPE_STRING, glib.TYPE_INT, glib.TYPE_STRING)
 	if err != nil {
 		log.Fatalf("Error creating show (%s)", err)
 	}
@@ -136,9 +146,9 @@ func NewShowTree(pageToEditor func(*pages.Page)) *ShowTree {
 	return showTree
 }
 
-func (showTree *ShowTree) ImportPage(page *pages.Page) {
+func (showTree *ShowTree) ImportPage(page *pages.Page) (err error) {
 	if page == nil {
-		log.Print("Attempted to import nil page")
+		err = fmt.Errorf("Attempted to import nil page")
 		return
 	}
 
@@ -167,11 +177,24 @@ func (showTree *ShowTree) ImportPage(page *pages.Page) {
 		clockAttr.SetClock(func() { SendEngine(page, library.CONTINUE) })
 	}
 
-	showTree.treeList.Set(
-		showTree.treeList.Append(),
-		[]int{PAGENUM, TITLE, TEMPLATEID},
-		[]interface{}{page.PageNum, page.Title, page.TemplateID},
-	)
+	iter := showTree.treeList.Append()
+	err = showTree.treeList.SetValue(iter, PAGENUM, page.PageNum)
+	if err != nil {
+		return
+	}
+
+	err = showTree.treeList.SetValue(iter, TITLE, page.Title)
+	if err != nil {
+		return
+	}
+
+	err = showTree.treeList.SetValue(iter, TEMPLATE_ID, page.TemplateID)
+	if err != nil {
+		return
+	}
+
+	err = showTree.treeList.SetValue(iter, TEMPLATE_NAME, page.Title)
+	return
 }
 
 func (showTree *ShowTree) ImportShow(filename string) {
@@ -182,7 +205,10 @@ func (showTree *ShowTree) ImportShow(filename string) {
 	}
 
 	for _, page := range show.Pages {
-		showTree.ImportPage(page)
+		err = showTree.ImportPage(page)
+		if err != nil {
+			log.Print(err)
+		}
 	}
 }
 

@@ -115,7 +115,10 @@ func VizGui(app *gtk.Application) {
 		}
 
 		page := pages.NewPageFromTemplate(&template)
-		showTree.ImportPage(page)
+		err = showTree.ImportPage(page)
+		if err != nil {
+			log.Printf("Error importing page: %s", err)
+		}
 	})
 
 	edit.AddAction("Take On", true, func() { SendEngine(edit.CurrentPage, library.ANIMATE_ON) })
@@ -335,7 +338,10 @@ func guiImportPage(win *gtk.ApplicationWindow, showTree *ShowTree) error {
 			return err
 		}
 
-		showTree.ImportPage(page)
+		err = showTree.ImportPage(page)
+		if err != nil {
+			log.Print(err)
+		}
 	}
 
 	return nil
