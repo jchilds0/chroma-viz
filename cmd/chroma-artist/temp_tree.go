@@ -181,9 +181,8 @@ func (temp *TempTree) createKeyTree() (err error) {
 
 	temp.keyView.SetModel(temp.keyModel)
 
-	// Frame Number
 	{
-
+		// Frame Number
 		var frameNumCell *gtk.CellRendererText
 		var column *gtk.TreeViewColumn
 
@@ -217,14 +216,12 @@ func (temp *TempTree) createKeyTree() (err error) {
 		}
 
 		column.SetResizable(true)
-		column.SetExpand(true)
 		temp.keyView.AppendColumn(column)
 
 	}
 
-	// Geometry Name
 	{
-
+		// Geometry Name
 		var geoCell *gtk.CellRendererText
 		var column *gtk.TreeViewColumn
 
@@ -239,14 +236,12 @@ func (temp *TempTree) createKeyTree() (err error) {
 		}
 
 		column.SetResizable(true)
-		column.SetExpand(true)
 		temp.keyView.AppendColumn(column)
 
 	}
 
-	// Attribute Name
 	{
-
+		// Attribute Name
 		var attrCell *gtk.CellRendererText
 		var column *gtk.TreeViewColumn
 
@@ -261,14 +256,12 @@ func (temp *TempTree) createKeyTree() (err error) {
 		}
 
 		column.SetResizable(true)
-		column.SetExpand(true)
 		temp.keyView.AppendColumn(column)
 
 	}
 
-	// Set Value
 	{
-
+		// Set Value
 		var valueCell *gtk.CellRendererText
 		var column *gtk.TreeViewColumn
 
@@ -302,14 +295,12 @@ func (temp *TempTree) createKeyTree() (err error) {
 		}
 
 		column.SetResizable(true)
-		column.SetExpand(true)
 		temp.keyView.AppendColumn(column)
 
 	}
 
-	// Bool Value
 	{
-
+		// Bool Value
 		var toggleCell *gtk.CellRendererToggle
 		var column *gtk.TreeViewColumn
 
@@ -348,64 +339,61 @@ func (temp *TempTree) createKeyTree() (err error) {
 			}
 
 			column.SetResizable(true)
-			column.SetExpand(true)
 			temp.keyView.AppendColumn(column)
 		}
 
 	}
 
-	// Derived Value
-	/*
-		{
+	{
+		// Derived Value
+		var valueText, valueCell *gtk.CellRendererText
+		var column *gtk.TreeViewColumn
 
-			var valueText, valueCell *gtk.CellRendererText
-			var column *gtk.TreeViewColumn
+		column, err = gtk.TreeViewColumnNew()
+		if err != nil {
+			return
+		}
 
-			column, err = gtk.TreeViewColumnNew()
+		column.SetTitle("Value From Keyframe")
+
+		names := []string{"Frame", "Geometry", "Attr"}
+		cols := []int{FRAME_BIND_FRAME, FRAME_BIND_GEO, FRAME_BIND_ATTR}
+
+		for i, name := range names {
+			valueText, err = gtk.CellRendererTextNew()
 			if err != nil {
 				return
 			}
 
-			column.SetTitle("Value From Keyframe")
+			valueText.SetProperty("text", name+": ")
 
-			names := []string{"Frame", "Geometry", "Attr"}
-			cols := []int{FRAME_BIND_FRAME, FRAME_BIND_GEO, FRAME_BIND_ATTR}
-
-			for i, name := range names {
-				valueText, err = gtk.CellRendererTextNew()
-				if err != nil {
-					return
-				}
-
-				valueText.SetProperty("text", name+": ")
-
-				valueCell, err = gtk.CellRendererTextNew()
-				if err != nil {
-					return
-				}
-
-				valueCell.SetProperty("editable", true)
-
-				column.PackStart(valueText, false)
-				column.PackStart(valueCell, true)
-
-				column.AddAttribute(valueCell, "text", cols[i])
-
-				valueCell.Connect("edited", func(cell *gtk.CellRendererText, path, text string) {
-					iter, err := temp.keyModel.GetIterFromString(path)
-					if err != nil {
-						log.Printf("Error editing geometry (%s)", err)
-						return
-					}
-
-					temp.keyModel.SetValue(iter, cols[i], text)
-				})
+			valueCell, err = gtk.CellRendererTextNew()
+			if err != nil {
+				return
 			}
 
-			temp.keyView.AppendColumn(column)
+			valueCell.SetProperty("editable", true)
 
+			column.PackStart(valueText, false)
+			column.PackStart(valueCell, true)
+
+			column.AddAttribute(valueCell, "text", cols[i])
+
+			valueCell.Connect("edited", func(cell *gtk.CellRendererText, path, text string) {
+				iter, err := temp.keyModel.GetIterFromString(path)
+				if err != nil {
+					log.Printf("Error editing geometry (%s)", err)
+					return
+				}
+
+				temp.keyModel.SetValue(iter, cols[i], text)
+			})
 		}
-	*/
+
+		column.SetExpand(true)
+		temp.keyView.AppendColumn(column)
+
+	}
 
 	return nil
 }

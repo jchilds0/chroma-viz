@@ -1,6 +1,7 @@
 package templates
 
 import (
+	"fmt"
 	"strconv"
 	"strings"
 )
@@ -127,7 +128,7 @@ func (frame *BindFrame) Attributes() map[string]string {
 	return map[string]string{
 		"bind_frame": strconv.Itoa(bind.FrameNum),
 		"bind_geo":   strconv.Itoa(bind.GeoID),
-		"bind_attr":  bind.GeoAttr,
+		"bind_attr":  fmt.Sprintf("'%s'", bind.GeoAttr),
 	}
 }
 

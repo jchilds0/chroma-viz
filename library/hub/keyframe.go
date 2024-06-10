@@ -20,7 +20,7 @@ func (hub *DataBase) addKeyframe(tempID int64, frame templates.Keyframe) (frameI
 
 func (hub *DataBase) AddBindFrame(tempID int64, frame templates.BindFrame) (err error) {
 	q := `
-        INSERT INTO bindFrame VALUES (?, ?, ?);
+        INSERT INTO bindFrame VALUES (?, ?);
     `
 
 	frameID, err := hub.addKeyframe(tempID, frame.Keyframe)
@@ -33,7 +33,7 @@ func (hub *DataBase) AddBindFrame(tempID int64, frame templates.BindFrame) (err 
 		return
 	}
 
-	_, err = hub.db.Exec(q, frameID, bindFrameID, tempID)
+	_, err = hub.db.Exec(q, frameID, bindFrameID)
 	return
 }
 
