@@ -133,10 +133,9 @@ func parseKeyframe(temp *Template, buf *bufio.Reader) {
 	frameNum, _ := strconv.Atoi(data["frame_num"])
 	geoID, _ := strconv.Atoi(data["frame_geo"])
 
-	mask := (data["mask"] == "true")
 	expand := (data["expand"] == "true")
 
-	keyframe := NewKeyFrame(frameNum, geoID, data["frame_attr"], mask, expand)
+	keyframe := NewKeyFrame(frameNum, geoID, data["frame_attr"], expand)
 
 	if data["user_frame"] == "true" {
 		frame := NewUserFrame(*keyframe)
@@ -149,7 +148,7 @@ func parseKeyframe(temp *Template, buf *bufio.Reader) {
 		bindNum, _ := strconv.Atoi(data["bind_frame"])
 		bindGeo, _ := strconv.Atoi(data["bind_geo"])
 
-		bind := NewKeyFrame(bindNum, bindGeo, data["bind_attr"], false, false)
+		bind := NewKeyFrame(bindNum, bindGeo, data["bind_attr"], false)
 		frame := NewBindFrame(*keyframe, *bind)
 
 		temp.BindFrame = append(temp.BindFrame, *frame)
@@ -267,6 +266,11 @@ func parseGeometry(temp *Template, buf *bufio.Reader) (err error) {
 	}
 
 	geom.Parent, err = strconv.Atoi(data["parent"])
+	if err != nil {
+		return
+	}
+
+	geom.Mask, err = strconv.Atoi(data["mask"])
 	if err != nil {
 		return
 	}

@@ -6,10 +6,10 @@ import (
 
 func (hub *DataBase) addKeyframe(tempID int64, frame templates.Keyframe) (frameID int64, err error) {
 	q := `
-        INSERT INTO keyframe VALUES (NULL, ?, ?, ?, ?, ?, ?, ?);
+        INSERT INTO keyframe VALUES (NULL, ?, ?, ?, ?, ?, ?);
     `
 
-	result, err := hub.db.Exec(q, tempID, frame.FrameNum, frame.GeoID, frame.GeoAttr, frame.Type, frame.Mask, frame.Expand)
+	result, err := hub.db.Exec(q, tempID, frame.FrameNum, frame.GeoID, frame.GeoAttr, frame.Type, frame.Expand)
 	if err != nil {
 		return
 	}
@@ -67,14 +67,14 @@ func (hub *DataBase) AddSetFrame(tempID int64, frame templates.SetFrame) (err er
 
 func (hub *DataBase) GetKeyframe(frameID int64) (frame templates.Keyframe, err error) {
 	q := `
-        SELECT k.frameNum, k.geoNum, k.attr, k.type, k.mask, k.expand 
+        SELECT k.frameNum, k.geoNum, k.attr, k.type, k.expand 
         FROM keyframe k 
         WHERE k.frameID = ?;
     `
 
 	row := hub.db.QueryRow(q, frameID)
 
-	err = row.Scan(&frame.FrameNum, &frame.GeoID, &frame.GeoAttr, &frame.Type, &frame.Mask, &frame.Expand)
+	err = row.Scan(&frame.FrameNum, &frame.GeoID, &frame.GeoAttr, &frame.Type, &frame.Expand)
 	return
 }
 

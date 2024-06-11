@@ -3,6 +3,7 @@ package props
 import (
 	"chroma-viz/library/attribute"
 	"fmt"
+	"math"
 
 	"github.com/gotk3/gotk3/gtk"
 )
@@ -60,6 +61,7 @@ func NewPropertyEditor(propType string) (propEdit *PropertyEditor, err error) {
 
 	propEdit.editor["rel_x"], _ = attribute.NewIntEditor("x", -float64(width), float64(width))
 	propEdit.editor["rel_y"], _ = attribute.NewIntEditor("y", -float64(height), float64(height))
+	propEdit.editor["mask"], _ = attribute.NewIntEditor("Mask Geo", 0, math.MaxInt)
 
 	switch propEdit.PropType {
 	case RECT_PROP:
@@ -100,12 +102,12 @@ func NewPropertyEditor(propType string) (propEdit *PropertyEditor, err error) {
 }
 
 var PropAttrs = map[string][]string{
-	RECT_PROP:   {"rel_x", "rel_y", "width", "height", "rounding", "color"},
-	TEXT_PROP:   {"rel_x", "rel_y", "color", "string"},
-	CIRCLE_PROP: {"rel_x", "rel_y", "inner_radius", "outer_radius", "start_angle", "end_angle", "color"},
-	TICKER_PROP: {"rel_x", "rel_y", "color", "string"},
-	CLOCK_PROP:  {"rel_x", "rel_y", "color", "string"},
-	IMAGE_PROP:  {"rel_x", "rel_y", "scale", "image_id"},
+	RECT_PROP:   {"rel_x", "rel_y", "mask", "width", "height", "rounding", "color"},
+	TEXT_PROP:   {"rel_x", "rel_y", "mask", "color", "string"},
+	CIRCLE_PROP: {"rel_x", "rel_y", "mask", "inner_radius", "outer_radius", "start_angle", "end_angle", "color"},
+	TICKER_PROP: {"rel_x", "rel_y", "mask", "color", "string"},
+	CLOCK_PROP:  {"rel_x", "rel_y", "mask", "color", "string"},
+	IMAGE_PROP:  {"rel_x", "rel_y", "mask", "scale", "image_id"},
 }
 
 func (propEdit *PropertyEditor) AddEditors() (err error) {

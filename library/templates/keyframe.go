@@ -32,16 +32,14 @@ type Keyframe struct {
 	GeoID    int
 	GeoAttr  string
 	Type     string
-	Mask     bool
 	Expand   bool
 }
 
-func NewKeyFrame(num, geo int, attr string, mask, expand bool) *Keyframe {
+func NewKeyFrame(num, geo int, attr string, expand bool) *Keyframe {
 	frame := &Keyframe{
 		FrameNum: num,
 		GeoID:    geo,
 		GeoAttr:  attr,
-		Mask:     mask,
 		Expand:   expand,
 	}
 
@@ -73,14 +71,6 @@ func EncodeKeyframe(frame Keyframe, attr map[string]string) (s string, err error
 	b.WriteString("'frame_type': '")
 	b.WriteString(key.Type)
 	b.WriteString("', ")
-
-	b.WriteString("'mask': ")
-	if key.Mask {
-		b.WriteString("'true'")
-	} else {
-		b.WriteString("'false'")
-	}
-	b.WriteString(", ")
 
 	b.WriteString("'expand': ")
 	if key.Expand {

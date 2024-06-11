@@ -30,6 +30,7 @@ func randomTemplate(chromaHub *hub.DataBase, tempID int64, numGeo int) {
 			rand.Int()%2000,
 			rand.Int()%2000,
 			0,
+			0,
 		)
 
 		color := fmt.Sprintf("%f %f %f %f", rand.Float64(), rand.Float64(), rand.Float64(), rand.Float64())
@@ -63,9 +64,9 @@ func randomTemplate(chromaHub *hub.DataBase, tempID int64, numGeo int) {
 		if j%3 == 0 {
 			var tempFrame *templates.Keyframe
 			if j%2 == 0 {
-				tempFrame = templates.NewKeyFrame(0, j, "rel_x", false, false)
+				tempFrame = templates.NewKeyFrame(0, j, "rel_x", false)
 			} else {
-				tempFrame = templates.NewKeyFrame(0, j, "rel_y", false, false)
+				tempFrame = templates.NewKeyFrame(0, j, "rel_y", false)
 			}
 
 			startFrame := templates.NewSetFrame(*tempFrame, rand.Int()%2000)

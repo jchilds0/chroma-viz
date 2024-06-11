@@ -24,7 +24,6 @@ const (
 	FRAME_ATTR
 	FRAME_VALUE
 	FRAME_USER_VALUE
-	FRAME_MASK
 	FRAME_EXPAND
 	FRAME_BIND_FRAME
 	FRAME_BIND_GEO
@@ -169,7 +168,6 @@ func (temp *TempTree) createKeyTree() (err error) {
 		glib.TYPE_STRING,  // Geometry Attr
 		glib.TYPE_INT,     // Value Entry
 		glib.TYPE_BOOLEAN, // User Value Selector
-		glib.TYPE_BOOLEAN, // Mask Parent
 		glib.TYPE_BOOLEAN, // Expand Children
 		glib.TYPE_STRING,  // Derived Value Frame
 		glib.TYPE_STRING,  // Derived Value Geo
@@ -304,8 +302,8 @@ func (temp *TempTree) createKeyTree() (err error) {
 		var toggleCell *gtk.CellRendererToggle
 		var column *gtk.TreeViewColumn
 
-		names := []string{"Mask", "Expand", "User Value"}
-		cols := []int{FRAME_MASK, FRAME_EXPAND, FRAME_USER_VALUE}
+		names := []string{"Expand", "User Value"}
+		cols := []int{FRAME_EXPAND, FRAME_USER_VALUE}
 
 		for i := range names {
 			toggleCell, err = gtk.CellRendererToggleNew()
@@ -525,7 +523,7 @@ func (tempView *TempTree) keyframes(temp *templates.Template) {
 			frameNum, _ := strconv.Atoi(bindFrame)
 			geoNum, _ := strconv.Atoi(bindGeo)
 
-			bind := templates.NewKeyFrame(frameNum, geoNum, bindAttr, false, false)
+			bind := templates.NewKeyFrame(frameNum, geoNum, bindAttr, false)
 
 			keyframe := templates.NewBindFrame(frame, *bind)
 			temp.BindFrame = append(temp.BindFrame, *keyframe)
@@ -568,11 +566,6 @@ func (tempView *TempTree) getKeyframe(iter *gtk.TreeIter) (frame templates.Keyfr
 		return
 	}
 
-	frame.Mask, err = util.ModelGetValue[bool](keyModel, iter, FRAME_MASK)
-	if err != nil {
-		return
-	}
-
 	frame.Expand, err = util.ModelGetValue[bool](keyModel, iter, FRAME_EXPAND)
 	if err != nil {
 		return
@@ -609,7 +602,6 @@ func (tempView *TempTree) updateBaseKeyframe(iter *gtk.TreeIter, frame *template
 	tempView.keyModel.SetValue(iter, FRAME_NUM, frame.FrameNum)
 	tempView.keyModel.SetValue(iter, FRAME_GEOMETRY_ID, frame.GeoID)
 	tempView.keyModel.SetValue(iter, FRAME_ATTR, frame.GeoAttr)
-	tempView.keyModel.SetValue(iter, FRAME_MASK, frame.Mask)
 	tempView.keyModel.SetValue(iter, FRAME_EXPAND, frame.Expand)
 }
 

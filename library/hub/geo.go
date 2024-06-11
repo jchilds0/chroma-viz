@@ -7,11 +7,11 @@ import (
 
 func (hub *DataBase) addGeometry(tempID int64, geo templates.Geometry) (geoID int64, err error) {
 	q := `
-        INSERT INTO geometry VALUES (NULL, ?, ?, ?, ?, ?, ?, ?, ?);
+        INSERT INTO geometry VALUES (NULL, ?, ?, ?, ?, ?, ?, ?, ?, ?);
     `
 
 	result, err := hub.db.Exec(q, tempID, geo.GeoNum, geo.Name, geo.GeoType,
-		geo.PropType, geo.RelX, geo.RelY, geo.Parent)
+		geo.PropType, geo.RelX, geo.RelY, geo.Parent, geo.Mask)
 	if err != nil {
 		return
 	}

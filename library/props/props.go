@@ -84,6 +84,7 @@ func NewProperty(typed, name string, isTemp bool, visible map[string]bool) *Prop
 	prop.Attr["rel_x"] = attribute.NewIntAttribute("rel_x")
 	prop.Attr["rel_y"] = attribute.NewIntAttribute("rel_y")
 	prop.Attr["parent"] = attribute.NewIntAttribute("parent")
+	prop.Attr["mask"] = attribute.NewIntAttribute("mask")
 
 	switch typed {
 	case RECT_PROP:
@@ -143,7 +144,7 @@ func NewPropertyFromGeometry(geo templates.Geometry, attrMap map[string]string) 
 }
 
 func (prop *Property) CreateGeometry(temp *templates.Template, geoID int) {
-	var relX, relY, parent int
+	var relX, relY, parent, mask int
 	if attr, ok := prop.Attr["rel_x"]; ok {
 		relX, _ = strconv.Atoi(attr.Encode())
 	}
@@ -156,7 +157,13 @@ func (prop *Property) CreateGeometry(temp *templates.Template, geoID int) {
 		parent, _ = strconv.Atoi(attr.Encode())
 	}
 
-	geo := templates.NewGeometry(geoID, prop.Name, prop.PropType, PropToGeo[prop.PropType], relX, relY, parent)
+	if attr, ok := prop.Attr["mask"]; ok {
+		mask, _ = strconv.Atoi(attr.Encode())
+	}
+
+	geo := templates.NewGeometry(
+		geoID, prop.Name, prop.PropType, PropToGeo[prop.PropType],
+		relX, relY, parent, mask)
 
 	switch prop.PropType {
 	case RECT_PROP:

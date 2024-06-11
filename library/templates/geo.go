@@ -20,9 +20,10 @@ type Geometry struct {
 	RelX     int
 	RelY     int
 	Parent   int
+	Mask     int
 }
 
-func NewGeometry(geoID int, name, propType, geoType string, rel_x, rel_y, parent int) *Geometry {
+func NewGeometry(geoID int, name, propType, geoType string, rel_x, rel_y, parent, mask int) *Geometry {
 	geo := &Geometry{
 		GeoNum:   geoID,
 		Name:     name,
@@ -31,6 +32,7 @@ func NewGeometry(geoID int, name, propType, geoType string, rel_x, rel_y, parent
 		RelX:     rel_x,
 		RelY:     rel_y,
 		Parent:   parent,
+		Mask:     mask,
 	}
 
 	return geo
@@ -46,6 +48,7 @@ func (geo *Geometry) Attributes() map[string]string {
 	p["rel_x"] = strconv.Itoa(geo.RelX)
 	p["rel_y"] = strconv.Itoa(geo.RelY)
 	p["parent"] = strconv.Itoa(geo.Parent)
+	p["mask"] = strconv.Itoa(geo.Mask)
 
 	return p
 }
