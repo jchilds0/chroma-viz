@@ -23,21 +23,6 @@ type Geometry struct {
 	Mask     int
 }
 
-func NewGeometry(geoID int, name, propType, geoType string, rel_x, rel_y, parent, mask int) *Geometry {
-	geo := &Geometry{
-		GeoNum:   geoID,
-		Name:     name,
-		GeoType:  geoType,
-		PropType: propType,
-		RelX:     rel_x,
-		RelY:     rel_y,
-		Parent:   parent,
-		Mask:     mask,
-	}
-
-	return geo
-}
-
 func (geo *Geometry) Geom() *Geometry {
 	return geo
 }
@@ -129,13 +114,15 @@ func (rect *Rectangle) Attributes() map[string]string {
 type Text struct {
 	Geometry
 	Text  string
+	Scale float64
 	Color string
 }
 
-func NewText(geo Geometry, text, color string) *Text {
+func NewText(geo Geometry, text, color string, scale float64) *Text {
 	t := &Text{
 		Geometry: geo,
 		Text:     text,
+		Scale:    scale,
 		Color:    color,
 	}
 
@@ -146,6 +133,7 @@ func (text *Text) Attributes() map[string]string {
 	p := text.Geometry.Attributes()
 
 	p["string"] = text.Text
+	p["scale"] = strconv.FormatFloat(text.Scale, 'f', 10, 64)
 	p["color"] = text.Color
 
 	return p

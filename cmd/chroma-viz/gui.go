@@ -79,11 +79,6 @@ func VizGui(app *gtk.Application) {
 	win.SetDefaultSize(800, 600)
 	win.SetTitle("Chroma Viz")
 
-	preview, err := library.SetupPreviewWindow(*conf)
-	if err != nil {
-		log.Fatalf("Error setting up preview window: %s", err)
-	}
-
 	box, err := gtk.BoxNew(gtk.ORIENTATION_VERTICAL, 0)
 	if err != nil {
 		log.Fatal(err)
@@ -129,6 +124,15 @@ func VizGui(app *gtk.Application) {
 		SendPreview(edit.CurrentPage, library.ANIMATE_ON)
 	})
 	edit.PageEditor()
+
+	preview, err := library.SetupPreviewWindow(*conf,
+		func() { SendPreview(edit.CurrentPage, library.ANIMATE_ON) },
+		func() { SendPreview(edit.CurrentPage, library.CONTINUE) },
+		func() { SendPreview(edit.CurrentPage, library.ANIMATE_OFF) },
+	)
+	if err != nil {
+		log.Fatalf("Error setting up preview window: %s", err)
+	}
 
 	start = time.Now()
 	tempTree.ImportTemplates(conn.hub.Conn)

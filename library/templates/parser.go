@@ -294,9 +294,10 @@ func parseGeometry(temp *Template, buf *bufio.Reader) (err error) {
 		temp.Circle = append(temp.Circle, *circle)
 
 	case GEO_TEXT:
-		text := NewText(geom, data["string"], data["color"])
-		temp.Text = append(temp.Text, *text)
+		scale, _ := strconv.ParseFloat(data["scale"], 64)
 
+		text := NewText(geom, data["string"], data["color"], scale)
+		temp.Text = append(temp.Text, *text)
 	}
 
 	return

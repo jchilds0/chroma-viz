@@ -8,7 +8,7 @@ import (
 	"github.com/gotk3/gotk3/gtk"
 )
 
-func SetupPreviewWindow(conf Config) (box *gtk.Box, err error) {
+func SetupPreviewWindow(conf Config, takeOn, cont, takeOff func()) (box *gtk.Box, err error) {
 	box, err = gtk.BoxNew(gtk.ORIENTATION_VERTICAL, 0)
 	if err != nil {
 		return
@@ -21,12 +21,38 @@ func SetupPreviewWindow(conf Config) (box *gtk.Box, err error) {
 	}
 
 	box.PackStart(actions, false, false, padding)
+
+	takeOnButton, err := gtk.ButtonNewWithLabel("Play")
+	if err != nil {
+		return
+	}
+
+	takeOnButton.Connect("clicked", takeOn)
+	actions.PackStart(takeOnButton, false, false, padding)
+
+	contButton, err := gtk.ButtonNewWithLabel("Continue")
+	if err != nil {
+		return
+	}
+
+	contButton.Connect("clicked", cont)
+	actions.PackStart(contButton, false, false, padding)
+
+	takeOffButton, err := gtk.ButtonNewWithLabel("Play Off")
+	if err != nil {
+		return
+	}
+
+	takeOffButton.Connect("clicked", takeOff)
+	actions.PackStart(takeOffButton, false, false, padding)
+
 	restart, err := gtk.ButtonNewWithLabel("Restart Preview")
 	if err != nil {
 		return
 	}
 
 	actions.PackEnd(restart, false, false, padding)
+
 	window, err := gtk.FrameNew("")
 	if err != nil {
 		return

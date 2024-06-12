@@ -97,7 +97,11 @@ func ArtistGui(app *gtk.Application) {
 	editView.PropertyEditor()
 	editView.CurrentPage = page
 
-	preview, err := library.SetupPreviewWindow(*conf)
+	preview, err := library.SetupPreviewWindow(*conf,
+		func() { SendPreview(editView.CurrentPage, library.ANIMATE_ON) },
+		func() { SendPreview(editView.CurrentPage, library.CONTINUE) },
+		func() { SendPreview(editView.CurrentPage, library.ANIMATE_OFF) },
+	)
 	if err != nil {
 		log.Fatalf("Error setting up preview window: %s", err)
 	}

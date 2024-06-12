@@ -36,7 +36,7 @@ func (hub *DataBase) AddRectangle(tempID int64, rect templates.Rectangle) (err e
 
 func (hub *DataBase) AddText(tempID int64, text templates.Text) (err error) {
 	q := `
-        INSERT INTO text VALUES (?, ?, ?);
+        INSERT INTO text VALUES (?, ?, ?, ?, ?);
     `
 
 	geoID, err := hub.addGeometry(tempID, text.Geometry)
@@ -44,7 +44,8 @@ func (hub *DataBase) AddText(tempID int64, text templates.Text) (err error) {
 		return
 	}
 
-	_, err = hub.db.Exec(q, geoID, text.Text, text.Color)
+	fontFace := ""
+	_, err = hub.db.Exec(q, geoID, text.Text, text.Scale, fontFace, text.Color)
 	return
 }
 
@@ -162,7 +163,7 @@ func (hub *DataBase) GetCircles(temp *templates.Template) (err error) {
 
 func (hub *DataBase) GetTexts(temp *templates.Template) (err error) {
 	q := `
-        SELECT t.geometryID, t.text, t.color
+        SELECT t.geometryID, t.text, t.fontSize, t.color
         FROM text t
         INNER JOIN geometry g
         ON g.geometryID = t.geometryID
@@ -176,9 +177,10 @@ func (hub *DataBase) GetTexts(temp *templates.Template) (err error) {
 
 	var text, color string
 	var geoID int64
+	var scale float64
 	var geo templates.Geometry
 	for rows.Next() {
-		err = rows.Scan(&geoID, &text, &color)
+		err = rows.Scan(&geoID, &text, &scale, &color)
 		if err != nil {
 			err = fmt.Errorf("Text: %s", err)
 		}
@@ -188,7 +190,7 @@ func (hub *DataBase) GetTexts(temp *templates.Template) (err error) {
 			return
 		}
 
-		t := templates.NewText(geo, text, color)
+		t := templates.NewText(geo, text, color, scale)
 		temp.Text = append(temp.Text, *t)
 	}
 

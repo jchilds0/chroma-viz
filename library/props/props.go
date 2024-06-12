@@ -96,6 +96,7 @@ func NewProperty(typed, name string, isTemp bool, visible map[string]bool) *Prop
 	case TEXT_PROP:
 		prop.Attr["string"] = attribute.NewStringAttribute("string")
 		prop.Attr["color"] = attribute.NewColorAttribute("color")
+		prop.Attr["scale"] = attribute.NewFloatAttribute("scale")
 
 	case CIRCLE_PROP:
 		prop.Attr["inner_radius"] = attribute.NewIntAttribute("inner_radius")
@@ -106,10 +107,12 @@ func NewProperty(typed, name string, isTemp bool, visible map[string]bool) *Prop
 
 	case TICKER_PROP:
 		prop.Attr["string"], _ = attribute.NewListAttribute("string", 1, true)
+		prop.Attr["scale"] = attribute.NewFloatAttribute("scale")
 		prop.Attr["color"] = attribute.NewColorAttribute("color")
 
 	case CLOCK_PROP:
 		prop.Attr["string"] = attribute.NewClockAttribute("string")
+		prop.Attr["scale"] = attribute.NewFloatAttribute("scale")
 		prop.Attr["color"] = attribute.NewColorAttribute("color")
 
 	case IMAGE_PROP:
@@ -161,9 +164,16 @@ func (prop *Property) CreateGeometry(temp *templates.Template, geoID int) {
 		mask, _ = strconv.Atoi(attr.Encode())
 	}
 
-	geo := templates.NewGeometry(
-		geoID, prop.Name, prop.PropType, PropToGeo[prop.PropType],
-		relX, relY, parent, mask)
+	geo := templates.Geometry{
+		GeoNum:   geoID,
+		Name:     prop.Name,
+		GeoType:  PropToGeo[prop.PropType],
+		PropType: prop.PropType,
+		RelX:     relX,
+		RelY:     relY,
+		Parent:   parent,
+		Mask:     mask,
+	}
 
 	switch prop.PropType {
 	case RECT_PROP:
@@ -186,7 +196,7 @@ func (prop *Property) CreateGeometry(temp *templates.Template, geoID int) {
 			color = attr.Encode()
 		}
 
-		rect := templates.NewRectangle(*geo, width, height, rounding, color)
+		rect := templates.NewRectangle(geo, width, height, rounding, color)
 		temp.Rectangle = append(temp.Rectangle, *rect)
 	case CIRCLE_PROP:
 		var inner, outer, start, end int
@@ -212,11 +222,12 @@ func (prop *Property) CreateGeometry(temp *templates.Template, geoID int) {
 			color = attr.Encode()
 		}
 
-		circle := templates.NewCircle(*geo, inner, outer, start, end, color)
+		circle := templates.NewCircle(geo, inner, outer, start, end, color)
 		temp.Circle = append(temp.Circle, *circle)
 
 	case TEXT_PROP, TICKER_PROP, CLOCK_PROP:
 		var s string
+		scale := 1.0
 		color := "0 0 0 0"
 
 		if attr, ok := prop.Attr["string"]; ok {
@@ -227,7 +238,11 @@ func (prop *Property) CreateGeometry(temp *templates.Template, geoID int) {
 			color = attr.Encode()
 		}
 
-		text := templates.NewText(*geo, s, color)
+		if attr, ok := prop.Attr["scale"]; ok {
+			scale, _ = strconv.ParseFloat(attr.Encode(), 64)
+		}
+
+		text := templates.NewText(geo, s, color, scale)
 		temp.Text = append(temp.Text, *text)
 
 	case IMAGE_PROP:
@@ -245,7 +260,7 @@ func (prop *Property) CreateGeometry(temp *templates.Template, geoID int) {
 
 		scale, _ := strconv.ParseFloat(s, 64)
 
-		a := templates.NewAsset(*geo, "", "", id, scale)
+		a := templates.NewAsset(geo, "", "", id, scale)
 		temp.Asset = append(temp.Asset, *a)
 
 	default:

@@ -22,23 +22,21 @@ func randomTemplate(chromaHub *hub.DataBase, tempID int64, numGeo int) {
 	for j := 1; j < numGeo; j++ {
 		geoIndex := rand.Int() % len(geos)
 
-		geo := templates.NewGeometry(
-			j,
-			props[geoIndex],
-			props[geoIndex],
-			geos[geoIndex],
-			rand.Int()%2000,
-			rand.Int()%2000,
-			0,
-			0,
-		)
+		geo := templates.Geometry{
+			GeoNum:   j,
+			Name:     props[geoIndex],
+			GeoType:  geos[geoIndex],
+			PropType: props[geoIndex],
+			RelX:     rand.Int() % 2000,
+			RelY:     rand.Int() % 2000,
+		}
 
 		color := fmt.Sprintf("%f %f %f %f", rand.Float64(), rand.Float64(), rand.Float64(), rand.Float64())
 
 		switch geos[geoIndex] {
 		case templates.GEO_RECT:
 			rect := templates.NewRectangle(
-				*geo,
+				geo,
 				rand.Int()%1000,
 				rand.Int()%1000,
 				rand.Int()%10,
@@ -48,7 +46,7 @@ func randomTemplate(chromaHub *hub.DataBase, tempID int64, numGeo int) {
 
 		case templates.GEO_CIRCLE:
 			circle := templates.NewCircle(
-				*geo,
+				geo,
 				rand.Int()%200,
 				rand.Int()%200,
 				rand.Int()%10,
@@ -57,7 +55,7 @@ func randomTemplate(chromaHub *hub.DataBase, tempID int64, numGeo int) {
 			)
 			err = chromaHub.AddCircle(tempID, *circle)
 		case templates.GEO_TEXT:
-			text := templates.NewText(*geo, "some text", color)
+			text := templates.NewText(geo, "some text", color, 1.0)
 			err = chromaHub.AddText(tempID, *text)
 		}
 

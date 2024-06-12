@@ -3,6 +3,7 @@ package props
 import (
 	"chroma-viz/library/attribute"
 	"fmt"
+	"log"
 	"math"
 
 	"github.com/gotk3/gotk3/gtk"
@@ -73,6 +74,7 @@ func NewPropertyEditor(propType string) (propEdit *PropertyEditor, err error) {
 	case TEXT_PROP:
 		propEdit.editor["string"], _ = attribute.NewStringEditor("Text")
 		propEdit.editor["color"], _ = attribute.NewColorEditor("Color")
+		propEdit.editor["scale"], _ = attribute.NewFloatEditor("Scale", 0.01, 10, 0.01)
 
 	case CIRCLE_PROP:
 		propEdit.editor["inner_radius"], _ = attribute.NewIntEditor("Inner Radius", 0, float64(width))
@@ -84,10 +86,12 @@ func NewPropertyEditor(propType string) (propEdit *PropertyEditor, err error) {
 	case TICKER_PROP:
 		propEdit.editor["string"], _ = attribute.NewListEditor("Ticker", []string{"Text"})
 		propEdit.editor["color"], _ = attribute.NewColorEditor("Color")
+		propEdit.editor["scale"], _ = attribute.NewFloatEditor("Scale", 0.01, 10, 0.01)
 
 	case CLOCK_PROP:
 		propEdit.editor["string"], _ = attribute.NewClockEditor("Time")
 		propEdit.editor["color"], _ = attribute.NewColorEditor("Color")
+		propEdit.editor["scale"], _ = attribute.NewFloatEditor("Scale", 0.01, 10, 0.01)
 
 	case IMAGE_PROP:
 		propEdit.editor["scale"], _ = attribute.NewFloatEditor("Scale", 0.01, 10, 0.01)
@@ -103,10 +107,10 @@ func NewPropertyEditor(propType string) (propEdit *PropertyEditor, err error) {
 
 var PropAttrs = map[string][]string{
 	RECT_PROP:   {"rel_x", "rel_y", "mask", "width", "height", "rounding", "color"},
-	TEXT_PROP:   {"rel_x", "rel_y", "mask", "color", "string"},
+	TEXT_PROP:   {"rel_x", "rel_y", "mask", "color", "scale", "string"},
 	CIRCLE_PROP: {"rel_x", "rel_y", "mask", "inner_radius", "outer_radius", "start_angle", "end_angle", "color"},
-	TICKER_PROP: {"rel_x", "rel_y", "mask", "color", "string"},
-	CLOCK_PROP:  {"rel_x", "rel_y", "mask", "color", "string"},
+	TICKER_PROP: {"rel_x", "rel_y", "mask", "color", "scale", "string"},
+	CLOCK_PROP:  {"rel_x", "rel_y", "mask", "color", "scale", "string"},
 	IMAGE_PROP:  {"rel_x", "rel_y", "mask", "scale", "image_id"},
 }
 
@@ -183,6 +187,11 @@ func (propEdit *PropertyEditor) CreateVisibleEditor() (scrollBox *gtk.ScrolledWi
 		row, err = gtk.BoxNew(gtk.ORIENTATION_HORIZONTAL, 0)
 		if err != nil {
 			return
+		}
+
+		if attr == nil {
+			log.Printf("Missing attr %s", name)
+			continue
 		}
 
 		attrLabel, err = gtk.LabelNew(attr.Name())
