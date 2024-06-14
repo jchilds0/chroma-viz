@@ -2,12 +2,14 @@ package main
 
 import (
 	"chroma-viz/library"
+	"chroma-viz/library/attribute"
 	"chroma-viz/library/hub"
 	"chroma-viz/library/pages"
 	"chroma-viz/library/props"
 	"chroma-viz/library/templates"
 	"chroma-viz/library/util"
 	"encoding/json"
+	"fmt"
 	"log"
 	"os"
 	"strconv"
@@ -400,7 +402,8 @@ func ArtistGui(app *gtk.Application) {
 		}
 
 		iter = tempView.geoModel.Append(nil)
-		tempView.AddGeoRow(iter, propType, propType, propNum)
+		prop := page.PropMap[propNum]
+		tempView.AddGeoRow(iter, prop.Name, prop.Name, propNum)
 	})
 
 	removeGeo.Connect("clicked", func() {
@@ -574,6 +577,29 @@ func AddProp(propType string) (id int, err error) {
 	}
 
 	page.PropMap[id] = props.NewProperty(propType, geoNames[propType], true, nil)
+
+	if propType != props.CLOCK_PROP {
+		return
+	}
+
+	/*
+	   Clock requires a way to send updates to viz
+	   to animate the clock. We manually add this
+	   after parsing the page.
+	*/
+	attr, ok := page.PropMap[id].Attr["string"]
+	if !ok {
+		err = fmt.Errorf("Clock Prop missing string attr")
+		return
+	}
+
+	clockAttr, ok := attr.(*attribute.ClockAttribute)
+	if !ok {
+		err = fmt.Errorf("String attr is not a clock attribute")
+		return
+	}
+
+	clockAttr.SetClock(func() { SendPreview(page, library.CONTINUE) })
 	return
 }
 
@@ -605,6 +631,29 @@ func importPage(temp *templates.Template, tempView *TempTree, titleEntry, tempID
 	// set temp switch to true to send all props to chroma engine
 	for _, geo := range page.PropMap {
 		geo.SetTemp(true)
+
+		if geo.PropType != props.CLOCK_PROP {
+			return
+		}
+
+		/*
+		   Clock requires a way to send updates to viz
+		   to animate the clock. We manually add this
+		   after parsing the page.
+		*/
+		attr, ok := geo.Attr["string"]
+		if !ok {
+			log.Printf("Clock Prop missing string attr")
+			continue
+		}
+
+		clockAttr, ok := attr.(*attribute.ClockAttribute)
+		if !ok {
+			log.Printf("String attr is not a clock attribute")
+			continue
+		}
+
+		clockAttr.SetClock(func() { SendPreview(page, library.CONTINUE) })
 	}
 }
 

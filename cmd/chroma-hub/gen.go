@@ -62,15 +62,15 @@ func randomTemplate(chromaHub *hub.DataBase, tempID int64, numGeo int) {
 		if j%3 == 0 {
 			var tempFrame *templates.Keyframe
 			if j%2 == 0 {
-				tempFrame = templates.NewKeyFrame(0, j, "rel_x", false)
+				tempFrame = templates.NewKeyFrame(1, j, "rel_x", false)
 			} else {
-				tempFrame = templates.NewKeyFrame(0, j, "rel_y", false)
+				tempFrame = templates.NewKeyFrame(1, j, "rel_y", false)
 			}
 
 			startFrame := templates.NewSetFrame(*tempFrame, rand.Int()%2000)
 			chromaHub.AddSetFrame(tempID, *startFrame)
 
-			tempFrame.FrameNum = 1
+			tempFrame.FrameNum = 2
 
 			endFrame := templates.NewUserFrame(*tempFrame)
 			chromaHub.AddUserFrame(tempID, *endFrame)

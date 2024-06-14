@@ -74,6 +74,13 @@ func (temp *TempTree) createGeometryTree(propToEditor func(propID int)) (err err
 	}
 	temp.geoView.AppendColumn(column)
 
+	column, err = gtk.TreeViewColumnNewWithAttribute("Geo ID", typeCell, "text", GEO_NUM)
+	if err != nil {
+		return
+	}
+	column.SetResizable(true)
+	temp.geoView.AppendColumn(column)
+
 	nameCell, err := gtk.CellRendererTextNew()
 	if err != nil {
 		return
