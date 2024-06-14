@@ -79,14 +79,14 @@ func (hub *DataBase) AddAsset(tempID int64, a templates.Asset) (err error) {
 
 func (hub *DataBase) GetGeometry(geoID int64) (geo templates.Geometry, err error) {
 	q := `
-        SELECT g.geoNum, g.name, g.propType, g.geoType, g.rel_x, g.rel_y, g.parent
+        SELECT g.geoNum, g.name, g.propType, g.geoType, g.rel_x, g.rel_y, g.parent, g.mask
         FROM geometry g 
         WHERE g.geometryID = ?;
     `
 
 	row := hub.db.QueryRow(q, geoID)
 
-	err = row.Scan(&geo.GeoNum, &geo.Name, &geo.PropType, &geo.GeoType, &geo.RelX, &geo.RelY, &geo.Parent)
+	err = row.Scan(&geo.GeoNum, &geo.Name, &geo.PropType, &geo.GeoType, &geo.RelX, &geo.RelY, &geo.Parent, &geo.Mask)
 	return
 }
 

@@ -41,7 +41,7 @@ func parseTemplate(buf *bufio.Reader) (temp Template, err error) {
 
 			parser.MatchToken(parser.INT, buf)
 
-		case "num_keyframe":
+		case "max_keyframe":
 			num, err := strconv.Atoi(parser.C_tok.Value)
 			if err != nil {
 				num = 10
