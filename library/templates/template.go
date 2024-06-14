@@ -110,8 +110,8 @@ func (temp *Template) Encode() (s string, err error) {
 	b.WriteString(strconv.Itoa(temp.numGeo() + 1))
 	b.WriteString(", ")
 
-	b.WriteString("'num_keyframe': ")
-	b.WriteString(strconv.Itoa(temp.numKeyframe()))
+	b.WriteString("'max_keyframe': ")
+	b.WriteString(strconv.Itoa(temp.maxFrame()))
 	b.WriteString(", ")
 
 	b.WriteString("'name': '")
@@ -121,6 +121,47 @@ func (temp *Template) Encode() (s string, err error) {
 	b.WriteString("'layer': ")
 	b.WriteString(strconv.Itoa(temp.Layer))
 	b.WriteString(", ")
+
+	{
+
+		b.WriteString("'geometry': [")
+
+		first := true
+		var propStr string
+
+		for _, geo := range temp.Rectangle {
+			if !first {
+				b.WriteString(",")
+			}
+
+			first = false
+			propStr = EncodeGeometry(geo.Geometry, geo.Attributes())
+			b.WriteString(propStr)
+		}
+
+		for _, geo := range temp.Circle {
+			if !first {
+				b.WriteString(",")
+			}
+
+			first = false
+			propStr = EncodeGeometry(geo.Geometry, geo.Attributes())
+			b.WriteString(propStr)
+		}
+
+		for _, geo := range temp.Text {
+			if !first {
+				b.WriteString(",")
+			}
+
+			first = false
+			propStr = EncodeGeometry(geo.Geometry, geo.Attributes())
+			b.WriteString(propStr)
+		}
+
+		b.WriteString("]")
+
+	}
 
 	{
 
@@ -169,47 +210,6 @@ func (temp *Template) Encode() (s string, err error) {
 		}
 
 		b.WriteString("],")
-
-	}
-
-	{
-
-		b.WriteString("'geometry': [")
-
-		first := true
-		var propStr string
-
-		for _, geo := range temp.Rectangle {
-			if !first {
-				b.WriteString(",")
-			}
-
-			first = false
-			propStr = EncodeGeometry(geo.Geometry, geo.Attributes())
-			b.WriteString(propStr)
-		}
-
-		for _, geo := range temp.Circle {
-			if !first {
-				b.WriteString(",")
-			}
-
-			first = false
-			propStr = EncodeGeometry(geo.Geometry, geo.Attributes())
-			b.WriteString(propStr)
-		}
-
-		for _, geo := range temp.Text {
-			if !first {
-				b.WriteString(",")
-			}
-
-			first = false
-			propStr = EncodeGeometry(geo.Geometry, geo.Attributes())
-			b.WriteString(propStr)
-		}
-
-		b.WriteString("]")
 
 	}
 
@@ -272,10 +272,18 @@ func (temp *Template) numGeo() (maxID int) {
 	return
 }
 
-func (temp *Template) numKeyframe() (numKey int) {
-	numKey += len(temp.UserFrame)
-	numKey += len(temp.SetFrame)
-	numKey += len(temp.BindFrame)
+func (temp *Template) maxFrame() (maxFrameNum int) {
+	for _, user := range temp.UserFrame {
+		maxFrameNum = max(maxFrameNum, user.FrameNum)
+	}
+
+	for _, set := range temp.SetFrame {
+		maxFrameNum = max(maxFrameNum, set.FrameNum)
+	}
+
+	for _, bind := range temp.BindFrame {
+		maxFrameNum = max(maxFrameNum, bind.FrameNum)
+	}
 
 	return
 }

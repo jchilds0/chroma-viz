@@ -619,7 +619,7 @@ func (tempView *TempTree) AddGeoRow(iter *gtk.TreeIter, name, propName string, p
 func (tempView *TempTree) AddKeyRow(geoName string, geoID int, attrName string) {
 	iter := tempView.keyModel.Append()
 
-	tempView.keyModel.SetValue(iter, FRAME_NUM, 0)
+	tempView.keyModel.SetValue(iter, FRAME_NUM, 1)
 	tempView.keyModel.SetValue(iter, FRAME_GEOMETRY, geoName)
 	tempView.keyModel.SetValue(iter, FRAME_GEOMETRY_ID, geoID)
 	tempView.keyModel.SetValue(iter, FRAME_ATTR, attrName)
