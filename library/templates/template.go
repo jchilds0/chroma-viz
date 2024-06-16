@@ -107,11 +107,11 @@ func (temp *Template) Encode() (s string, err error) {
 	b.WriteString(", ")
 
 	b.WriteString("'num_geo': ")
-	b.WriteString(strconv.Itoa(temp.numGeo() + 1))
+	b.WriteString(strconv.Itoa(temp.NumGeometry() + 1))
 	b.WriteString(", ")
 
 	b.WriteString("'max_keyframe': ")
-	b.WriteString(strconv.Itoa(temp.maxFrame()))
+	b.WriteString(strconv.Itoa(temp.MaxKeyframe()))
 	b.WriteString(", ")
 
 	b.WriteString("'name': '")
@@ -252,7 +252,7 @@ func GetTemplate(hub net.Conn, tempid int) (temp Template, err error) {
 	return temp, err
 }
 
-func (temp *Template) numGeo() (maxID int) {
+func (temp *Template) NumGeometry() (maxID int) {
 	for _, rect := range temp.Rectangle {
 		maxID = max(maxID, rect.GeoNum)
 	}
@@ -272,7 +272,7 @@ func (temp *Template) numGeo() (maxID int) {
 	return
 }
 
-func (temp *Template) maxFrame() (maxFrameNum int) {
+func (temp *Template) MaxKeyframe() (maxFrameNum int) {
 	for _, user := range temp.UserFrame {
 		maxFrameNum = max(maxFrameNum, user.FrameNum)
 	}

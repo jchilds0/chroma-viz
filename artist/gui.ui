@@ -146,6 +146,12 @@
                         <property name="orientation">horizontal</property>
 
                         <child>
+                          <object class="GtkButton" id="add-frame">
+                            <property name="label">Add Frame</property>
+                          </object>
+                        </child>
+
+                        <child>
                           <object class="GtkLabel">
                             <property name="label">Geometry</property>
                             <property name="width-chars">12</property>
@@ -201,10 +207,23 @@
                     </child>
 
                     <child>
-                      <object class="GtkScrolledWindow" id="key-win">
-                          <property name="vexpand">TRUE</property>
+                      <object class="GtkPaned" id="keyframe-win">
+                        <property name="orientation">horizontal</property>
+
+                        <child>
+                          <object class="GtkStackSidebar" id="frame-sidebar">
+                          </object>
+                        </child>
+
+                        <child>
+                          <object class="GtkStack" id="frame-stack">
+                            <property name="vexpand">TRUE</property>
+                          </object>
+                        </child>
+
                       </object>
                     </child>
+
                   </object>
                 </child>
 
