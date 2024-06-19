@@ -149,6 +149,10 @@
                           <object class="GtkButton" id="add-frame">
                             <property name="label">Add Frame</property>
                           </object>
+
+                          <packing>
+                            <property name="padding">10</property>
+                          </packing>
                         </child>
 
                         <child>
@@ -171,7 +175,7 @@
                         </child>
 
                         <child>
-                          <object class="GtkComboBoxText" id="key-attr">
+                          <object class="GtkComboBox" id="key-attr">
                           </object>
 
                           <packing>

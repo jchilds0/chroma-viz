@@ -30,6 +30,20 @@ import (
 
 */
 
+var AttrLabel = map[string]string{
+	"rel_x":        "X",
+	"rel_y":        "Y",
+	"mask":         "Mask",
+	"width":        "Width",
+	"height":       "Height",
+	"rounding":     "Rounding",
+	"scale":        "Scale",
+	"start_angle":  "Start Angle",
+	"end_angle":    "End Angle",
+	"inner_radius": "Inner Radius",
+	"outer_radius": "Outer Radius",
+}
+
 type PropertyEditor struct {
 	PropType  string
 	Scroll    *gtk.ScrolledWindow
@@ -60,41 +74,41 @@ func NewPropertyEditor(propType string) (propEdit *PropertyEditor, err error) {
 	propEdit.ScrollBox.SetVisible(true)
 	propEdit.Scroll.Add(propEdit.ScrollBox)
 
-	propEdit.editor["rel_x"], _ = attribute.NewIntEditor("x", -float64(width), float64(width))
-	propEdit.editor["rel_y"], _ = attribute.NewIntEditor("y", -float64(height), float64(height))
-	propEdit.editor["mask"], _ = attribute.NewIntEditor("Mask Geo", 0, math.MaxInt)
+	propEdit.editor["rel_x"], _ = attribute.NewIntEditor(AttrLabel["rel_x"], -float64(width), float64(width))
+	propEdit.editor["rel_y"], _ = attribute.NewIntEditor(AttrLabel["rel_y"], -float64(height), float64(height))
+	propEdit.editor["mask"], _ = attribute.NewIntEditor(AttrLabel["mask"], 0, math.MaxInt)
 
 	switch propEdit.PropType {
 	case RECT_PROP:
-		propEdit.editor["width"], _ = attribute.NewIntEditor("Width", 0, float64(width))
-		propEdit.editor["height"], _ = attribute.NewIntEditor("Height", 0, float64(height))
-		propEdit.editor["rounding"], _ = attribute.NewIntEditor("Rounding", 0, float64(width))
+		propEdit.editor["width"], _ = attribute.NewIntEditor(AttrLabel["width"], 0, float64(width))
+		propEdit.editor["height"], _ = attribute.NewIntEditor(AttrLabel["height"], 0, float64(height))
+		propEdit.editor["rounding"], _ = attribute.NewIntEditor(AttrLabel["rounding"], 0, float64(width))
 		propEdit.editor["color"], _ = attribute.NewColorEditor("Color")
 
 	case TEXT_PROP:
 		propEdit.editor["string"], _ = attribute.NewStringEditor("Text")
 		propEdit.editor["color"], _ = attribute.NewColorEditor("Color")
-		propEdit.editor["scale"], _ = attribute.NewFloatEditor("Scale", 0.01, 10, 0.01)
+		propEdit.editor["scale"], _ = attribute.NewFloatEditor(AttrLabel["scale"], 0.01, 10, 0.01)
 
 	case CIRCLE_PROP:
-		propEdit.editor["inner_radius"], _ = attribute.NewIntEditor("Inner Radius", 0, float64(width))
-		propEdit.editor["outer_radius"], _ = attribute.NewIntEditor("Outer Radius", 0, float64(width))
-		propEdit.editor["start_angle"], _ = attribute.NewIntEditor("Start Angle", 0, 360)
-		propEdit.editor["end_angle"], _ = attribute.NewIntEditor("End Angle", 0, 360)
+		propEdit.editor["inner_radius"], _ = attribute.NewIntEditor(AttrLabel["inner_radius"], 0, float64(width))
+		propEdit.editor["outer_radius"], _ = attribute.NewIntEditor(AttrLabel["outer_radius"], 0, float64(width))
+		propEdit.editor["start_angle"], _ = attribute.NewIntEditor(AttrLabel["start_angle"], 0, 360)
+		propEdit.editor["end_angle"], _ = attribute.NewIntEditor(AttrLabel["end_angle"], 0, 360)
 		propEdit.editor["color"], _ = attribute.NewColorEditor("Color")
 
 	case TICKER_PROP:
 		propEdit.editor["string"], _ = attribute.NewListEditor("Ticker", []string{"Text"})
 		propEdit.editor["color"], _ = attribute.NewColorEditor("Color")
-		propEdit.editor["scale"], _ = attribute.NewFloatEditor("Scale", 0.01, 10, 0.01)
+		propEdit.editor["scale"], _ = attribute.NewFloatEditor(AttrLabel["scale"], 0.01, 10, 0.01)
 
 	case CLOCK_PROP:
 		propEdit.editor["string"], _ = attribute.NewClockEditor("Time")
 		propEdit.editor["color"], _ = attribute.NewColorEditor("Color")
-		propEdit.editor["scale"], _ = attribute.NewFloatEditor("Scale", 0.01, 10, 0.01)
+		propEdit.editor["scale"], _ = attribute.NewFloatEditor(AttrLabel["scale"], 0.01, 10, 0.01)
 
 	case IMAGE_PROP:
-		propEdit.editor["scale"], _ = attribute.NewFloatEditor("Scale", 0.01, 10, 0.01)
+		propEdit.editor["scale"], _ = attribute.NewFloatEditor(AttrLabel["scale"], 0.01, 10, 0.01)
 		propEdit.editor["image_id"] = attribute.NewAssetEditor("Image")
 
 	default:

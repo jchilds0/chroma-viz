@@ -298,6 +298,12 @@ func parseGeometry(temp *Template, buf *bufio.Reader) (err error) {
 
 		text := NewText(geom, data["string"], data["color"], scale)
 		temp.Text = append(temp.Text, *text)
+	case GEO_IMAGE:
+		scale, _ := strconv.ParseFloat(data["scale"], 64)
+		image_id, _ := strconv.Atoi(data["image_id"])
+
+		img := NewAsset(geom, data["name"], data["dir"], image_id, scale)
+		temp.Asset = append(temp.Asset, *img)
 	}
 
 	return

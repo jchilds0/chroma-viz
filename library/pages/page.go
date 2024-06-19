@@ -58,6 +58,10 @@ func NewPageFromTemplate(temp *templates.Template) (page *Page) {
 		page.PropMap[geo.GeoNum] = props.NewPropertyFromGeometry(geo.Geometry, geo.Attributes())
 	}
 
+	for _, geo := range temp.Asset {
+		page.PropMap[geo.GeoNum] = props.NewPropertyFromGeometry(geo.Geometry, geo.Attributes())
+	}
+
 	return
 }
 

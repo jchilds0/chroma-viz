@@ -21,8 +21,6 @@ import (
 
 var conn map[string]*library.Connection
 var conf *library.Config
-var chromaHub *hub.DataBase
-var hubConn *library.Connection
 
 func SendPreview(page library.Animator, action int) {
 	if page == nil {
@@ -55,59 +53,6 @@ func ArtistGui(app *gtk.Application) {
 
 	win.SetDefaultSize(800, 600)
 	win.SetTitle("Chroma Artist")
-
-	editView, err := library.NewEditor()
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	propToEditor := func(propID int) {
-		prop := page.PropMap[propID]
-		err := editView.SetProperty(prop)
-		if err != nil {
-			log.Printf("Error sending prop %d to editor: %s", propID, err)
-		}
-	}
-
-	geoTree, err := NewGeoTree(propToEditor)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	keyTree := NewKeyframeTree()
-
-	editView.AddAction("Save", true, func() {
-		template, err := exportPage(page, geoTree, keyTree, titleEntry, tempIDEntry, layerEntry)
-		if err != nil {
-			log.Printf("Error creating template (%s)", err)
-			return
-		}
-
-		err = chromaHub.ImportTemplate(*template)
-		if err != nil {
-			log.Printf("Error sending template to chroma hub (%s)", err)
-			return
-		}
-
-		editView.CurrentPage = page
-		editView.UpdateProps()
-
-		SendPreview(editView.CurrentPage, library.UPDATE)
-		time.Sleep(10 * time.Millisecond)
-		SendPreview(editView.CurrentPage, library.ANIMATE_ON)
-	})
-
-	editView.PropertyEditor()
-	editView.CurrentPage = page
-
-	preview, err := library.SetupPreviewWindow(*conf,
-		func() { SendPreview(editView.CurrentPage, library.ANIMATE_ON) },
-		func() { SendPreview(editView.CurrentPage, library.CONTINUE) },
-		func() { SendPreview(editView.CurrentPage, library.ANIMATE_OFF) },
-	)
-	if err != nil {
-		log.Fatalf("Error setting up preview window: %s", err)
-	}
 
 	box, err := gtk.BoxNew(gtk.ORIENTATION_VERTICAL, 0)
 	if err != nil {
@@ -174,14 +119,12 @@ func ArtistGui(app *gtk.Application) {
 		log.Fatal(err)
 	}
 
-	geoSelectorModel(geoSelector)
-
-	addGeo, err := util.BuilderGetObject[*gtk.Button](builder, "add-geo")
+	addGeoButton, err := util.BuilderGetObject[*gtk.Button](builder, "add-geo")
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	removeGeo, err := util.BuilderGetObject[*gtk.Button](builder, "remove-geo")
+	removeGeoButton, err := util.BuilderGetObject[*gtk.Button](builder, "remove-geo")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -190,8 +133,6 @@ func ArtistGui(app *gtk.Application) {
 	if err != nil {
 		log.Fatal(err)
 	}
-
-	geoScroll.Add(geoTree.geoView)
 
 	framePane, err := util.BuilderGetObject[*gtk.Paned](builder, "keyframe-win")
 	if err != nil {
@@ -213,7 +154,7 @@ func ArtistGui(app *gtk.Application) {
 		log.Fatal(err)
 	}
 
-	keyAttr, err := util.BuilderGetObject[*gtk.ComboBoxText](builder, "key-attr")
+	keyAttr, err := util.BuilderGetObject[*gtk.ComboBox](builder, "key-attr")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -238,14 +179,86 @@ func ArtistGui(app *gtk.Application) {
 		log.Fatal(err)
 	}
 
-	editBox.PackStart(editView.Box, true, true, 0)
-
 	prevBox, err := util.BuilderGetObject[*gtk.Box](builder, "preview")
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	prevBox.PackStart(preview, true, true, 0)
+	/* create objects */
+	chromaHub, err := hub.NewDataBase(10)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	hubConn := library.NewConnection("Hub", conf.HubAddr, conf.HubPort)
+	hubConn.Connect()
+
+	start := time.Now()
+	err = attribute.ImportAssets(hubConn.Conn)
+	if err != nil {
+		log.Print(err)
+	}
+
+	end := time.Now()
+	elapsed := end.Sub(start)
+	log.Printf("Imported Assets in %s", elapsed)
+
+	conn = make(map[string]*library.Connection)
+	for _, c := range conf.Connections {
+		conn[c.Name] = library.NewConnection(c.Name, c.Address, c.Port)
+	}
+
+	editView, err := library.NewEditor()
+	if err != nil {
+		log.Fatal(err)
+	}
+	editView.PropertyEditor()
+	editView.CurrentPage = page
+
+	preview, err := library.SetupPreviewWindow(*conf,
+		func() { SendPreview(editView.CurrentPage, library.ANIMATE_ON) },
+		func() { SendPreview(editView.CurrentPage, library.CONTINUE) },
+		func() { SendPreview(editView.CurrentPage, library.ANIMATE_OFF) },
+	)
+	if err != nil {
+		log.Fatalf("Error setting up preview window: %s", err)
+	}
+
+	propToEditor := func(propID int) {
+		prop := page.PropMap[propID]
+		err := editView.SetProperty(prop)
+		if err != nil {
+			log.Printf("Error sending prop %d to editor: %s", propID, err)
+		}
+	}
+
+	keyTree := NewKeyframeTree(keyGeo, keyAttr)
+
+	geoTree, err := NewGeoTree(geoSelector, propToEditor, keyTree.UpdateGeometryName)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	editView.AddAction("Save", true, func() {
+		template, err := exportPage(page, geoTree, keyTree, titleEntry, tempIDEntry, layerEntry)
+		if err != nil {
+			log.Printf("Error creating template (%s)", err)
+			return
+		}
+
+		err = chromaHub.ImportTemplate(*template)
+		if err != nil {
+			log.Printf("Error sending template to chroma hub (%s)", err)
+			return
+		}
+
+		editView.CurrentPage = page
+		editView.UpdateProps()
+
+		SendPreview(editView.CurrentPage, library.UPDATE)
+		time.Sleep(10 * time.Millisecond)
+		SendPreview(editView.CurrentPage, library.ANIMATE_ON)
+	})
 
 	/* actions */
 	newTemplate.Connect("activate", func() {
@@ -386,96 +399,29 @@ func ArtistGui(app *gtk.Application) {
 		page.Layer = id
 	})
 
-	addGeo.Connect("clicked", func() {
-		iter, err := geoSelector.GetActiveIter()
-		if err != nil {
-			log.Print("No geometry selected")
-			return
-		}
-
-		model, err := geoSelector.GetModel()
-		if err != nil {
-			log.Printf("Error getting geometry model: %s", err)
-			return
-		}
-
-		propType, err := util.ModelGetValue[string](model.ToTreeModel(), iter, 0)
-		if err != nil {
-			log.Printf("Error getting geometry model: %s", err)
-			return
-		}
-
-		propNum, err := AddProp(page, propType)
-		if err != nil {
-			log.Print(err)
-			return
-		}
-
-		iter = geoTree.geoModel.Append(nil)
-		prop := page.PropMap[propNum]
-		geoTree.AddGeoRow(iter, prop.Name, prop.Name, propNum)
-	})
-
-	removeGeo.Connect("clicked", func() {
-		selection, err := geoTree.geoView.GetSelection()
-		if err != nil {
-			log.Printf("Error getting selected")
-			return
-		}
-
-		_, iter, ok := selection.GetSelected()
-		if !ok {
-			log.Printf("No geometry selected")
-			return
-		}
-
-		model := geoTree.geoModel.ToTreeModel()
-		geoID, err := util.ModelGetValue[int](model, iter, GEO_NUM)
-		if err != nil {
-			log.Printf("Error getting prop id (%s)", err)
-			return
-		}
-
-		RemoveProp(page, geoID)
-		geoTree.geoModel.Remove(iter)
-		geoTree.removeGeometry(geoID)
-	})
-
-	geoCell, err := gtk.CellRendererTextNew()
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	keyGeo.PackStart(geoCell, true)
-	keyGeo.CellLayout.AddAttribute(geoCell, "text", GEO_NAME)
-	keyGeo.SetActive(GEO_NAME)
-	keyGeo.SetModel(geoTree.geoList)
+	addGeoButton.Connect("clicked", func() { addGeo(page, geoTree, keyTree) })
+	removeGeoButton.Connect("clicked", func() { removeGeo(page, geoTree, keyTree) })
+	geoScroll.Add(geoTree.geoView)
 
 	keyGeo.Connect("changed", func() {
-		iter, err := keyGeo.GetActiveIter()
+		geoID, _, err := keyTree.SelectedGeometry()
 		if err != nil {
-			log.Printf("No geometry selected")
+			log.Printf("Error getting selected geometry: %s", err)
 			return
 		}
 
-		geoID, err := util.ModelGetValue[int](geoTree.geoList.ToTreeModel(), iter, GEO_NUM)
-		if err != nil {
-			log.Printf("Error getting geo id (%s)", err)
-			return
-		}
-
-		keyAttr.RemoveAll()
-
-		for name := range page.PropMap[geoID].Attr {
-			keyAttr.AppendText(name)
-		}
+		keyTree.UpdateAttrList(page.PropMap[geoID])
 	})
 
 	frameSideBar.SetStack(frameStack)
 
 	addFrameButton.Connect("clicked", func() { addFrame(frameSideBar, keyTree) })
-	addKeyframeButton.Connect("clicked", func() { addKeyframe(frameSideBar, keyGeo, keyAttr, geoTree, keyTree) })
+	addKeyframeButton.Connect("clicked", func() { addKeyframe(frameSideBar, keyTree) })
 	removeKeyframeButton.Connect("clicked", func() { removeKeyframe(frameSideBar, keyTree) })
+
+	editBox.PackStart(editView.Box, true, true, 0)
+
+	prevBox.PackStart(preview, true, true, 0)
 
 	/* Lower Bar layout */
 	lowerBox, err := gtk.ActionBarNew()
@@ -502,40 +448,6 @@ func ArtistGui(app *gtk.Application) {
 	win.ShowAll()
 }
 
-var geoNames = map[string]string{
-	props.RECT_PROP:   "Rectangle",
-	props.CIRCLE_PROP: "Circle",
-	props.TEXT_PROP:   "Text",
-	props.TICKER_PROP: "Ticker",
-	props.CLOCK_PROP:  "Clock",
-	props.IMAGE_PROP:  "Image",
-}
-
-func geoSelectorModel(combo *gtk.ComboBox) (err error) {
-	model, err := gtk.ListStoreNew(glib.TYPE_STRING, glib.TYPE_STRING)
-	if err != nil {
-		return
-	}
-
-	for propName, name := range geoNames {
-		iter := model.Append()
-
-		model.SetValue(iter, 0, propName)
-		model.SetValue(iter, 1, name)
-	}
-
-	cell, err := gtk.CellRendererTextNew()
-	if err != nil {
-		return
-	}
-
-	combo.SetModel(model)
-	combo.CellLayout.PackStart(cell, true)
-	combo.CellLayout.AddAttribute(cell, "text", 1)
-	combo.SetActive(1)
-	return
-}
-
 func AddProp(page *pages.Page, propType string) (id int, err error) {
 	ok := true
 	for id = 1; ok; id++ {
@@ -549,7 +461,7 @@ func AddProp(page *pages.Page, propType string) (id int, err error) {
 		}
 	}
 
-	page.PropMap[id] = props.NewProperty(propType, geoNames[propType], true, nil)
+	page.PropMap[id] = props.NewProperty(propType, propNames[propType], true, nil)
 
 	if propType != props.CLOCK_PROP {
 		return
@@ -574,16 +486,6 @@ func AddProp(page *pages.Page, propType string) (id int, err error) {
 
 	clockAttr.SetClock(func() { SendPreview(page, library.CONTINUE) })
 	return
-}
-
-func RemoveProp(page *pages.Page, propID int) {
-	prop := page.PropMap[propID]
-	if prop == nil {
-		log.Printf("No prop with prop id %d", propID)
-		return
-	}
-
-	page.PropMap[propID] = nil
 }
 
 func newPage(geoTree *GeoTree, keyTree *KeyTree, frameSideBar *gtk.StackSidebar, framePane *gtk.Paned,
@@ -621,7 +523,7 @@ func importPage(temp *templates.Template, geoTree *GeoTree, keyTree *KeyTree, si
 	// set temp switch to true to send all props to chroma engine
 	for geoID, geo := range page.PropMap {
 		geo.SetTemp(true)
-		keyTree.UpdateKeys(geoID, geo.Name)
+		keyTree.UpdateGeometryName(geoID, geo.Name)
 
 		if geo.PropType != props.CLOCK_PROP {
 			continue
@@ -648,9 +550,8 @@ func importPage(temp *templates.Template, geoTree *GeoTree, keyTree *KeyTree, si
 	}
 
 	stack := sidebar.GetStack()
-
-	for frameNum := range keyTree.keyframeView {
-		name := fmt.Sprintf("Frame %d", frameNum)
+	for frameNum := 1; frameNum < keyTree.nextFrame; frameNum++ {
+		name := fmt.Sprintf("   Frame %d   ", frameNum)
 		treeView := keyTree.keyframeView[frameNum]
 		if treeView == nil {
 			log.Printf("Missing keyframe %d view", frameNum)
@@ -664,13 +565,9 @@ func importPage(temp *templates.Template, geoTree *GeoTree, keyTree *KeyTree, si
 	return page
 }
 
-func exportPage(page *pages.Page, geoTree *GeoTree, keyTree *KeyTree, titleEntry, tempIDEntry, layerEntry *gtk.Entry) (temp *templates.Template, err error) {
-	// update geometry parents
-	model := geoTree.geoModel.ToTreeModel()
-	if iter, ok := model.GetIterFirst(); ok {
-		updateParentGeometry(page, model, iter, 0)
-	}
-
+func exportPage(page *pages.Page, geoTree *GeoTree, keyTree *KeyTree,
+	titleEntry, tempIDEntry, layerEntry *gtk.Entry) (temp *templates.Template, err error) {
+	geoTree.ExportGeometry(page)
 	temp = page.CreateTemplate()
 
 	temp.Title, err = titleEntry.GetText()
@@ -700,6 +597,42 @@ func exportPage(page *pages.Page, geoTree *GeoTree, keyTree *KeyTree, titleEntry
 	return
 }
 
+func addGeo(page *pages.Page, geoTree *GeoTree, keyTree *KeyTree) {
+	propType, err := geoTree.GetSelectedPropName()
+	if err != nil {
+		log.Printf("Error adding geometry: %s", err)
+		return
+	}
+
+	propNum, err := AddProp(page, propType)
+	if err != nil {
+		log.Printf("Error adding geometry: %s", err)
+		return
+	}
+
+	prop := page.PropMap[propNum]
+	geoTree.AddGeoRow(propNum, 0, prop.Name, prop.Name)
+	keyTree.AddGeometry(prop.Name, propNum)
+}
+
+func removeGeo(page *pages.Page, geoTree *GeoTree, keyTree *KeyTree) {
+	geoID, err := geoTree.GetSelectedGeoID()
+	if err != nil {
+		log.Printf("Error removing geo: %s", err)
+		return
+	}
+
+	prop := page.PropMap[geoID]
+	if prop == nil {
+		log.Printf("No prop with prop id %d", geoID)
+		return
+	}
+
+	delete(page.PropMap, geoID)
+	geoTree.RemoveGeo(geoID)
+	keyTree.RemoveGeo(geoID)
+}
+
 func addFrame(sidebar *gtk.StackSidebar, keyTree *KeyTree) (err error) {
 	stack := sidebar.GetStack()
 	frameNum, err := keyTree.AddFrame()
@@ -707,37 +640,27 @@ func addFrame(sidebar *gtk.StackSidebar, keyTree *KeyTree) (err error) {
 		return
 	}
 
-	name := fmt.Sprintf("Frame %d", frameNum)
+	name := fmt.Sprintf("   Frame %d   ", frameNum)
 	treeView := keyTree.keyframeView[frameNum]
 
 	stack.AddTitled(treeView, strconv.Itoa(frameNum), name)
 	return
 }
 
-func addKeyframe(sidebar *gtk.StackSidebar, keyGeo *gtk.ComboBox, keyAttr *gtk.ComboBoxText,
-	geoTree *GeoTree, keyTree *KeyTree) (err error) {
+func addKeyframe(sidebar *gtk.StackSidebar, keyTree *KeyTree) (err error) {
 	stack := sidebar.GetStack()
-	iter, err := keyGeo.GetActiveIter()
-	if err != nil {
-		err = fmt.Errorf("No geometry selected")
-		return
-	}
 
-	model := geoTree.geoList.ToTreeModel()
-
-	geo, err := util.ModelGetValue[string](model, iter, GEO_NAME)
-	if err != nil {
-		err = fmt.Errorf("Error getting geo name: %s", err)
-		return
-	}
-
-	geoID, err := util.ModelGetValue[int](model, iter, GEO_NUM)
+	geoID, geoName, err := keyTree.SelectedGeometry()
 	if err != nil {
 		err = fmt.Errorf("Error getting geo id: %s", err)
 		return
 	}
 
-	attr := keyAttr.GetActiveText()
+	attrType, attrName, err := keyTree.SelectedAttribute()
+	if err != nil {
+		err = fmt.Errorf("Error getting attribute: %s", err)
+		return
+	}
 
 	frameString := stack.GetVisibleChildName()
 	frameNum, err := strconv.Atoi(frameString)
@@ -746,7 +669,7 @@ func addKeyframe(sidebar *gtk.StackSidebar, keyGeo *gtk.ComboBox, keyAttr *gtk.C
 		return
 	}
 
-	keyTree.AddKeyframe(frameNum, geoID, geo, attr)
+	keyTree.AddKeyframe(frameNum, geoID, geoName, attrType, attrName)
 	return
 }
 

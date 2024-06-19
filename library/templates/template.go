@@ -159,6 +159,16 @@ func (temp *Template) Encode() (s string, err error) {
 			b.WriteString(propStr)
 		}
 
+		for _, geo := range temp.Asset {
+			if !first {
+				b.WriteString(",")
+			}
+
+			first = false
+			propStr = EncodeGeometry(geo.Geometry, geo.Attributes())
+			b.WriteString(propStr)
+		}
+
 		b.WriteString("]")
 
 	}
