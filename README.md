@@ -29,14 +29,16 @@ https://github.com/jchilds0/chroma-viz/assets/71675740/f082ce39-5cac-478f-8d35-f
 
 - Install and build [Chroma Engine][chroma-engine].
 - Set the `PreviewDirectory` in `viz/conf.json` and `artist/conf.json` to the location of the Chroma Engine binary.
-- Setup an sql database with the schema in `hub/chroma_hub.sql`
+- Setup an sql database (e.g. `mariadb`)
 
 ### Chroma Hub 
 
+- (First Install) Import the db schema in `library/hub/chroma_hub.sql` to the sql db or start Chroma Hub in the next step with the -c flag.
 - Run Chroma Hub 
 ```
-go run ./cmd/chroma-hub
+go run ./cmd/chroma-hub -u <username> -p <password>
 ```
+where `username` and `password` correspond to the user login for the sql database. 
 
 - Import archives/templates or generate random templates using CLI
 

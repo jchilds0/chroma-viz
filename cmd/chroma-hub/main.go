@@ -33,18 +33,32 @@ func printMessage(port int, s string) {
 }
 
 var port = flag.Int("port", 9000, "chroma hub port")
+var username = flag.String("u", "", "SQL Database username")
+var password = flag.String("p", "", "SQL Database password")
+var createSchema = flag.Bool("c", false, "create database")
 
 func main() {
 	flag.Parse()
 
-	db, err := hub.NewDataBase(1_000)
+	db, err := hub.NewDataBase(1_000, *username, *password)
 	if err != nil {
 		printMessage(*port, err.Error())
 		return
 	}
 
-	ok := true
+	if *createSchema {
+		schema := "library/hub/chroma_hub.sql"
 
+		err := db.ImportSchema(schema)
+		if err != nil {
+			printMessage(*port, fmt.Sprintf("Error importing schema: %s", err.Error()))
+			return
+		}
+	}
+
+	db.SelectDatabase("chroma_hub")
+
+	ok := true
 	go db.StartHub(*port)
 
 	read := bufio.NewScanner(os.Stdin)

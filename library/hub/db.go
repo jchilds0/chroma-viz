@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"io"
 	"net"
+	"os"
 	"strconv"
 	"strings"
 
@@ -30,14 +31,14 @@ type DataBase struct {
 	Names     map[int]string
 }
 
-func NewDataBase(numTemp int) (hub *DataBase, err error) {
+func NewDataBase(numTemp int, username, password string) (hub *DataBase, err error) {
 	hub = &DataBase{}
 	hub.Templates = make(map[int64]*templates.Template, 100)
 	hub.Assets = make(map[int][]byte, 10)
 	hub.Dirs = make(map[int]string, 10)
 	hub.Names = make(map[int]string, 10)
 
-	hub.db, err = sql.Open("mysql", "/chroma_hub")
+	hub.db, err = sql.Open("mysql", fmt.Sprintf("%s:%s@/?multiStatements=true", username, password))
 	if err != nil {
 		err = fmt.Errorf("Error opening database: %s", err)
 		return
@@ -49,6 +50,28 @@ func NewDataBase(numTemp int) (hub *DataBase, err error) {
 		return
 	}
 
+	return
+}
+
+func (hub *DataBase) ImportSchema(filename string) (err error) {
+	buf, err := os.ReadFile(filename)
+	if err != nil {
+		return
+	}
+
+	s := string(buf)
+
+	_, err = hub.db.Exec(s)
+	return
+}
+
+func (hub *DataBase) SelectDatabase(name string) (err error) {
+	if hub.db == nil {
+		err = fmt.Errorf("DB is not initialised")
+		return
+	}
+
+	_, err = hub.db.Exec("USE " + name)
 	return
 }
 

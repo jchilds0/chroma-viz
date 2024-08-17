@@ -185,7 +185,7 @@ func ArtistGui(app *gtk.Application) {
 	}
 
 	/* create objects */
-	chromaHub, err := hub.NewDataBase(10)
+	chromaHub, err := hub.NewDataBase(10, "", "")
 	if err != nil {
 		log.Fatal(err)
 	}
