@@ -1,8 +1,8 @@
 package parser
 
 import (
-	"bufio"
 	"fmt"
+	"io"
 	"log"
 )
 
@@ -21,7 +21,7 @@ type Token struct {
 var C_tok Token
 var b []rune = make([]rune, 0, 100)
 
-func MatchToken(tok int, buf *bufio.Reader) (err error) {
+func MatchToken(tok int, buf io.RuneReader) (err error) {
 	if tok != C_tok.Tok {
 		log.Printf("Buffer: %s", string(b))
 		err = fmt.Errorf("Incorrect token %s, expected %c", C_tok.Value, tok)
@@ -33,14 +33,14 @@ func MatchToken(tok int, buf *bufio.Reader) (err error) {
 	return
 }
 
-func NextToken(buf *bufio.Reader) (err error) {
+func NextToken(buf io.RuneReader) (err error) {
 	C_tok, err = getToken(buf)
 	return
 }
 
 var peek = ' '
 
-func getToken(buf *bufio.Reader) (tok Token, err error) {
+func getToken(buf io.RuneReader) (tok Token, err error) {
 WS:
 	for {
 		switch peek {
@@ -109,7 +109,7 @@ WS:
 	return
 }
 
-func readRune(buf *bufio.Reader) (r rune, n int, err error) {
+func readRune(buf io.RuneReader) (r rune, n int, err error) {
 	r, n, err = buf.ReadRune()
 
 	b = append(b, r)

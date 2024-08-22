@@ -36,3 +36,7 @@ jobs:
       working-directory: ${{github.workspace}}/library/pages
       run: go test
 
+    - name: Test Parser
+      working-directory: ${{github.workspace}}/library/parser
+      run: go test
+

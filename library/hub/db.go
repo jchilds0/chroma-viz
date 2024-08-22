@@ -65,13 +65,8 @@ func (hub *DataBase) ImportSchema(filename string) (err error) {
 	return
 }
 
-func (hub *DataBase) SelectDatabase(name string) (err error) {
-	if hub.db == nil {
-		err = fmt.Errorf("DB is not initialised")
-		return
-	}
-
-	_, err = hub.db.Exec("USE " + name)
+func (hub *DataBase) SelectDatabase(name, username, password string) (err error) {
+	hub.db, err = sql.Open("mysql", fmt.Sprintf("%s:%s@/%s", username, password, name))
 	return
 }
 

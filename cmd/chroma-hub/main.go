@@ -35,7 +35,7 @@ func printMessage(port int, s string) {
 var port = flag.Int("port", 9000, "chroma hub port")
 var username = flag.String("u", "", "SQL Database username")
 var password = flag.String("p", "", "SQL Database password")
-var createSchema = flag.Bool("c", false, "create database")
+var schema = flag.Bool("c", false, "create database")
 
 func main() {
 	flag.Parse()
@@ -46,17 +46,19 @@ func main() {
 		return
 	}
 
-	if *createSchema {
-		schema := "library/hub/chroma_hub.sql"
-
-		err := db.ImportSchema(schema)
+	if *schema {
+		err = createSchema(db)
 		if err != nil {
-			printMessage(*port, fmt.Sprintf("Error importing schema: %s", err.Error()))
+			printMessage(*port, err.Error())
 			return
 		}
 	}
 
-	db.SelectDatabase("chroma_hub")
+	err = db.SelectDatabase("chroma_hub", *username, *password)
+	if err != nil {
+		printMessage(*port, err.Error())
+		return
+	}
 
 	ok := true
 	go db.StartHub(*port)
@@ -80,6 +82,22 @@ func main() {
 			fmt.Println(usage)
 		}
 	}
+}
+
+func createSchema(db *hub.DataBase) (err error) {
+	var proceed string
+	fmt.Printf("Importing schema (this will overwrite any existing chroma_hub database). Proceed (Y/n) ")
+	fmt.Scan(&proceed)
+
+	if proceed == "Y" {
+		schema := "library/hub/chroma_hub.sql"
+
+		err = db.ImportSchema(schema)
+		return
+	}
+
+	err = fmt.Errorf("Schema not imported, exiting.")
+	return
 }
 
 func imported(db *hub.DataBase, inputs []string) {
