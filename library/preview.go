@@ -102,7 +102,7 @@ func startPreview(conf Config) (soc *gtk.Socket, err error) {
 		prev := exec.Command(
 			chromaEnginePath,
 			"-w", strconv.Itoa(int(xid)),
-			"-c", "/home/josh/Documents/projects/chroma-engine/config/config.toml",
+			"-c", conf.PreviewConfig,
 		)
 
 		log.Print(prev.String())

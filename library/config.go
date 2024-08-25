@@ -16,8 +16,8 @@ type Conn struct {
 type Config struct {
 	HubAddr          string
 	HubPort          int
-	InstallDirectory string
 	PreviewDirectory string
+	PreviewConfig    string
 	PreviewName      string
 	Connections      []Conn
 }
