@@ -235,3 +235,56 @@ func (hub *DataBase) GetAssets(temp *templates.Template) (err error) {
 
 	return
 }
+
+func (hub *DataBase) GetPolygons(temp *templates.Template) (err error) {
+	q := `
+        SELECT p.geometryID, p.point_index, p.pos_x, p.pos_y
+        FROM polygon p
+        INNER JOIN geometry g 
+        ON p.geometryID = g.geometryID 
+        WHERE g.templateID = ?;
+    `
+
+	rows, err := hub.db.Query(q, temp.TempID)
+	if err != nil {
+		return
+	}
+
+	points := make(map[int64][]templates.Point, 128)
+
+	var (
+		geoID      int64
+		geo        templates.Geometry
+		pointIndex int
+		posX, posY int
+	)
+
+	for rows.Next() {
+		err = rows.Scan(&geoID, &pointIndex, &posX, &posY)
+		if err != nil {
+			return
+		}
+
+		if _, ok := points[geoID]; !ok {
+			points[geoID] = make([]templates.Point, 0, 128)
+		}
+
+		points[geoID] = append(points[geoID], templates.Point{PointIndex: pointIndex, PosX: posX, PosY: posY})
+	}
+
+	for geoID, ps := range points {
+		geo, err = hub.GetGeometry(geoID)
+		if err != nil {
+			return
+		}
+
+		poly := templates.NewPolygon(geo, len(ps)+10)
+		for _, p := range ps {
+			poly.Points[p.PointIndex] = p
+		}
+
+		temp.Polygon = append(temp.Polygon, *poly)
+	}
+
+	return
+}

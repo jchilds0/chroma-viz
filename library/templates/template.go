@@ -31,6 +31,7 @@ type Template struct {
 	Circle    []Circle
 	Text      []Text
 	Asset     []Asset
+	Polygon   []Polygon
 }
 
 func NewTemplate(title string, id int64, layer, num_key, num_geo int) *Template {
@@ -48,6 +49,7 @@ func NewTemplate(title string, id int64, layer, num_key, num_geo int) *Template 
 	temp.Circle = make([]Circle, 0, num_geo)
 	temp.Text = make([]Text, 0, num_geo)
 	temp.Asset = make([]Asset, 0, num_geo)
+	temp.Polygon = make([]Polygon, 0, num_geo)
 
 	return temp
 }
@@ -160,6 +162,16 @@ func (temp *Template) Encode() (s string, err error) {
 		}
 
 		for _, geo := range temp.Asset {
+			if !first {
+				b.WriteString(",")
+			}
+
+			first = false
+			propStr = EncodeGeometry(geo.Geometry, geo.Attributes())
+			b.WriteString(propStr)
+		}
+
+		for _, geo := range temp.Polygon {
 			if !first {
 				b.WriteString(",")
 			}

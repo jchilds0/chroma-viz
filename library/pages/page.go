@@ -1,7 +1,7 @@
 package pages
 
 import (
-	"chroma-viz/library/props"
+	"chroma-viz/library/geometry"
 	"chroma-viz/library/templates"
 	"encoding/json"
 	"os"
@@ -27,7 +27,8 @@ type Page struct {
 	Title      string
 	TemplateID int
 	Layer      int
-	PropMap    map[int]*props.Property
+	Rect       []geometry.Rectangle
+	Circle     []geometry.Circle
 }
 
 func NewPage(pageNum, tempID, layer, numGeo int, title string) *Page {

@@ -2,7 +2,6 @@ package library
 
 import (
 	"chroma-viz/library/pages"
-	"chroma-viz/library/props"
 	"fmt"
 
 	"github.com/gotk3/gotk3/gtk"

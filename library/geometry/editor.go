@@ -1,4 +1,4 @@
-package props
+package geometry
 
 import (
 	"chroma-viz/library/attribute"

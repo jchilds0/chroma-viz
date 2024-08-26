@@ -1,6 +1,7 @@
 package attribute
 
 import (
+	"chroma-viz/library/templates"
 	"encoding/json"
 	"fmt"
 
@@ -34,6 +35,7 @@ const (
 	LIST
 	COLOR
 	ASSET
+	POLY
 )
 
 type Attribute interface {
