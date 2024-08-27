@@ -2,7 +2,7 @@ package pages
 
 import (
 	"chroma-viz/library/geometry"
-	"fmt"
+	"log"
 
 	"github.com/gotk3/gotk3/gtk"
 )
@@ -12,13 +12,14 @@ type Editor struct {
 	tabs        *gtk.Notebook
 	actions     *gtk.Box
 	CurrentPage *Page
-	Rect        []geometry.RectangleEditor
-	Circle      []geometry.CircleEditor
-	Clock       []geometry.ClockEditor
-	Image       []geometry.ImageEditor
-	Poly        []geometry.PolygonEditor
-	Text        []geometry.TextEditor
-	Ticker      []geometry.TickerEditor
+
+	Rect   []*geometry.RectangleEditor
+	Circle []*geometry.CircleEditor
+	Clock  []*geometry.ClockEditor
+	Image  []*geometry.ImageEditor
+	Poly   []*geometry.PolygonEditor
+	Text   []*geometry.TextEditor
+	Ticker []*geometry.TickerEditor
 }
 
 func NewEditor() (editor *Editor, err error) {
@@ -36,13 +37,34 @@ func NewEditor() (editor *Editor, err error) {
 
 	editor.Box.PackStart(editor.actions, false, false, 10)
 
-	editor.Rect = make([]geometry.RectangleEditor, 0, 10)
-	editor.Circle = make([]geometry.CircleEditor, 0, 10)
-	editor.Clock = make([]geometry.ClockEditor, 0, 10)
-	editor.Image = make([]geometry.ImageEditor, 0, 10)
-	editor.Poly = make([]geometry.PolygonEditor, 0, 10)
-	editor.Text = make([]geometry.TextEditor, 0, 10)
-	editor.Ticker = make([]geometry.TickerEditor, 0, 10)
+	editor.tabs, err = gtk.NotebookNew()
+	if err != nil {
+		return
+	}
+
+	editor.tabs.SetScrollable(true)
+
+	tab, err := gtk.BoxNew(gtk.ORIENTATION_VERTICAL, 0)
+	if err != nil {
+		return
+	}
+
+	tabLabel, err := gtk.LabelNew("Select A Page")
+	if err != nil {
+		return
+	}
+
+	editor.tabs.AppendPage(tab, tabLabel)
+	editor.Box.PackStart(editor.tabs, true, true, 0)
+
+	numEditors := 10
+	editor.Rect = initEditors[geometry.RectangleEditor](numEditors, geometry.NewRectangleEditor)
+	editor.Circle = initEditors[geometry.CircleEditor](numEditors, geometry.NewCircleEditor)
+	editor.Clock = initEditors[geometry.ClockEditor](numEditors, geometry.NewClockEditor)
+	editor.Image = initEditors[geometry.ImageEditor](numEditors, geometry.NewImageEditor)
+	editor.Poly = initEditors[geometry.PolygonEditor](numEditors, geometry.NewPolygonEditor)
+	editor.Text = initEditors[geometry.TextEditor](numEditors, geometry.NewTextEditor)
+	editor.Ticker = initEditors[geometry.TickerEditor](numEditors, geometry.NewTickerEditor)
 
 	return
 }
@@ -68,190 +90,116 @@ func (editor *Editor) AddAction(label string, start bool, action func()) (err er
 	return
 }
 
-/*
- * Init the editor to load pages, i.e. a
- * tab for each property in the current page
- */
-func (editor *Editor) PageEditor() (err error) {
-	editor.tabs, err = gtk.NotebookNew()
-	if err != nil {
-		return
-	}
+func initEditors[T any](numEditors int, init func() (*T, error)) []*T {
+	editors := make([]*T, numEditors)
 
-	editor.tabs.SetScrollable(true)
-
-	tab, err := gtk.BoxNew(gtk.ORIENTATION_VERTICAL, 0)
-	if err != nil {
-		return
-	}
-
-	tabLabel, err := gtk.LabelNew("Select A Page")
-	if err != nil {
-		return
-	}
-
-	editor.tabs.AppendPage(tab, tabLabel)
-	editor.Box.PackStart(editor.tabs, true, true, 0)
-
-	// prop editors
-	editor.propertyEditor = make(map[string][]*props.PropertyEditor, len(propList))
-	initNumPropEdits := 10
-
-	for _, p := range propList {
-		editor.propertyEditor[p] = make([]*props.PropertyEditor, initNumPropEdits)
-
-		for j := 0; j < initNumPropEdits; j++ {
-			editor.propertyEditor[p][j], err = props.NewPropertyEditor(p)
-
-			if err != nil {
-				return
-			}
+	var err error
+	for i := range numEditors {
+		editors[i], err = init()
+		if err != nil {
+			log.Print(err)
 		}
 	}
 
-	return
+	return editors
 }
 
-/*
- * Init the editor to load properties, i.e.
- * a tab with the property attributes and
- * a tab with the visibility editor
- */
-func (editor *Editor) PropertyEditor() (err error) {
-	editor.tabs, err = gtk.NotebookNew()
-	if err != nil {
-		return
-	}
-
-	tab, err := gtk.BoxNew(gtk.ORIENTATION_VERTICAL, 0)
-	if err != nil {
-		return
-	}
-
-	tabLabel, err := gtk.LabelNew("Select A Page")
-	if err != nil {
-		return
-	}
-
-	editor.tabs.AppendPage(tab, tabLabel)
-	editor.Box.PackStart(editor.tabs, true, true, 0)
-
-	// prop editors
-	editor.propertyEditor = make(map[string][]*props.PropertyEditor, len(propList))
-	initNumPropEdits := 10
-
-	for _, p := range propList {
-		editor.propertyEditor[p] = make([]*props.PropertyEditor, initNumPropEdits)
-
-		for j := 0; j < initNumPropEdits; j++ {
-			editor.propertyEditor[p][j], err = props.NewPropertyEditor(p)
-
-			if err != nil {
-				return
-			}
-		}
-	}
-
-	return
-}
-
-/*
- * Store the editor values in the properties
- */
+// Store the editor values in the properties
 func (edit *Editor) UpdateProps() {
-	for _, item := range edit.propEditPairs {
-		if item.prop == nil {
-			continue
-		}
+	updateGeometry[*geometry.Rectangle, *geometry.RectangleEditor](edit.CurrentPage.Rect, edit.Rect)
+	updateGeometry[*geometry.Circle, *geometry.CircleEditor](edit.CurrentPage.Circle, edit.Circle)
+	updateGeometry[*geometry.Clock, *geometry.ClockEditor](edit.CurrentPage.Clock, edit.Clock)
+	updateGeometry[*geometry.Image, *geometry.ImageEditor](edit.CurrentPage.Image, edit.Image)
+	updateGeometry[*geometry.Polygon, *geometry.PolygonEditor](edit.CurrentPage.Poly, edit.Poly)
+	updateGeometry[*geometry.Text, *geometry.TextEditor](edit.CurrentPage.Text, edit.Text)
+	updateGeometry[*geometry.Ticker, *geometry.TickerEditor](edit.CurrentPage.Ticker, edit.Ticker)
+}
 
-		item.prop.UpdateProp(item.editor)
+type geometer[S any] interface {
+	UpdateGeometry(S) error
+	GetName() string
+}
+
+func updateGeometry[T geometer[S], S any](geos []T, editors []S) {
+	for i := range geos {
+		err := geos[i].UpdateGeometry(editors[i])
+		if err != nil {
+			log.Print(err)
+		}
 	}
 }
 
-/*
- * Load page 'page' into the editor
- */
-func (editor *Editor) SetPage(page *pages.Page) (err error) {
-	num_pages := editor.tabs.GetNPages()
+// Load page 'page' into the editor
+func (edit *Editor) SetPage(page *Page) (err error) {
+	num_pages := edit.tabs.GetNPages()
 	for i := 0; i < num_pages; i++ {
-		editor.tabs.RemovePage(0)
+		edit.tabs.RemovePage(0)
 	}
 
-	editor.CurrentPage = page
-	editor.propEditPairs = make([]Pairing, 0, 10)
-	propCount := make(map[string]int, len(propList))
+	edit.CurrentPage = page
+
+	updateEditor[*geometry.RectangleEditor, *geometry.Rectangle](
+		edit, edit.Rect, edit.CurrentPage.Rect, geometry.NewRectangleEditor,
+	)
+
+	updateEditor[*geometry.CircleEditor, *geometry.Circle](
+		edit, edit.Circle, edit.CurrentPage.Circle, geometry.NewCircleEditor,
+	)
+
+	updateEditor[*geometry.ClockEditor, *geometry.Clock](
+		edit, edit.Clock, edit.CurrentPage.Clock, geometry.NewClockEditor,
+	)
+
+	updateEditor[*geometry.ImageEditor, *geometry.Image](
+		edit, edit.Image, edit.CurrentPage.Image, geometry.NewImageEditor,
+	)
+
+	updateEditor[*geometry.PolygonEditor, *geometry.Polygon](
+		edit, edit.Poly, edit.CurrentPage.Poly, geometry.NewPolygonEditor,
+	)
+
+	updateEditor[*geometry.TextEditor, *geometry.Text](
+		edit, edit.Text, edit.CurrentPage.Text, geometry.NewTextEditor,
+	)
+
+	updateEditor[*geometry.TickerEditor, *geometry.Ticker](
+		edit, edit.Ticker, edit.CurrentPage.Ticker, geometry.NewTickerEditor,
+	)
+
+	return
+}
+
+type editor[S any] interface {
+	UpdateEditor(S) error
+	GetBox() *gtk.ScrolledWindow
+}
+
+func updateEditor[T editor[S], S geometer[T]](edit *Editor, editors []T, geos []S, init func() (T, error)) {
+	diff := len(editors) - len(geos)
+	if diff < 0 {
+		for _ = range diff {
+			edit, err := init()
+			if err != nil {
+				log.Print(err)
+				continue
+			}
+
+			editors = append(editors, edit)
+		}
+	}
 
 	var label *gtk.Label
-	for _, prop := range editor.CurrentPage.GetPropMap() {
-		if prop == nil {
-			continue
+	for i := range geos {
+		err := editors[i].UpdateEditor(geos[i])
+		if err != nil {
+			log.Print(err)
 		}
 
-		typed := prop.PropType
-		label, err = gtk.LabelNew(prop.Name)
+		label, err = gtk.LabelNew(geos[i].GetName())
 		if err != nil {
 			return
 		}
 
-		// pair up with prop editor
-		var propEdit *props.PropertyEditor
-		if propCount[typed] == len(editor.propertyEditor[typed]) {
-			// we ran out of editors, add a new one
-			propEdit, err = props.NewPropertyEditor(typed)
-			if err != nil {
-				return
-			}
-
-			editor.propertyEditor[typed] = append(editor.propertyEditor[typed], propEdit)
-		} else {
-			propEdit = editor.propertyEditor[typed][propCount[typed]]
-		}
-
-		propEdit.UpdateEditor(prop)
-		editor.tabs.AppendPage(propEdit.Scroll, label)
-		editor.propEditPairs = append(editor.propEditPairs, Pairing{prop: prop, editor: propEdit})
-
-		propCount[typed]++
+		edit.tabs.AppendPage(editors[i].GetBox(), label)
 	}
-
-	return
-}
-
-/*
- * Load property 'prop' into the editor
- */
-func (editor *Editor) SetProperty(prop *props.Property) (err error) {
-	num_pages := editor.tabs.GetNPages()
-	for i := 0; i < num_pages; i++ {
-		editor.tabs.RemovePage(0)
-	}
-
-	geoLabel, err := gtk.LabelNew("Geometry")
-	if err != nil {
-		return
-	}
-
-	editor.propEditPairs = nil
-	propEdit := editor.propertyEditor[prop.PropType]
-	if propEdit == nil || len(propEdit) <= 0 {
-		err = fmt.Errorf("Prop edit %s is nil", prop.PropType)
-		return
-	}
-
-	visibleBox, err := propEdit[0].CreateVisibleEditor()
-	if err != nil {
-		return
-	}
-
-	visibleLabel, err := gtk.LabelNew("Visible")
-	if err != nil {
-		return
-	}
-
-	propEdit[0].UpdateEditorAllProp(prop)
-	editor.propEditPairs = []Pairing{{prop: prop, editor: propEdit[0]}}
-
-	editor.tabs.AppendPage(propEdit[0].Scroll, geoLabel)
-	editor.tabs.AppendPage(visibleBox, visibleLabel)
-	return
 }

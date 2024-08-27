@@ -2,7 +2,7 @@ package hub
 
 import (
 	"bufio"
-	"chroma-viz/library/props"
+	"chroma-viz/library/geometry"
 	"chroma-viz/library/templates"
 	"database/sql"
 	"encoding/json"
@@ -15,13 +15,6 @@ import (
 
 	_ "github.com/go-sql-driver/mysql"
 )
-
-var geoTables = map[string]string{
-	templates.GEO_RECT:   "rectangle",
-	templates.GEO_TEXT:   "text",
-	templates.GEO_CIRCLE: "circle",
-	templates.GEO_IMAGE:  "asset",
-}
 
 type DataBase struct {
 	db        *sql.DB
@@ -250,12 +243,12 @@ func (hub *DataBase) HandleConn(conn net.Conn) {
 			template, err := hub.GetTemplate(tempid)
 			if err != nil {
 				Logger("Error getting template %d (%s)", tempid, err)
-				_, err = conn.Write([]byte(string(props.END_OF_MESSAGE)))
+				_, err = conn.Write([]byte(string(geometry.END_OF_MESSAGE)))
 				continue
 			}
 
 			s, _ := template.Encode()
-			_, err = conn.Write([]byte(s + string(props.END_OF_MESSAGE)))
+			_, err = conn.Write([]byte(s + string(geometry.END_OF_MESSAGE)))
 		case "img":
 			imageID, _ := strconv.Atoi(cmds[4])
 			image := hub.Assets[imageID]

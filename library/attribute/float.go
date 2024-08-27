@@ -2,76 +2,39 @@ package attribute
 
 import (
 	"fmt"
-	"strconv"
 
 	"github.com/gotk3/gotk3/gtk"
 )
 
 type FloatAttribute struct {
 	Name  string
-	Type  int
 	Value float64
 }
 
-func NewFloatAttribute(name string) *FloatAttribute {
-	floatAttr := &FloatAttribute{
-		Name: name,
-		Type: FLOAT,
-	}
-
-	return floatAttr
-}
-
-func (floatAttr *FloatAttribute) String() string {
+func (floatAttr *FloatAttribute) Encode() string {
 	return fmt.Sprintf("%s=%f#", floatAttr.Name, floatAttr.Value)
 }
 
-func (floatAttr *FloatAttribute) Encode() string {
-	return strconv.FormatFloat(floatAttr.Value, 'f', 10, 64)
-}
-
-func (floatAttr *FloatAttribute) Decode(value string) (err error) {
-	floatAttr.Value, err = strconv.ParseFloat(value, 64)
-	return
-}
-
-func (floatAttr *FloatAttribute) Copy(attr Attribute) (err error) {
-	floatAttrCopy, ok := attr.(*FloatAttribute)
-	if !ok {
-		err = fmt.Errorf("Attribute not FloatAttribute")
-		return
-	}
-
-	floatAttr.Value = floatAttrCopy.Value
-	return
-}
-
-func (floatAttr *FloatAttribute) Update(edit Editor) (err error) {
-	floatEdit, ok := edit.(*FloatEditor)
-	if !ok {
-		err = fmt.Errorf("FloatAttribute.Update requires FloatEditor")
-		return
-	}
-
+func (floatAttr *FloatAttribute) UpdateAttribute(floatEdit *FloatEditor) (err error) {
 	floatAttr.Value = floatEdit.button.GetValue()
 	return
 }
 
 type FloatEditor struct {
-	box    *gtk.Box
+	Name   string
+	Box    *gtk.Box
 	button *gtk.SpinButton
-	name   string
 }
 
 func NewFloatEditor(name string, lower, upper, scale float64) (floatEdit *FloatEditor, err error) {
-	floatEdit = &FloatEditor{name: name}
+	floatEdit = &FloatEditor{Name: name}
 
-	floatEdit.box, err = gtk.BoxNew(gtk.ORIENTATION_HORIZONTAL, 0)
+	floatEdit.Box, err = gtk.BoxNew(gtk.ORIENTATION_HORIZONTAL, 0)
 	if err != nil {
 		return
 	}
 
-	floatEdit.box.SetVisible(true)
+	floatEdit.Box.SetVisible(true)
 	label, err := gtk.LabelNew(name)
 	if err != nil {
 		return
@@ -79,7 +42,7 @@ func NewFloatEditor(name string, lower, upper, scale float64) (floatEdit *FloatE
 
 	label.SetVisible(true)
 	label.SetWidthChars(12)
-	floatEdit.box.PackStart(label, false, false, uint(padding))
+	floatEdit.Box.PackStart(label, false, false, uint(padding))
 
 	floatEdit.button, err = gtk.SpinButtonNewWithRange(lower, upper, scale)
 	if err != nil {
@@ -88,30 +51,12 @@ func NewFloatEditor(name string, lower, upper, scale float64) (floatEdit *FloatE
 
 	floatEdit.button.SetVisible(true)
 	floatEdit.button.SetValue(0)
-	floatEdit.box.PackStart(floatEdit.button, false, false, 0)
+	floatEdit.Box.PackStart(floatEdit.button, false, false, 0)
 
 	return
 }
 
-func (floatEdit *FloatEditor) Name() string {
-	return floatEdit.name
-}
-
-func (floatEdit *FloatEditor) Update(attr Attribute) (err error) {
-	floatAttr, ok := attr.(*FloatAttribute)
-	if !ok {
-		err = fmt.Errorf("FloatEditor.Update requires FloatAttribute")
-		return
-	}
-
+func (floatEdit *FloatEditor) UpdateEditor(floatAttr *FloatAttribute) (err error) {
 	floatEdit.button.SetValue(floatAttr.Value)
 	return
-}
-
-func (floatEdit *FloatEditor) Box() *gtk.Box {
-	return floatEdit.box
-}
-
-func (floatEdit *FloatEditor) Expand() bool {
-	return false
 }

@@ -10,6 +10,8 @@ import (
 	"github.com/gotk3/gotk3/gtk"
 )
 
+const padding = 10
+
 const (
 	START = iota
 	PAUSE
@@ -28,7 +30,6 @@ type ClockAttribute struct {
 func NewClockAttribute(name string) *ClockAttribute {
 	clockAttr := &ClockAttribute{
 		Name:       name,
-		Type:       CLOCK,
 		TimeFormat: "04:05",
 		c:          make(chan int),
 	}
@@ -48,7 +49,6 @@ func (clockAttr *ClockAttribute) UnmarshalJSON(b []byte) error {
 	}
 
 	clockAttr.Name = clockAttrJSON.Name
-	clockAttr.Type = CLOCK
 	clockAttr.TimeFormat = clockAttrJSON.TimeFormat
 	clockAttr.CurrentTime = clockAttrJSON.CurrentTime
 
@@ -60,37 +60,12 @@ func (clockAttr *ClockAttribute) SetClock(cont func()) {
 	go clockAttr.RunClock(cont)
 }
 
-func (clockAttr *ClockAttribute) String() string {
+func (clockAttr *ClockAttribute) EncodeEngine() string {
 	return fmt.Sprintf("%s=%s#", clockAttr.Name, clockAttr.CurrentTime)
 }
 
-func (clockAttr *ClockAttribute) Encode() string {
-	return clockAttr.CurrentTime
-}
-
-func (clockAttr *ClockAttribute) Decode(value string) (err error) {
-	clockAttr.CurrentTime = value
-	return
-}
-
-func (clockAttr *ClockAttribute) Copy(attr Attribute) (err error) {
-	clockAttrCopy, ok := attr.(*ClockAttribute)
-	if !ok {
-		err = fmt.Errorf("Attribute not ClockAttribute")
-		return
-	}
-
-	clockAttr.CurrentTime = clockAttrCopy.CurrentTime
-	return
-}
-
-func (clockAttr *ClockAttribute) Update(edit Editor) error {
+func (clockAttr *ClockAttribute) Update(clockEdit *ClockEditor) error {
 	var err error
-	clockEdit, ok := edit.(*ClockEditor)
-	if !ok {
-		return fmt.Errorf("ClockAttribute.Update requires ClockEditor")
-	}
-
 	clockAttr.CurrentTime, err = clockEdit.entry.GetText()
 	return err
 }
@@ -245,12 +220,7 @@ func (clockEdit *ClockEditor) Name() string {
 	return clockEdit.name
 }
 
-func (clockEdit *ClockEditor) Update(attr Attribute) error {
-	clockAttr, ok := attr.(*ClockAttribute)
-	if !ok {
-		return fmt.Errorf("ClockEditor.Update requires ClockAttribute")
-	}
-
+func (clockEdit *ClockEditor) Update(clockAttr *ClockAttribute) error {
 	clockEdit.c = clockAttr.c
 	clockEdit.entry.SetText(clockAttr.CurrentTime)
 	return nil

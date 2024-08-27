@@ -21,20 +21,20 @@ func (intAttr *IntAttribute) UpdateAttribute(intEdit *IntEditor) error {
 }
 
 type IntEditor struct {
-	box    *gtk.Box
+	Name   string
+	Box    *gtk.Box
 	button *gtk.SpinButton
-	name   string
 }
 
 func NewIntEditor(name string, lower, upper float64) (intEdit *IntEditor, err error) {
-	intEdit = &IntEditor{name: name}
+	intEdit = &IntEditor{Name: name}
 
-	intEdit.box, err = gtk.BoxNew(gtk.ORIENTATION_HORIZONTAL, 0)
+	intEdit.Box, err = gtk.BoxNew(gtk.ORIENTATION_HORIZONTAL, 0)
 	if err != nil {
 		return
 	}
 
-	intEdit.box.SetVisible(true)
+	intEdit.Box.SetVisible(true)
 	label, err := gtk.LabelNew(name)
 	if err != nil {
 		return
@@ -42,7 +42,7 @@ func NewIntEditor(name string, lower, upper float64) (intEdit *IntEditor, err er
 
 	label.SetVisible(true)
 	label.SetWidthChars(12)
-	intEdit.box.PackStart(label, false, false, padding)
+	intEdit.Box.PackStart(label, false, false, padding)
 
 	intEdit.button, err = gtk.SpinButtonNewWithRange(lower, upper, 1)
 	if err != nil {
@@ -51,13 +51,9 @@ func NewIntEditor(name string, lower, upper float64) (intEdit *IntEditor, err er
 
 	intEdit.button.SetVisible(true)
 	intEdit.button.SetValue(0)
-	intEdit.box.PackStart(intEdit.button, false, false, 0)
+	intEdit.Box.PackStart(intEdit.button, false, false, 0)
 
 	return
-}
-
-func (intEdit *IntEditor) Name() string {
-	return intEdit.name
 }
 
 func (intEdit *IntEditor) UpdateEditor(intAttr *IntAttribute) error {

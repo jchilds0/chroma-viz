@@ -9,7 +9,6 @@ import (
 
 type ColorAttribute struct {
 	Name  string
-	Type  int
 	Red   float64
 	Green float64
 	Blue  float64
@@ -19,6 +18,14 @@ type ColorAttribute struct {
 func (colorAttr *ColorAttribute) Encode() string {
 	return fmt.Sprintf("%s=%f %f %f %f#", colorAttr.Name,
 		colorAttr.Red, colorAttr.Green, colorAttr.Blue, colorAttr.Alpha)
+}
+
+func (colorAttr *ColorAttribute) ToString() string {
+	return fmt.Sprintf("%f %f %f %f", colorAttr.Red, colorAttr.Blue, colorAttr.Green, colorAttr.Alpha)
+}
+
+func (colorAttr *ColorAttribute) FromString(s string) error {
+	return nil
 }
 
 func (colorAttr *ColorAttribute) UpdateAttribute(colorEdit *ColorEditor) (err error) {

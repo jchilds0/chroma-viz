@@ -1,17 +1,18 @@
 package hub
 
 import (
+	"chroma-viz/library/geometry"
 	"chroma-viz/library/templates"
 	"fmt"
 )
 
-func (hub *DataBase) addGeometry(tempID int64, geo templates.Geometry) (geoID int64, err error) {
+func (hub *DataBase) addGeometry(tempID int64, geo geometry.Geometry) (geoID int64, err error) {
 	q := `
-        INSERT INTO geometry VALUES (NULL, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+        INSERT INTO geometry VALUES (NULL, ?, ?, ?, ?, ?, ?, ?, ?);
     `
 
-	result, err := hub.db.Exec(q, tempID, geo.GeoNum, geo.Name, geo.GeoType,
-		geo.PropType, geo.RelX, geo.RelY, geo.Parent, geo.Mask)
+	result, err := hub.db.Exec(q, tempID, geo.GeometryID, geo.Name, geo.GeoType,
+		geo.RelX, geo.RelY, geo.Parent, geo.Mask)
 	if err != nil {
 		return
 	}
@@ -20,7 +21,7 @@ func (hub *DataBase) addGeometry(tempID int64, geo templates.Geometry) (geoID in
 	return
 }
 
-func (hub *DataBase) AddRectangle(tempID int64, rect templates.Rectangle) (err error) {
+func (hub *DataBase) AddRectangle(tempID int64, rect geometry.Rectangle) (err error) {
 	q := `
         INSERT INTO rectangle VALUES (?, ?, ?, ?, ?);
     `
@@ -30,11 +31,12 @@ func (hub *DataBase) AddRectangle(tempID int64, rect templates.Rectangle) (err e
 		return
 	}
 
-	_, err = hub.db.Exec(q, geoID, rect.Width, rect.Height, rect.Rounding, rect.Color)
+	_, err = hub.db.Exec(q, geoID, rect.Width.Value, rect.Height.Value,
+		rect.Rounding.Value, rect.Color.ToString())
 	return
 }
 
-func (hub *DataBase) AddText(tempID int64, text templates.Text) (err error) {
+func (hub *DataBase) AddText(tempID int64, text geometry.Text) (err error) {
 	q := `
         INSERT INTO text VALUES (?, ?, ?, ?, ?);
     `
@@ -45,11 +47,11 @@ func (hub *DataBase) AddText(tempID int64, text templates.Text) (err error) {
 	}
 
 	fontFace := ""
-	_, err = hub.db.Exec(q, geoID, text.Text, text.Scale, fontFace, text.Color)
+	_, err = hub.db.Exec(q, geoID, text.String.Value, text.Scale.Value, fontFace, text.Color.ToString())
 	return
 }
 
-func (hub *DataBase) AddCircle(tempID int64, circle templates.Circle) (err error) {
+func (hub *DataBase) AddCircle(tempID int64, circle geometry.Circle) (err error) {
 	q := `
         INSERT INTO circle VALUES (?, ?, ?, ?, ?, ?);
     `
@@ -59,11 +61,12 @@ func (hub *DataBase) AddCircle(tempID int64, circle templates.Circle) (err error
 		return
 	}
 
-	_, err = hub.db.Exec(q, geoID, circle.InnerRadius, circle.OuterRadius, circle.StartAngle, circle.EndAngle, circle.Color)
+	_, err = hub.db.Exec(q, geoID, circle.InnerRadius.Value, circle.OuterRadius.Value,
+		circle.StartAngle.Value, circle.EndAngle.Value, circle.Color.ToString())
 	return
 }
 
-func (hub *DataBase) AddAsset(tempID int64, a templates.Asset) (err error) {
+func (hub *DataBase) AddAsset(tempID int64, a geometry.Image) (err error) {
 	q := `
         INSERT INTO asset VALUES (?, ?, ?, ?, ?);
     `
@@ -73,20 +76,33 @@ func (hub *DataBase) AddAsset(tempID int64, a templates.Asset) (err error) {
 		return
 	}
 
-	_, err = hub.db.Exec(q, geoID, a.Dir, a.Name, a.ID, a.Scale)
+	_, err = hub.db.Exec(q, geoID, a.Image.Directory(), a.Image.Name, a.Image.AssetID(), a.Scale.Value)
 	return
 }
 
-func (hub *DataBase) GetGeometry(geoID int64) (geo templates.Geometry, err error) {
+func (hub *DataBase) GetGeometry(geoID int64) (geo geometry.Geometry, err error) {
 	q := `
-        SELECT g.geoNum, g.name, g.propType, g.geoType, g.rel_x, g.rel_y, g.parent, g.mask
+        SELECT g.geoNum, g.name, g.geoType, g.rel_x, g.rel_y, g.parent, g.mask
         FROM geometry g 
         WHERE g.geometryID = ?;
     `
 
 	row := hub.db.QueryRow(q, geoID)
 
-	err = row.Scan(&geo.GeoNum, &geo.Name, &geo.PropType, &geo.GeoType, &geo.RelX, &geo.RelY, &geo.Parent, &geo.Mask)
+	var geoNum int
+	var name, geoType string
+	var relX, relY, parent, mask int
+	err = row.Scan(&geoNum, &name, &geoType, &relX, &relY, &parent, &mask)
+	if err != nil {
+		return
+	}
+
+	geo = geometry.NewGeometry(geoNum, name, geoType)
+	geo.RelX.Value = relX
+	geo.RelY.Value = relY
+	geo.Parent.Value = parent
+	geo.Mask.Value = mask
+
 	return
 }
 
@@ -104,8 +120,8 @@ func (hub *DataBase) GetRectangles(temp *templates.Template) (err error) {
 		return
 	}
 
+	var geo geometry.Geometry
 	var geoID int64
-	var geo templates.Geometry
 	var width, height, rounding int
 	var color string
 
@@ -120,8 +136,17 @@ func (hub *DataBase) GetRectangles(temp *templates.Template) (err error) {
 			return
 		}
 
-		rect := templates.NewRectangle(geo, width, height, rounding, color)
-		temp.Rectangle = append(temp.Rectangle, *rect)
+		rect := geometry.NewRectangle(geo)
+		rect.Width.Value = width
+		rect.Height.Value = height
+		rect.Rounding.Value = rounding
+
+		err = rect.Color.FromString(color)
+		if err != nil {
+			return
+		}
+
+		temp.Rectangle = append(temp.Rectangle, rect)
 	}
 
 	return
@@ -138,10 +163,10 @@ func (hub *DataBase) GetCircles(temp *templates.Template) (err error) {
 
 	rows, err := hub.db.Query(q, temp.TempID)
 
+	var geo geometry.Geometry
 	var inner, outer, start, end int
 	var color string
 	var geoID int64
-	var geo templates.Geometry
 
 	for rows.Next() {
 		err = rows.Scan(&geoID, &inner, &outer, &start, &end, &color)
@@ -154,8 +179,17 @@ func (hub *DataBase) GetCircles(temp *templates.Template) (err error) {
 			return
 		}
 
-		c := templates.NewCircle(geo, inner, outer, start, end, color)
-		temp.Circle = append(temp.Circle, *c)
+		c := geometry.NewCircle(geo)
+		c.InnerRadius.Value = inner
+		c.OuterRadius.Value = outer
+		c.StartAngle.Value = start
+		c.EndAngle.Value = end
+		err = c.Color.FromString(color)
+		if err != nil {
+			return
+		}
+
+		temp.Circle = append(temp.Circle, c)
 	}
 
 	return
@@ -175,10 +209,11 @@ func (hub *DataBase) GetTexts(temp *templates.Template) (err error) {
 		return
 	}
 
+	var geo geometry.Geometry
 	var text, color string
 	var geoID int64
 	var scale float64
-	var geo templates.Geometry
+
 	for rows.Next() {
 		err = rows.Scan(&geoID, &text, &scale, &color)
 		if err != nil {
@@ -190,8 +225,8 @@ func (hub *DataBase) GetTexts(temp *templates.Template) (err error) {
 			return
 		}
 
-		t := templates.NewText(geo, text, color, scale)
-		temp.Text = append(temp.Text, *t)
+		t := geometry.NewText(geo)
+		temp.Text = append(temp.Text, t)
 	}
 
 	return
@@ -212,8 +247,8 @@ func (hub *DataBase) GetAssets(temp *templates.Template) (err error) {
 	}
 
 	var (
+		geo            geometry.Geometry
 		geoID, assetID int64
-		geo            templates.Geometry
 		dir, name      string
 		scale          float64
 	)
@@ -229,8 +264,11 @@ func (hub *DataBase) GetAssets(temp *templates.Template) (err error) {
 			return
 		}
 
-		a := templates.NewAsset(geo, name, dir, int(assetID), scale)
-		temp.Asset = append(temp.Asset, *a)
+		a := geometry.NewImage(geo)
+		a.Image.Value = int(assetID)
+		a.Scale.Value = scale
+
+		temp.Asset = append(temp.Asset, a)
 	}
 
 	return
@@ -250,11 +288,12 @@ func (hub *DataBase) GetPolygons(temp *templates.Template) (err error) {
 		return
 	}
 
-	points := make(map[int64][]templates.Point, 128)
+	pointsX := make(map[int64]map[int]int, 128)
+	pointsY := make(map[int64]map[int]int, 128)
 
 	var (
+		geo        geometry.Geometry
 		geoID      int64
-		geo        templates.Geometry
 		pointIndex int
 		posX, posY int
 	)
@@ -265,25 +304,38 @@ func (hub *DataBase) GetPolygons(temp *templates.Template) (err error) {
 			return
 		}
 
-		if _, ok := points[geoID]; !ok {
-			points[geoID] = make([]templates.Point, 0, 128)
+		if _, ok := pointsX[geoID]; !ok {
+			pointsX[geoID] = make(map[int]int, 128)
+			pointsY[geoID] = make(map[int]int, 128)
 		}
 
-		points[geoID] = append(points[geoID], templates.Point{PointIndex: pointIndex, PosX: posX, PosY: posY})
+		pointsX[geoID][pointIndex] = posX
+		pointsY[geoID][pointIndex] = posY
 	}
 
-	for geoID, ps := range points {
+	for geoID := range pointsX {
 		geo, err = hub.GetGeometry(geoID)
 		if err != nil {
 			return
 		}
 
-		poly := templates.NewPolygon(geo, len(ps)+10)
-		for _, p := range ps {
-			poly.Points[p.PointIndex] = p
+		poly := geometry.NewPolygon(geo, len(pointsX[geoID])+10)
+		for i := range len(pointsX[geoID]) {
+			if _, ok := pointsX[geoID][i]; !ok {
+				err = fmt.Errorf("Missing point %d for geometry %d", i, geoID)
+				return
+			}
+
+			if _, ok := pointsY[geoID][i]; !ok {
+				err = fmt.Errorf("Missing point %d for geometry %d", i, geoID)
+				return
+			}
+
+			poly.Polygon.PosX = append(poly.Polygon.PosX, pointsX[geoID][i])
+			poly.Polygon.PosY = append(poly.Polygon.PosY, pointsY[geoID][i])
 		}
 
-		temp.Polygon = append(temp.Polygon, *poly)
+		temp.Polygon = append(temp.Polygon, poly)
 	}
 
 	return

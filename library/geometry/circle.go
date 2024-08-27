@@ -15,6 +15,19 @@ type Circle struct {
 	Color       attribute.ColorAttribute
 }
 
+func NewCircle(geo Geometry) Circle {
+	circle := Circle{
+		Geometry: geo,
+	}
+
+	circle.InnerRadius.Name = "inner_radius"
+	circle.OuterRadius.Name = "outer_radius"
+	circle.StartAngle.Name = "start_angle"
+	circle.EndAngle.Name = "end_angle"
+	circle.Color.Name = "color"
+	return circle
+}
+
 func (c *Circle) UpdateGeometry(cEdit *CircleEditor) (err error) {
 	err = c.Geometry.UpdateGeometry(&cEdit.GeometryEditor)
 	if err != nil {
@@ -46,6 +59,11 @@ func (c *Circle) UpdateGeometry(cEdit *CircleEditor) (err error) {
 }
 
 func (c *Circle) EncodeEngine(b strings.Builder) {
+
+}
+
+func (c *Circle) EncodeJSON(b strings.Builder) {
+
 }
 
 type CircleEditor struct {
@@ -58,8 +76,8 @@ type CircleEditor struct {
 	Color       attribute.ColorEditor
 }
 
-func NewCircleEditor() *CircleEditor {
-	return nil
+func NewCircleEditor() (*CircleEditor, error) {
+	return nil, nil
 }
 
 func (cEdit *CircleEditor) UpdateEditor(c *Circle) (err error) {

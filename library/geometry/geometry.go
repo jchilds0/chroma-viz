@@ -56,6 +56,22 @@ type Geometry struct {
 	Mask   attribute.IntAttribute
 }
 
+func NewGeometry(geoNum int, name, geoType string) Geometry {
+	geo := Geometry{
+		GeometryID: geoNum,
+		Name:       name,
+		GeoType:    geoType,
+	}
+
+	// used by chroma engine for attribute identifier
+	geo.RelX.Name = "rel_x"
+	geo.RelY.Name = "rel_y"
+	geo.Parent.Name = "parent"
+	geo.Mask.Name = "mask"
+
+	return geo
+}
+
 func (g *Geometry) UpdateGeometry(gEdit *GeometryEditor) (err error) {
 	err = g.RelX.UpdateAttribute(&gEdit.RelX)
 	if err != nil {
@@ -73,6 +89,14 @@ func (g *Geometry) UpdateGeometry(gEdit *GeometryEditor) (err error) {
 
 func (g *Geometry) EncodeEngine(b strings.Builder) {
 
+}
+
+func (g *Geometry) GetName() string {
+	return g.Name
+}
+
+func (g *Geometry) GetGeometryID() int {
+	return g.GeometryID
 }
 
 type GeometryEditor struct {
@@ -101,4 +125,12 @@ func (gEdit *GeometryEditor) UpdateEditor(g *Geometry) (err error) {
 
 	err = gEdit.Mask.UpdateEditor(&g.Mask)
 	return
+}
+
+func (gEdit *GeometryEditor) GetBox() *gtk.ScrolledWindow {
+	return gEdit.Scroll
+}
+
+func (gEdit *GeometryEditor) GetVisibleBox() *gtk.ScrolledWindow {
+	return nil
 }

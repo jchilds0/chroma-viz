@@ -6,7 +6,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"net"
-	"strconv"
 	"strings"
 
 	"github.com/gotk3/gotk3/glib"
@@ -91,7 +90,6 @@ func ImportAssets(hub net.Conn) (err error) {
 
 type AssetAttribute struct {
 	Name  string
-	Type  int
 	Value int
 	dir   *gtk.TreePath
 	asset *gtk.TreePath
@@ -100,22 +98,24 @@ type AssetAttribute struct {
 func NewAssetAttribute(name string) *AssetAttribute {
 	asset := &AssetAttribute{
 		Name: name,
-		Type: ASSET,
 	}
 
 	return asset
 }
 
-func (asset *AssetAttribute) String() string {
+func (asset *AssetAttribute) EncodeEngine() string {
 	return fmt.Sprintf("%s=%d#", asset.Name, asset.Value)
 }
 
-func (asset *AssetAttribute) Update(edit Editor) (err error) {
-	assetEdit, ok := edit.(*AssetEditor)
-	if !ok {
-		return fmt.Errorf("AssetAttribute.Update requires AssetEditor")
-	}
+func (asset *AssetAttribute) Directory() string {
+	return ""
+}
 
+func (asset *AssetAttribute) AssetID() string {
+	return ""
+}
+
+func (asset *AssetAttribute) Update(assetEdit *AssetEditor) (err error) {
 	selection, err := assetEdit.dirs.GetSelection()
 	if err == nil {
 		_, iter, _ := selection.GetSelected()
@@ -127,26 +127,6 @@ func (asset *AssetAttribute) Update(edit Editor) (err error) {
 
 	asset.Value, err = util.ModelGetValue[int](assetEdit.assetsStore.ToTreeModel(), selected, IMAGE_ID)
 	return err
-}
-
-func (asset *AssetAttribute) Copy(attr Attribute) (err error) {
-	assetAttrCopy, ok := attr.(*AssetAttribute)
-	if !ok {
-		err = fmt.Errorf("Attribute not an AssetAttribute")
-		return
-	}
-
-	asset.Value = assetAttrCopy.Value
-	return
-}
-
-func (asset *AssetAttribute) Encode() string {
-	return strconv.Itoa(asset.Value)
-}
-
-func (asset *AssetAttribute) Decode(s string) (err error) {
-	asset.Value, err = strconv.Atoi(s)
-	return
 }
 
 type AssetEditor struct {
@@ -252,20 +232,7 @@ func (asset *AssetEditor) GetAssets(iter *gtk.TreeIter) *assetNode {
 	return parentNode.childNodes[name]
 }
 
-func (asset *AssetEditor) Box() *gtk.Box {
-	return asset.box
-}
-
-func (asset *AssetEditor) Expand() bool {
-	return true
-}
-
-func (asset *AssetEditor) Update(attr Attribute) error {
-	assetAttr, ok := attr.(*AssetAttribute)
-	if !ok {
-		return fmt.Errorf("AssetEditor.Update requires AssetAttribute")
-	}
-
+func (asset *AssetEditor) Update(assetAttr *AssetAttribute) error {
 	dirSelection, err := asset.dirs.GetSelection()
 	if err == nil && assetAttr.dir != nil {
 		dirSelection.SelectPath(assetAttr.dir)
@@ -281,8 +248,4 @@ func (asset *AssetEditor) Update(attr Attribute) error {
 	}
 
 	return nil
-}
-
-func (asset *AssetEditor) Name() string {
-	return asset.name
 }

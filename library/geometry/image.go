@@ -12,11 +12,25 @@ type Image struct {
 	Image attribute.AssetAttribute
 }
 
+func NewImage(geo Geometry) Image {
+	image := Image{
+		Geometry: geo,
+	}
+
+	image.Scale.Name = "scale"
+	image.Image.Name = "image_id"
+	return image
+}
+
 func (i *Image) UpdateGeometry(iEdit *ImageEditor) (err error) {
 	return
 }
 
 func (i *Image) EncodeEngine(b strings.Builder) {
+
+}
+
+func (i *Image) EncodeJSON(b strings.Builder) {
 
 }
 
@@ -27,8 +41,8 @@ type ImageEditor struct {
 	Image attribute.AssetEditor
 }
 
-func NewImageEditor() *ImageEditor {
-	return nil
+func NewImageEditor() (*ImageEditor, error) {
+	return nil, nil
 }
 
 func (iEdit *ImageEditor) UpdateEditor(i *Image) (err error) {

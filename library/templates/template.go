@@ -2,6 +2,8 @@ package templates
 
 import (
 	"bufio"
+	"chroma-viz/library/geometry"
+	"chroma-viz/library/parser"
 	"encoding/json"
 	"fmt"
 	"net"
@@ -27,11 +29,14 @@ type Template struct {
 	UserFrame []UserFrame
 	SetFrame  []SetFrame
 	BindFrame []BindFrame
-	Rectangle []Rectangle
-	Circle    []Circle
-	Text      []Text
-	Asset     []Asset
-	Polygon   []Polygon
+
+	Rect   []*geometry.Rectangle
+	Circle []*geometry.Circle
+	Clock  []*geometry.Clock
+	Image  []*geometry.Image
+	Poly   []*geometry.Polygon
+	Text   []*geometry.Text
+	Ticker []*geometry.Ticker
 }
 
 func NewTemplate(title string, id int64, layer, num_key, num_geo int) *Template {
@@ -45,11 +50,13 @@ func NewTemplate(title string, id int64, layer, num_key, num_geo int) *Template 
 	temp.SetFrame = make([]SetFrame, 0, num_key)
 	temp.BindFrame = make([]BindFrame, 0, num_key)
 
-	temp.Rectangle = make([]Rectangle, 0, num_geo)
-	temp.Circle = make([]Circle, 0, num_geo)
-	temp.Text = make([]Text, 0, num_geo)
-	temp.Asset = make([]Asset, 0, num_geo)
-	temp.Polygon = make([]Polygon, 0, num_geo)
+	temp.Rect = make([]*geometry.Rectangle, 0, 10)
+	temp.Circle = make([]*geometry.Circle, 0, 10)
+	temp.Clock = make([]*geometry.Clock, 0, 10)
+	temp.Image = make([]*geometry.Image, 0, 10)
+	temp.Poly = make([]*geometry.Polygon, 0, 10)
+	temp.Text = make([]*geometry.Text, 0, 10)
+	temp.Ticker = make([]*geometry.Ticker, 0, 10)
 
 	return temp
 }
@@ -99,29 +106,22 @@ func TextToBuffer(text string) (textView *gtk.TextView, err error) {
 }
 
 // T -> {'id': num, 'num_geo': num, 'layer': num, 'geometry': [G]} | T, T
-func (temp *Template) Encode() (s string, err error) {
-	var b strings.Builder
-
+func (temp *Template) Encode(b strings.Builder) {
 	b.WriteString("{")
 
-	b.WriteString("'id': ")
-	b.WriteString(strconv.FormatInt(temp.TempID, 10))
+	parser.AddAttribute(b, "id", temp.TempID)
 	b.WriteString(", ")
 
-	b.WriteString("'num_geo': ")
-	b.WriteString(strconv.Itoa(temp.NumGeometry() + 1))
+	parser.AddAttribute(b, "num_geo", temp.NumGeometry()+1)
 	b.WriteString(", ")
 
-	b.WriteString("'max_keyframe': ")
-	b.WriteString(strconv.Itoa(temp.MaxKeyframe()))
+	parser.AddAttribute(b, "max_keyframe", temp.MaxKeyframe())
 	b.WriteString(", ")
 
-	b.WriteString("'name': '")
-	b.WriteString(temp.Title)
+	parser.AddAttribute(b, "name", temp.Title)
 	b.WriteString("', ")
 
-	b.WriteString("'layer': ")
-	b.WriteString(strconv.Itoa(temp.Layer))
+	parser.AddAttribute(b, "layer", temp.Layer)
 	b.WriteString(", ")
 
 	{
@@ -129,57 +129,14 @@ func (temp *Template) Encode() (s string, err error) {
 		b.WriteString("'geometry': [")
 
 		first := true
-		var propStr string
 
-		for _, geo := range temp.Rectangle {
-			if !first {
-				b.WriteString(",")
-			}
-
-			first = false
-			propStr = EncodeGeometry(geo.Geometry, geo.Attributes())
-			b.WriteString(propStr)
-		}
-
-		for _, geo := range temp.Circle {
-			if !first {
-				b.WriteString(",")
-			}
-
-			first = false
-			propStr = EncodeGeometry(geo.Geometry, geo.Attributes())
-			b.WriteString(propStr)
-		}
-
-		for _, geo := range temp.Text {
-			if !first {
-				b.WriteString(",")
-			}
-
-			first = false
-			propStr = EncodeGeometry(geo.Geometry, geo.Attributes())
-			b.WriteString(propStr)
-		}
-
-		for _, geo := range temp.Asset {
-			if !first {
-				b.WriteString(",")
-			}
-
-			first = false
-			propStr = EncodeGeometry(geo.Geometry, geo.Attributes())
-			b.WriteString(propStr)
-		}
-
-		for _, geo := range temp.Polygon {
-			if !first {
-				b.WriteString(",")
-			}
-
-			first = false
-			propStr = EncodeGeometry(geo.Geometry, geo.Attributes())
-			b.WriteString(propStr)
-		}
+		encodeSlice(b, temp.Rect, &first)
+		encodeSlice(b, temp.Circle, &first)
+		encodeSlice(b, temp.Clock, &first)
+		encodeSlice(b, temp.Image, &first)
+		encodeSlice(b, temp.Poly, &first)
+		encodeSlice(b, temp.Text, &first)
+		encodeSlice(b, temp.Ticker, &first)
 
 		b.WriteString("]")
 
@@ -190,54 +147,30 @@ func (temp *Template) Encode() (s string, err error) {
 		b.WriteString("'keyframe': [")
 
 		first := true
-		var frameStr string
-
-		for _, frame := range temp.UserFrame {
-			if !first {
-				b.WriteString(",")
-			}
-			first = false
-
-			frameStr, err = EncodeKeyframe(frame.Keyframe, frame.Attributes())
-			if err != nil {
-				return
-			}
-			b.WriteString(frameStr)
-		}
-
-		for _, frame := range temp.BindFrame {
-			if !first {
-				b.WriteString(",")
-			}
-			first = false
-
-			frameStr, err = EncodeKeyframe(frame.Keyframe, frame.Attributes())
-			if err != nil {
-				return
-			}
-			b.WriteString(frameStr)
-		}
-
-		for _, frame := range temp.SetFrame {
-			if !first {
-				b.WriteString(",")
-			}
-			first = false
-
-			frameStr, err = EncodeKeyframe(frame.Keyframe, frame.Attributes())
-			if err != nil {
-				return
-			}
-			b.WriteString(frameStr)
-		}
+		encodeSlice(b, temp.UserFrame, &first)
+		encodeSlice(b, temp.SetFrame, &first)
+		encodeSlice(b, temp.BindFrame, &first)
 
 		b.WriteString("],")
 
 	}
 
 	b.WriteString("}")
-	s = b.String()
-	return
+}
+
+type encoder interface {
+	EncodeJSON(strings.Builder)
+}
+
+func encodeSlice[T encoder](b strings.Builder, geos []T, first *bool) {
+	for _, geo := range geos {
+		if !(*first) {
+			b.WriteString(",")
+		}
+		*first = false
+
+		geo.EncodeJSON(b)
+	}
 }
 
 func (temp *Template) ExportTemplate(filename string) error {
@@ -275,20 +208,20 @@ func GetTemplate(hub net.Conn, tempid int) (temp Template, err error) {
 }
 
 func (temp *Template) NumGeometry() (maxID int) {
-	for _, rect := range temp.Rectangle {
-		maxID = max(maxID, rect.GeoNum)
-	}
+	maxID = max(maxID, maxGeoNum[*geometry.Rectangle](temp.Rect))
+	maxID = max(maxID, maxGeoNum[*geometry.Circle](temp.Circle))
+	maxID = max(maxID, maxGeoNum[*geometry.Clock](temp.Clock))
+	maxID = max(maxID, maxGeoNum[*geometry.Image](temp.Image))
+	maxID = max(maxID, maxGeoNum[*geometry.Polygon](temp.Poly))
+	maxID = max(maxID, maxGeoNum[*geometry.Text](temp.Text))
+	maxID = max(maxID, maxGeoNum[*geometry.Ticker](temp.Ticker))
 
-	for _, circle := range temp.Circle {
-		maxID = max(maxID, circle.GeoNum)
-	}
+	return
+}
 
-	for _, text := range temp.Text {
-		maxID = max(maxID, text.GeoNum)
-	}
-
-	for _, img := range temp.Asset {
-		maxID = max(maxID, img.GeoNum)
+func maxGeoNum[T interface{ GetGeometryID() int }](geos []T) (maxID int) {
+	for _, geo := range geos {
+		maxID = max(maxID, geo.GetGeometryID())
 	}
 
 	return

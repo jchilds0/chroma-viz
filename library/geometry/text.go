@@ -13,11 +13,26 @@ type Text struct {
 	Scale  attribute.FloatAttribute
 }
 
+func NewText(geo Geometry) Text {
+	text := Text{
+		Geometry: geo,
+	}
+
+	text.String.Name = "string"
+	text.Color.Name = "color"
+	text.Scale.Name = "scale"
+	return text
+}
+
 func (t *Text) UpdateGeometry(tEdit *TextEditor) (err error) {
 	return
 }
 
 func (t *Text) EncodeEngine(b strings.Builder) {
+
+}
+
+func (t *Text) EncodeJSON(b strings.Builder) {
 
 }
 
@@ -29,8 +44,8 @@ type TextEditor struct {
 	Scale  attribute.FloatEditor
 }
 
-func NewTextEditor() *TextEditor {
-	return nil
+func NewTextEditor() (*TextEditor, error) {
+	return nil, nil
 }
 
 func (tEdit *TextEditor) UpdateEditor(t *Text) (err error) {

@@ -14,6 +14,18 @@ type Rectangle struct {
 	Color    attribute.ColorAttribute
 }
 
+func NewRectangle(geo Geometry) Rectangle {
+	rect := Rectangle{
+		Geometry: geo,
+	}
+
+	rect.Width.Name = "width"
+	rect.Height.Name = "height"
+	rect.Rounding.Name = "rounding"
+	rect.Color.Name = "color"
+	return rect
+}
+
 func (r *Rectangle) UpdateGeometry(rEdit *RectangleEditor) (err error) {
 	err = r.Geometry.UpdateGeometry(&rEdit.GeometryEditor)
 	if err != nil {
@@ -47,17 +59,21 @@ func (r *Rectangle) EncodeEngine(b strings.Builder) {
 
 }
 
+func (r *Rectangle) EncodeJSON(b strings.Builder) {
+
+}
+
 type RectangleEditor struct {
 	GeometryEditor
 
 	Width    attribute.IntEditor
 	Height   attribute.IntEditor
 	Rounding attribute.IntEditor
-	Color    attribute.ColorAttribute
+	Color    attribute.ColorEditor
 }
 
-func NewRectangleEditor() *RectangleEditor {
-	return nil
+func NewRectangleEditor() (*RectangleEditor, error) {
+	return nil, nil
 }
 
 func (rEdit *RectangleEditor) UpdateEditor(r *Rectangle) (err error) {

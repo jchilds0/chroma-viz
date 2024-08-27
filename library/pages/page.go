@@ -27,16 +27,16 @@ type Page struct {
 	Title      string
 	TemplateID int
 	Layer      int
-	Rect       []geometry.Rectangle
-	Circle     []geometry.Circle
-	Clock      []geometry.Clock
-	Image      []geometry.Image
-	Poly       []geometry.Polygon
-	Text       []geometry.Text
-	Ticker     []geometry.Ticker
+	Rect       []*geometry.Rectangle
+	Circle     []*geometry.Circle
+	Clock      []*geometry.Clock
+	Image      []*geometry.Image
+	Poly       []*geometry.Polygon
+	Text       []*geometry.Text
+	Ticker     []*geometry.Ticker
 }
 
-func NewPage(pageNum, tempID, layer, numGeo int, title string) *Page {
+func NewPage(pageNum, tempID, layer int, title string) *Page {
 	page := &Page{
 		PageNum:    pageNum,
 		Title:      title,
@@ -44,22 +44,15 @@ func NewPage(pageNum, tempID, layer, numGeo int, title string) *Page {
 		Layer:      layer,
 	}
 
-	page.Rect = make([]geometry.Rectangle, 0, 10)
-	page.Circle = make([]geometry.Circle, 0, 10)
-	page.Clock = make([]geometry.Clock, 0, 10)
-	page.Image = make([]geometry.Image, 0, 10)
-	page.Poly = make([]geometry.Polygon, 0, 10)
-	page.Text = make([]geometry.Text, 0, 10)
-	page.Ticker = make([]geometry.Ticker, 0, 10)
+	page.Rect = make([]*geometry.Rectangle, 0, 10)
+	page.Circle = make([]*geometry.Circle, 0, 10)
+	page.Clock = make([]*geometry.Clock, 0, 10)
+	page.Image = make([]*geometry.Image, 0, 10)
+	page.Poly = make([]*geometry.Polygon, 0, 10)
+	page.Text = make([]*geometry.Text, 0, 10)
+	page.Ticker = make([]*geometry.Ticker, 0, 10)
 
 	return page
-}
-
-func NewPageFromTemplate(temp *templates.Template) (page *Page) {
-	numGeo := len(temp.Rectangle) + len(temp.Circle) + len(temp.Text)
-	page = NewPage(0, int(temp.TempID), temp.Layer, numGeo, temp.Title)
-
-	return
 }
 
 func (page *Page) PageToListRow() (row *gtk.ListBoxRow, err error) {

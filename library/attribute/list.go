@@ -28,7 +28,6 @@ func NewGraphCell(i int) (gCell *graphCell, err error) {
 
 type ListAttribute struct {
 	Name         string
-	Type         int
 	NumCols      int
 	Selected     bool
 	selectedIter *gtk.TreeIter
@@ -38,7 +37,6 @@ type ListAttribute struct {
 func NewListAttribute(name string, numCols int, selected bool) (list *ListAttribute, err error) {
 	list = &ListAttribute{
 		Name:     name,
-		Type:     LIST,
 		NumCols:  numCols,
 		Selected: selected,
 	}
@@ -100,7 +98,7 @@ func (listAttr *ListAttribute) stringRow(iter *gtk.TreeIter) (s string, err erro
 	return
 }
 
-func (listAttr *ListAttribute) Encode() (s string) {
+func (listAttr *ListAttribute) EncodeJSON() (s string) {
 	// currently chroma_engine allocates 100 nodes for each list statically
 	if listAttr.Selected {
 		// send only the currently selected item from the list
@@ -123,10 +121,6 @@ func (listAttr *ListAttribute) Encode() (s string) {
 	}
 
 	return
-}
-
-func (listAttr *ListAttribute) Decode(value string) error {
-	return nil
 }
 
 type ListAttributeJSON struct {
@@ -209,22 +203,8 @@ func (listAttr *ListAttribute) encodeRow(iter *gtk.TreeIter) (row []string, err 
 	return
 }
 
-func (listAttr *ListAttribute) Copy(attr Attribute) (err error) {
-	_, ok := attr.(*ListAttribute)
-	if !ok {
-		err = fmt.Errorf("Attribute not ListAttribute")
-		return
-	}
-
-	return
-}
-
-func (listAttr *ListAttribute) Update(edit Editor) error {
-	listEdit, ok := edit.(*ListEditor)
-	if !ok {
-		return fmt.Errorf("ListAttribute.Update requires a ListEditor")
-	}
-
+func (listAttr *ListAttribute) Update(listEdit *ListEditor) error {
+	var ok bool
 	if !listAttr.Selected {
 		return nil
 	}
@@ -237,6 +217,7 @@ func (listAttr *ListAttribute) Update(edit Editor) error {
 	if !ok {
 		return fmt.Errorf("Error getting selected iter from tree view selection")
 	}
+
 	// Increment selection
 	ok = listAttr.ListStore.IterNext(listAttr.selectedIter)
 	if !ok {
@@ -387,12 +368,7 @@ func (listEdit *ListEditor) Name() string {
 	return listEdit.name
 }
 
-func (listEdit *ListEditor) Update(attr Attribute) error {
-	listAttr, ok := attr.(*ListAttribute)
-	if !ok {
-		return fmt.Errorf("ListEditor.Update requires a ListAttribute")
-	}
-
+func (listEdit *ListEditor) Update(listAttr *ListAttribute) error {
 	listEdit.listStore = listAttr.ListStore
 	listEdit.treeView.SetModel(listEdit.listStore)
 	return nil

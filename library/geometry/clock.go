@@ -21,6 +21,10 @@ func (c *Clock) EncodeEngine(b strings.Builder) {
 
 }
 
+func (c *Clock) EncodeJSON(b strings.Builder) {
+
+}
+
 type ClockEditor struct {
 	GeometryEditor
 
@@ -29,8 +33,8 @@ type ClockEditor struct {
 	Scale  attribute.FloatEditor
 }
 
-func NewClockEditor() *ClockEditor {
-	return nil
+func NewClockEditor() (*ClockEditor, error) {
+	return nil, nil
 }
 
 func (cEdit *ClockEditor) UpdateEditor(c *Clock) (err error) {
