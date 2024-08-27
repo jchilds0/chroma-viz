@@ -16,6 +16,32 @@ type Circle struct {
 }
 
 func (c *Circle) UpdateGeometry(cEdit *CircleEditor) (err error) {
+	err = c.Geometry.UpdateGeometry(&cEdit.GeometryEditor)
+	if err != nil {
+		return
+	}
+
+	err = c.InnerRadius.UpdateAttribute(&cEdit.InnerRadius)
+	if err != nil {
+		return
+	}
+
+	err = c.OuterRadius.UpdateAttribute(&cEdit.OuterRadius)
+	if err != nil {
+		return
+	}
+
+	err = c.StartAngle.UpdateAttribute(&cEdit.StartAngle)
+	if err != nil {
+		return
+	}
+
+	err = c.EndAngle.UpdateAttribute(&cEdit.EndAngle)
+	if err != nil {
+		return
+	}
+
+	err = c.Color.UpdateAttribute(&cEdit.Color)
 	return
 }
 
@@ -37,5 +63,40 @@ func NewCircleEditor() *CircleEditor {
 }
 
 func (cEdit *CircleEditor) UpdateEditor(c *Circle) (err error) {
+	err = cEdit.GeometryEditor.UpdateEditor(&c.Geometry)
+	if err != nil {
+		return
+	}
+
+	err = cEdit.InnerRadius.UpdateEditor(&c.InnerRadius)
+	if err != nil {
+		return
+	}
+
+	err = cEdit.OuterRadius.UpdateEditor(&c.OuterRadius)
+	if err != nil {
+		return
+	}
+
+	err = cEdit.OuterRadius.UpdateEditor(&c.OuterRadius)
+	if err != nil {
+		return
+	}
+
+	err = cEdit.StartAngle.UpdateEditor(&c.StartAngle)
+	if err != nil {
+		return
+	}
+
+	err = cEdit.EndAngle.UpdateEditor(&c.EndAngle)
+	if err != nil {
+		return
+	}
+
+	err = cEdit.Color.UpdateEditor(&c.Color)
+	if err != nil {
+		return
+	}
+
 	return
 }

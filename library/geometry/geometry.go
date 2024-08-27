@@ -57,6 +57,17 @@ type Geometry struct {
 }
 
 func (g *Geometry) UpdateGeometry(gEdit *GeometryEditor) (err error) {
+	err = g.RelX.UpdateAttribute(&gEdit.RelX)
+	if err != nil {
+		return
+	}
+
+	err = g.RelY.UpdateAttribute(&gEdit.RelY)
+	if err != nil {
+		return
+	}
+
+	err = g.Mask.UpdateAttribute(&gEdit.Mask)
 	return
 }
 
@@ -78,5 +89,16 @@ func NewGeometryEditor() *GeometryEditor {
 }
 
 func (gEdit *GeometryEditor) UpdateEditor(g *Geometry) (err error) {
+	err = gEdit.RelX.UpdateEditor(&g.RelX)
+	if err != nil {
+		return
+	}
+
+	err = gEdit.RelY.UpdateEditor(&g.RelY)
+	if err != nil {
+		return
+	}
+
+	err = gEdit.Mask.UpdateEditor(&g.Mask)
 	return
 }

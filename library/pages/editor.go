@@ -1,19 +1,24 @@
-package library
+package pages
 
 import (
-	"chroma-viz/library/pages"
+	"chroma-viz/library/geometry"
 	"fmt"
 
 	"github.com/gotk3/gotk3/gtk"
 )
 
 type Editor struct {
-	Box            *gtk.Box
-	tabs           *gtk.Notebook
-	actions        *gtk.Box
-	CurrentPage    *pages.Page
-	propEditPairs  []Pairing
-	propertyEditor map[string][]*props.PropertyEditor
+	Box         *gtk.Box
+	tabs        *gtk.Notebook
+	actions     *gtk.Box
+	CurrentPage *Page
+	Rect        []geometry.RectangleEditor
+	Circle      []geometry.CircleEditor
+	Clock       []geometry.ClockEditor
+	Image       []geometry.ImageEditor
+	Poly        []geometry.PolygonEditor
+	Text        []geometry.TextEditor
+	Ticker      []geometry.TickerEditor
 }
 
 func NewEditor() (editor *Editor, err error) {
@@ -30,6 +35,15 @@ func NewEditor() (editor *Editor, err error) {
 	}
 
 	editor.Box.PackStart(editor.actions, false, false, 10)
+
+	editor.Rect = make([]geometry.RectangleEditor, 0, 10)
+	editor.Circle = make([]geometry.CircleEditor, 0, 10)
+	editor.Clock = make([]geometry.ClockEditor, 0, 10)
+	editor.Image = make([]geometry.ImageEditor, 0, 10)
+	editor.Poly = make([]geometry.PolygonEditor, 0, 10)
+	editor.Text = make([]geometry.TextEditor, 0, 10)
+	editor.Ticker = make([]geometry.TickerEditor, 0, 10)
+
 	return
 }
 
