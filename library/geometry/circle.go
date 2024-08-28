@@ -15,8 +15,8 @@ type Circle struct {
 	Color       attribute.ColorAttribute
 }
 
-func NewCircle(geo Geometry) Circle {
-	circle := Circle{
+func NewCircle(geo Geometry) *Circle {
+	circle := &Circle{
 		Geometry: geo,
 	}
 

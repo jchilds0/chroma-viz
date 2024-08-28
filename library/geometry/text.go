@@ -13,8 +13,8 @@ type Text struct {
 	Scale  attribute.FloatAttribute
 }
 
-func NewText(geo Geometry) Text {
-	text := Text{
+func NewText(geo Geometry) *Text {
+	text := &Text{
 		Geometry: geo,
 	}
 

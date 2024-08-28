@@ -96,7 +96,7 @@ func VizGui(app *gtk.Application) {
 	elapsed := end.Sub(start)
 	log.Printf("Imported Assets in %s", elapsed)
 
-	edit, err := library.NewEditor()
+	edit, err := pages.NewEditor()
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -123,7 +123,6 @@ func VizGui(app *gtk.Application) {
 		edit.UpdateProps()
 		SendPreview(edit.CurrentPage, library.ANIMATE_ON)
 	})
-	edit.PageEditor()
 
 	preview, err := library.SetupPreviewWindow(*conf,
 		func() { SendPreview(edit.CurrentPage, library.ANIMATE_ON) },

@@ -11,8 +11,8 @@ func (hub *DataBase) ImportTemplate(temp templates.Template) (err error) {
 		return
 	}
 
-	for _, rect := range temp.Rectangle {
-		err = hub.AddRectangle(temp.TempID, rect)
+	for _, rect := range temp.Rect {
+		err = hub.AddRectangle(temp.TempID, *rect)
 
 		if err != nil {
 			err = fmt.Errorf("Error adding rect: %s", err)
@@ -21,7 +21,7 @@ func (hub *DataBase) ImportTemplate(temp templates.Template) (err error) {
 	}
 
 	for _, text := range temp.Text {
-		err = hub.AddText(temp.TempID, text)
+		err = hub.AddText(temp.TempID, *text)
 
 		if err != nil {
 			err = fmt.Errorf("Error adding text: %s", err)
@@ -30,7 +30,7 @@ func (hub *DataBase) ImportTemplate(temp templates.Template) (err error) {
 	}
 
 	for _, circle := range temp.Circle {
-		err = hub.AddCircle(temp.TempID, circle)
+		err = hub.AddCircle(temp.TempID, *circle)
 
 		if err != nil {
 			err = fmt.Errorf("Error adding circle: %s", err)
@@ -38,8 +38,8 @@ func (hub *DataBase) ImportTemplate(temp templates.Template) (err error) {
 		}
 	}
 
-	for _, asset := range temp.Asset {
-		err = hub.AddAsset(temp.TempID, asset)
+	for _, asset := range temp.Image {
+		err = hub.AddAsset(temp.TempID, *asset)
 
 		if err != nil {
 			err = fmt.Errorf("Error adding asset: %s", err)

@@ -1,9 +1,8 @@
 package main
 
 import (
-	"chroma-viz/library/attribute"
+	"chroma-viz/library/geometry"
 	"chroma-viz/library/pages"
-	"chroma-viz/library/props"
 	"chroma-viz/library/util"
 	"fmt"
 	"log"
@@ -13,12 +12,13 @@ import (
 )
 
 var propNames = map[string]string{
-	props.RECT_PROP:   "Rectangle",
-	props.CIRCLE_PROP: "Circle",
-	props.TEXT_PROP:   "Text",
-	props.TICKER_PROP: "Ticker",
-	props.CLOCK_PROP:  "Clock",
-	props.IMAGE_PROP:  "Image",
+	geometry.GEO_RECT:   "Rectangle",
+	geometry.GEO_CIRCLE: "Circle",
+	geometry.GEO_TEXT:   "Text",
+	geometry.GEO_TICKER: "Ticker",
+	geometry.GEO_CLOCK:  "Clock",
+	geometry.GEO_IMAGE:  "Image",
+	geometry.GEO_POLY:   "Polygon",
 }
 
 const (

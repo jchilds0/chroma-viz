@@ -10,8 +10,8 @@ type Polygon struct {
 	Polygon attribute.PolygonAttribute
 }
 
-func NewPolygon(geo Geometry, numPoints int) Polygon {
-	poly := Polygon{
+func NewPolygon(geo Geometry, numPoints int) *Polygon {
+	poly := &Polygon{
 		Geometry: geo,
 	}
 

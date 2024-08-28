@@ -14,8 +14,8 @@ type Rectangle struct {
 	Color    attribute.ColorAttribute
 }
 
-func NewRectangle(geo Geometry) Rectangle {
-	rect := Rectangle{
+func NewRectangle(geo Geometry) *Rectangle {
+	rect := &Rectangle{
 		Geometry: geo,
 	}
 

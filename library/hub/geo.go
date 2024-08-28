@@ -146,7 +146,7 @@ func (hub *DataBase) GetRectangles(temp *templates.Template) (err error) {
 			return
 		}
 
-		temp.Rectangle = append(temp.Rectangle, rect)
+		temp.Rect = append(temp.Rect, rect)
 	}
 
 	return
@@ -268,7 +268,7 @@ func (hub *DataBase) GetAssets(temp *templates.Template) (err error) {
 		a.Image.Value = int(assetID)
 		a.Scale.Value = scale
 
-		temp.Asset = append(temp.Asset, a)
+		temp.Image = append(temp.Image, a)
 	}
 
 	return
@@ -335,7 +335,7 @@ func (hub *DataBase) GetPolygons(temp *templates.Template) (err error) {
 			poly.Polygon.PosY = append(poly.Polygon.PosY, pointsY[geoID][i])
 		}
 
-		temp.Polygon = append(temp.Polygon, poly)
+		temp.Poly = append(temp.Poly, poly)
 	}
 
 	return

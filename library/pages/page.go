@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"os"
 	"strconv"
+	"strings"
 
 	"github.com/gotk3/gotk3/gtk"
 )
@@ -36,7 +37,7 @@ type Page struct {
 	Ticker     []*geometry.Ticker
 }
 
-func NewPage(pageNum, tempID, layer int, title string) *Page {
+func NewPage(pageNum, tempID, layer, numGeo int, title string) *Page {
 	page := &Page{
 		PageNum:    pageNum,
 		Title:      title,
@@ -44,15 +45,20 @@ func NewPage(pageNum, tempID, layer int, title string) *Page {
 		Layer:      layer,
 	}
 
-	page.Rect = make([]*geometry.Rectangle, 0, 10)
-	page.Circle = make([]*geometry.Circle, 0, 10)
-	page.Clock = make([]*geometry.Clock, 0, 10)
-	page.Image = make([]*geometry.Image, 0, 10)
-	page.Poly = make([]*geometry.Polygon, 0, 10)
-	page.Text = make([]*geometry.Text, 0, 10)
-	page.Ticker = make([]*geometry.Ticker, 0, 10)
+	page.Rect = make([]*geometry.Rectangle, 0, numGeo)
+	page.Circle = make([]*geometry.Circle, 0, numGeo)
+	page.Clock = make([]*geometry.Clock, 0, numGeo)
+	page.Image = make([]*geometry.Image, 0, numGeo)
+	page.Poly = make([]*geometry.Polygon, 0, numGeo)
+	page.Text = make([]*geometry.Text, 0, numGeo)
+	page.Ticker = make([]*geometry.Ticker, 0, numGeo)
 
 	return page
+}
+
+func NewPageFromTemplate(temp *templates.Template) *Page {
+	return nil
+
 }
 
 func (page *Page) PageToListRow() (row *gtk.ListBoxRow, err error) {
@@ -109,4 +115,8 @@ func ExportPage(page *Page, filename string) (err error) {
 		return err
 	}
 	return
+}
+
+func (page *Page) EncodeEngine(b strings.Builder) {
+
 }

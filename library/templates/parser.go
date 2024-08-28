@@ -2,17 +2,23 @@ package templates
 
 import (
 	"bufio"
+	"chroma-viz/library/geometry"
 	"chroma-viz/library/parser"
 	"fmt"
 	"log"
 	"strconv"
-	"strings"
 )
 
 // T -> {'id': 123, 'num_geo': 123, 'layer': 123, 'geometry': [G]}
 func parseTemplate(buf *bufio.Reader) (temp Template, err error) {
 	parser.NextToken(buf)
 	parser.MatchToken('{', buf)
+
+	var tempID int64
+	var title string
+	layer := -1
+	numKey := -1
+	numGeo := -1
 
 	for parser.C_tok.Tok == parser.STRING {
 		name := parser.C_tok.Value
@@ -22,7 +28,7 @@ func parseTemplate(buf *bufio.Reader) (temp Template, err error) {
 
 		switch name {
 		case "id":
-			temp.TempID, err = strconv.ParseInt(parser.C_tok.Value, 10, 64)
+			tempID, err = strconv.ParseInt(parser.C_tok.Value, 10, 64)
 			if err != nil {
 				return
 			}
@@ -30,11 +36,11 @@ func parseTemplate(buf *bufio.Reader) (temp Template, err error) {
 			parser.MatchToken(parser.INT, buf)
 
 		case "name":
-			temp.Title = parser.C_tok.Value
+			title = parser.C_tok.Value
 			parser.MatchToken(parser.STRING, buf)
 
 		case "layer":
-			temp.Layer, err = strconv.Atoi(parser.C_tok.Value)
+			layer, err = strconv.Atoi(parser.C_tok.Value)
 			if err != nil {
 				return
 			}
@@ -42,26 +48,20 @@ func parseTemplate(buf *bufio.Reader) (temp Template, err error) {
 			parser.MatchToken(parser.INT, buf)
 
 		case "max_keyframe":
-			num, err := strconv.Atoi(parser.C_tok.Value)
+			numKey, err = strconv.Atoi(parser.C_tok.Value)
 			if err != nil {
-				num = 10
+				numKey = 10
 			}
 
 			parser.MatchToken(parser.INT, buf)
-			temp.BindFrame = make([]BindFrame, 0, num)
-			temp.SetFrame = make([]SetFrame, 0, num)
-			temp.UserFrame = make([]UserFrame, 0, num)
 
 		case "num_geo":
-			num, err := strconv.Atoi(parser.C_tok.Value)
+			numGeo, err = strconv.Atoi(parser.C_tok.Value)
 			if err != nil {
-				num = 10
+				numGeo = 10
 			}
 
 			parser.MatchToken(parser.INT, buf)
-			temp.Rectangle = make([]Rectangle, 0, num)
-			temp.Circle = make([]Circle, 0, num)
-			temp.Text = make([]Text, 0, num)
 
 		case "keyframe":
 			parser.MatchToken('[', buf)
@@ -98,6 +98,10 @@ func parseTemplate(buf *bufio.Reader) (temp Template, err error) {
 		default:
 			log.Printf("Unknown template attribute %s", name)
 			parser.NextToken(buf)
+		}
+
+		if tempID != 0 && title != "" && numGeo != -1 && numKey != -1 && layer != -1 {
+			temp = *NewTemplate(title, tempID, layer, numKey, numGeo)
 		}
 
 		if parser.C_tok.Tok == ',' {
@@ -159,7 +163,7 @@ func parseKeyframe(temp *Template, buf *bufio.Reader) {
 
 func parseGeometry(temp *Template, buf *bufio.Reader) (err error) {
 	data := make(map[string]string, 10)
-	var geom Geometry
+	var geom geometry.Geometry
 	parser.MatchToken('{', buf)
 
 	for parser.C_tok.Tok == parser.STRING {
@@ -169,7 +173,7 @@ func parseGeometry(temp *Template, buf *bufio.Reader) (err error) {
 
 		switch name {
 		case "id":
-			geom.GeoNum, err = strconv.Atoi(parser.C_tok.Value)
+			geom.GeometryID, err = strconv.Atoi(parser.C_tok.Value)
 			if err != nil {
 				return
 			}
@@ -188,13 +192,6 @@ func parseGeometry(temp *Template, buf *bufio.Reader) (err error) {
 
 		case "geo_type":
 			geom.GeoType = parser.C_tok.Value
-			err = parser.MatchToken(parser.STRING, buf)
-			if err != nil {
-				return
-			}
-
-		case "prop_type":
-			geom.PropType = parser.C_tok.Value
 			err = parser.MatchToken(parser.STRING, buf)
 			if err != nil {
 				return
@@ -250,60 +247,60 @@ func parseGeometry(temp *Template, buf *bufio.Reader) (err error) {
 
 	parser.MatchToken('}', buf)
 
-	geom.RelX, err = strconv.Atoi(data["rel_x"])
+	geom.RelX.Value, err = strconv.Atoi(data["rel_x"])
 	if err != nil {
 		return
 	}
 
-	geom.RelY, err = strconv.Atoi(data["rel_y"])
+	geom.RelY.Value, err = strconv.Atoi(data["rel_y"])
 	if err != nil {
 		return
 	}
 
-	color := strings.Split(data["color"], " ")
-	if len(color) != 4 {
-		err = fmt.Errorf("Incorrect number of colors (%s)", data["color"])
-	}
-
-	geom.Parent, err = strconv.Atoi(data["parent"])
+	geom.Parent.Value, err = strconv.Atoi(data["parent"])
 	if err != nil {
 		return
 	}
 
-	geom.Mask, err = strconv.Atoi(data["mask"])
+	geom.Mask.Value, err = strconv.Atoi(data["mask"])
 	if err != nil {
 		return
 	}
 
 	switch geom.GeoType {
-	case GEO_RECT:
-		width, _ := strconv.Atoi(data["width"])
-		height, _ := strconv.Atoi(data["height"])
-		rounding, _ := strconv.Atoi(data["rounding"])
+	case geometry.GEO_RECT:
+		rect := geometry.NewRectangle(geom)
+		rect.Width.Value, _ = strconv.Atoi(data["width"])
+		rect.Height.Value, _ = strconv.Atoi(data["height"])
+		rect.Rounding.Value, _ = strconv.Atoi(data["rounding"])
+		rect.Color.FromString(data["color"])
 
-		rect := NewRectangle(geom, width, height, rounding, data["color"])
-		temp.Rectangle = append(temp.Rectangle, *rect)
+		temp.Rect = append(temp.Rect, rect)
 
-	case GEO_CIRCLE:
-		inner, _ := strconv.Atoi(data["inner_radius"])
-		outer, _ := strconv.Atoi(data["outer_radius"])
-		start, _ := strconv.Atoi(data["start_angle"])
-		end, _ := strconv.Atoi(data["end_angle"])
+	case geometry.GEO_CIRCLE:
+		circle := geometry.NewCircle(geom)
+		circle.InnerRadius.Value, _ = strconv.Atoi(data["inner_radius"])
+		circle.OuterRadius.Value, _ = strconv.Atoi(data["outer_radius"])
+		circle.StartAngle.Value, _ = strconv.Atoi(data["start_angle"])
+		circle.EndAngle.Value, _ = strconv.Atoi(data["end_angle"])
+		circle.Color.FromString(data["color"])
 
-		circle := NewCircle(geom, inner, outer, start, end, data["color"])
-		temp.Circle = append(temp.Circle, *circle)
+		temp.Circle = append(temp.Circle, circle)
 
-	case GEO_TEXT:
-		scale, _ := strconv.ParseFloat(data["scale"], 64)
+	case geometry.GEO_TEXT:
+		text := geometry.NewText(geom)
+		text.Scale.Value, _ = strconv.ParseFloat(data["scale"], 64)
+		text.String.Value, _ = data["string"]
+		text.Color.FromString(data["color"])
 
-		text := NewText(geom, data["string"], data["color"], scale)
-		temp.Text = append(temp.Text, *text)
-	case GEO_IMAGE:
-		scale, _ := strconv.ParseFloat(data["scale"], 64)
-		image_id, _ := strconv.Atoi(data["image_id"])
+		temp.Text = append(temp.Text, text)
 
-		img := NewAsset(geom, data["name"], data["dir"], image_id, scale)
-		temp.Asset = append(temp.Asset, *img)
+	case geometry.GEO_IMAGE:
+		img := geometry.NewImage(geom)
+		img.Scale.Value, _ = strconv.ParseFloat(data["scale"], 64)
+		img.Image.Value, _ = strconv.Atoi(data["image_id"])
+
+		temp.Image = append(temp.Image, img)
 	}
 
 	return

@@ -208,17 +208,16 @@ func ArtistGui(app *gtk.Application) {
 		conn[c.Name] = library.NewConnection(c.Name, c.Address, c.Port)
 	}
 
-	editView, err := library.NewEditor()
+	editView, err := templates.NewEditor()
 	if err != nil {
 		log.Fatal(err)
 	}
-	editView.PropertyEditor()
-	editView.CurrentPage = page
+	editView.CurrentTemplate = template
 
 	preview, err := library.SetupPreviewWindow(*conf,
-		func() { SendPreview(editView.CurrentPage, library.ANIMATE_ON) },
-		func() { SendPreview(editView.CurrentPage, library.CONTINUE) },
-		func() { SendPreview(editView.CurrentPage, library.ANIMATE_OFF) },
+		func() { SendPreview(editView.CurrentTemplate, library.ANIMATE_ON) },
+		func() { SendPreview(editView.CurrentTemplate, library.CONTINUE) },
+		func() { SendPreview(editView.CurrentTemplate, library.ANIMATE_OFF) },
 	)
 	if err != nil {
 		log.Fatalf("Error setting up preview window: %s", err)

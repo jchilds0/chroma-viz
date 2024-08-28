@@ -8,9 +8,9 @@ import (
 type Clock struct {
 	Geometry
 
-	String attribute.ClockAttribute
-	Color  attribute.ColorAttribute
-	Scale  attribute.FloatAttribute
+	Clock attribute.ClockAttribute
+	Color attribute.ColorAttribute
+	Scale attribute.FloatAttribute
 }
 
 func (c *Clock) UpdateGeometry(cEdit *ClockEditor) (err error) {

@@ -2,9 +2,7 @@ package main
 
 import (
 	"chroma-viz/library"
-	"chroma-viz/library/attribute"
 	"chroma-viz/library/pages"
-	"chroma-viz/library/props"
 	"chroma-viz/library/util"
 	"fmt"
 	"log"
@@ -154,8 +152,8 @@ func (showTree *ShowTree) ImportPage(page *pages.Page) (err error) {
 
 	showTree.show.AddPage(page)
 
-	for _, prop := range page.PropMap {
-		if prop.PropType != props.CLOCK_PROP {
+	for _, geo := range page.Clock {
+		if geo == nil {
 			continue
 		}
 
@@ -164,17 +162,7 @@ func (showTree *ShowTree) ImportPage(page *pages.Page) (err error) {
 		   to animate the clock. We manually add this
 		   after parsing the page.
 		*/
-		attr, ok := prop.Attr["string"]
-		if !ok {
-			continue
-		}
-
-		clockAttr, ok := attr.(*attribute.ClockAttribute)
-		if !ok {
-			continue
-		}
-
-		clockAttr.SetClock(func() { SendEngine(page, library.CONTINUE) })
+		geo.Clock.SetClock(func() { SendEngine(page, library.CONTINUE) })
 	}
 
 	iter := showTree.treeList.Append()

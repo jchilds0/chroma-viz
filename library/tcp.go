@@ -1,18 +1,16 @@
 package library
 
 import (
-	"chroma-viz/library/props"
-	"fmt"
+	"chroma-viz/library/parser"
 	"log"
 	"net"
 	"strconv"
+	"strings"
 	"time"
 )
 
 type Animator interface {
-	GetTemplateID() int
-	GetLayer() int
-	GetPropMap() map[int]*props.Property
+	EncodeEngine(b strings.Builder)
 }
 
 const (
@@ -81,22 +79,16 @@ func (conn *Connection) SendPage() {
 			continue
 		}
 
-		version := [...]int{1, 4}
+		var b strings.Builder
+		version := "1,4"
 
-		header := fmt.Sprintf("ver=%d,%d#layer=%d#action=%d#temp=%d#",
-			version[0], version[1], page.GetLayer(), action, page.GetTemplateID())
+		parser.EngineAddKeyValue(b, "version", version)
+		parser.EngineAddKeyValue(b, "action", action)
 
-		geo := ""
-		for i, prop := range page.GetPropMap() {
-			if prop == nil {
-				continue
-			}
+		page.EncodeEngine(b)
+		b.WriteByte(END_OF_MESSAGE)
 
-			geo = geo + fmt.Sprintf("geo_num=%d#%s", i, prop.String())
-		}
-
-		str := header + geo + string(END_OF_MESSAGE)
-		conn.Conn.Write([]byte(str))
+		conn.Conn.Write([]byte(b.String()))
 	}
 }
 

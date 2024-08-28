@@ -8,7 +8,6 @@ import (
 	"fmt"
 	"net"
 	"os"
-	"strconv"
 	"strings"
 
 	"github.com/gotk3/gotk3/gtk"
@@ -241,4 +240,9 @@ func (temp *Template) MaxKeyframe() (maxFrameNum int) {
 	}
 
 	return
+}
+
+func (temp *Template) EncodeEngine(b strings.Builder) {
+	parser.EngineAddKeyValue(b, "temp", temp.TempID)
+	parser.EngineAddKeyValue(b, "layer", temp.Layer)
 }

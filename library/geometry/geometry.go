@@ -17,6 +17,14 @@ const (
 	ANIMATE_OFF
 )
 
+const (
+	GEO_RECT   = "rect"
+	GEO_CIRCLE = "circle"
+	GEO_TEXT   = "text"
+	GEO_IMAGE  = "image"
+	GEO_POLY   = "polygon"
+)
+
 /*
 
    Templates are made up of a collection of Properties.

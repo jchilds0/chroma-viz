@@ -12,8 +12,8 @@ type Image struct {
 	Image attribute.AssetAttribute
 }
 
-func NewImage(geo Geometry) Image {
-	image := Image{
+func NewImage(geo Geometry) *Image {
+	image := &Image{
 		Geometry: geo,
 	}
 

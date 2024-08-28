@@ -76,7 +76,6 @@ func (hub *DataBase) EncodeDB() (s string, err error) {
 		maxTempID int64
 		tempID    int64
 		temp      *templates.Template
-		tempStr   string
 	)
 	for rows.Next() {
 		err = rows.Scan(&tempID)
@@ -98,13 +97,7 @@ func (hub *DataBase) EncodeDB() (s string, err error) {
 			return
 		}
 
-		tempStr, err = temp.Encode()
-		if err != nil {
-			err = fmt.Errorf("Encode Template: %s", err)
-			return
-		}
-
-		b.WriteString(tempStr)
+		temp.Encode(b)
 	}
 
 	s = fmt.Sprintf("{'num_temp': %d, 'templates': [%s]}", maxTempID+2, b.String())
@@ -247,8 +240,11 @@ func (hub *DataBase) HandleConn(conn net.Conn) {
 				continue
 			}
 
-			s, _ := template.Encode()
-			_, err = conn.Write([]byte(s + string(geometry.END_OF_MESSAGE)))
+			var b strings.Builder
+			template.Encode(b)
+			b.WriteByte(geometry.END_OF_MESSAGE)
+
+			_, err = conn.Write([]byte(b.String()))
 		case "img":
 			imageID, _ := strconv.Atoi(cmds[4])
 			image := hub.Assets[imageID]
