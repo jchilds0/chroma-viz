@@ -1,8 +1,7 @@
 package pages
 
 import (
-	"chroma-viz/library/attribute"
-	"chroma-viz/library/props"
+	"chroma-viz/library/geometry"
 	"testing"
 )
 
@@ -17,110 +16,70 @@ func TestImportShow(t *testing.T) {
 	for _, page := range show.Pages {
 		switch page.Title {
 		case "Teal Box":
-			rectPropTest(t, page.PropMap[0], 50, 100, 850, 180)
-			circlePropTest(t, page.PropMap[1], 99, 90, 30, 75, 45, 315)
-			textPropTest(t, page.PropMap[2], 190, 100, "Lower Frame")
-			textPropTest(t, page.PropMap[3], 190, 30, "A lower frame subtitle")
+			rectPropTest(t, page.Rect[0], 50, 100, 850, 180)
+			circlePropTest(t, page.Circle[0], 99, 90, 30, 75, 45, 315)
+			textPropTest(t, page.Text[0], 190, 100, "Lower Frame")
+			textPropTest(t, page.Text[1], 190, 30, "A lower frame subtitle")
 		case "Clock Box":
-			rectPropTest(t, page.PropMap[0], 50, 965, 810, 65)
-			circlePropTest(t, page.PropMap[1], 35, 32, 0, 25, 0, 360)
-			rectPropTest(t, page.PropMap[2], 76, 0, 10, 65)
-			textPropTest(t, page.PropMap[3], 20, 15, "TEAM")
-			textPropTest(t, page.PropMap[4], 180, 15, "0")
-			rectPropTest(t, page.PropMap[5], 230, 0, 10, 65)
-			textPropTest(t, page.PropMap[6], 20, 15, "TEAM")
-			textPropTest(t, page.PropMap[7], 180, 15, "0")
-			rectPropTest(t, page.PropMap[8], 230, 0, 10, 65)
-			clockPropTest(t, page.PropMap[9], 110, 15)
-			textPropTest(t, page.PropMap[10], 30, 15, "Q1")
+			rectPropTest(t, page.Rect[0], 50, 965, 810, 65)
+			circlePropTest(t, page.Circle[0], 35, 32, 0, 25, 0, 360)
+			rectPropTest(t, page.Rect[1], 76, 0, 10, 65)
+			textPropTest(t, page.Text[0], 20, 15, "TEAM")
+			textPropTest(t, page.Text[1], 180, 15, "0")
+			rectPropTest(t, page.Rect[2], 230, 0, 10, 65)
+			textPropTest(t, page.Text[2], 20, 15, "TEAM")
+			textPropTest(t, page.Text[3], 180, 15, "0")
+			rectPropTest(t, page.Rect[3], 230, 0, 10, 65)
+			clockPropTest(t, page.Clock[0], 110, 15)
+			textPropTest(t, page.Text[4], 30, 15, "Q1")
 		case "Ticker":
-			rectPropTest(t, page.PropMap[0], 0, 0, 1920, 75)
-			rectPropTest(t, page.PropMap[1], 1700, 25, 400, 100)
-			tickerPropTest(t, page.PropMap[2], 25, 20, "Hello there", "world")
+			rectPropTest(t, page.Rect[0], 0, 0, 1920, 75)
+			rectPropTest(t, page.Rect[1], 1700, 25, 400, 100)
+			tickerPropTest(t, page.Ticker[0], 25, 20, "Hello there", "world")
 		default:
 			t.Errorf("Unknown page %s", page.Title)
 		}
 	}
 }
 
-func rectPropTest(t *testing.T, prop *props.Property, x, y, w, h int) {
-	if prop.PropType != props.RECT_PROP {
-		t.Errorf("Prop %s is not a rect prop", prop.Name)
-		return
-	}
-
-	intAttrTest(t, prop.Attr["x"], x)
-	intAttrTest(t, prop.Attr["y"], y)
-	intAttrTest(t, prop.Attr["width"], w)
-	intAttrTest(t, prop.Attr["height"], h)
+func rectPropTest(t *testing.T, rect *geometry.Rectangle, x, y, w, h int) {
+	assert(t, rect.RelX.Value, x, "Rectangle rel_x")
+	assert(t, rect.RelY.Value, y, "Rectangle rel_y")
+	assert(t, rect.Width.Value, w, "Rectangle width")
+	assert(t, rect.Height.Value, h, "Rectangle height")
 }
 
-func textPropTest(t *testing.T, prop *props.Property, x, y int, text string) {
-	if prop.PropType != props.TEXT_PROP {
-		t.Errorf("Prop %s is not a text prop", prop.Name)
-		return
-	}
-
-	intAttrTest(t, prop.Attr["x"], x)
-	intAttrTest(t, prop.Attr["y"], y)
-	stringAttrTest(t, prop.Attr["string"], text)
+func textPropTest(t *testing.T, string *geometry.Text, x, y int, text string) {
+	assert(t, string.RelX.Value, x, "Text rel_x")
+	assert(t, string.RelY.Value, y, "Text rel_y")
+	assert(t, string.String.Value, text, "Text string")
 }
 
-func circlePropTest(t *testing.T, prop *props.Property, x, y, ir, or, sa, ea int) {
-	if prop.PropType != props.CIRCLE_PROP {
-		t.Errorf("Prop %s is not a circle prop", prop.Name)
-		return
-	}
-
-	intAttrTest(t, prop.Attr["x"], x)
-	intAttrTest(t, prop.Attr["y"], y)
-	intAttrTest(t, prop.Attr["inner_radius"], ir)
-	intAttrTest(t, prop.Attr["outer_radius"], or)
-	intAttrTest(t, prop.Attr["start_angle"], sa)
-	intAttrTest(t, prop.Attr["end_angle"], ea)
+func circlePropTest(t *testing.T, c *geometry.Circle, x, y, ir, or, sa, ea int) {
+	assert(t, c.RelX.Value, x, "Circle rel_x")
+	assert(t, c.RelY.Value, y, "Circle rel_y")
+	assert(t, c.InnerRadius.Value, ir, "Circle inner_radius")
+	assert(t, c.OuterRadius.Value, or, "Circle outer_radius")
+	assert(t, c.StartAngle.Value, sa, "Circle start_angle")
+	assert(t, c.EndAngle.Value, ea, "Circle end_angle")
 }
 
-func clockPropTest(t *testing.T, prop *props.Property, x, y int) {
-	if prop.PropType != props.CLOCK_PROP {
-		t.Errorf("Prop %s is not a clock prop (type %s)", prop.Name, prop.PropType)
-		return
-	}
-
-	intAttrTest(t, prop.Attr["x"], x)
-	intAttrTest(t, prop.Attr["y"], y)
+func clockPropTest(t *testing.T, c *geometry.Clock, x, y int) {
+	assert(t, c.RelX.Value, x, "Clock rel_x")
+	assert(t, c.RelY.Value, x, "Clock rel_y")
 }
 
-func tickerPropTest(t *testing.T, prop *props.Property, x, y int, s ...string) {
-	if prop.PropType != props.TICKER_PROP {
-		t.Errorf("Prop %s is not a ticker prop (type %s)", prop.Name, prop.PropType)
-		return
-	}
-
-	intAttrTest(t, prop.Attr["x"], x)
-	intAttrTest(t, prop.Attr["y"], y)
+func tickerPropTest(t *testing.T, ticker *geometry.Ticker, x, y int, s ...string) {
+	assert(t, ticker.RelX.Value, x, "Ticker rel_x")
+	assert(t, ticker.RelY.Value, y, "Ticker rel_y")
 	// check list store values
+
 }
 
-func intAttrTest(t *testing.T, attr attribute.Attribute, val int) {
-	intAttr, ok := attr.(*attribute.IntAttribute)
-	if !ok {
-		t.Errorf("Attr %v is not an int attr", attr)
+func assert[T comparable](t *testing.T, v1 T, v2 T, s string) {
+	if v1 == v2 {
 		return
 	}
 
-	if intAttr.Value != val {
-		t.Errorf("Int attr incorrect value (intAttr.Value = %d), expected %d", intAttr.Value, val)
-	}
-}
-
-func stringAttrTest(t *testing.T, attr attribute.Attribute, val string) {
-	stringAttr, ok := attr.(*attribute.StringAttribute)
-	if !ok {
-		t.Errorf("Attr %v is not an string attr", attr)
-		return
-	}
-
-	if stringAttr.Value != val {
-		t.Errorf("String attr incorrect value (stringAttr.Value = %s), expected %s", stringAttr.Value, val)
-	}
+	t.Errorf("%s: expected %v, received %v", s, v1, v2)
 }

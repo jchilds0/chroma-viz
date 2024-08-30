@@ -20,11 +20,11 @@ func NewCircle(geo Geometry) *Circle {
 		Geometry: geo,
 	}
 
-	circle.InnerRadius.Name = "inner_radius"
-	circle.OuterRadius.Name = "outer_radius"
-	circle.StartAngle.Name = "start_angle"
-	circle.EndAngle.Name = "end_angle"
-	circle.Color.Name = "color"
+	circle.InnerRadius.Name = ATTR_INNER_RADIUS
+	circle.OuterRadius.Name = ATTR_OUTER_RADIUS
+	circle.StartAngle.Name = ATTR_START_ANGLE
+	circle.EndAngle.Name = ATTR_END_ANGLE
+	circle.Color.Name = ATTR_COLOR
 	return circle
 }
 
@@ -34,27 +34,27 @@ func (c *Circle) UpdateGeometry(cEdit *CircleEditor) (err error) {
 		return
 	}
 
-	err = c.InnerRadius.UpdateAttribute(&cEdit.InnerRadius)
+	err = c.InnerRadius.UpdateAttribute(cEdit.InnerRadius)
 	if err != nil {
 		return
 	}
 
-	err = c.OuterRadius.UpdateAttribute(&cEdit.OuterRadius)
+	err = c.OuterRadius.UpdateAttribute(cEdit.OuterRadius)
 	if err != nil {
 		return
 	}
 
-	err = c.StartAngle.UpdateAttribute(&cEdit.StartAngle)
+	err = c.StartAngle.UpdateAttribute(cEdit.StartAngle)
 	if err != nil {
 		return
 	}
 
-	err = c.EndAngle.UpdateAttribute(&cEdit.EndAngle)
+	err = c.EndAngle.UpdateAttribute(cEdit.EndAngle)
 	if err != nil {
 		return
 	}
 
-	err = c.Color.UpdateAttribute(&cEdit.Color)
+	err = c.Color.UpdateAttribute(cEdit.Color)
 	return
 }
 
@@ -62,22 +62,58 @@ func (c *Circle) EncodeEngine(b strings.Builder) {
 
 }
 
-func (c *Circle) EncodeJSON(b strings.Builder) {
-
-}
-
 type CircleEditor struct {
 	GeometryEditor
 
-	InnerRadius attribute.IntEditor
-	OuterRadius attribute.IntEditor
-	StartAngle  attribute.IntEditor
-	EndAngle    attribute.IntEditor
-	Color       attribute.ColorEditor
+	InnerRadius *attribute.IntEditor
+	OuterRadius *attribute.IntEditor
+	StartAngle  *attribute.IntEditor
+	EndAngle    *attribute.IntEditor
+	Color       *attribute.ColorEditor
 }
 
-func NewCircleEditor() (*CircleEditor, error) {
-	return nil, nil
+func NewCircleEditor() (cEdit *CircleEditor, err error) {
+	geoEdit, err := NewGeometryEditor()
+	if err != nil {
+		return
+	}
+
+	cEdit = &CircleEditor{
+		GeometryEditor: *geoEdit,
+	}
+
+	cEdit.InnerRadius, err = attribute.NewIntEditor(Attrs[ATTR_INNER_RADIUS])
+	if err != nil {
+		return
+	}
+
+	cEdit.OuterRadius, err = attribute.NewIntEditor(Attrs[ATTR_OUTER_RADIUS])
+	if err != nil {
+		return
+	}
+
+	cEdit.StartAngle, err = attribute.NewIntEditor(Attrs[ATTR_START_ANGLE])
+	if err != nil {
+		return
+	}
+
+	cEdit.EndAngle, err = attribute.NewIntEditor(Attrs[ATTR_END_ANGLE])
+	if err != nil {
+		return
+	}
+
+	cEdit.Color, err = attribute.NewColorEditor(Attrs[ATTR_COLOR])
+	if err != nil {
+		return
+	}
+
+	geoEdit.ScrollBox.PackStart(cEdit.InnerRadius.Box, false, false, padding)
+	geoEdit.ScrollBox.PackStart(cEdit.OuterRadius.Box, false, false, padding)
+	geoEdit.ScrollBox.PackStart(cEdit.StartAngle.Box, false, false, padding)
+	geoEdit.ScrollBox.PackStart(cEdit.EndAngle.Box, false, false, padding)
+	geoEdit.ScrollBox.PackStart(cEdit.Color.Box, false, false, padding)
+
+	return
 }
 
 func (cEdit *CircleEditor) UpdateEditor(c *Circle) (err error) {

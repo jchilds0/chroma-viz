@@ -5,13 +5,10 @@ import (
 	"chroma-viz/library/attribute"
 	"chroma-viz/library/hub"
 	"chroma-viz/library/pages"
-	"chroma-viz/library/props"
 	"chroma-viz/library/templates"
 	"chroma-viz/library/util"
-	"encoding/json"
 	"fmt"
 	"log"
-	"os"
 	"strconv"
 	"time"
 
@@ -44,7 +41,7 @@ func SendPreview(page library.Animator, action int) {
 
 func ArtistGui(app *gtk.Application) {
 	var tempIDEntry, titleEntry, layerEntry *gtk.Entry
-	page := pages.NewPage(0, 0, 0, 10, "")
+	template := templates.NewTemplate("", 1, 0, 10, 10)
 
 	win, err := gtk.ApplicationWindowNew(app)
 	if err != nil {
@@ -212,34 +209,35 @@ func ArtistGui(app *gtk.Application) {
 	if err != nil {
 		log.Fatal(err)
 	}
-	editView.CurrentTemplate = template
+	editView.CurrentTemp = template
 
 	preview, err := library.SetupPreviewWindow(*conf,
-		func() { SendPreview(editView.CurrentTemplate, library.ANIMATE_ON) },
-		func() { SendPreview(editView.CurrentTemplate, library.CONTINUE) },
-		func() { SendPreview(editView.CurrentTemplate, library.ANIMATE_OFF) },
+		func() { SendPreview(editView.CurrentTemp, library.ANIMATE_ON) },
+		func() { SendPreview(editView.CurrentTemp, library.CONTINUE) },
+		func() { SendPreview(editView.CurrentTemp, library.ANIMATE_OFF) },
 	)
 	if err != nil {
 		log.Fatalf("Error setting up preview window: %s", err)
 	}
 
-	propToEditor := func(propID int) {
-		prop := page.PropMap[propID]
-		err := editView.SetProperty(prop)
+	geometryToEditor := func(geoID int) {
+		editView.CurrentGeoID = geoID
+
+		err := editView.UpdateEditor()
 		if err != nil {
-			log.Printf("Error sending prop %d to editor: %s", propID, err)
+			log.Printf("Error sending prop %d to editor: %s", geoID, err)
 		}
 	}
 
 	keyTree := NewKeyframeTree(keyGeo, keyAttr)
 
-	geoTree, err := NewGeoTree(geoSelector, propToEditor, keyTree.UpdateGeometryName)
+	geoTree, err := NewGeoTree(geoSelector, geometryToEditor, keyTree.UpdateGeometryName)
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	editView.AddAction("Save", true, func() {
-		template, err := exportPage(page, geoTree, keyTree, titleEntry, tempIDEntry, layerEntry)
+		err := updateTemplateFromUI(template, geoTree, keyTree, titleEntry, tempIDEntry, layerEntry)
 		if err != nil {
 			log.Printf("Error creating template (%s)", err)
 			return
@@ -248,23 +246,23 @@ func ArtistGui(app *gtk.Application) {
 		err = chromaHub.ImportTemplate(*template)
 		if err != nil {
 			log.Printf("Error sending template to chroma hub (%s)", err)
-			return
 		}
 
-		editView.CurrentPage = page
-		editView.UpdateProps()
-
-		SendPreview(editView.CurrentPage, library.UPDATE)
+		editView.UpdateGeometry()
+		SendPreview(editView.CurrentTemp, library.UPDATE)
 		time.Sleep(10 * time.Millisecond)
-		SendPreview(editView.CurrentPage, library.ANIMATE_ON)
+		SendPreview(editView.CurrentTemp, library.ANIMATE_ON)
 	})
 
 	/* actions */
 	newTemplate.Connect("activate", func() {
-		page.PropMap = make(map[int]*props.Property)
+		template.Clean()
+		updateUIFromTemplate(
+			template, geoTree, keyTree, frameSideBar, framePane,
+			titleEntry, tempIDEntry, layerEntry,
+		)
 
-		newPage(geoTree, keyTree, frameSideBar, framePane, titleEntry, tempIDEntry, layerEntry)
-		SendPreview(editView.CurrentPage, library.UPDATE)
+		SendPreview(editView.CurrentTemp, library.UPDATE)
 	})
 
 	importTemplateJSON.Connect("activate", func() {
@@ -280,20 +278,16 @@ func ArtistGui(app *gtk.Application) {
 		if res == gtk.RESPONSE_ACCEPT {
 			filename := dialog.GetFilename()
 
-			var buf []byte
-			buf, err = os.ReadFile(filename)
+			*template, err = templates.NewTemplateFromFile(filename)
 			if err != nil {
+				log.Print(err)
 				return
 			}
 
-			var temp templates.Template
-			err = json.Unmarshal(buf, &temp)
-			if err != nil {
-				return
-			}
-
-			page = importPage(&temp, geoTree, keyTree, frameSideBar, framePane, titleEntry, tempIDEntry, layerEntry)
-			editView.CurrentPage = page
+			updateUIFromTemplate(
+				template, geoTree, keyTree, frameSideBar, framePane,
+				titleEntry, tempIDEntry, layerEntry,
+			)
 		}
 	})
 
@@ -324,8 +318,11 @@ func ArtistGui(app *gtk.Application) {
 				return
 			}
 
-			page = importPage(&template, geoTree, keyTree, frameSideBar, framePane, titleEntry, tempIDEntry, layerEntry)
-			editView.CurrentPage = page
+			editView.CurrentTemp = &template
+			updateUIFromTemplate(
+				&template, geoTree, keyTree, frameSideBar, framePane,
+				titleEntry, tempIDEntry, layerEntry,
+			)
 		}
 	})
 
@@ -339,12 +336,12 @@ func ArtistGui(app *gtk.Application) {
 		}
 		defer dialog.Destroy()
 
-		dialog.SetCurrentName(page.Title + ".json")
+		dialog.SetCurrentName(template.Title + ".json")
 		res := dialog.Run()
 		if res == gtk.RESPONSE_ACCEPT {
 			filename := dialog.GetFilename()
 
-			template, err := exportPage(page, geoTree, keyTree, titleEntry, tempIDEntry, layerEntry)
+			err := updateTemplateFromUI(template, geoTree, keyTree, titleEntry, tempIDEntry, layerEntry)
 			if err != nil {
 				log.Printf("Error exporting template (%s)", err)
 			}
@@ -363,7 +360,7 @@ func ArtistGui(app *gtk.Application) {
 			return
 		}
 
-		page.Title = text
+		template.Title = text
 	})
 
 	tempIDEntry.Connect("changed", func(entry *gtk.Entry) {
@@ -379,7 +376,7 @@ func ArtistGui(app *gtk.Application) {
 			return
 		}
 
-		page.TemplateID = id
+		template.TempID = int64(id)
 	})
 
 	layerEntry.Connect("changed", func(entry *gtk.Entry) {
@@ -395,11 +392,11 @@ func ArtistGui(app *gtk.Application) {
 			return
 		}
 
-		page.Layer = id
+		template.Layer = id
 	})
 
-	addGeoButton.Connect("clicked", func() { addGeo(page, geoTree, keyTree) })
-	removeGeoButton.Connect("clicked", func() { removeGeo(page, geoTree, keyTree) })
+	addGeoButton.Connect("clicked", func() { addGeo(template, geoTree, keyTree) })
+	removeGeoButton.Connect("clicked", func() { removeGeo(template, geoTree, keyTree) })
 	geoScroll.Add(geoTree.geoView)
 
 	keyGeo.Connect("changed", func() {
@@ -409,7 +406,13 @@ func ArtistGui(app *gtk.Application) {
 			return
 		}
 
-		keyTree.UpdateAttrList(page.PropMap[geoID])
+		geo := template.Geos[geoID]
+		if geo == nil {
+			log.Printf("Missing geometry %d", geoID)
+			return
+		}
+
+		keyTree.UpdateAttrList(geo.GeoType)
 	})
 
 	frameSideBar.SetStack(frameStack)
@@ -447,106 +450,14 @@ func ArtistGui(app *gtk.Application) {
 	win.ShowAll()
 }
 
-func AddProp(page *pages.Page, propType string) (id int, err error) {
-	ok := true
-	for id = 1; ok; id++ {
-		prop, ok := page.PropMap[id]
-		if !ok {
-			break
-		}
-
-		if prop == nil {
-			break
-		}
-	}
-
-	page.PropMap[id] = props.NewProperty(propType, propNames[propType], true, nil)
-
-	if propType != props.CLOCK_PROP {
-		return
-	}
-
-	/*
-	   Clock requires a way to send updates to viz
-	   to animate the clock. We manually add this
-	   after parsing the page.
-	*/
-	attr, ok := page.PropMap[id].Attr["string"]
-	if !ok {
-		err = fmt.Errorf("Clock Prop missing string attr")
-		return
-	}
-
-	clockAttr, ok := attr.(*attribute.ClockAttribute)
-	if !ok {
-		err = fmt.Errorf("String attr is not a clock attribute")
-		return
-	}
-
-	clockAttr.SetClock(func() { SendPreview(page, library.CONTINUE) })
-	return
-}
-
-func newPage(geoTree *GeoTree, keyTree *KeyTree, frameSideBar *gtk.StackSidebar, framePane *gtk.Paned,
-	titleEntry, tempIDEntry, layerEntry *gtk.Entry) {
-	geoTree.Clear()
-	keyTree.Clear()
-
-	framePane.Remove(frameSideBar.GetStack())
-
-	stack, _ := gtk.StackNew()
-	stack.SetVExpand(true)
-	stack.SetVisible(true)
-
-	frameSideBar.SetStack(stack)
-	framePane.Add2(stack)
-
-	titleEntry.SetText("")
-	tempIDEntry.SetText("")
-	layerEntry.SetText("")
-
-}
-
-func importPage(temp *templates.Template, geoTree *GeoTree, keyTree *KeyTree, sidebar *gtk.StackSidebar, framePane *gtk.Paned,
+func updateUIFromTemplate(temp *templates.Template, geoTree *GeoTree, keyTree *KeyTree, sidebar *gtk.StackSidebar, framePane *gtk.Paned,
 	titleEntry, tempIDEntry, layerEntry *gtk.Entry) (page *pages.Page) {
-	newPage(geoTree, keyTree, sidebar, framePane, titleEntry, tempIDEntry, layerEntry)
-	page = pages.NewPageFromTemplate(temp)
-
 	titleEntry.SetText(temp.Title)
 	tempIDEntry.SetText(strconv.FormatInt(temp.TempID, 10))
 	layerEntry.SetText(strconv.Itoa(temp.Layer))
 
-	geoTree.ImportGeometry(page)
+	geoTree.ImportGeometry(temp)
 	keyTree.ImportKeyframes(temp)
-
-	// set temp switch to true to send all props to chroma engine
-	for geoID, geo := range page.PropMap {
-		geo.SetTemp(true)
-		keyTree.UpdateGeometryName(geoID, geo.Name)
-
-		if geo.PropType != props.CLOCK_PROP {
-			continue
-		}
-
-		/*
-		   Clock requires a way to send updates to viz
-		   to animate the clock. We manually add this
-		   after parsing the page.
-		*/
-		attr, ok := geo.Attr["string"]
-		if !ok {
-			log.Printf("Clock Prop missing string attr")
-			continue
-		}
-
-		clockAttr, ok := attr.(*attribute.ClockAttribute)
-		if !ok {
-			log.Printf("String attr is not a clock attribute")
-			continue
-		}
-
-		clockAttr.SetClock(func() { SendPreview(page, library.CONTINUE) })
-	}
 
 	stack := sidebar.GetStack()
 	for frameNum := 1; frameNum < keyTree.nextFrame; frameNum++ {
@@ -560,15 +471,11 @@ func importPage(temp *templates.Template, geoTree *GeoTree, keyTree *KeyTree, si
 		stack.AddTitled(treeView, strconv.Itoa(frameNum), name)
 	}
 
-	geoTree.currentPage = page
 	return page
 }
 
-func exportPage(page *pages.Page, geoTree *GeoTree, keyTree *KeyTree,
-	titleEntry, tempIDEntry, layerEntry *gtk.Entry) (temp *templates.Template, err error) {
-	geoTree.ExportGeometry(page)
-	temp = page.CreateTemplate()
-
+func updateTemplateFromUI(temp *templates.Template, geoTree *GeoTree, keyTree *KeyTree,
+	titleEntry, tempIDEntry, layerEntry *gtk.Entry) (err error) {
 	temp.Title, err = titleEntry.GetText()
 	if err != nil {
 		return
@@ -588,6 +495,8 @@ func exportPage(page *pages.Page, geoTree *GeoTree, keyTree *KeyTree,
 
 	temp.TempID, _ = strconv.ParseInt(tempID, 10, 64)
 
+	geoTree.ExportGeometry(temp)
+
 	err = keyTree.ExportKeyframes(temp)
 	if err != nil {
 		return
@@ -596,38 +505,38 @@ func exportPage(page *pages.Page, geoTree *GeoTree, keyTree *KeyTree,
 	return
 }
 
-func addGeo(page *pages.Page, geoTree *GeoTree, keyTree *KeyTree) {
-	propType, err := geoTree.GetSelectedPropName()
+func addGeo(temp *templates.Template, geoTree *GeoTree, keyTree *KeyTree) {
+	geoName, err := geoTree.GetSelectedGeoName()
 	if err != nil {
 		log.Printf("Error adding geometry: %s", err)
 		return
 	}
 
-	propNum, err := AddProp(page, propType)
+	geoType, err := geoTree.GetSelectedGeoType()
 	if err != nil {
 		log.Printf("Error adding geometry: %s", err)
 		return
 	}
 
-	prop := page.PropMap[propNum]
-	geoTree.AddGeoRow(propNum, 0, prop.Name, prop.Name)
-	keyTree.AddGeometry(prop.Name, propNum)
+	propNum, err := temp.AddGeometry(geoType, geoName)
+	if err != nil {
+		log.Printf("Error adding geometry: %s", err)
+		return
+	}
+
+	geoTree.AddGeoRow(propNum, 0, geoName, geoName)
+	keyTree.AddGeometry(geoName, propNum)
 }
 
-func removeGeo(page *pages.Page, geoTree *GeoTree, keyTree *KeyTree) {
+func removeGeo(temp *templates.Template, geoTree *GeoTree, keyTree *KeyTree) {
 	geoID, err := geoTree.GetSelectedGeoID()
 	if err != nil {
 		log.Printf("Error removing geo: %s", err)
 		return
 	}
 
-	prop := page.PropMap[geoID]
-	if prop == nil {
-		log.Printf("No prop with prop id %d", geoID)
-		return
-	}
+	temp.RemoveGeometry(geoID)
 
-	delete(page.PropMap, geoID)
 	geoTree.RemoveGeo(geoID)
 	keyTree.RemoveGeo(geoID)
 }

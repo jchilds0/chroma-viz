@@ -30,10 +30,6 @@ func (i *Image) EncodeEngine(b strings.Builder) {
 
 }
 
-func (i *Image) EncodeJSON(b strings.Builder) {
-
-}
-
 type ImageEditor struct {
 	GeometryEditor
 

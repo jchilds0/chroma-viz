@@ -2,6 +2,7 @@ package attribute
 
 import (
 	"fmt"
+	"math"
 
 	"github.com/gotk3/gotk3/gtk"
 )
@@ -26,7 +27,7 @@ type IntEditor struct {
 	button *gtk.SpinButton
 }
 
-func NewIntEditor(name string, lower, upper float64) (intEdit *IntEditor, err error) {
+func NewIntEditor(name string) (intEdit *IntEditor, err error) {
 	intEdit = &IntEditor{Name: name}
 
 	intEdit.Box, err = gtk.BoxNew(gtk.ORIENTATION_HORIZONTAL, 0)
@@ -44,7 +45,7 @@ func NewIntEditor(name string, lower, upper float64) (intEdit *IntEditor, err er
 	label.SetWidthChars(12)
 	intEdit.Box.PackStart(label, false, false, padding)
 
-	intEdit.button, err = gtk.SpinButtonNewWithRange(lower, upper, 1)
+	intEdit.button, err = gtk.SpinButtonNewWithRange(float64(math.MinInt), float64(math.MaxInt), 1)
 	if err != nil {
 		return
 	}

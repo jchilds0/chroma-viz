@@ -4,6 +4,7 @@ import (
 	"chroma-viz/library/geometry"
 	"chroma-viz/library/templates"
 	"encoding/json"
+	"fmt"
 	"os"
 	"strconv"
 	"strings"
@@ -28,13 +29,15 @@ type Page struct {
 	Title      string
 	TemplateID int
 	Layer      int
-	Rect       []*geometry.Rectangle
-	Circle     []*geometry.Circle
-	Clock      []*geometry.Clock
-	Image      []*geometry.Image
-	Poly       []*geometry.Polygon
-	Text       []*geometry.Text
-	Ticker     []*geometry.Ticker
+	geo        map[int]*geometry.Geometry
+
+	Rect   []*geometry.Rectangle
+	Circle []*geometry.Circle
+	Clock  []*geometry.Clock
+	Image  []*geometry.Image
+	Poly   []*geometry.Polygon
+	Text   []*geometry.Text
+	Ticker []*geometry.Ticker
 }
 
 func NewPage(pageNum, tempID, layer, numGeo int, title string) *Page {
@@ -44,6 +47,8 @@ func NewPage(pageNum, tempID, layer, numGeo int, title string) *Page {
 		TemplateID: tempID,
 		Layer:      layer,
 	}
+
+	page.geo = make(map[int]*geometry.Geometry, numGeo)
 
 	page.Rect = make([]*geometry.Rectangle, 0, numGeo)
 	page.Circle = make([]*geometry.Circle, 0, numGeo)
@@ -59,6 +64,47 @@ func NewPage(pageNum, tempID, layer, numGeo int, title string) *Page {
 func NewPageFromTemplate(temp *templates.Template) *Page {
 	return nil
 
+}
+
+func (page *Page) GetGeometry(geoID int) *geometry.Geometry {
+	return page.geo[geoID]
+}
+
+type geoInterface interface {
+	GetGeometryID() int
+	GetGeometry() *geometry.Geometry
+}
+
+func AddGeometry(page *Page, geo geoInterface) (err error) {
+	page.geo[geo.GetGeometryID()] = geo.GetGeometry()
+
+	switch g := geo.(type) {
+	case *geometry.Rectangle:
+		page.Rect = append(page.Rect, g)
+
+	case *geometry.Circle:
+		page.Circle = append(page.Circle, g)
+
+	case *geometry.Clock:
+		page.Clock = append(page.Clock, g)
+
+	case *geometry.Image:
+		page.Image = append(page.Image, g)
+
+	case *geometry.Polygon:
+		page.Poly = append(page.Poly, g)
+
+	case *geometry.Text:
+		page.Text = append(page.Text, g)
+
+	case *geometry.Ticker:
+		page.Ticker = append(page.Ticker, g)
+
+	default:
+		err = fmt.Errorf("Unknown type to add to page")
+	}
+
+	return
 }
 
 func (page *Page) PageToListRow() (row *gtk.ListBoxRow, err error) {

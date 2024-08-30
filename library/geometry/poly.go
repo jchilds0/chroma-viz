@@ -28,10 +28,6 @@ func (p *Polygon) EncodeEngine(b strings.Builder) {
 
 }
 
-func (p *Polygon) EncodeJSON(b strings.Builder) {
-
-}
-
 type PolygonEditor struct {
 	GeometryEditor
 

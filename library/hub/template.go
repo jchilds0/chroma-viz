@@ -11,7 +11,7 @@ func (hub *DataBase) ImportTemplate(temp templates.Template) (err error) {
 		return
 	}
 
-	for _, rect := range temp.Rect {
+	for _, rect := range temp.Rectangle {
 		err = hub.AddRectangle(temp.TempID, *rect)
 
 		if err != nil {

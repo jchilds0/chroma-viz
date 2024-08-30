@@ -19,10 +19,10 @@ func NewRectangle(geo Geometry) *Rectangle {
 		Geometry: geo,
 	}
 
-	rect.Width.Name = "width"
-	rect.Height.Name = "height"
-	rect.Rounding.Name = "rounding"
-	rect.Color.Name = "color"
+	rect.Width.Name = ATTR_WIDTH
+	rect.Height.Name = ATTR_HEIGHT
+	rect.Rounding.Name = ATTR_ROUND
+	rect.Color.Name = ATTR_COLOR
 	return rect
 }
 
@@ -32,26 +32,22 @@ func (r *Rectangle) UpdateGeometry(rEdit *RectangleEditor) (err error) {
 		return
 	}
 
-	r.Width.UpdateAttribute(&rEdit.Width)
+	err = r.Width.UpdateAttribute(rEdit.Width)
 	if err != nil {
 		return
 	}
 
-	r.Height.UpdateAttribute(&rEdit.Height)
+	err = r.Height.UpdateAttribute(rEdit.Height)
 	if err != nil {
 		return
 	}
 
-	r.Rounding.UpdateAttribute(&rEdit.Rounding)
+	err = r.Rounding.UpdateAttribute(rEdit.Rounding)
 	if err != nil {
 		return
 	}
 
-	r.Color.UpdateAttribute(&rEdit.Color)
-	if err != nil {
-		return
-	}
-
+	err = r.Color.UpdateAttribute(rEdit.Color)
 	return
 }
 
@@ -59,21 +55,51 @@ func (r *Rectangle) EncodeEngine(b strings.Builder) {
 
 }
 
-func (r *Rectangle) EncodeJSON(b strings.Builder) {
-
-}
-
 type RectangleEditor struct {
 	GeometryEditor
 
-	Width    attribute.IntEditor
-	Height   attribute.IntEditor
-	Rounding attribute.IntEditor
-	Color    attribute.ColorEditor
+	Width    *attribute.IntEditor
+	Height   *attribute.IntEditor
+	Rounding *attribute.IntEditor
+	Color    *attribute.ColorEditor
 }
 
-func NewRectangleEditor() (*RectangleEditor, error) {
-	return nil, nil
+func NewRectangleEditor() (rectEdit *RectangleEditor, err error) {
+	geoEdit, err := NewGeometryEditor()
+	if err != nil {
+		return
+	}
+
+	rectEdit = &RectangleEditor{
+		GeometryEditor: *geoEdit,
+	}
+
+	rectEdit.Width, err = attribute.NewIntEditor(Attrs[ATTR_WIDTH])
+	if err != nil {
+		return
+	}
+
+	rectEdit.Height, err = attribute.NewIntEditor(Attrs[ATTR_HEIGHT])
+	if err != nil {
+		return
+	}
+
+	rectEdit.Rounding, err = attribute.NewIntEditor(Attrs[ATTR_ROUND])
+	if err != nil {
+		return
+	}
+
+	rectEdit.Color, err = attribute.NewColorEditor(Attrs[ATTR_COLOR])
+	if err != nil {
+		return
+	}
+
+	geoEdit.ScrollBox.PackStart(rectEdit.Width.Box, false, false, padding)
+	geoEdit.ScrollBox.PackStart(rectEdit.Height.Box, false, false, padding)
+	geoEdit.ScrollBox.PackStart(rectEdit.Rounding.Box, false, false, padding)
+	geoEdit.ScrollBox.PackStart(rectEdit.Color.Box, false, false, padding)
+
+	return
 }
 
 func (rEdit *RectangleEditor) UpdateEditor(r *Rectangle) (err error) {

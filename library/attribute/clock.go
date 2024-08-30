@@ -64,7 +64,7 @@ func (clockAttr *ClockAttribute) EncodeEngine() string {
 	return fmt.Sprintf("%s=%s#", clockAttr.Name, clockAttr.CurrentTime)
 }
 
-func (clockAttr *ClockAttribute) Update(clockEdit *ClockEditor) error {
+func (clockAttr *ClockAttribute) UpdateAttribute(clockEdit *ClockEditor) error {
 	var err error
 	clockAttr.CurrentTime, err = clockEdit.entry.GetText()
 	return err
@@ -126,7 +126,7 @@ func (clock *ClockAttribute) tickTime() {
 }
 
 type ClockEditor struct {
-	box   *gtk.Box
+	Box   *gtk.Box
 	entry *gtk.Entry
 	c     chan int
 	name  string
@@ -135,19 +135,19 @@ type ClockEditor struct {
 func NewClockEditor(name string) (clockEdit *ClockEditor, err error) {
 	clockEdit = &ClockEditor{name: name}
 
-	clockEdit.box, err = gtk.BoxNew(gtk.ORIENTATION_VERTICAL, 0)
+	clockEdit.Box, err = gtk.BoxNew(gtk.ORIENTATION_VERTICAL, 0)
 	if err != nil {
 		return
 	}
 
-	clockEdit.box.SetVisible(true)
+	clockEdit.Box.SetVisible(true)
 
 	actions, err := gtk.BoxNew(gtk.ORIENTATION_HORIZONTAL, 0)
 	if err != nil {
 		return
 	}
 
-	clockEdit.box.PackStart(actions, false, false, padding)
+	clockEdit.Box.PackStart(actions, false, false, padding)
 	actions.SetVisible(true)
 
 	startButton, err := gtk.ButtonNewWithLabel("Start")
@@ -189,7 +189,7 @@ func NewClockEditor(name string) (clockEdit *ClockEditor, err error) {
 	}
 
 	timeBox.SetVisible(true)
-	clockEdit.box.PackStart(timeBox, false, false, padding)
+	clockEdit.Box.PackStart(timeBox, false, false, padding)
 
 	label, err := gtk.LabelNew(name)
 	if err != nil {
@@ -220,16 +220,8 @@ func (clockEdit *ClockEditor) Name() string {
 	return clockEdit.name
 }
 
-func (clockEdit *ClockEditor) Update(clockAttr *ClockAttribute) error {
+func (clockEdit *ClockEditor) UpdateEditor(clockAttr *ClockAttribute) error {
 	clockEdit.c = clockAttr.c
 	clockEdit.entry.SetText(clockAttr.CurrentTime)
 	return nil
-}
-
-func (clockEdit *ClockEditor) Box() *gtk.Box {
-	return clockEdit.box
-}
-
-func (clockEdit *ClockEditor) Expand() bool {
-	return false
 }

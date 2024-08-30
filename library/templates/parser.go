@@ -275,7 +275,7 @@ func parseGeometry(temp *Template, buf *bufio.Reader) (err error) {
 		rect.Rounding.Value, _ = strconv.Atoi(data["rounding"])
 		rect.Color.FromString(data["color"])
 
-		temp.Rect = append(temp.Rect, rect)
+		temp.Rectangle = append(temp.Rectangle, rect)
 
 	case geometry.GEO_CIRCLE:
 		circle := geometry.NewCircle(geom)

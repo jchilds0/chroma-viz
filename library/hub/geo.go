@@ -146,7 +146,7 @@ func (hub *DataBase) GetRectangles(temp *templates.Template) (err error) {
 			return
 		}
 
-		temp.Rect = append(temp.Rect, rect)
+		temp.Rectangle = append(temp.Rectangle, rect)
 	}
 
 	return
@@ -335,7 +335,7 @@ func (hub *DataBase) GetPolygons(temp *templates.Template) (err error) {
 			poly.Polygon.PosY = append(poly.Polygon.PosY, pointsY[geoID][i])
 		}
 
-		temp.Poly = append(temp.Poly, poly)
+		temp.Polygon = append(temp.Polygon, poly)
 	}
 
 	return

@@ -1,8 +1,6 @@
 package attribute
 
 import (
-	"chroma-viz/library/util"
-	"encoding/json"
 	"fmt"
 	"log"
 	"strings"
@@ -26,12 +24,14 @@ func NewGraphCell(i int) (gCell *graphCell, err error) {
 	return
 }
 
+type ListRow []string
+
 type ListAttribute struct {
-	Name         string
-	NumCols      int
-	Selected     bool
-	selectedIter *gtk.TreeIter
-	ListStore    *gtk.ListStore
+	Name        string
+	NumCols     int
+	Selected    bool
+	SelectedRow int
+	Rows        []ListRow
 }
 
 func NewListAttribute(name string, numCols int, selected bool) (list *ListAttribute, err error) {
@@ -46,55 +46,16 @@ func NewListAttribute(name string, numCols int, selected bool) (list *ListAttrib
 		cols[i] = glib.TYPE_STRING
 	}
 
-	list.ListStore, err = gtk.ListStoreNew(cols...)
+	list.Rows = make([]ListRow, 0, 10)
 	return
 }
 
-func (listAttr *ListAttribute) String() (s string) {
-	// currently chroma_engine allocates 100 nodes for each list statically
-	if listAttr.Selected {
-		// send only the currently selected item from the list
-		if listAttr.selectedIter == nil {
-			return
-		}
-
-		s, _ = listAttr.stringRow(listAttr.selectedIter)
-		return
-	}
-
-	iter, ok := listAttr.ListStore.GetIterFirst()
-	i := 0
-	for ok {
-		row, _ := listAttr.stringRow(iter)
-		s = s + row
-		ok = listAttr.ListStore.IterNext(iter)
-		i++
-	}
-
-	s = fmt.Sprintf("num_node=%d#", i) + s
+func (listAttr *ListAttribute) EncodeEngine() (s string) {
 	return
 }
 
-func (listAttr *ListAttribute) stringRow(iter *gtk.TreeIter) (s string, err error) {
-	var item string
-	model := &listAttr.ListStore.TreeModel
-	s = listAttr.Name + "="
-
-	for j := 0; j < listAttr.NumCols-1; j++ {
-		item, err = util.ModelGetValue[string](model, iter, j)
-		if err != nil {
-			return
-		}
-
-		s = s + item + " "
-	}
-
-	item, err = util.ModelGetValue[string](model, iter, listAttr.NumCols-1)
-	if err != nil {
-		return
-	}
-
-	s = s + item + "#"
+func (listAttr *ListAttribute) stringRow(row int) (s string, err error) {
+	s = listAttr.Name + "=" + strings.Join(listAttr.Rows[row], " ") + "#"
 	return
 }
 
@@ -102,146 +63,37 @@ func (listAttr *ListAttribute) EncodeJSON() (s string) {
 	// currently chroma_engine allocates 100 nodes for each list statically
 	if listAttr.Selected {
 		// send only the currently selected item from the list
-		if listAttr.selectedIter == nil {
-			return
-		}
-
-		row, _ := listAttr.encodeRow(listAttr.selectedIter)
+		row, _ := listAttr.encodeRow(listAttr.SelectedRow)
 		return strings.Join(row, " ")
 	}
 
 	s = fmt.Sprintf("{'name': 'num_node', 'value': '%d'}", listAttr.NumCols-1)
-	iter, ok := listAttr.ListStore.GetIterFirst()
-	for ok {
-		row, _ := listAttr.encodeRow(iter)
+	for _, row := range listAttr.Rows {
 		s += fmt.Sprintf(",{'name': '%s', 'value': '%s'}",
 			listAttr.Name, strings.Join(row, " "))
-
-		ok = listAttr.ListStore.IterNext(iter)
 	}
 
 	return
 }
 
-type ListAttributeJSON struct {
-	ListAttribute
-	ListStore     [][]string
-	MarshalJSON   struct{}
-	UnmarshalJSON struct{}
-}
-
-func (listAttr *ListAttribute) MarshalJSON() (b []byte, err error) {
-	listAttrJSON := &ListAttributeJSON{
-		ListAttribute: *listAttr,
-		ListStore:     make([][]string, 0, 10),
-	}
-
-	iter, ok := listAttr.ListStore.GetIterFirst()
-	var row []string
-	for ok {
-		row, err = listAttr.encodeRow(iter)
-		if err != nil {
-			return
-		}
-
-		ok = listAttr.ListStore.IterNext(iter)
-		listAttrJSON.ListStore = append(listAttrJSON.ListStore, row)
-	}
-
-	return json.Marshal(listAttrJSON)
-}
-
-func (listAttr *ListAttribute) UnmarshalJSON(b []byte) error {
-	var listAttrJSON ListAttributeJSON
-
-	err := json.Unmarshal(b, &listAttrJSON)
-	if err != nil {
-		return err
-	}
-
-	*listAttr = listAttrJSON.ListAttribute
-
-	cols := make([]glib.Type, listAttr.NumCols)
-	for i := range cols {
-		cols[i] = glib.TYPE_STRING
-	}
-
-	listAttr.ListStore, err = gtk.ListStoreNew(cols...)
-	if err != nil {
-		return err
-	}
-
-	colIdx := make([]int, listAttr.NumCols)
-	for i := range colIdx {
-		colIdx[i] = i
-	}
-
-	rowInterface := make([]interface{}, listAttr.NumCols)
-	for _, row := range listAttrJSON.ListStore {
-		for i, col := range row {
-			rowInterface[i] = interface{}(col)
-		}
-
-		listAttr.ListStore.Set(listAttr.ListStore.Append(), colIdx, rowInterface)
-	}
-
-	return nil
-}
-
-func (listAttr *ListAttribute) encodeRow(iter *gtk.TreeIter) (row []string, err error) {
-	row = make([]string, listAttr.NumCols)
-	model := &listAttr.ListStore.TreeModel
-
-	for j := 0; j < listAttr.NumCols; j++ {
-		row[j], err = util.ModelGetValue[string](model, iter, j)
-		if err != nil {
-			err = fmt.Errorf("Error encoding list attr row (%s)", err)
-			return
-		}
-	}
-
+func (listAttr *ListAttribute) encodeRow(rowIndex int) (row []string, err error) {
 	return
 }
 
-func (listAttr *ListAttribute) Update(listEdit *ListEditor) error {
-	var ok bool
-	if !listAttr.Selected {
-		return nil
-	}
-
-	selected, err := listEdit.treeView.GetSelection()
-	if err != nil {
-		return err
-	}
-	_, listAttr.selectedIter, ok = selected.GetSelected()
-	if !ok {
-		return fmt.Errorf("Error getting selected iter from tree view selection")
-	}
-
-	// Increment selection
-	ok = listAttr.ListStore.IterNext(listAttr.selectedIter)
-	if !ok {
-		// last item in the list
-		listAttr.selectedIter, ok = listAttr.ListStore.GetIterFirst()
-	}
-
-	if ok {
-		selected.SelectIter(listAttr.selectedIter)
-	}
-
-	return nil
+func (listAttr *ListAttribute) UpdateAttribute(listEdit *ListEditor) (err error) {
+	return
 }
 
 type ListEditor struct {
-	name      string
-	box       *gtk.Box
+	Name      string
+	Box       *gtk.Box
 	treeView  *gtk.TreeView
 	listStore *gtk.ListStore
 }
 
 func NewListEditor(name string, columns []string) (listEdit *ListEditor, err error) {
-	listEdit = &ListEditor{name: name}
-	listEdit.box, err = gtk.BoxNew(gtk.ORIENTATION_VERTICAL, 0)
+	listEdit = &ListEditor{Name: name}
+	listEdit.Box, err = gtk.BoxNew(gtk.ORIENTATION_VERTICAL, 0)
 	if err != nil {
 		return
 	}
@@ -359,25 +211,11 @@ func NewListEditor(name string, columns []string) (listEdit *ListEditor, err err
 	button.SetVisible(true)
 	actionBox.PackStart(button, false, false, padding)
 
-	listEdit.box.PackStart(actionBox, false, false, 0)
-	listEdit.box.PackStart(frame, true, true, 0)
+	listEdit.Box.PackStart(actionBox, false, false, 0)
+	listEdit.Box.PackStart(frame, true, true, 0)
 	return
 }
 
-func (listEdit *ListEditor) Name() string {
-	return listEdit.name
-}
-
-func (listEdit *ListEditor) Update(listAttr *ListAttribute) error {
-	listEdit.listStore = listAttr.ListStore
-	listEdit.treeView.SetModel(listEdit.listStore)
+func (listEdit *ListEditor) UpdateEditor(listAttr *ListAttribute) (err error) {
 	return nil
-}
-
-func (listEdit *ListEditor) Box() *gtk.Box {
-	return listEdit.box
-}
-
-func (listEdit *ListEditor) Expand() bool {
-	return true
 }

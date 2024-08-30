@@ -13,7 +13,34 @@ type Clock struct {
 	Scale attribute.FloatAttribute
 }
 
+func NewClock(geo Geometry) (c *Clock) {
+	c = &Clock{
+		Geometry: geo,
+	}
+
+	c.Clock.Name = ATTR_STRING
+	c.Color.Name = ATTR_COLOR
+	c.Scale.Name = ATTR_SCALE
+	return c
+}
+
 func (c *Clock) UpdateGeometry(cEdit *ClockEditor) (err error) {
+	err = c.Geometry.UpdateGeometry(&cEdit.GeometryEditor)
+	if err != nil {
+		return
+	}
+
+	err = c.Clock.UpdateAttribute(cEdit.Clock)
+	if err != nil {
+		return
+	}
+
+	err = c.Color.UpdateAttribute(cEdit.Color)
+	if err != nil {
+		return
+	}
+
+	err = c.Scale.UpdateAttribute(cEdit.Scale)
 	return
 }
 
@@ -21,22 +48,62 @@ func (c *Clock) EncodeEngine(b strings.Builder) {
 
 }
 
-func (c *Clock) EncodeJSON(b strings.Builder) {
-
-}
-
 type ClockEditor struct {
 	GeometryEditor
 
-	String attribute.ClockEditor
-	Color  attribute.ColorEditor
-	Scale  attribute.FloatEditor
+	Clock *attribute.ClockEditor
+	Color *attribute.ColorEditor
+	Scale *attribute.FloatEditor
 }
 
-func NewClockEditor() (*ClockEditor, error) {
-	return nil, nil
+func NewClockEditor() (cEdit *ClockEditor, err error) {
+	geoEdit, err := NewGeometryEditor()
+	if err != nil {
+		return
+	}
+
+	cEdit = &ClockEditor{
+		GeometryEditor: *geoEdit,
+	}
+
+	cEdit.Clock, err = attribute.NewClockEditor("Time")
+	if err != nil {
+		return
+	}
+
+	cEdit.Color, err = attribute.NewColorEditor(Attrs[ATTR_COLOR])
+	if err != nil {
+		return
+	}
+
+	cEdit.Scale, err = attribute.NewFloatEditor(Attrs[ATTR_SCALE], 0.0, 1.0, 0.01)
+	if err != nil {
+		return
+	}
+
+	geoEdit.ScrollBox.PackStart(cEdit.Clock.Box, false, false, padding)
+	geoEdit.ScrollBox.PackStart(cEdit.Color.Box, false, false, padding)
+	geoEdit.ScrollBox.PackStart(cEdit.Scale.Box, false, false, padding)
+
+	return
 }
 
 func (cEdit *ClockEditor) UpdateEditor(c *Clock) (err error) {
-	return nil
+	err = cEdit.GeometryEditor.UpdateEditor(&c.Geometry)
+	if err != nil {
+		return
+	}
+
+	err = cEdit.Clock.UpdateEditor(&c.Clock)
+	if err != nil {
+		return
+	}
+
+	err = cEdit.Color.UpdateEditor(&c.Color)
+	if err != nil {
+		return
+	}
+
+	err = cEdit.Scale.UpdateEditor(&c.Scale)
+	return
 }

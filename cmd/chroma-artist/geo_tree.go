@@ -2,7 +2,7 @@ package main
 
 import (
 	"chroma-viz/library/geometry"
-	"chroma-viz/library/pages"
+	"chroma-viz/library/templates"
 	"chroma-viz/library/util"
 	"fmt"
 	"log"
@@ -34,14 +34,13 @@ const (
 )
 
 type GeoTree struct {
-	currentPage *pages.Page
 	geoModel    *gtk.TreeStore
 	geoView     *gtk.TreeView
 	geoIter     map[int]*gtk.TreeIter
 	geoSelector *gtk.ComboBox
 }
 
-func NewGeoTree(geoSelector *gtk.ComboBox, propToEditor func(propID int), editName func(geoID int, name string)) (geoTree *GeoTree, err error) {
+func NewGeoTree(geoSelector *gtk.ComboBox, geoToEditor func(geoID int), editName func(geoID int, name string)) (geoTree *GeoTree, err error) {
 	geoTree = &GeoTree{
 		geoSelector: geoSelector,
 	}
@@ -92,15 +91,7 @@ func NewGeoTree(geoSelector *gtk.ComboBox, propToEditor func(propID int), editNa
 			return
 		}
 
-		geo := geoTree.currentPage.PropMap[geoID]
-		if geo == nil {
-			err = fmt.Errorf("Error getting geometry %d", geoID)
-			return
-		}
-
-		geo.Name = text
 		geoTree.geoModel.SetValue(iter, GEO_NAME, text)
-
 		editName(geoID, text)
 	})
 
@@ -130,13 +121,13 @@ func NewGeoTree(geoSelector *gtk.ComboBox, propToEditor func(propID int), editNa
 			}
 
 			model := &geoTree.geoModel.TreeModel
-			propID, err := util.ModelGetValue[int](model, iter, GEO_NUM)
+			geoID, err := util.ModelGetValue[int](model, iter, GEO_NUM)
 			if err != nil {
 				log.Printf("Error sending prop to editor (%s)", err)
 				return
 			}
 
-			propToEditor(propID)
+			geoToEditor(geoID)
 		})
 
 	model, err := gtk.ListStoreNew(glib.TYPE_STRING, glib.TYPE_STRING)
@@ -164,7 +155,7 @@ func NewGeoTree(geoSelector *gtk.ComboBox, propToEditor func(propID int), editNa
 	return
 }
 
-func (geoTree *GeoTree) GetSelectedPropName() (propType string, err error) {
+func (geoTree *GeoTree) GetSelectedGeoType() (geoType string, err error) {
 	iter, err := geoTree.geoSelector.GetActiveIter()
 	if err != nil {
 		return
@@ -175,7 +166,22 @@ func (geoTree *GeoTree) GetSelectedPropName() (propType string, err error) {
 		return
 	}
 
-	propType, err = util.ModelGetValue[string](model.ToTreeModel(), iter, SELECTOR_PROP_NAME)
+	geoType, err = util.ModelGetValue[string](model.ToTreeModel(), iter, SELECTOR_PROP_NAME)
+	return
+}
+
+func (geoTree *GeoTree) GetSelectedGeoName() (geoName string, err error) {
+	iter, err := geoTree.geoSelector.GetActiveIter()
+	if err != nil {
+		return
+	}
+
+	model, err := geoTree.geoSelector.GetModel()
+	if err != nil {
+		return
+	}
+
+	geoName, err = util.ModelGetValue[string](model.ToTreeModel(), iter, SELECTOR_PROP_NAME)
 	return
 }
 
@@ -204,74 +210,67 @@ func (geoTree *GeoTree) RemoveGeo(geoID int) {
 	delete(geoTree.geoIter, geoID)
 }
 
-func geometryToTreeView(page *pages.Page, geoTree *GeoTree, propID int) {
-	for id, geo := range page.PropMap {
-		parentAttr := geo.Attr["parent"]
-		if parentAttr == nil {
-			log.Print("Error getting parent attr")
+func geometryToTreeView(temp *templates.Template, geoTree *GeoTree, parentID int) {
+	for geoID, geo := range temp.Geos {
+		if geo.Parent.Value != parentID {
 			continue
 		}
 
-		parent := parentAttr.(*attribute.IntAttribute)
-
-		if parent.Value != propID {
+		geoTree.AddGeoRow(geoID, parentID, geo.Name, propNames[geo.GeoType])
+		if geoID == parentID {
 			continue
 		}
 
-		geoTree.AddGeoRow(id, propID, geo.Name, propNames[geo.PropType])
-		if id == propID {
-			continue
-		}
-
-		geometryToTreeView(page, geoTree, id)
+		geometryToTreeView(temp, geoTree, geoID)
 	}
 }
 
-func (geoTree *GeoTree) ImportGeometry(page *pages.Page) (err error) {
-	geometryToTreeView(page, geoTree, 0)
-
+func (geoTree *GeoTree) ImportGeometry(temp *templates.Template) (err error) {
+	geometryToTreeView(temp, geoTree, 0)
 	return
 }
 
-func updateParentGeometry(page *pages.Page, model *gtk.TreeModel, iter *gtk.TreeIter, parentID int) {
+func updateParentGeometry(temp *templates.Template, model *gtk.TreeModel, iter *gtk.TreeIter, parentID int) {
 	nextIterExists := true
-
 	for nextIterExists {
 		geoID, err := util.ModelGetValue[int](model, iter, GEO_NUM)
 		if err != nil {
-			log.Print("Error getting prop id")
+			log.Print("Error getting geometry id: %s", err.Error())
 			nextIterExists = model.IterNext(iter)
 			continue
 		}
 
-		attr := page.PropMap[geoID].Attr["parent"]
-		if attr == nil {
-			log.Printf("Missing parent attr")
-			return
+		name, err := util.ModelGetValue[string](model, iter, GEO_NAME)
+		if err != nil {
+			log.Print("Error getting geometry name: %s", err.Error())
+			nextIterExists = model.IterNext(iter)
+			continue
 		}
 
-		intAttr, ok := attr.(*attribute.IntAttribute)
-		if !ok {
-			log.Printf("Missing int attr")
-			return
+		geo := temp.Geos[geoID]
+		if geo == nil {
+			log.Print("Error: geometry %d is nil", geoID)
+			nextIterExists = model.IterNext(iter)
+			continue
 		}
 
-		intAttr.Value = parentID
+		geo.Name = name
+		geo.Parent.Value = parentID
 
 		var childIter gtk.TreeIter
-		if ok = model.IterChildren(iter, &childIter); ok {
-			updateParentGeometry(page, model, &childIter, geoID)
+		if ok := model.IterChildren(iter, &childIter); ok {
+			updateParentGeometry(temp, model, &childIter, geoID)
 		}
 
 		nextIterExists = model.IterNext(iter)
 	}
 }
 
-func (geoTree *GeoTree) ExportGeometry(page *pages.Page) {
+func (geoTree *GeoTree) ExportGeometry(temp *templates.Template) {
 	model := geoTree.geoModel.ToTreeModel()
 
 	if iter, ok := model.GetIterFirst(); ok {
-		updateParentGeometry(page, model, iter, 0)
+		updateParentGeometry(temp, model, iter, 0)
 	}
 
 	return

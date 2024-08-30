@@ -23,7 +23,43 @@ const (
 	GEO_TEXT   = "text"
 	GEO_IMAGE  = "image"
 	GEO_POLY   = "polygon"
+	GEO_TICKER = "ticker"
+	GEO_CLOCK  = "clock"
 )
+
+const (
+	ATTR_REL_X        = "rel_x"
+	ATTR_REL_Y        = "rel_y"
+	ATTR_WIDTH        = "width"
+	ATTR_HEIGHT       = "height"
+	ATTR_INNER_RADIUS = "inner_radius"
+	ATTR_OUTER_RADIUS = "outer_radius"
+	ATTR_START_ANGLE  = "start_angle"
+	ATTR_END_ANGLE    = "end_angle"
+	ATTR_MASK         = "mask"
+	ATTR_ROUND        = "rounding"
+	ATTR_COLOR        = "color"
+	ATTR_PARENT       = "parent"
+	ATTR_STRING       = "string"
+	ATTR_SCALE        = "scale"
+)
+
+var Attrs = map[string]string{
+	ATTR_REL_X:        "Rel X",
+	ATTR_REL_Y:        "Rel Y",
+	ATTR_WIDTH:        "Width",
+	ATTR_HEIGHT:       "Height",
+	ATTR_INNER_RADIUS: "Inner Radius",
+	ATTR_OUTER_RADIUS: "Outer Radius",
+	ATTR_START_ANGLE:  "Start Angle",
+	ATTR_END_ANGLE:    "End Angle",
+	ATTR_MASK:         "Mask",
+	ATTR_ROUND:        "Rounding",
+	ATTR_COLOR:        "Color",
+	ATTR_PARENT:       "Parent",
+	ATTR_STRING:       "String",
+	ATTR_SCALE:        "Scale",
+}
 
 /*
 
@@ -72,26 +108,26 @@ func NewGeometry(geoNum int, name, geoType string) Geometry {
 	}
 
 	// used by chroma engine for attribute identifier
-	geo.RelX.Name = "rel_x"
-	geo.RelY.Name = "rel_y"
-	geo.Parent.Name = "parent"
-	geo.Mask.Name = "mask"
+	geo.RelX.Name = ATTR_REL_X
+	geo.RelY.Name = ATTR_REL_Y
+	geo.Parent.Name = ATTR_PARENT
+	geo.Mask.Name = ATTR_MASK
 
 	return geo
 }
 
 func (g *Geometry) UpdateGeometry(gEdit *GeometryEditor) (err error) {
-	err = g.RelX.UpdateAttribute(&gEdit.RelX)
+	err = g.RelX.UpdateAttribute(gEdit.RelX)
 	if err != nil {
 		return
 	}
 
-	err = g.RelY.UpdateAttribute(&gEdit.RelY)
+	err = g.RelY.UpdateAttribute(gEdit.RelY)
 	if err != nil {
 		return
 	}
 
-	err = g.Mask.UpdateAttribute(&gEdit.Mask)
+	err = g.Mask.UpdateAttribute(gEdit.Mask)
 	return
 }
 
@@ -107,17 +143,57 @@ func (g *Geometry) GetGeometryID() int {
 	return g.GeometryID
 }
 
+func (g *Geometry) GetGeometry() *Geometry {
+	return g
+}
+
 type GeometryEditor struct {
 	Scroll    *gtk.ScrolledWindow
 	ScrollBox *gtk.Box
 
-	RelX attribute.IntEditor
-	RelY attribute.IntEditor
-	Mask attribute.IntEditor
+	RelX *attribute.IntEditor
+	RelY *attribute.IntEditor
+	Mask *attribute.IntEditor
 }
 
-func NewGeometryEditor() *GeometryEditor {
-	return nil
+func NewGeometryEditor() (geoEdit *GeometryEditor, err error) {
+	geoEdit = &GeometryEditor{}
+	geoEdit.Scroll, err = gtk.ScrolledWindowNew(nil, nil)
+	if err != nil {
+		return
+	}
+
+	geoEdit.Scroll.SetVisible(true)
+	geoEdit.Scroll.SetVExpand(true)
+
+	geoEdit.ScrollBox, err = gtk.BoxNew(gtk.ORIENTATION_VERTICAL, 0)
+	if err != nil {
+		return
+	}
+
+	geoEdit.ScrollBox.SetVisible(true)
+	geoEdit.Scroll.Add(geoEdit.ScrollBox)
+
+	geoEdit.RelX, err = attribute.NewIntEditor(Attrs[ATTR_REL_X])
+	if err != nil {
+		return
+	}
+
+	geoEdit.RelY, err = attribute.NewIntEditor(Attrs[ATTR_REL_Y])
+	if err != nil {
+		return
+	}
+
+	geoEdit.Mask, err = attribute.NewIntEditor(Attrs[ATTR_MASK])
+	if err != nil {
+		return
+	}
+
+	geoEdit.ScrollBox.PackStart(geoEdit.RelX.Box, false, false, padding)
+	geoEdit.ScrollBox.PackStart(geoEdit.RelY.Box, false, false, padding)
+	geoEdit.ScrollBox.PackStart(geoEdit.Mask.Box, false, false, padding)
+
+	return
 }
 
 func (gEdit *GeometryEditor) UpdateEditor(g *Geometry) (err error) {

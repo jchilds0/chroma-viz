@@ -8,11 +8,11 @@ import (
 )
 
 type Editor struct {
-	Box             *gtk.Box
-	tabs            *gtk.Notebook
-	actions         *gtk.Box
-	CurrentTemplate *Template
-	CurrentGeoID    int
+	Box          *gtk.Box
+	tabs         *gtk.Notebook
+	actions      *gtk.Box
+	CurrentTemp  *Template
+	CurrentGeoID int
 
 	Rect   *geometry.RectangleEditor
 	Circle *geometry.CircleEditor
@@ -116,33 +116,33 @@ func (editor *Editor) AddAction(label string, start bool, action func()) (err er
 }
 
 // Move values from editors to geometries
-func (edit *Editor) UpdateProps() {
+func (edit *Editor) UpdateGeometry() {
 	updateGeometry[*geometry.Rectangle, *geometry.RectangleEditor](
-		edit.CurrentTemplate.Rect, edit.Rect, edit.CurrentGeoID,
+		edit.CurrentTemp.Rectangle, edit.Rect, edit.CurrentGeoID,
 	)
 
 	updateGeometry[*geometry.Circle, *geometry.CircleEditor](
-		edit.CurrentTemplate.Circle, edit.Circle, edit.CurrentGeoID,
+		edit.CurrentTemp.Circle, edit.Circle, edit.CurrentGeoID,
 	)
 
 	updateGeometry[*geometry.Clock, *geometry.ClockEditor](
-		edit.CurrentTemplate.Clock, edit.Clock, edit.CurrentGeoID,
+		edit.CurrentTemp.Clock, edit.Clock, edit.CurrentGeoID,
 	)
 
 	updateGeometry[*geometry.Image, *geometry.ImageEditor](
-		edit.CurrentTemplate.Image, edit.Image, edit.CurrentGeoID,
+		edit.CurrentTemp.Image, edit.Image, edit.CurrentGeoID,
 	)
 
 	updateGeometry[*geometry.Polygon, *geometry.PolygonEditor](
-		edit.CurrentTemplate.Poly, edit.Poly, edit.CurrentGeoID,
+		edit.CurrentTemp.Polygon, edit.Poly, edit.CurrentGeoID,
 	)
 
 	updateGeometry[*geometry.Text, *geometry.TextEditor](
-		edit.CurrentTemplate.Text, edit.Text, edit.CurrentGeoID,
+		edit.CurrentTemp.Text, edit.Text, edit.CurrentGeoID,
 	)
 
 	updateGeometry[*geometry.Ticker, *geometry.TickerEditor](
-		edit.CurrentTemplate.Ticker, edit.Ticker, edit.CurrentGeoID,
+		edit.CurrentTemp.Ticker, edit.Ticker, edit.CurrentGeoID,
 	)
 
 }
@@ -151,6 +151,7 @@ type geometer[S any] interface {
 	UpdateGeometry(S) error
 	GetName() string
 	GetGeometryID() int
+	GetGeometry() *geometry.Geometry
 }
 
 func updateGeometry[T geometer[S], S any](geos []T, edit S, geoID int) {
@@ -169,33 +170,38 @@ func updateGeometry[T geometer[S], S any](geos []T, edit S, geoID int) {
 }
 
 // Load a geometry into the editor
-func (edit *Editor) SetProperty(geoID int) (err error) {
+func (edit *Editor) UpdateEditor() (err error) {
+	num_pages := edit.tabs.GetNPages()
+	for i := 0; i < num_pages; i++ {
+		edit.tabs.RemovePage(0)
+	}
+
 	updateEditor[*geometry.RectangleEditor, *geometry.Rectangle](
-		edit, edit.Rect, edit.CurrentTemplate.Rect,
+		edit, edit.Rect, edit.CurrentTemp.Rectangle,
 	)
 
 	updateEditor[*geometry.CircleEditor, *geometry.Circle](
-		edit, edit.Circle, edit.CurrentTemplate.Circle,
+		edit, edit.Circle, edit.CurrentTemp.Circle,
 	)
 
 	updateEditor[*geometry.ClockEditor, *geometry.Clock](
-		edit, edit.Clock, edit.CurrentTemplate.Clock,
+		edit, edit.Clock, edit.CurrentTemp.Clock,
 	)
 
 	updateEditor[*geometry.ImageEditor, *geometry.Image](
-		edit, edit.Image, edit.CurrentTemplate.Image,
+		edit, edit.Image, edit.CurrentTemp.Image,
 	)
 
 	updateEditor[*geometry.PolygonEditor, *geometry.Polygon](
-		edit, edit.Poly, edit.CurrentTemplate.Poly,
+		edit, edit.Poly, edit.CurrentTemp.Polygon,
 	)
 
 	updateEditor[*geometry.TextEditor, *geometry.Text](
-		edit, edit.Text, edit.CurrentTemplate.Text,
+		edit, edit.Text, edit.CurrentTemp.Text,
 	)
 
 	updateEditor[*geometry.TickerEditor, *geometry.Ticker](
-		edit, edit.Ticker, edit.CurrentTemplate.Ticker,
+		edit, edit.Ticker, edit.CurrentTemp.Ticker,
 	)
 
 	return
@@ -208,17 +214,12 @@ type editor[S any] interface {
 }
 
 func updateEditor[T editor[S], S geometer[T]](edit *Editor, editor T, geos []S) {
-	num_pages := edit.tabs.GetNPages()
-	for i := 0; i < num_pages; i++ {
-		edit.tabs.RemovePage(0)
-	}
-
 	geoLabel, err := gtk.LabelNew("Geometry")
 	if err != nil {
 		return
 	}
 
-	visibleLabel, err := gtk.LabelNew("Visible")
+	//visibleLabel, err := gtk.LabelNew("Visible")
 	if err != nil {
 		return
 	}
@@ -228,7 +229,8 @@ func updateEditor[T editor[S], S geometer[T]](edit *Editor, editor T, geos []S) 
 			continue
 		}
 
+		editor.UpdateEditor(geo)
 		edit.tabs.AppendPage(editor.GetBox(), geoLabel)
-		edit.tabs.AppendPage(editor.GetVisibleBox(), visibleLabel)
+		//edit.tabs.AppendPage(editor.GetVisibleBox(), visibleLabel)
 	}
 }

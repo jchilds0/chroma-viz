@@ -1,1 +1,174 @@
-{"Title":"Lower Frame","TempID":2,"Layer":0,"UserFrame":[{"FrameNum":2,"GeoID":1,"GeoAttr":"width","Type":"user-frame","Expand":true},{"FrameNum":2,"GeoID":1,"GeoAttr":"height","Type":"user-frame","Expand":true},{"FrameNum":1,"GeoID":1,"GeoAttr":"height","Type":"user-frame","Expand":true},{"FrameNum":3,"GeoID":1,"GeoAttr":"height","Type":"user-frame","Expand":true}],"SetFrame":[{"FrameNum":2,"GeoID":4,"GeoAttr":"width","Type":"set-frame","Expand":true,"Value":0},{"FrameNum":2,"GeoID":4,"GeoAttr":"height","Type":"set-frame","Expand":true,"Value":0},{"FrameNum":2,"GeoID":5,"GeoAttr":"width","Type":"set-frame","Expand":true,"Value":0},{"FrameNum":2,"GeoID":5,"GeoAttr":"height","Type":"set-frame","Expand":true,"Value":0},{"FrameNum":1,"GeoID":1,"GeoAttr":"width","Type":"set-frame","Expand":false,"Value":0},{"FrameNum":1,"GeoID":4,"GeoAttr":"width","Type":"set-frame","Expand":false,"Value":0},{"FrameNum":1,"GeoID":5,"GeoAttr":"width","Type":"set-frame","Expand":false,"Value":0},{"FrameNum":1,"GeoID":3,"GeoAttr":"rel_y","Type":"set-frame","Expand":false,"Value":-30},{"FrameNum":1,"GeoID":2,"GeoAttr":"rel_y","Type":"set-frame","Expand":false,"Value":-30},{"FrameNum":3,"GeoID":1,"GeoAttr":"width","Type":"set-frame","Expand":false,"Value":0},{"FrameNum":3,"GeoID":4,"GeoAttr":"width","Type":"set-frame","Expand":false,"Value":-100},{"FrameNum":3,"GeoID":4,"GeoAttr":"height","Type":"set-frame","Expand":true,"Value":0},{"FrameNum":3,"GeoID":5,"GeoAttr":"width","Type":"set-frame","Expand":false,"Value":-100},{"FrameNum":3,"GeoID":5,"GeoAttr":"height","Type":"set-frame","Expand":true,"Value":0}],"BindFrame":[{"FrameNum":1,"GeoID":4,"GeoAttr":"height","Type":"bind-frame","Expand":false,"Bind":{"FrameNum":2,"GeoID":2,"GeoAttr":"height","Type":"","Expand":false}},{"FrameNum":1,"GeoID":5,"GeoAttr":"height","Type":"bind-frame","Expand":false,"Bind":{"FrameNum":2,"GeoID":3,"GeoAttr":"height","Type":"","Expand":false}},{"FrameNum":3,"GeoID":1,"GeoAttr":"rel_x","Type":"bind-frame","Expand":false,"Bind":{"FrameNum":2,"GeoID":1,"GeoAttr":"x_upper","Type":"","Expand":false}}],"Rectangle":[{"GeoNum":4,"Name":"Title Mask","GeoType":"rect","PropType":"rect","RelX":170,"RelY":85,"Parent":1,"Mask":1,"Width":0,"Height":0,"Rounding":0,"Color":"1.000000 1.000000 1.000000 0.000000"},{"GeoNum":5,"Name":"Subtitle Mask","GeoType":"rect","PropType":"rect","RelX":170,"RelY":30,"Parent":1,"Mask":1,"Width":0,"Height":0,"Rounding":0,"Color":"1.000000 1.000000 1.000000 0.000000"},{"GeoNum":1,"Name":"Rectangle","GeoType":"rect","PropType":"rect","RelX":100,"RelY":100,"Parent":0,"Mask":0,"Width":30,"Height":30,"Rounding":10,"Color":"0.109804 0.443137 0.486275 1.000000"}],"Circle":[],"Text":[{"GeoNum":2,"Name":"Subtitle","GeoType":"text","PropType":"text","RelX":0,"RelY":0,"Parent":5,"Mask":1,"Text":"hello","Scale":1,"Color":"1.000000 1.000000 1.000000 1.000000"},{"GeoNum":3,"Name":"Title","GeoType":"text","PropType":"text","RelX":0,"RelY":0,"Parent":4,"Mask":1,"Text":"Lower Frame Title","Scale":1,"Color":"1.000000 1.000000 1.000000 1.000000"}],"Asset":[{"GeoNum":6,"GeoType":"image","PropType":"image","RelX":-15,"RelY":5,"Parent":1,"Mask":1,"Dir":"","Name":"","ID":1,"Scale":0.24}]}
+{
+    "Title": "Teal Box",
+    "TempID": 1,
+    "Layer": 0,
+    "UserFrame": [],
+    "SetFrame": [],
+    "BindFrame": [],
+    "Rectangle": [
+        {
+            "GeometryID": 1,
+            "Name": "rect",
+            "GeoType": "rect",
+            "RelX": {
+                "Name": "rel_x",
+                "Value": 50
+            },
+            "RelY": {
+                "Name": "rel_y",
+                "Value": 100
+            },
+            "Parent": {
+                "Name": "parent",
+                "Value": 0
+            },
+            "Mask": {
+                "Name": "mask",
+                "Value": 0
+            },
+            "Width": {
+                "Name": "width",
+                "Value": 850
+            },
+            "Height": {
+                "Name": "height",
+                "Value": 180
+            },
+            "Rounding": {
+                "Name": "rounding",
+                "Value": 0
+            },
+            "Color": {
+                "Name": "color",
+                "Red": 0,
+                "Green": 0,
+                "Blue": 0,
+                "Alpha": 0
+            }
+        }
+    ],
+    "Circle": [
+        {
+            "GeometryID": 2,
+            "Name": "circle",
+            "GeoType": "circle",
+            "RelX": {
+                "Name": "rel_x",
+                "Value": 99
+            },
+            "RelY": {
+                "Name": "rel_y",
+                "Value": 90
+            },
+            "Parent": {
+                "Name": "parent",
+                "Value": 1
+            },
+            "Mask": {
+                "Name": "mask",
+                "Value": 0
+            },
+            "InnerRadius": {
+                "Name": "inner_radius",
+                "Value": 30
+            },
+            "OuterRadius": {
+                "Name": "outer_radius",
+                "Value": 75
+            },
+            "StartAngle": {
+                "Name": "start_angle",
+                "Value": 45
+            },
+            "EndAngle": {
+                "Name": "end_angle",
+                "Value": 315
+            },
+            "Color": {
+                "Name": "color",
+                "Red": 0,
+                "Green": 0,
+                "Blue": 0,
+                "Alpha": 0
+            }
+        }
+    ],
+    "Clock": [],
+    "Image": [],
+    "Polygon": [],
+    "Text": [
+        {
+            "GeometryID": 3,
+            "Name": "text",
+            "GeoType": "text",
+            "RelX": {
+                "Name": "rel_x",
+                "Value": 0
+            },
+            "RelY": {
+                "Name": "rel_y",
+                "Value": 0
+            },
+            "Parent": {
+                "Name": "parent",
+                "Value": 1
+            },
+            "Mask": {
+                "Name": "mask",
+                "Value": 0
+            },
+            "String": {
+                "Name": "string",
+                "Value": "A lower frame subtitle"
+            },
+            "Color": {
+                "Name": "color",
+                "Red": 0,
+                "Green": 0,
+                "Blue": 0,
+                "Alpha": 0
+            },
+            "Scale": {
+                "Name": "scale",
+                "Value": 0
+            }
+        },
+        {
+            "GeometryID": 4,
+            "Name": "text",
+            "GeoType": "text",
+            "RelX": {
+                "Name": "rel_x",
+                "Value": 0
+            },
+            "RelY": {
+                "Name": "rel_y",
+                "Value": 0
+            },
+            "Parent": {
+                "Name": "parent",
+                "Value": 1
+            },
+            "Mask": {
+                "Name": "mask",
+                "Value": 0
+            },
+            "String": {
+                "Name": "string",
+                "Value": "Lower Frame"
+            },
+            "Color": {
+                "Name": "color",
+                "Red": 0,
+                "Green": 0,
+                "Blue": 0,
+                "Alpha": 0
+            },
+            "Scale": {
+                "Name": "scale",
+                "Value": 0
+            }
+        }
+    ],
+    "Ticker": []
+}

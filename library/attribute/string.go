@@ -15,7 +15,7 @@ func (stringAttr *StringAttribute) Encode() string {
 	return fmt.Sprintf("%s=%s#", stringAttr.Name, stringAttr.Value)
 }
 
-func (stringAttr *StringAttribute) UpdateAttribute(stringEdit StringEditor) (err error) {
+func (stringAttr *StringAttribute) UpdateAttribute(stringEdit *StringEditor) (err error) {
 	stringAttr.Value, err = stringEdit.Entry.GetText()
 	return
 }
@@ -60,7 +60,7 @@ func NewStringEditor(name string) (stringEdit *StringEditor, err error) {
 	return
 }
 
-func (stringEdit *StringEditor) UpdateEditor(stringAttr StringAttribute) error {
+func (stringEdit *StringEditor) UpdateEditor(stringAttr *StringAttribute) error {
 	stringEdit.Entry.SetText(stringAttr.Value)
 	return nil
 }

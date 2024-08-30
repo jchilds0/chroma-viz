@@ -1,7 +1,7 @@
 package main
 
 import (
-	"chroma-viz/library/props"
+	"chroma-viz/library/geometry"
 	"chroma-viz/library/templates"
 	"chroma-viz/library/util"
 	"fmt"
@@ -13,7 +13,7 @@ import (
 )
 
 const (
-	FRAME_PROP_ATTR = iota
+	FRAME_GEO_ATTR = iota
 	FRAME_ATTR_NAME
 )
 
@@ -116,7 +116,7 @@ func (keyTree *KeyTree) SelectedAttribute() (attrType, attr string, err error) {
 		return
 	}
 
-	attrType, err = util.ModelGetValue[string](keyTree.keyAttrList.ToTreeModel(), iter, FRAME_PROP_ATTR)
+	attrType, err = util.ModelGetValue[string](keyTree.keyAttrList.ToTreeModel(), iter, FRAME_GEO_ATTR)
 	if err != nil {
 		return
 	}
@@ -141,18 +141,37 @@ var keyframeAttrs = map[string]bool{
 	"outer_radius": true,
 }
 
-func (keyTree *KeyTree) UpdateAttrList(prop *props.Property) {
+func (keyTree *KeyTree) UpdateAttrList(geoType string) {
 	keyTree.keyAttrList.Clear()
 
-	for name := range prop.Attr {
-		if !keyframeAttrs[name] {
-			continue
-		}
+	attrs := []string{geometry.ATTR_REL_X, geometry.ATTR_REL_Y}
 
+	switch geoType {
+	case geometry.GEO_RECT:
+		attrs = append(attrs, geometry.ATTR_WIDTH)
+		attrs = append(attrs, geometry.ATTR_HEIGHT)
+
+	case geometry.GEO_CIRCLE:
+		attrs = append(attrs, geometry.ATTR_INNER_RADIUS)
+		attrs = append(attrs, geometry.ATTR_OUTER_RADIUS)
+		attrs = append(attrs, geometry.ATTR_START_ANGLE)
+		attrs = append(attrs, geometry.ATTR_END_ANGLE)
+
+	case geometry.GEO_TEXT:
+	case geometry.GEO_IMAGE:
+	case geometry.GEO_POLY:
+	case geometry.GEO_TICKER:
+	case geometry.GEO_CLOCK:
+
+	default:
+		log.Fatalf("Unknown geometry type %s", geoType)
+	}
+
+	for _, name := range attrs {
 		iter := keyTree.keyAttrList.Append()
 
-		keyTree.keyAttrList.SetValue(iter, FRAME_PROP_ATTR, name)
-		keyTree.keyAttrList.SetValue(iter, FRAME_ATTR_NAME, props.AttrLabel[name])
+		keyTree.keyAttrList.SetValue(iter, FRAME_GEO_ATTR, name)
+		keyTree.keyAttrList.SetValue(iter, FRAME_ATTR_NAME, geometry.Attrs[name])
 	}
 }
 
@@ -425,7 +444,7 @@ func (keyTree *KeyTree) ImportKeyframes(temp *templates.Template) (err error) {
 		iter := model.Append()
 		model.SetValue(iter, FRAME_GEOMETRY_ID, frame.GeoID)
 		model.SetValue(iter, FRAME_ATTR_TYPE, frame.GeoAttr)
-		model.SetValue(iter, FRAME_ATTR, props.AttrLabel[frame.GeoAttr])
+		model.SetValue(iter, FRAME_ATTR, geometry.Attrs[frame.GeoAttr])
 		model.SetValue(iter, FRAME_EXPAND, frame.Expand)
 
 		model.SetValue(iter, FRAME_USER_VALUE, true)
@@ -441,7 +460,7 @@ func (keyTree *KeyTree) ImportKeyframes(temp *templates.Template) (err error) {
 		iter := model.Append()
 		model.SetValue(iter, FRAME_GEOMETRY_ID, frame.GeoID)
 		model.SetValue(iter, FRAME_ATTR_TYPE, frame.GeoAttr)
-		model.SetValue(iter, FRAME_ATTR, props.AttrLabel[frame.GeoAttr])
+		model.SetValue(iter, FRAME_ATTR, geometry.Attrs[frame.GeoAttr])
 		model.SetValue(iter, FRAME_EXPAND, frame.Expand)
 
 		model.SetValue(iter, FRAME_BIND_FRAME, frame.Bind.FrameNum)
@@ -459,7 +478,7 @@ func (keyTree *KeyTree) ImportKeyframes(temp *templates.Template) (err error) {
 		iter := model.Append()
 		model.SetValue(iter, FRAME_GEOMETRY_ID, frame.GeoID)
 		model.SetValue(iter, FRAME_ATTR_TYPE, frame.GeoAttr)
-		model.SetValue(iter, FRAME_ATTR, props.AttrLabel[frame.GeoAttr])
+		model.SetValue(iter, FRAME_ATTR, geometry.Attrs[frame.GeoAttr])
 		model.SetValue(iter, FRAME_EXPAND, frame.Expand)
 
 		model.SetValue(iter, FRAME_VALUE, frame.Value)
