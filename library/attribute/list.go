@@ -1,6 +1,7 @@
 package attribute
 
 import (
+	"chroma-viz/library/util"
 	"fmt"
 	"log"
 	"strings"
@@ -8,6 +9,90 @@ import (
 	"github.com/gotk3/gotk3/glib"
 	"github.com/gotk3/gotk3/gtk"
 )
+
+type ListRow []string
+
+type ListAttribute struct {
+	Name        string
+	NumColumns  int
+	Selected    bool
+	SelectedRow int
+	Rows        []ListRow
+}
+
+func NewListAttribute(name string, numCols int, selected bool) (list *ListAttribute, err error) {
+	list = &ListAttribute{
+		Name:       name,
+		NumColumns: numCols,
+		Selected:   selected,
+	}
+
+	cols := make([]glib.Type, list.NumColumns)
+	for i := range cols {
+		cols[i] = glib.TYPE_STRING
+	}
+
+	list.Rows = make([]ListRow, 0, 10)
+	return
+}
+
+func (listAttr *ListAttribute) Encode(b strings.Builder) {
+	for i := range listAttr.Rows {
+		listAttr.stringRow(b, i)
+	}
+}
+
+func (listAttr *ListAttribute) stringRow(b strings.Builder, rowIndex int) {
+	b.WriteString(listAttr.Name)
+	b.WriteRune('=')
+	defer b.WriteRune('#')
+
+	row := listAttr.Rows[rowIndex]
+
+	if len(row) == 0 {
+		return
+	}
+
+	b.WriteString(row[0])
+
+	if len(row) == 1 {
+		return
+	}
+
+	for _, elem := range row[1:len(row)] {
+		b.WriteRune(' ')
+		b.WriteString(elem)
+	}
+
+	return
+}
+
+func (listAttr *ListAttribute) UpdateAttribute(listEdit *ListEditor) (err error) {
+	if listAttr.NumColumns != listEdit.NumColumns {
+		return fmt.Errorf(
+			"Incorrect number of columns in list editor: "+
+				"List Attribute %d, List Editor %d",
+			listAttr.NumColumns, listEdit.NumColumns)
+	}
+
+	listAttr.Rows = listAttr.Rows[:0]
+	model := listEdit.listStore.ToTreeModel()
+
+	iter, ok := listEdit.listStore.GetIterFirst()
+	for ok {
+		row := make(ListRow, listAttr.NumColumns)
+		listAttr.Rows = append(listAttr.Rows, row)
+
+		for i := range listEdit.NumColumns {
+			row[i], err = util.ModelGetValue[string](model, iter, i)
+			if err != nil {
+				return
+			}
+		}
+	}
+
+	return
+}
 
 type graphCell struct {
 	*gtk.CellRendererText
@@ -24,75 +109,34 @@ func NewGraphCell(i int) (gCell *graphCell, err error) {
 	return
 }
 
-type ListRow []string
+func (gCell *graphCell) editableCell(list *gtk.ListStore) {
+	gCell.SetProperty("editable", true)
 
-type ListAttribute struct {
-	Name        string
-	NumCols     int
-	Selected    bool
-	SelectedRow int
-	Rows        []ListRow
-}
+	gCell.Connect("edited", func(cell *gtk.CellRendererText, path string, text string) {
+		iter, err := list.ToTreeModel().GetIterFromString(path)
+		if err != nil {
+			log.Printf("Error editing list attribute (%s)", err)
+			return
+		}
 
-func NewListAttribute(name string, numCols int, selected bool) (list *ListAttribute, err error) {
-	list = &ListAttribute{
-		Name:     name,
-		NumCols:  numCols,
-		Selected: selected,
-	}
-
-	cols := make([]glib.Type, list.NumCols)
-	for i := range cols {
-		cols[i] = glib.TYPE_STRING
-	}
-
-	list.Rows = make([]ListRow, 0, 10)
-	return
-}
-
-func (listAttr *ListAttribute) EncodeEngine() (s string) {
-	return
-}
-
-func (listAttr *ListAttribute) stringRow(row int) (s string, err error) {
-	s = listAttr.Name + "=" + strings.Join(listAttr.Rows[row], " ") + "#"
-	return
-}
-
-func (listAttr *ListAttribute) EncodeJSON() (s string) {
-	// currently chroma_engine allocates 100 nodes for each list statically
-	if listAttr.Selected {
-		// send only the currently selected item from the list
-		row, _ := listAttr.encodeRow(listAttr.SelectedRow)
-		return strings.Join(row, " ")
-	}
-
-	s = fmt.Sprintf("{'name': 'num_node', 'value': '%d'}", listAttr.NumCols-1)
-	for _, row := range listAttr.Rows {
-		s += fmt.Sprintf(",{'name': '%s', 'value': '%s'}",
-			listAttr.Name, strings.Join(row, " "))
-	}
-
-	return
-}
-
-func (listAttr *ListAttribute) encodeRow(rowIndex int) (row []string, err error) {
-	return
-}
-
-func (listAttr *ListAttribute) UpdateAttribute(listEdit *ListEditor) (err error) {
-	return
+		list.SetValue(iter, gCell.columnNum, text)
+	})
 }
 
 type ListEditor struct {
-	Name      string
-	Box       *gtk.Box
-	treeView  *gtk.TreeView
-	listStore *gtk.ListStore
+	Name       string
+	NumColumns int
+	Box        *gtk.Box
+	treeView   *gtk.TreeView
+	listStore  *gtk.ListStore
 }
 
-func NewListEditor(name string, columns []string) (listEdit *ListEditor, err error) {
-	listEdit = &ListEditor{Name: name}
+func NewListEditor(name string, numCols int) (listEdit *ListEditor, err error) {
+	listEdit = &ListEditor{
+		Name:       name,
+		NumColumns: numCols,
+	}
+
 	listEdit.Box, err = gtk.BoxNew(gtk.ORIENTATION_VERTICAL, 0)
 	if err != nil {
 		return
@@ -103,34 +147,29 @@ func NewListEditor(name string, columns []string) (listEdit *ListEditor, err err
 		return
 	}
 
+	colTypes := make([]glib.Type, numCols)
+	for i := range colTypes {
+		colTypes[i] = glib.TYPE_STRING
+	}
+
+	listEdit.listStore, err = gtk.ListStoreNew(colTypes...)
+	if err != nil {
+		return
+	}
+
 	listEdit.treeView.SetVisible(true)
 	listEdit.treeView.SetVExpand(true)
 
 	var gCell *graphCell
 	var column *gtk.TreeViewColumn
-	for i, name := range columns {
+	for i := range numCols {
 		gCell, err = NewGraphCell(i)
 		if err != nil {
 			return
 		}
 
-		gCell.SetProperty("editable", true)
-		gCell.Connect("edited",
-			func(cell *gtk.CellRendererText, path string, text string) {
-				if listEdit.listStore == nil {
-					log.Printf("Error editing list attribute (listStore missing)")
-					return
-				}
-
-				iter, err := listEdit.listStore.ToTreeModel().GetIterFromString(path)
-				if err != nil {
-					log.Printf("Error editing list attribute (%s)", err)
-					return
-				}
-
-				listEdit.listStore.SetValue(iter, gCell.columnNum, text)
-			})
-		column, err = gtk.TreeViewColumnNewWithAttribute(name, gCell, "text", i)
+		gCell.editableCell(listEdit.listStore)
+		column, err = gtk.TreeViewColumnNewWithAttribute("", gCell, "text", i)
 		if err != nil {
 			return
 		}
@@ -170,11 +209,6 @@ func NewListEditor(name string, columns []string) (listEdit *ListEditor, err err
 	}
 
 	button.Connect("clicked", func() {
-		if listEdit.listStore == nil {
-			log.Printf("Graph prop editor does not have a list store")
-			return
-		}
-
 		listEdit.listStore.Append()
 	})
 
@@ -188,11 +222,6 @@ func NewListEditor(name string, columns []string) (listEdit *ListEditor, err err
 	}
 
 	button.Connect("clicked", func() {
-		if listEdit.listStore == nil {
-			log.Printf("Graph prop editor does not have a list store")
-			return
-		}
-
 		selection, err := listEdit.treeView.GetSelection()
 		if err != nil {
 			log.Printf("Error getting current row (%s)", err)
@@ -217,5 +246,29 @@ func NewListEditor(name string, columns []string) (listEdit *ListEditor, err err
 }
 
 func (listEdit *ListEditor) UpdateEditor(listAttr *ListAttribute) (err error) {
-	return nil
+	if listEdit.NumColumns != listAttr.NumColumns {
+		return fmt.Errorf(
+			"Incorrect number of columns in list attribute: "+
+				"List Editor %d, List Attribute %d",
+			listEdit.NumColumns, listAttr.NumColumns)
+	}
+
+	listEdit.listStore.Clear()
+	if listAttr.Rows == nil {
+		return
+	}
+
+	for _, row := range listAttr.Rows {
+		if row == nil {
+			continue
+		}
+
+		iter := listEdit.listStore.Append()
+
+		for i, elem := range row {
+			listEdit.listStore.SetValue(iter, i, elem)
+		}
+	}
+
+	return
 }

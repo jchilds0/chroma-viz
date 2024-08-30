@@ -10,7 +10,7 @@ import (
 )
 
 type Animator interface {
-	EncodeEngine(b strings.Builder)
+	Encode(b *strings.Builder)
 }
 
 const (
@@ -82,10 +82,10 @@ func (conn *Connection) SendPage() {
 		var b strings.Builder
 		version := "1,4"
 
-		parser.EngineAddKeyValue(b, "version", version)
-		parser.EngineAddKeyValue(b, "action", action)
+		parser.EngineAddKeyValue(&b, "version", version)
+		parser.EngineAddKeyValue(&b, "action", action)
 
-		page.EncodeEngine(b)
+		page.Encode(&b)
 		b.WriteByte(END_OF_MESSAGE)
 
 		conn.Conn.Write([]byte(b.String()))

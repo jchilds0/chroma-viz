@@ -27,7 +27,7 @@ func AddAttribute(b strings.Builder, name string, value any) {
 	}
 }
 
-func EngineAddKeyValue(b strings.Builder, name string, value any) {
+func EngineAddKeyValue(b *strings.Builder, name string, value any) {
 	b.WriteString(name)
 	b.WriteRune('=')
 

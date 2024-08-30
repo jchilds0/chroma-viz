@@ -26,8 +26,11 @@ func (i *Image) UpdateGeometry(iEdit *ImageEditor) (err error) {
 	return
 }
 
-func (i *Image) EncodeEngine(b strings.Builder) {
+func (i *Image) Encode(b strings.Builder) {
+	i.Geometry.Encode(b)
 
+	i.Image.Encode(b)
+	i.Scale.Encode(b)
 }
 
 type ImageEditor struct {

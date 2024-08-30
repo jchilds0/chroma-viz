@@ -178,13 +178,13 @@ func (temp *Template) AddGeometry(geoType, geoName string) (id int, err error) {
 }
 
 func (temp *Template) RemoveGeometry(geoID int) {
-	temp.Rectangle = removeGeometry[*geometry.Rectangle](temp.Rectangle, geoID)
-	temp.Circle = removeGeometry[*geometry.Circle](temp.Circle, geoID)
-	temp.Clock = removeGeometry[*geometry.Clock](temp.Clock, geoID)
-	temp.Image = removeGeometry[*geometry.Image](temp.Image, geoID)
-	temp.Polygon = removeGeometry[*geometry.Polygon](temp.Polygon, geoID)
-	temp.Text = removeGeometry[*geometry.Text](temp.Text, geoID)
-	temp.Ticker = removeGeometry[*geometry.Ticker](temp.Ticker, geoID)
+	temp.Rectangle = removeGeometry(temp.Rectangle, geoID)
+	temp.Circle = removeGeometry(temp.Circle, geoID)
+	temp.Clock = removeGeometry(temp.Clock, geoID)
+	temp.Image = removeGeometry(temp.Image, geoID)
+	temp.Polygon = removeGeometry(temp.Polygon, geoID)
+	temp.Text = removeGeometry(temp.Text, geoID)
+	temp.Ticker = removeGeometry(temp.Ticker, geoID)
 
 	delete(temp.Geos, geoID)
 }
@@ -345,13 +345,13 @@ func GetTemplate(conn net.Conn, tempid int) (temp Template, err error) {
 }
 
 func (temp *Template) NumGeometry() (maxID int) {
-	maxID = max(maxID, maxGeoNum[*geometry.Rectangle](temp.Rectangle))
-	maxID = max(maxID, maxGeoNum[*geometry.Circle](temp.Circle))
-	maxID = max(maxID, maxGeoNum[*geometry.Clock](temp.Clock))
-	maxID = max(maxID, maxGeoNum[*geometry.Image](temp.Image))
-	maxID = max(maxID, maxGeoNum[*geometry.Polygon](temp.Polygon))
-	maxID = max(maxID, maxGeoNum[*geometry.Text](temp.Text))
-	maxID = max(maxID, maxGeoNum[*geometry.Ticker](temp.Ticker))
+	maxID = max(maxID, maxGeoNum(temp.Rectangle))
+	maxID = max(maxID, maxGeoNum(temp.Circle))
+	maxID = max(maxID, maxGeoNum(temp.Clock))
+	maxID = max(maxID, maxGeoNum(temp.Image))
+	maxID = max(maxID, maxGeoNum(temp.Polygon))
+	maxID = max(maxID, maxGeoNum(temp.Text))
+	maxID = max(maxID, maxGeoNum(temp.Ticker))
 
 	return
 }
@@ -384,7 +384,7 @@ func (temp *Template) MaxKeyframe() (maxFrameNum int) {
 	return
 }
 
-func (temp *Template) EncodeEngine(b strings.Builder) {
+func (temp *Template) Encode(b *strings.Builder) {
 	parser.EngineAddKeyValue(b, "temp", temp.TempID)
 	parser.EngineAddKeyValue(b, "layer", temp.Layer)
 }
@@ -395,13 +395,13 @@ type geoInterface interface {
 }
 
 func (temp *Template) ApplyGeometryFunc(geoID int, f func(*geometry.Geometry)) {
-	applyFunction[*geometry.Rectangle](temp.Rectangle, geoID, f)
-	applyFunction[*geometry.Circle](temp.Circle, geoID, f)
-	applyFunction[*geometry.Clock](temp.Clock, geoID, f)
-	applyFunction[*geometry.Image](temp.Image, geoID, f)
-	applyFunction[*geometry.Polygon](temp.Polygon, geoID, f)
-	applyFunction[*geometry.Text](temp.Text, geoID, f)
-	applyFunction[*geometry.Ticker](temp.Ticker, geoID, f)
+	applyFunction(temp.Rectangle, geoID, f)
+	applyFunction(temp.Circle, geoID, f)
+	applyFunction(temp.Clock, geoID, f)
+	applyFunction(temp.Image, geoID, f)
+	applyFunction(temp.Polygon, geoID, f)
+	applyFunction(temp.Text, geoID, f)
+	applyFunction(temp.Ticker, geoID, f)
 }
 
 func applyFunction[T geoInterface](geos []T, geoID int, f func(*geometry.Geometry)) {

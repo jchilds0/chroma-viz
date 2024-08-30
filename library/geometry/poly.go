@@ -24,8 +24,10 @@ func (p *Polygon) UpdateGeometry(pEdit *PolygonEditor) (err error) {
 	return
 }
 
-func (p *Polygon) EncodeEngine(b strings.Builder) {
+func (p *Polygon) Encode(b strings.Builder) {
+	p.Geometry.Encode(b)
 
+	p.Polygon.Encode(b)
 }
 
 type PolygonEditor struct {

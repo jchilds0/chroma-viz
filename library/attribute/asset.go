@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net"
+	"strconv"
 	"strings"
 
 	"github.com/gotk3/gotk3/glib"
@@ -103,8 +104,11 @@ func NewAssetAttribute(name string) *AssetAttribute {
 	return asset
 }
 
-func (asset *AssetAttribute) EncodeEngine() string {
-	return fmt.Sprintf("%s=%d#", asset.Name, asset.Value)
+func (asset *AssetAttribute) Encode(b strings.Builder) {
+	b.WriteString(asset.Name)
+	b.WriteRune('=')
+	b.WriteString(strconv.Itoa(asset.Value))
+	b.WriteRune('#')
 }
 
 func (asset *AssetAttribute) Directory() string {

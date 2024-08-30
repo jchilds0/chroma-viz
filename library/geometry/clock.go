@@ -44,8 +44,12 @@ func (c *Clock) UpdateGeometry(cEdit *ClockEditor) (err error) {
 	return
 }
 
-func (c *Clock) EncodeEngine(b strings.Builder) {
+func (c *Clock) Encode(b strings.Builder) {
+	c.Geometry.Encode(b)
 
+	c.Clock.Encode(b)
+	c.Color.Encode(b)
+	c.Scale.Encode(b)
 }
 
 type ClockEditor struct {

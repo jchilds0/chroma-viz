@@ -44,8 +44,12 @@ func (t *Text) UpdateGeometry(tEdit *TextEditor) (err error) {
 	return
 }
 
-func (t *Text) EncodeEngine(b strings.Builder) {
+func (t *Text) Encode(b strings.Builder) {
+	t.Geometry.Encode(b)
 
+	t.String.Encode(b)
+	t.Scale.Encode(b)
+	t.Color.Encode(b)
 }
 
 type TextEditor struct {

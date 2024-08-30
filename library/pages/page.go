@@ -2,10 +2,13 @@ package pages
 
 import (
 	"chroma-viz/library/geometry"
+	"chroma-viz/library/parser"
 	"chroma-viz/library/templates"
 	"encoding/json"
 	"fmt"
+	"log"
 	"os"
+	"reflect"
 	"strconv"
 	"strings"
 
@@ -172,6 +175,42 @@ func ExportPage(page *Page, filename string) (err error) {
 	return
 }
 
-func (page *Page) EncodeEngine(b strings.Builder) {
+func (page *Page) Encode(b *strings.Builder) {
+	parser.EngineAddKeyValue(b, "temp", page.TemplateID)
+	parser.EngineAddKeyValue(b, "layer", page.Layer)
 
+	encodeGeometry(b, page.Rect)
+	encodeGeometry(b, page.Circle)
+	encodeGeometry(b, page.Clock)
+	encodeGeometry(b, page.Image)
+	encodeGeometry(b, page.Poly)
+	encodeGeometry(b, page.Text)
+	encodeGeometry(b, page.Ticker)
+}
+
+type encoder interface {
+	Encode(b strings.Builder)
+}
+
+func encodeGeometry[T encoder](b *strings.Builder, geos []T) {
+	if isNil(geos) {
+		return
+	}
+
+	for _, geo := range geos {
+		if isNil(geo) {
+			continue
+		}
+
+		//geo.Encode(*b)
+	}
+}
+
+func isNil(id any) bool {
+	v := reflect.ValueOf(id)
+	if v.Kind() != reflect.Pointer && v.Kind() != reflect.Slice {
+		log.Fatalf("Incorrect type %s", v.Kind().String())
+	}
+
+	return v.IsNil()
 }

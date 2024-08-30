@@ -2,6 +2,8 @@ package attribute
 
 import (
 	"fmt"
+	"strconv"
+	"strings"
 
 	"github.com/gotk3/gotk3/gdk"
 	"github.com/gotk3/gotk3/gtk"
@@ -15,17 +17,46 @@ type ColorAttribute struct {
 	Alpha float64
 }
 
-func (colorAttr *ColorAttribute) Encode() string {
-	return fmt.Sprintf("%s=%f %f %f %f#", colorAttr.Name,
-		colorAttr.Red, colorAttr.Green, colorAttr.Blue, colorAttr.Alpha)
+func (colorAttr *ColorAttribute) Encode(b strings.Builder) {
+	b.WriteString(colorAttr.Name)
+	b.WriteRune('=')
+	b.WriteString(strconv.FormatFloat(colorAttr.Red, 'f', 10, 64))
+	b.WriteRune(' ')
+	b.WriteString(strconv.FormatFloat(colorAttr.Blue, 'f', 10, 64))
+	b.WriteRune(' ')
+	b.WriteString(strconv.FormatFloat(colorAttr.Green, 'f', 10, 64))
+	b.WriteRune(' ')
+	b.WriteString(strconv.FormatFloat(colorAttr.Alpha, 'f', 10, 64))
+	b.WriteRune('#')
 }
 
 func (colorAttr *ColorAttribute) ToString() string {
 	return fmt.Sprintf("%f %f %f %f", colorAttr.Red, colorAttr.Blue, colorAttr.Green, colorAttr.Alpha)
 }
 
-func (colorAttr *ColorAttribute) FromString(s string) error {
-	return nil
+func (colorAttr *ColorAttribute) FromString(s string) (err error) {
+	nums := strings.Split(s, " ")
+	if len(nums) != 4 {
+		return fmt.Errorf("Incorrect color format: %s", s)
+	}
+
+	colorAttr.Red, err = strconv.ParseFloat(nums[0], 64)
+	if err != nil {
+		return
+	}
+
+	colorAttr.Blue, err = strconv.ParseFloat(nums[1], 64)
+	if err != nil {
+		return
+	}
+
+	colorAttr.Green, err = strconv.ParseFloat(nums[2], 64)
+	if err != nil {
+		return
+	}
+
+	colorAttr.Alpha, err = strconv.ParseFloat(nums[3], 64)
+	return
 }
 
 func (colorAttr *ColorAttribute) UpdateAttribute(colorEdit *ColorEditor) (err error) {

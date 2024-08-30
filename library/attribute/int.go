@@ -1,8 +1,9 @@
 package attribute
 
 import (
-	"fmt"
 	"math"
+	"strconv"
+	"strings"
 
 	"github.com/gotk3/gotk3/gtk"
 )
@@ -12,8 +13,11 @@ type IntAttribute struct {
 	Value int
 }
 
-func (intAttr *IntAttribute) Encode() string {
-	return fmt.Sprintf("%s=%d#", intAttr.Name, intAttr.Value)
+func (intAttr *IntAttribute) Encode(b strings.Builder) {
+	b.WriteString(intAttr.Name)
+	b.WriteRune('=')
+	b.WriteString(strconv.Itoa(intAttr.Value))
+	b.WriteRune('#')
 }
 
 func (intAttr *IntAttribute) UpdateAttribute(intEdit *IntEditor) error {

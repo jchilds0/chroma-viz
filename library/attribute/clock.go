@@ -2,8 +2,8 @@ package attribute
 
 import (
 	"encoding/json"
-	"fmt"
 	"log"
+	"strings"
 	"sync"
 	"time"
 
@@ -20,11 +20,11 @@ const (
 
 type ClockAttribute struct {
 	Name        string
-	Type        int
-	c           chan int
 	CurrentTime string
 	TimeFormat  string
-	m           sync.Mutex
+
+	c chan int
+	m sync.Mutex
 }
 
 func NewClockAttribute(name string) *ClockAttribute {
@@ -39,8 +39,9 @@ func NewClockAttribute(name string) *ClockAttribute {
 
 func (clockAttr *ClockAttribute) UnmarshalJSON(b []byte) error {
 	var clockAttrJSON struct {
-		ClockAttribute
-		UnmarshalJSON struct{}
+		Name        string
+		CurrentTime string
+		TimeFormat  string
 	}
 
 	err := json.Unmarshal(b, &clockAttrJSON)
@@ -60,8 +61,11 @@ func (clockAttr *ClockAttribute) SetClock(cont func()) {
 	go clockAttr.RunClock(cont)
 }
 
-func (clockAttr *ClockAttribute) EncodeEngine() string {
-	return fmt.Sprintf("%s=%s#", clockAttr.Name, clockAttr.CurrentTime)
+func (clockAttr *ClockAttribute) Encode(b strings.Builder) {
+	b.WriteString(clockAttr.Name)
+	b.WriteRune('=')
+	b.WriteString(clockAttr.CurrentTime)
+	b.WriteRune('#')
 }
 
 func (clockAttr *ClockAttribute) UpdateAttribute(clockEdit *ClockEditor) error {

@@ -1,7 +1,8 @@
 package attribute
 
 import (
-	"fmt"
+	"strconv"
+	"strings"
 
 	"github.com/gotk3/gotk3/gtk"
 )
@@ -11,8 +12,11 @@ type FloatAttribute struct {
 	Value float64
 }
 
-func (floatAttr *FloatAttribute) Encode() string {
-	return fmt.Sprintf("%s=%f#", floatAttr.Name, floatAttr.Value)
+func (floatAttr *FloatAttribute) Encode(b strings.Builder) {
+	b.WriteString(floatAttr.Name)
+	b.WriteRune('=')
+	b.WriteString(strconv.FormatFloat(floatAttr.Value, 'f', 10, 64))
+	b.WriteRune('#')
 }
 
 func (floatAttr *FloatAttribute) UpdateAttribute(floatEdit *FloatEditor) (err error) {

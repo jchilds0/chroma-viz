@@ -66,7 +66,7 @@ func NewTickerEditor() (tEdit *TickerEditor, err error) {
 		GeometryEditor: *geo,
 	}
 
-	tEdit.String, err = attribute.NewListEditor("List", []string{"Text"})
+	tEdit.String, err = attribute.NewListEditor("List", 1)
 	if err != nil {
 		return
 	}

@@ -131,8 +131,10 @@ func (g *Geometry) UpdateGeometry(gEdit *GeometryEditor) (err error) {
 	return
 }
 
-func (g *Geometry) EncodeEngine(b strings.Builder) {
-
+func (g *Geometry) Encode(b strings.Builder) {
+	g.RelX.Encode(b)
+	g.RelY.Encode(b)
+	g.Mask.Encode(b)
 }
 
 func (g *Geometry) GetName() string {

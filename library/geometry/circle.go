@@ -58,8 +58,14 @@ func (c *Circle) UpdateGeometry(cEdit *CircleEditor) (err error) {
 	return
 }
 
-func (c *Circle) EncodeEngine(b strings.Builder) {
+func (c *Circle) Encode(b strings.Builder) {
+	c.Geometry.Encode(b)
 
+	c.InnerRadius.Encode(b)
+	c.OuterRadius.Encode(b)
+	c.StartAngle.Encode(b)
+	c.EndAngle.Encode(b)
+	c.Color.Encode(b)
 }
 
 type CircleEditor struct {

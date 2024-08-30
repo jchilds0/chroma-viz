@@ -1,7 +1,8 @@
 package attribute
 
 import (
-	"fmt"
+	"strconv"
+	"strings"
 
 	"github.com/gotk3/gotk3/gtk"
 )
@@ -12,8 +13,11 @@ type PolygonAttribute struct {
 	PosY []int
 }
 
-func (polyAttr *PolygonAttribute) Encode() string {
-	return fmt.Sprintf("num_points=%d", len(polyAttr.PosX))
+func (polyAttr *PolygonAttribute) Encode(b strings.Builder) {
+	b.WriteString("num_points")
+	b.WriteRune('=')
+	b.WriteString(strconv.Itoa(len(polyAttr.PosX)))
+	b.WriteRune('#')
 }
 
 func (polyAttr *PolygonAttribute) UpdateAttribute(polyEditor *PolygonEditor) error {

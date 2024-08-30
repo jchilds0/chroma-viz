@@ -1,7 +1,7 @@
 package attribute
 
 import (
-	"fmt"
+	"strings"
 
 	"github.com/gotk3/gotk3/gtk"
 )
@@ -11,8 +11,11 @@ type StringAttribute struct {
 	Value string
 }
 
-func (stringAttr *StringAttribute) Encode() string {
-	return fmt.Sprintf("%s=%s#", stringAttr.Name, stringAttr.Value)
+func (stringAttr *StringAttribute) Encode(b strings.Builder) {
+	b.WriteString(stringAttr.Name)
+	b.WriteRune('=')
+	b.WriteString(stringAttr.Value)
+	b.WriteRune('#')
 }
 
 func (stringAttr *StringAttribute) UpdateAttribute(stringEdit *StringEditor) (err error) {

@@ -51,8 +51,13 @@ func (r *Rectangle) UpdateGeometry(rEdit *RectangleEditor) (err error) {
 	return
 }
 
-func (r *Rectangle) EncodeEngine(b strings.Builder) {
+func (r *Rectangle) Encode(b strings.Builder) {
+	r.Geometry.Encode(b)
 
+	r.Width.Encode(b)
+	r.Height.Encode(b)
+	r.Rounding.Encode(b)
+	r.Color.Encode(b)
 }
 
 type RectangleEditor struct {
