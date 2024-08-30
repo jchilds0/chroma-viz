@@ -237,56 +237,18 @@ func TextToBuffer(text string) (textView *gtk.TextView, err error) {
 }
 
 // T -> {'id': num, 'num_geo': num, 'layer': num, 'geometry': [G]} | T, T
-func (temp *Template) Encode(b strings.Builder) {
-	b.WriteString("{")
-
-	parser.AddAttribute(b, "id", temp.TempID)
-	b.WriteString(", ")
-
-	parser.AddAttribute(b, "num_geo", temp.NumGeometry()+1)
-	b.WriteString(", ")
-
-	parser.AddAttribute(b, "max_keyframe", temp.MaxKeyframe())
-	b.WriteString(", ")
-
-	parser.AddAttribute(b, "name", temp.Title)
-	b.WriteString("', ")
-
-	parser.AddAttribute(b, "layer", temp.Layer)
-	b.WriteString(", ")
-
-	{
-
-		b.WriteString("'geometry': [")
-
-		first := true
-
-		encodeSlice(b, temp.Rectangle, &first)
-		encodeSlice(b, temp.Circle, &first)
-		encodeSlice(b, temp.Clock, &first)
-		encodeSlice(b, temp.Image, &first)
-		encodeSlice(b, temp.Polygon, &first)
-		encodeSlice(b, temp.Text, &first)
-		encodeSlice(b, temp.Ticker, &first)
-
-		b.WriteString("]")
-
+func (temp *Template) MarshalJSON() (buf []byte, err error) {
+	var tempJSON struct {
+		Template
+		NumGeometry int
+		NumKeyframe int
 	}
 
-	{
+	tempJSON.Template = *temp
+	tempJSON.NumGeometry = temp.NumGeometry()
+	tempJSON.NumKeyframe = temp.MaxKeyframe()
 
-		b.WriteString("'keyframe': [")
-
-		first := true
-		encodeSlice(b, temp.UserFrame, &first)
-		encodeSlice(b, temp.SetFrame, &first)
-		encodeSlice(b, temp.BindFrame, &first)
-
-		b.WriteString("],")
-
-	}
-
-	b.WriteString("}")
+	return json.Marshal(tempJSON)
 }
 
 type encoder interface {
@@ -328,18 +290,22 @@ func (temp *Template) ExportTemplate(filename string) error {
 	return nil
 }
 
-func GetTemplate(hub net.Conn, tempid int) (temp Template, err error) {
+func GetTemplate(conn net.Conn, tempid int) (temp Template, err error) {
 	s := fmt.Sprintf("ver 0 1 temp %d;", tempid)
 
-	_, err = hub.Write([]byte(s))
+	_, err = conn.Write([]byte(s))
 	if err != nil {
 		return
 	}
 
-	buf := bufio.NewReader(hub)
-	temp, err = parseTemplate(buf)
+	buf := bufio.NewReader(conn)
+	data, err := buf.ReadBytes('\n')
+	if err != nil {
+		return
+	}
 
-	return temp, err
+	err = json.Unmarshal(data, &temp)
+	return
 }
 
 func (temp *Template) NumGeometry() (maxID int) {

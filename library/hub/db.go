@@ -2,7 +2,6 @@ package hub
 
 import (
 	"bufio"
-	"chroma-viz/library/geometry"
 	"chroma-viz/library/templates"
 	"database/sql"
 	"encoding/json"
@@ -64,13 +63,18 @@ func (hub *DataBase) SelectDatabase(name, username, password string) (err error)
 }
 
 // S -> {'num_temp': num, 'templates': [T]}
-func (hub *DataBase) EncodeDB() (s string, err error) {
-	var b strings.Builder
-	first := true
+func (hub *DataBase) EncodeDB() (buf []byte, err error) {
 	rows, err := hub.db.Query("SELECT t.templateID FROM template t;")
 	if err != nil {
 		return
 	}
+
+	var databaseJSON struct {
+		NumTemplates int
+		Templates    []*templates.Template
+	}
+
+	databaseJSON.Templates = make([]*templates.Template, 0, 10)
 
 	var (
 		maxTempID int64
@@ -80,28 +84,22 @@ func (hub *DataBase) EncodeDB() (s string, err error) {
 	for rows.Next() {
 		err = rows.Scan(&tempID)
 		if err != nil {
-			err = fmt.Errorf("Scan TempID: %s", err)
+			err = fmt.Errorf("TempID: %s", err)
 			return
 		}
 
-		maxTempID = max(maxTempID, tempID)
-
-		if !first {
-			b.WriteString(",")
-		}
-
-		first = false
 		temp, err = hub.GetTemplate(tempID)
 		if err != nil {
 			err = fmt.Errorf("Retrieve Template: %s", err)
 			return
 		}
 
-		temp.Encode(b)
+		maxTempID = max(maxTempID, temp.TempID)
+		databaseJSON.Templates = append(databaseJSON.Templates, temp)
 	}
 
-	s = fmt.Sprintf("{'num_temp': %d, 'templates': [%s]}", maxTempID+2, b.String())
-	return
+	databaseJSON.NumTemplates = int(maxTempID)
+	return json.Marshal(databaseJSON)
 }
 
 func (hub *DataBase) CleanDB() (err error) {
@@ -182,6 +180,7 @@ and a template id if the command is template.
 	to clint
 */
 func (hub *DataBase) HandleConn(conn net.Conn) {
+	var b []byte
 	req := make([]byte, 0, 1024)
 	buf := bufio.NewReader(conn)
 
@@ -202,49 +201,57 @@ func (hub *DataBase) HandleConn(conn net.Conn) {
 
 		if cmds[1] != "0" || cmds[2] != "1" {
 			Logger("Request has incorrect ver %s %s, expected 0 1 (%s)", cmds[1], cmds[2], s)
-			_, err = conn.Write([]byte(string(EOM)))
+			_, err = conn.Write([]byte{byte('\n')})
 			continue
 		}
 
 		switch cmds[3] {
 		case "full":
-			s, err = hub.EncodeDB()
+			b, err = hub.EncodeDB()
 			if err != nil {
 				Logger("Error retrieving database (%s)", err)
-				_, err = conn.Write([]byte(string(EOM)))
+				_, err = conn.Write([]byte{byte('\n')})
 				continue
 			}
 
-			_, err = conn.Write([]byte(s))
+			_, err = conn.Write(b)
+			_, err = conn.Write([]byte{byte('\n')})
+
 		case "tempids":
 			s, err = hub.TempIDs()
 			if err != nil {
 				Logger("Error retrieving template IDs (%s)", err)
-				_, err = conn.Write([]byte(string(EOM)))
+				_, err = conn.Write([]byte{byte('\n')})
 				continue
 			}
 
-			_, err = conn.Write([]byte(s + string(EOM)))
+			_, err = conn.Write([]byte(s + "\n"))
+
 		case "temp":
 			tempid, err := strconv.ParseInt(cmds[4], 10, 64)
 			if err != nil {
-				Logger("Error getting template id (%s)", err)
-				_, err = conn.Write([]byte(string(EOM)))
+				Logger("Error getting template id: %s", err)
+				_, err = conn.Write([]byte{byte('\n')})
 				continue
 			}
 
 			template, err := hub.GetTemplate(tempid)
 			if err != nil {
-				Logger("Error getting template %d (%s)", tempid, err)
-				_, err = conn.Write([]byte(string(geometry.END_OF_MESSAGE)))
+				Logger("Error getting template %d: %s", tempid, err)
+				_, err = conn.Write([]byte{byte('\n')})
 				continue
 			}
 
-			var b strings.Builder
-			template.Encode(b)
-			b.WriteByte(geometry.END_OF_MESSAGE)
+			b, err = json.Marshal(template)
+			if err != nil {
+				Logger("Error encoding template %d: %s", tempid, err)
+				_, err = conn.Write([]byte{byte('\n')})
+				continue
+			}
 
-			_, err = conn.Write([]byte(b.String()))
+			_, err = conn.Write(b)
+			_, err = conn.Write([]byte{byte('\n')})
+
 		case "img":
 			imageID, _ := strconv.Atoi(cmds[4])
 			image := hub.Assets[imageID]
@@ -263,6 +270,7 @@ func (hub *DataBase) HandleConn(conn net.Conn) {
 			_, err = conn.Write([]byte{0, 1, 0, 0})
 			_, err = conn.Write([]byte{lenByte3, lenByte2, lenByte1, lenByte0})
 			_, err = conn.Write(image)
+
 		case "assets":
 			var assets struct {
 				Dirs  map[int]string
@@ -278,6 +286,7 @@ func (hub *DataBase) HandleConn(conn net.Conn) {
 
 			_, err = conn.Write(assetsJson)
 			_, err = conn.Write([]byte{0})
+
 		default:
 			Logger("Unknown request %s", string(req[:]))
 			continue

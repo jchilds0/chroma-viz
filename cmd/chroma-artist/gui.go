@@ -312,15 +312,16 @@ func ArtistGui(app *gtk.Application) {
 
 			tempID, err := util.ModelGetValue[int](dialog.treeList.ToTreeModel(), iter, 1)
 
-			template, err := templates.GetTemplate(hubConn.Conn, tempID)
+			temp, err := templates.GetTemplate(hubConn.Conn, tempID)
 			if err != nil {
 				log.Printf("Error importing template: %s", err)
 				return
 			}
 
-			editView.CurrentTemp = &template
+			template = &temp
+			editView.CurrentTemp = &temp
 			updateUIFromTemplate(
-				&template, geoTree, keyTree, frameSideBar, framePane,
+				template, geoTree, keyTree, frameSideBar, framePane,
 				titleEntry, tempIDEntry, layerEntry,
 			)
 		}

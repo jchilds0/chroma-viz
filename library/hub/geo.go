@@ -12,7 +12,7 @@ func (hub *DataBase) addGeometry(tempID int64, geo geometry.Geometry) (geoID int
     `
 
 	result, err := hub.db.Exec(q, tempID, geo.GeometryID, geo.Name, geo.GeoType,
-		geo.RelX, geo.RelY, geo.Parent, geo.Mask)
+		geo.RelX.Value, geo.RelY.Value, geo.Parent.Value, geo.Mask.Value)
 	if err != nil {
 		return
 	}
