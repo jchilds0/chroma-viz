@@ -11,16 +11,6 @@ import (
 	"github.com/gotk3/gotk3/gtk"
 )
 
-var propNames = map[string]string{
-	geometry.GEO_RECT:   "Rectangle",
-	geometry.GEO_CIRCLE: "Circle",
-	geometry.GEO_TEXT:   "Text",
-	geometry.GEO_TICKER: "Ticker",
-	geometry.GEO_CLOCK:  "Clock",
-	geometry.GEO_IMAGE:  "Image",
-	geometry.GEO_POLY:   "Polygon",
-}
-
 const (
 	GEO_TYPE = iota
 	GEO_NAME
@@ -29,8 +19,7 @@ const (
 )
 
 const (
-	SELECTOR_PROP_NAME = iota
-	SELECTOR_GEO_NAME
+	SELECTOR_GEO_NAME = iota
 )
 
 type GeoTree struct {
@@ -130,17 +119,18 @@ func NewGeoTree(geoSelector *gtk.ComboBox, geoToEditor func(geoID int), editName
 			geoToEditor(geoID)
 		})
 
-	model, err := gtk.ListStoreNew(glib.TYPE_STRING, glib.TYPE_STRING)
+	model, err := gtk.ListStoreNew(glib.TYPE_STRING)
 	if err != nil {
 		return
 	}
 
-	for propName, name := range propNames {
-		iter := model.Append()
-
-		model.SetValue(iter, SELECTOR_PROP_NAME, propName)
-		model.SetValue(iter, SELECTOR_GEO_NAME, name)
-	}
+	model.SetValue(model.Append(), SELECTOR_GEO_NAME, geometry.GEO_RECT)
+	model.SetValue(model.Append(), SELECTOR_GEO_NAME, geometry.GEO_CIRCLE)
+	model.SetValue(model.Append(), SELECTOR_GEO_NAME, geometry.GEO_TEXT)
+	model.SetValue(model.Append(), SELECTOR_GEO_NAME, geometry.GEO_IMAGE)
+	model.SetValue(model.Append(), SELECTOR_GEO_NAME, geometry.GEO_POLY)
+	model.SetValue(model.Append(), SELECTOR_GEO_NAME, geometry.GEO_TICKER)
+	model.SetValue(model.Append(), SELECTOR_GEO_NAME, geometry.GEO_CLOCK)
 
 	cell, err := gtk.CellRendererTextNew()
 	if err != nil {
@@ -149,24 +139,9 @@ func NewGeoTree(geoSelector *gtk.ComboBox, geoToEditor func(geoID int), editName
 
 	geoSelector.SetModel(model)
 	geoSelector.CellLayout.PackStart(cell, true)
-	geoSelector.CellLayout.AddAttribute(cell, "text", 1)
+	geoSelector.CellLayout.AddAttribute(cell, "text", SELECTOR_GEO_NAME)
 	geoSelector.SetActive(1)
 
-	return
-}
-
-func (geoTree *GeoTree) GetSelectedGeoType() (geoType string, err error) {
-	iter, err := geoTree.geoSelector.GetActiveIter()
-	if err != nil {
-		return
-	}
-
-	model, err := geoTree.geoSelector.GetModel()
-	if err != nil {
-		return
-	}
-
-	geoType, err = util.ModelGetValue[string](model.ToTreeModel(), iter, SELECTOR_PROP_NAME)
 	return
 }
 
@@ -181,7 +156,7 @@ func (geoTree *GeoTree) GetSelectedGeoName() (geoName string, err error) {
 		return
 	}
 
-	geoName, err = util.ModelGetValue[string](model.ToTreeModel(), iter, SELECTOR_PROP_NAME)
+	geoName, err = util.ModelGetValue[string](model.ToTreeModel(), iter, SELECTOR_GEO_NAME)
 	return
 }
 
@@ -216,7 +191,7 @@ func geometryToTreeView(temp *templates.Template, geoTree *GeoTree, parentID int
 			continue
 		}
 
-		geoTree.AddGeoRow(geoID, parentID, geo.Name, propNames[geo.GeoType])
+		geoTree.AddGeoRow(geoID, parentID, geo.Name, geo.GeoType)
 		if geoID == parentID {
 			continue
 		}

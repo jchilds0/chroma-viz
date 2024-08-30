@@ -239,16 +239,52 @@ func TextToBuffer(text string) (textView *gtk.TextView, err error) {
 // T -> {'id': num, 'num_geo': num, 'layer': num, 'geometry': [G]} | T, T
 func (temp *Template) MarshalJSON() (buf []byte, err error) {
 	var tempJSON struct {
-		Template
-		NumGeometry int
-		NumKeyframe int
+		Title     string
+		TempID    int64
+		Layer     int
+		UserFrame []UserFrame
+		SetFrame  []SetFrame
+		BindFrame []BindFrame
+
+		Rectangle []geometry.Rectangle
+		Circle    []geometry.Circle
+		Clock     []geometry.Clock
+		Image     []geometry.Image
+		Polygon   []geometry.Polygon
+		Text      []geometry.Text
+		Ticker    []geometry.Ticker
 	}
 
-	tempJSON.Template = *temp
-	tempJSON.NumGeometry = temp.NumGeometry()
-	tempJSON.NumKeyframe = temp.MaxKeyframe()
+	tempJSON.Title = temp.Title
+	tempJSON.TempID = temp.TempID
+	tempJSON.Layer = temp.Layer
+	tempJSON.UserFrame = temp.UserFrame
+	tempJSON.SetFrame = temp.SetFrame
+	tempJSON.BindFrame = temp.BindFrame
+
+	tempJSON.Rectangle = removeNil(temp.Rectangle)
+	tempJSON.Circle = removeNil(temp.Circle)
+	tempJSON.Clock = removeNil(temp.Clock)
+	tempJSON.Image = removeNil(temp.Image)
+	tempJSON.Polygon = removeNil(temp.Polygon)
+	tempJSON.Text = removeNil(temp.Text)
+	tempJSON.Ticker = removeNil(temp.Ticker)
 
 	return json.Marshal(tempJSON)
+}
+
+func removeNil[T any](geos []*T) (retval []T) {
+	retval = make([]T, 0, len(geos))
+
+	for _, geo := range geos {
+		if geo == nil {
+			continue
+		}
+
+		retval = append(retval, *geo)
+	}
+
+	return
 }
 
 type encoder interface {

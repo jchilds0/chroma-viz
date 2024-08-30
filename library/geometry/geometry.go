@@ -18,13 +18,13 @@ const (
 )
 
 const (
-	GEO_RECT   = "rect"
-	GEO_CIRCLE = "circle"
-	GEO_TEXT   = "text"
-	GEO_IMAGE  = "image"
-	GEO_POLY   = "polygon"
-	GEO_TICKER = "ticker"
-	GEO_CLOCK  = "clock"
+	GEO_RECT   = "Rectangle"
+	GEO_CIRCLE = "Circle"
+	GEO_TEXT   = "Text"
+	GEO_IMAGE  = "Image"
+	GEO_POLY   = "Polygon"
+	GEO_TICKER = "Ticker"
+	GEO_CLOCK  = "Clock"
 )
 
 const (

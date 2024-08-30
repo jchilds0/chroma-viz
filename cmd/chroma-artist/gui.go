@@ -513,20 +513,14 @@ func addGeo(temp *templates.Template, geoTree *GeoTree, keyTree *KeyTree) {
 		return
 	}
 
-	geoType, err := geoTree.GetSelectedGeoType()
+	geoNum, err := temp.AddGeometry(geoName, geoName)
 	if err != nil {
 		log.Printf("Error adding geometry: %s", err)
 		return
 	}
 
-	propNum, err := temp.AddGeometry(geoType, geoName)
-	if err != nil {
-		log.Printf("Error adding geometry: %s", err)
-		return
-	}
-
-	geoTree.AddGeoRow(propNum, 0, geoName, geoName)
-	keyTree.AddGeometry(geoName, propNum)
+	geoTree.AddGeoRow(geoNum, 0, geoName, geoName)
+	keyTree.AddGeometry(geoName, geoNum)
 }
 
 func removeGeo(temp *templates.Template, geoTree *GeoTree, keyTree *KeyTree) {
