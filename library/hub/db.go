@@ -201,7 +201,7 @@ func (hub *DataBase) HandleConn(conn net.Conn) {
 
 		if cmds[1] != "0" || cmds[2] != "1" {
 			Logger("Request has incorrect ver %s %s, expected 0 1 (%s)", cmds[1], cmds[2], s)
-			_, err = conn.Write([]byte{byte('\n')})
+			_, err = conn.Write([]byte(string(EOM)))
 			continue
 		}
 
@@ -210,47 +210,45 @@ func (hub *DataBase) HandleConn(conn net.Conn) {
 			b, err = hub.EncodeDB()
 			if err != nil {
 				Logger("Error retrieving database (%s)", err)
-				_, err = conn.Write([]byte{byte('\n')})
+				_, err = conn.Write([]byte(string(EOM)))
 				continue
 			}
 
-			_, err = conn.Write(b)
-			_, err = conn.Write([]byte{byte('\n')})
+			_, err = conn.Write(append(b, byte(EOM)))
 
 		case "tempids":
 			s, err = hub.TempIDs()
 			if err != nil {
 				Logger("Error retrieving template IDs (%s)", err)
-				_, err = conn.Write([]byte{byte('\n')})
+				_, err = conn.Write([]byte(string(EOM)))
 				continue
 			}
 
-			_, err = conn.Write([]byte(s + "\n"))
+			_, err = conn.Write([]byte(s + string(EOM)))
 
 		case "temp":
 			tempid, err := strconv.ParseInt(cmds[4], 10, 64)
 			if err != nil {
 				Logger("Error getting template id: %s", err)
-				_, err = conn.Write([]byte{byte('\n')})
+				_, err = conn.Write([]byte(string(EOM)))
 				continue
 			}
 
 			template, err := hub.GetTemplate(tempid)
 			if err != nil {
 				Logger("Error getting template %d: %s", tempid, err)
-				_, err = conn.Write([]byte{byte('\n')})
+				_, err = conn.Write([]byte(string(EOM)))
 				continue
 			}
 
 			b, err = json.Marshal(template)
 			if err != nil {
 				Logger("Error encoding template %d: %s", tempid, err)
-				_, err = conn.Write([]byte{byte('\n')})
+				_, err = conn.Write([]byte(string(EOM)))
 				continue
 			}
 
-			_, err = conn.Write(b)
-			_, err = conn.Write([]byte{byte('\n')})
+			_, err = conn.Write(append(b, byte(EOM)))
 
 		case "img":
 			imageID, _ := strconv.Atoi(cmds[4])

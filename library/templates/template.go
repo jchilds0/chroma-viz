@@ -316,12 +316,12 @@ func GetTemplate(conn net.Conn, tempid int) (temp Template, err error) {
 	}
 
 	buf := bufio.NewReader(conn)
-	data, err := buf.ReadBytes('\n')
+	data, err := buf.ReadBytes(6)
 	if err != nil {
 		return
 	}
 
-	err = json.Unmarshal(data, &temp)
+	err = json.Unmarshal(data[:len(data)-1], &temp)
 	if err != nil {
 		return
 	}

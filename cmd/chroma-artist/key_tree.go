@@ -434,34 +434,27 @@ func (keyTree *KeyTree) ImportKeyframes(temp *templates.Template) (err error) {
 		}
 	}
 
+	var iter *gtk.TreeIter
 	for _, frame := range temp.UserFrame {
 		model := keyTree.keyframeModel[frame.FrameNum]
-		if model == nil {
-			err = fmt.Errorf("Keyframe %d model does not exist", frame.FrameNum)
+		geo := temp.Geos[frame.GeoID]
+
+		iter, err = keyTree.addGeometryRow(&frame.Keyframe, geo)
+		if err != nil {
 			return
 		}
-
-		iter := model.Append()
-		model.SetValue(iter, FRAME_GEOMETRY_ID, frame.GeoID)
-		model.SetValue(iter, FRAME_ATTR_TYPE, frame.GeoAttr)
-		model.SetValue(iter, FRAME_ATTR, geometry.Attrs[frame.GeoAttr])
-		model.SetValue(iter, FRAME_EXPAND, frame.Expand)
 
 		model.SetValue(iter, FRAME_USER_VALUE, true)
 	}
 
 	for _, frame := range temp.BindFrame {
 		model := keyTree.keyframeModel[frame.FrameNum]
-		if model == nil {
-			err = fmt.Errorf("Keyframe %d model does not exist", frame.FrameNum)
+		geo := temp.Geos[frame.GeoID]
+
+		iter, err = keyTree.addGeometryRow(&frame.Keyframe, geo)
+		if err != nil {
 			return
 		}
-
-		iter := model.Append()
-		model.SetValue(iter, FRAME_GEOMETRY_ID, frame.GeoID)
-		model.SetValue(iter, FRAME_ATTR_TYPE, frame.GeoAttr)
-		model.SetValue(iter, FRAME_ATTR, geometry.Attrs[frame.GeoAttr])
-		model.SetValue(iter, FRAME_EXPAND, frame.Expand)
 
 		model.SetValue(iter, FRAME_BIND_FRAME, frame.Bind.FrameNum)
 		model.SetValue(iter, FRAME_BIND_GEO, frame.Bind.GeoID)
@@ -470,16 +463,12 @@ func (keyTree *KeyTree) ImportKeyframes(temp *templates.Template) (err error) {
 
 	for _, frame := range temp.SetFrame {
 		model := keyTree.keyframeModel[frame.FrameNum]
-		if model == nil {
-			err = fmt.Errorf("Keyframe %d model does not exist", frame.FrameNum)
+		geo := temp.Geos[frame.GeoID]
+
+		iter, err = keyTree.addGeometryRow(&frame.Keyframe, geo)
+		if err != nil {
 			return
 		}
-
-		iter := model.Append()
-		model.SetValue(iter, FRAME_GEOMETRY_ID, frame.GeoID)
-		model.SetValue(iter, FRAME_ATTR_TYPE, frame.GeoAttr)
-		model.SetValue(iter, FRAME_ATTR, geometry.Attrs[frame.GeoAttr])
-		model.SetValue(iter, FRAME_EXPAND, frame.Expand)
 
 		model.SetValue(iter, FRAME_VALUE, frame.Value)
 	}
@@ -487,7 +476,33 @@ func (keyTree *KeyTree) ImportKeyframes(temp *templates.Template) (err error) {
 	return
 }
 
+func (keyTree *KeyTree) addGeometryRow(frame *templates.Keyframe, geo *geometry.Geometry) (iter *gtk.TreeIter, err error) {
+	model := keyTree.keyframeModel[frame.FrameNum]
+	if model == nil {
+		err = fmt.Errorf("Keyframe %d model does not exist", frame.FrameNum)
+		return
+	}
+
+	if geo == nil {
+		err = fmt.Errorf("Error adding keyframe %s: Geometry is nil", frame.FrameNum)
+		return
+	}
+
+	iter = model.Append()
+	model.SetValue(iter, FRAME_GEOMETRY_ID, frame.GeoID)
+	model.SetValue(iter, FRAME_GEOMETRY, geo.Name)
+	model.SetValue(iter, FRAME_ATTR_TYPE, frame.GeoAttr)
+	model.SetValue(iter, FRAME_ATTR, geometry.Attrs[frame.GeoAttr])
+	model.SetValue(iter, FRAME_EXPAND, frame.Expand)
+
+	return
+}
+
 func (keyTree *KeyTree) ExportKeyframes(temp *templates.Template) (err error) {
+	temp.SetFrame = make([]templates.SetFrame, 0, len(temp.SetFrame))
+	temp.UserFrame = make([]templates.UserFrame, 0, len(temp.UserFrame))
+	temp.BindFrame = make([]templates.BindFrame, 0, len(temp.BindFrame))
+
 	for frameNum := range keyTree.keyframeModel {
 		err := keyTree.exportFrame(temp, frameNum)
 		if err != nil {

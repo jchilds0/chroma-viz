@@ -7,7 +7,7 @@
     "Connections": [
         {
             "Name": "Engine",
-            "Address": "josh-laptop",
+            "Address": "127.0.0.1",
             "Port": 6800,
             "Type": "engine"
         },

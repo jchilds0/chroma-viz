@@ -194,7 +194,7 @@
         {
             "GeometryID": 4,
             "Name": "Title Mask",
-            "GeoType": "rect",
+            "GeoType": "Rectangle",
             "RelX": {
                 "Name": "rel_x",
                 "Value": 170
@@ -234,7 +234,7 @@
         {
             "GeometryID": 5,
             "Name": "Subtitle Mask",
-            "GeoType": "rect",
+            "GeoType": "Rectangle",
             "RelX": {
                 "Name": "rel_x",
                 "Value": 170
@@ -274,7 +274,7 @@
         {
             "GeometryID": 1,
             "Name": "Rectangle",
-            "GeoType": "rect",
+            "GeoType": "Rectangle",
             "RelX": {
                 "Name": "rel_x",
                 "Value": 100
@@ -318,7 +318,7 @@
         {
             "GeometryID": 6,
             "Name": "",
-            "GeoType": "image",
+            "GeoType": "Image",
             "RelX": {
                 "Name": "rel_x",
                 "Value": -15
@@ -350,7 +350,7 @@
         {
             "GeometryID": 2,
             "Name": "Subtitle",
-            "GeoType": "text",
+            "GeoType": "Text",
             "RelX": {
                 "Name": "rel_x",
                 "Value": 0
@@ -386,7 +386,7 @@
         {
             "GeometryID": 3,
             "Name": "Title",
-            "GeoType": "text",
+            "GeoType": "Text",
             "RelX": {
                 "Name": "rel_x",
                 "Value": 0
