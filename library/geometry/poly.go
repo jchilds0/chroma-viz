@@ -7,6 +7,7 @@ import (
 
 type Polygon struct {
 	Geometry
+
 	Polygon attribute.PolygonAttribute
 }
 
@@ -17,6 +18,7 @@ func NewPolygon(geo Geometry, numPoints int) *Polygon {
 
 	poly.Polygon.PosX = make([]int, 0, numPoints)
 	poly.Polygon.PosY = make([]int, 0, numPoints)
+
 	return poly
 }
 
@@ -24,7 +26,7 @@ func (p *Polygon) UpdateGeometry(pEdit *PolygonEditor) (err error) {
 	return
 }
 
-func (p *Polygon) Encode(b strings.Builder) {
+func (p *Polygon) Encode(b *strings.Builder) {
 	p.Geometry.Encode(b)
 
 	p.Polygon.Encode(b)

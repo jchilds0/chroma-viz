@@ -2,6 +2,7 @@ package geometry
 
 import (
 	"chroma-viz/library/attribute"
+	"chroma-viz/library/parser"
 	"strings"
 )
 
@@ -26,11 +27,11 @@ func (i *Image) UpdateGeometry(iEdit *ImageEditor) (err error) {
 	return
 }
 
-func (i *Image) Encode(b strings.Builder) {
+func (i *Image) Encode(b *strings.Builder) {
 	i.Geometry.Encode(b)
 
-	i.Image.Encode(b)
-	i.Scale.Encode(b)
+	parser.EngineAddKeyValue(b, i.Image.Name, i.Image.Value)
+	parser.EngineAddKeyValue(b, i.Scale.Name, i.Scale.Value)
 }
 
 type ImageEditor struct {

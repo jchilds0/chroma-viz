@@ -36,13 +36,13 @@ func NewListAttribute(name string, numCols int, selected bool) (list *ListAttrib
 	return
 }
 
-func (listAttr *ListAttribute) Encode(b strings.Builder) {
+func (listAttr *ListAttribute) Encode(b *strings.Builder) {
 	for i := range listAttr.Rows {
 		listAttr.stringRow(b, i)
 	}
 }
 
-func (listAttr *ListAttribute) stringRow(b strings.Builder, rowIndex int) {
+func (listAttr *ListAttribute) stringRow(b *strings.Builder, rowIndex int) {
 	b.WriteString(listAttr.Name)
 	b.WriteRune('=')
 	defer b.WriteRune('#')

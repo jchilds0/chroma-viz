@@ -2,6 +2,7 @@ package geometry
 
 import (
 	"chroma-viz/library/attribute"
+	"chroma-viz/library/parser"
 	"strings"
 
 	"github.com/gotk3/gotk3/gtk"
@@ -131,10 +132,11 @@ func (g *Geometry) UpdateGeometry(gEdit *GeometryEditor) (err error) {
 	return
 }
 
-func (g *Geometry) Encode(b strings.Builder) {
-	g.RelX.Encode(b)
-	g.RelY.Encode(b)
-	g.Mask.Encode(b)
+func (g *Geometry) Encode(b *strings.Builder) {
+	parser.EngineAddKeyValue(b, "geo_num", g.GeometryID)
+	parser.EngineAddKeyValue(b, g.RelX.Name, g.RelX.Value)
+	parser.EngineAddKeyValue(b, g.RelY.Name, g.RelY.Value)
+	parser.EngineAddKeyValue(b, g.Mask.Name, g.Mask.Value)
 }
 
 func (g *Geometry) GetName() string {

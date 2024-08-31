@@ -2,6 +2,7 @@ package geometry
 
 import (
 	"chroma-viz/library/attribute"
+	"chroma-viz/library/parser"
 	"strings"
 )
 
@@ -21,6 +22,8 @@ func NewText(geo Geometry) *Text {
 	text.String.Name = ATTR_STRING
 	text.Color.Name = ATTR_COLOR
 	text.Scale.Name = ATTR_SCALE
+	text.Color.Alpha = 1.0
+
 	return text
 }
 
@@ -44,12 +47,12 @@ func (t *Text) UpdateGeometry(tEdit *TextEditor) (err error) {
 	return
 }
 
-func (t *Text) Encode(b strings.Builder) {
+func (t *Text) Encode(b *strings.Builder) {
 	t.Geometry.Encode(b)
 
-	t.String.Encode(b)
-	t.Scale.Encode(b)
-	t.Color.Encode(b)
+	parser.EngineAddKeyValue(b, t.String.Name, t.String.Value)
+	parser.EngineAddKeyValue(b, t.Scale.Name, t.Scale.Value)
+	parser.EngineAddKeyValue(b, t.Color.Name, t.Color.ToString())
 }
 
 type TextEditor struct {

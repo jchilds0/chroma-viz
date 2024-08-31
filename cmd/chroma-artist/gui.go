@@ -187,6 +187,11 @@ func ArtistGui(app *gtk.Application) {
 		log.Fatal(err)
 	}
 
+	err = chromaHub.SelectDatabase("chroma_hub", "", "")
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	hubConn := library.NewConnection("Hub", conf.HubAddr, conf.HubPort)
 	hubConn.Connect()
 
@@ -312,14 +317,12 @@ func ArtistGui(app *gtk.Application) {
 
 			tempID, err := util.ModelGetValue[int](dialog.treeList.ToTreeModel(), iter, 1)
 
-			temp, err := templates.GetTemplate(hubConn.Conn, tempID)
+			*template, err = templates.GetTemplate(hubConn.Conn, tempID)
 			if err != nil {
 				log.Printf("Error importing template: %s", err)
 				return
 			}
 
-			template = &temp
-			editView.CurrentTemp = &temp
 			updateUIFromTemplate(
 				template, geoTree, keyTree, frameSideBar, framePane,
 				titleEntry, tempIDEntry, layerEntry,
@@ -451,7 +454,8 @@ func ArtistGui(app *gtk.Application) {
 	win.ShowAll()
 }
 
-func updateUIFromTemplate(temp *templates.Template, geoTree *GeoTree, keyTree *KeyTree, sidebar *gtk.StackSidebar, framePane *gtk.Paned,
+func updateUIFromTemplate(temp *templates.Template, geoTree *GeoTree, keyTree *KeyTree,
+	sidebar *gtk.StackSidebar, framePane *gtk.Paned,
 	titleEntry, tempIDEntry, layerEntry *gtk.Entry) (page *pages.Page) {
 	titleEntry.SetText(temp.Title)
 	tempIDEntry.SetText(strconv.FormatInt(temp.TempID, 10))

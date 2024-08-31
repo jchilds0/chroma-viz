@@ -37,7 +37,7 @@ func EngineAddKeyValue(b *strings.Builder, name string, value any) {
 	case int64:
 		b.WriteString(strconv.FormatInt(v, 10))
 	case float64:
-		b.WriteString(strconv.FormatFloat(v, 'f', 64, 10))
+		b.WriteString(strconv.FormatFloat(v, 'f', 10, 64))
 	case string:
 		b.WriteString(v)
 	default:

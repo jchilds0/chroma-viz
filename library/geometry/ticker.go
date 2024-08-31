@@ -2,6 +2,7 @@ package geometry
 
 import (
 	"chroma-viz/library/attribute"
+	"chroma-viz/library/parser"
 	"strings"
 )
 
@@ -21,6 +22,8 @@ func NewTicker(geo Geometry) *Ticker {
 	ticker.String.Name = ATTR_STRING
 	ticker.Scale.Name = ATTR_SCALE
 	ticker.Color.Name = ATTR_COLOR
+	ticker.Color.Alpha = 1.0
+
 	return ticker
 }
 
@@ -44,8 +47,12 @@ func (t *Ticker) UpdateGeometry(tEdit *TickerEditor) (err error) {
 	return
 }
 
-func (t *Ticker) EncodeEngine(b strings.Builder) {
+func (t *Ticker) Encode(b *strings.Builder) {
+	t.Geometry.Encode(b)
 
+	t.String.Encode(b)
+	parser.EngineAddKeyValue(b, t.Scale.Name, t.Scale.Value)
+	parser.EngineAddKeyValue(b, t.Color.Name, t.Color.ToString())
 }
 
 type TickerEditor struct {

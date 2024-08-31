@@ -287,25 +287,6 @@ func removeNil[T any](geos []*T) (retval []T) {
 	return
 }
 
-type encoder interface {
-	EncodeJSON(strings.Builder)
-}
-
-func encodeSlice[T encoder](b strings.Builder, geos []T, first *bool) {
-	for _, geo := range geos {
-		if isNil(geo) {
-			continue
-		}
-
-		if !(*first) {
-			b.WriteString(",")
-		}
-		*first = false
-
-		geo.EncodeJSON(b)
-	}
-}
-
 func (temp *Template) ExportTemplate(filename string) error {
 	file, err := os.Create(filename)
 	if err != nil {
@@ -341,6 +322,20 @@ func GetTemplate(conn net.Conn, tempid int) (temp Template, err error) {
 	}
 
 	err = json.Unmarshal(data, &temp)
+	if err != nil {
+		return
+	}
+
+	temp.Geos = make(map[int]*geometry.Geometry, 10)
+
+	updateGeometryEntry[*geometry.Rectangle](&temp, temp.Rectangle)
+	updateGeometryEntry[*geometry.Circle](&temp, temp.Circle)
+	updateGeometryEntry[*geometry.Clock](&temp, temp.Clock)
+	updateGeometryEntry[*geometry.Image](&temp, temp.Image)
+	updateGeometryEntry[*geometry.Polygon](&temp, temp.Polygon)
+	updateGeometryEntry[*geometry.Text](&temp, temp.Text)
+	updateGeometryEntry[*geometry.Ticker](&temp, temp.Ticker)
+
 	return
 }
 
@@ -387,6 +382,28 @@ func (temp *Template) MaxKeyframe() (maxFrameNum int) {
 func (temp *Template) Encode(b *strings.Builder) {
 	parser.EngineAddKeyValue(b, "temp", temp.TempID)
 	parser.EngineAddKeyValue(b, "layer", temp.Layer)
+
+	encodeGeometry(b, temp.Rectangle)
+	encodeGeometry(b, temp.Circle)
+	encodeGeometry(b, temp.Clock)
+	encodeGeometry(b, temp.Image)
+	encodeGeometry(b, temp.Polygon)
+	encodeGeometry(b, temp.Text)
+	encodeGeometry(b, temp.Ticker)
+}
+
+type encoder interface {
+	Encode(b *strings.Builder)
+}
+
+func encodeGeometry[T encoder](b *strings.Builder, geos []T) {
+	for _, geo := range geos {
+		if isNil(geo) {
+			continue
+		}
+
+		geo.Encode(b)
+	}
 }
 
 type geoInterface interface {

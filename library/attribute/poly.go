@@ -1,7 +1,7 @@
 package attribute
 
 import (
-	"strconv"
+	"chroma-viz/library/parser"
 	"strings"
 
 	"github.com/gotk3/gotk3/gtk"
@@ -13,11 +13,8 @@ type PolygonAttribute struct {
 	PosY []int
 }
 
-func (polyAttr *PolygonAttribute) Encode(b strings.Builder) {
-	b.WriteString("num_points")
-	b.WriteRune('=')
-	b.WriteString(strconv.Itoa(len(polyAttr.PosX)))
-	b.WriteRune('#')
+func (polyAttr *PolygonAttribute) Encode(b *strings.Builder) {
+	parser.EngineAddKeyValue(b, "num_points", len(polyAttr.PosX))
 }
 
 func (polyAttr *PolygonAttribute) UpdateAttribute(polyEditor *PolygonEditor) error {

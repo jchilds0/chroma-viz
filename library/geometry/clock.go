@@ -2,6 +2,7 @@ package geometry
 
 import (
 	"chroma-viz/library/attribute"
+	"chroma-viz/library/parser"
 	"strings"
 )
 
@@ -21,6 +22,8 @@ func NewClock(geo Geometry) (c *Clock) {
 	c.Clock.Name = ATTR_STRING
 	c.Color.Name = ATTR_COLOR
 	c.Scale.Name = ATTR_SCALE
+	c.Color.Alpha = 1.0
+
 	return c
 }
 
@@ -44,12 +47,12 @@ func (c *Clock) UpdateGeometry(cEdit *ClockEditor) (err error) {
 	return
 }
 
-func (c *Clock) Encode(b strings.Builder) {
+func (c *Clock) Encode(b *strings.Builder) {
 	c.Geometry.Encode(b)
 
-	c.Clock.Encode(b)
-	c.Color.Encode(b)
-	c.Scale.Encode(b)
+	parser.EngineAddKeyValue(b, c.Clock.Name, c.Clock.CurrentTime)
+	parser.EngineAddKeyValue(b, c.Color.Name, c.Color.ToString())
+	parser.EngineAddKeyValue(b, c.Scale.Name, c.Scale.Value)
 }
 
 type ClockEditor struct {

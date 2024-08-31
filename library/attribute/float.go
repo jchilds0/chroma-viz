@@ -1,22 +1,12 @@
 package attribute
 
 import (
-	"strconv"
-	"strings"
-
 	"github.com/gotk3/gotk3/gtk"
 )
 
 type FloatAttribute struct {
 	Name  string
 	Value float64
-}
-
-func (floatAttr *FloatAttribute) Encode(b strings.Builder) {
-	b.WriteString(floatAttr.Name)
-	b.WriteRune('=')
-	b.WriteString(strconv.FormatFloat(floatAttr.Value, 'f', 10, 64))
-	b.WriteRune('#')
 }
 
 func (floatAttr *FloatAttribute) UpdateAttribute(floatEdit *FloatEditor) (err error) {

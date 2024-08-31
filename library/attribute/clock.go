@@ -3,7 +3,6 @@ package attribute
 import (
 	"encoding/json"
 	"log"
-	"strings"
 	"sync"
 	"time"
 
@@ -59,13 +58,6 @@ func (clockAttr *ClockAttribute) UnmarshalJSON(b []byte) error {
 
 func (clockAttr *ClockAttribute) SetClock(cont func()) {
 	go clockAttr.RunClock(cont)
-}
-
-func (clockAttr *ClockAttribute) Encode(b strings.Builder) {
-	b.WriteString(clockAttr.Name)
-	b.WriteRune('=')
-	b.WriteString(clockAttr.CurrentTime)
-	b.WriteRune('#')
 }
 
 func (clockAttr *ClockAttribute) UpdateAttribute(clockEdit *ClockEditor) error {

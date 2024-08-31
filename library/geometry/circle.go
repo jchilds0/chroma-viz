@@ -2,6 +2,7 @@ package geometry
 
 import (
 	"chroma-viz/library/attribute"
+	"chroma-viz/library/parser"
 	"strings"
 )
 
@@ -25,6 +26,8 @@ func NewCircle(geo Geometry) *Circle {
 	circle.StartAngle.Name = ATTR_START_ANGLE
 	circle.EndAngle.Name = ATTR_END_ANGLE
 	circle.Color.Name = ATTR_COLOR
+	circle.Color.Alpha = 1.0
+
 	return circle
 }
 
@@ -58,14 +61,14 @@ func (c *Circle) UpdateGeometry(cEdit *CircleEditor) (err error) {
 	return
 }
 
-func (c *Circle) Encode(b strings.Builder) {
+func (c *Circle) Encode(b *strings.Builder) {
 	c.Geometry.Encode(b)
 
-	c.InnerRadius.Encode(b)
-	c.OuterRadius.Encode(b)
-	c.StartAngle.Encode(b)
-	c.EndAngle.Encode(b)
-	c.Color.Encode(b)
+	parser.EngineAddKeyValue(b, c.InnerRadius.Name, c.InnerRadius.Value)
+	parser.EngineAddKeyValue(b, c.OuterRadius.Name, c.OuterRadius.Value)
+	parser.EngineAddKeyValue(b, c.StartAngle.Name, c.StartAngle.Value)
+	parser.EngineAddKeyValue(b, c.EndAngle.Name, c.EndAngle.Value)
+	parser.EngineAddKeyValue(b, c.Color.Name, c.Color.ToString())
 }
 
 type CircleEditor struct {

@@ -1,21 +1,12 @@
 package attribute
 
 import (
-	"strings"
-
 	"github.com/gotk3/gotk3/gtk"
 )
 
 type StringAttribute struct {
 	Name  string
 	Value string
-}
-
-func (stringAttr *StringAttribute) Encode(b strings.Builder) {
-	b.WriteString(stringAttr.Name)
-	b.WriteRune('=')
-	b.WriteString(stringAttr.Value)
-	b.WriteRune('#')
 }
 
 func (stringAttr *StringAttribute) UpdateAttribute(stringEdit *StringEditor) (err error) {

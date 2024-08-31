@@ -189,7 +189,7 @@ func (page *Page) Encode(b *strings.Builder) {
 }
 
 type encoder interface {
-	Encode(b strings.Builder)
+	Encode(b *strings.Builder)
 }
 
 func encodeGeometry[T encoder](b *strings.Builder, geos []T) {
@@ -202,7 +202,7 @@ func encodeGeometry[T encoder](b *strings.Builder, geos []T) {
 			continue
 		}
 
-		//geo.Encode(*b)
+		geo.Encode(b)
 	}
 }
 
