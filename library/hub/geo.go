@@ -76,7 +76,7 @@ func (hub *DataBase) AddAsset(tempID int64, a geometry.Image) (err error) {
 		return
 	}
 
-	_, err = hub.db.Exec(q, geoID, a.Image.Directory(), a.Image.Name, a.Image.AssetID(), a.Scale.Value)
+	_, err = hub.db.Exec(q, geoID, a.Image.Directory(), a.Image.Name, a.Image.Value, a.Scale.Value)
 	return
 }
 
