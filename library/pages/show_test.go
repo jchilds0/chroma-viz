@@ -81,5 +81,5 @@ func assert[T comparable](t *testing.T, v1 T, v2 T, s string) {
 		return
 	}
 
-	t.Errorf("%s: expected %v, received %v", s, v1, v2)
+	t.Errorf("%s: expected %v, received %v", s, v2, v1)
 }
