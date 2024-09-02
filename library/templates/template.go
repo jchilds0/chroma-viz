@@ -101,6 +101,10 @@ func updateGeometryEntry[T geoInterface](temp *Template, geos []T) {
 }
 
 func (temp *Template) Clean() {
+	temp.Title = ""
+	temp.TempID = 0
+	temp.Layer = 0
+
 	numGeo := 10
 	numKey := 10
 

@@ -156,6 +156,16 @@
                         </child>
 
                         <child>
+                          <object class="GtkButton" id="remove-frame">
+                            <property name="label">Remove Frame</property>
+                          </object>
+
+                          <packing>
+                            <property name="padding">10</property>
+                          </packing>
+                        </child>
+
+                        <child>
                           <object class="GtkLabel">
                             <property name="label">Geometry</property>
                             <property name="width-chars">12</property>

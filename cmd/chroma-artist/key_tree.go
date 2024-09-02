@@ -32,20 +32,23 @@ const (
 )
 
 type KeyTree struct {
-	nextFrame     int
 	keyframeModel map[int]*gtk.ListStore
 	keyframeView  map[int]*gtk.TreeView
-	keyGeoList    *gtk.ListStore
-	keyGeoSelect  *gtk.ComboBox
+
+	keyGeoList   *gtk.ListStore
+	keyGeoSelect *gtk.ComboBox
+
 	keyAttrList   *gtk.ListStore
 	keyAttrSelect *gtk.ComboBox
+
+	keyFrameStack *gtk.StackSidebar
 }
 
-func NewKeyframeTree(keyGeo, keyAttr *gtk.ComboBox) (keyTree *KeyTree) {
+func NewKeyframeTree(keyGeo, keyAttr *gtk.ComboBox, sideBar *gtk.StackSidebar) (keyTree *KeyTree) {
 	keyTree = &KeyTree{
-		nextFrame:     1,
 		keyGeoSelect:  keyGeo,
 		keyAttrSelect: keyAttr,
+		keyFrameStack: sideBar,
 	}
 
 	keyTree.keyframeModel = make(map[int]*gtk.ListStore, 20)
@@ -204,7 +207,7 @@ func (keyTree *KeyTree) RemoveGeo(geoID int) {
 	}
 }
 
-func (keyTree *KeyTree) AddFrame() (frameNum int, err error) {
+func (keyTree *KeyTree) AddFrame() (err error) {
 	model, err := gtk.ListStoreNew(
 		glib.TYPE_STRING,  // Geometry Name
 		glib.TYPE_INT,     // Geometry Num
@@ -229,8 +232,15 @@ func (keyTree *KeyTree) AddFrame() (frameNum int, err error) {
 	view.SetModel(model)
 	view.SetVisible(true)
 
-	frameNum = keyTree.nextFrame
-	keyTree.nextFrame++
+	frameNum := len(keyTree.keyframeView) + 1
+	for i := 1; i <= len(keyTree.keyframeView); i++ {
+		if _, ok := keyTree.keyframeView[i]; ok {
+			continue
+		}
+
+		frameNum = i
+		break
+	}
 
 	keyTree.keyframeModel[frameNum] = model
 	keyTree.keyframeView[frameNum] = view
@@ -339,7 +349,7 @@ func (keyTree *KeyTree) AddFrame() (frameNum int, err error) {
 
 					state, err := util.ModelGetValue[bool](model.ToTreeModel(), iter, cols[i])
 					if err != nil {
-						log.Printf("Error toggling toggle (%s)", err)
+						log.Printf("Error toggling toggle: %s", err)
 						return
 					}
 
@@ -395,7 +405,7 @@ func (keyTree *KeyTree) AddFrame() (frameNum int, err error) {
 			valueCell.Connect("edited", func(cell *gtk.CellRendererText, path, text string) {
 				iter, err := model.GetIterFromString(path)
 				if err != nil {
-					log.Printf("Error editing geometry (%s)", err)
+					log.Printf("Error editing geometry: %s", err)
 					return
 				}
 
@@ -408,10 +418,44 @@ func (keyTree *KeyTree) AddFrame() (frameNum int, err error) {
 
 	}
 
+	stack := keyTree.keyFrameStack.GetStack()
+	name := fmt.Sprintf("   Frame %d   ", frameNum)
+	stack.AddTitled(keyTree.keyframeView[frameNum], strconv.Itoa(frameNum), name)
+
 	return
 }
 
-func (keyTree *KeyTree) AddKeyframe(frameNum, geoID int, geoName, attrType, attrName string) (err error) {
+func (keyTree *KeyTree) RemoveFrame() (err error) {
+	frameNum, err := keyTree.getSelectedFrameNum()
+	if err != nil {
+		return
+	}
+
+	stack := keyTree.keyFrameStack.GetStack()
+	stack.Remove(keyTree.keyframeView[frameNum])
+	delete(keyTree.keyframeView, frameNum)
+
+	return
+}
+
+func (keyTree *KeyTree) AddKeyframe() (err error) {
+	geoID, geoName, err := keyTree.SelectedGeometry()
+	if err != nil {
+		err = fmt.Errorf("Error getting geo id: %s", err)
+		return
+	}
+
+	attrType, attrName, err := keyTree.SelectedAttribute()
+	if err != nil {
+		err = fmt.Errorf("Error getting attribute: %s", err)
+		return
+	}
+
+	frameNum, err := keyTree.getSelectedFrameNum()
+	if err != nil {
+		return
+	}
+
 	model := keyTree.keyframeModel[frameNum]
 	if model == nil {
 		err = fmt.Errorf("Keyframe %d model does not exist", frameNum)
@@ -426,9 +470,54 @@ func (keyTree *KeyTree) AddKeyframe(frameNum, geoID int, geoName, attrType, attr
 	return
 }
 
+func (keyTree *KeyTree) RemoveKeyframe() (err error) {
+	frameNum, err := keyTree.getSelectedFrameNum()
+	if err != nil {
+		return
+	}
+
+	model := keyTree.keyframeModel[frameNum]
+	if model == nil {
+		err = fmt.Errorf("Error getting selected keyframe model")
+		return
+	}
+
+	view := keyTree.keyframeView[frameNum]
+	if view == nil {
+		err = fmt.Errorf("Error getting selected keyframe view")
+		return
+	}
+
+	selection, err := view.GetSelection()
+	if err != nil {
+		return
+	}
+
+	_, iter, ok := selection.GetSelected()
+	if !ok {
+		return
+	}
+
+	model.Remove(iter)
+	return
+}
+
+func (keyTree *KeyTree) getSelectedFrameNum() (frameNum int, err error) {
+	stack := keyTree.keyFrameStack.GetStack()
+	frameString := stack.GetVisibleChildName()
+
+	frameNum, err = strconv.Atoi(frameString)
+	if err != nil {
+		err = fmt.Errorf("Error getting frame num: %s", err)
+		return
+	}
+
+	return
+}
+
 func (keyTree *KeyTree) ImportKeyframes(temp *templates.Template) (err error) {
 	for range temp.MaxKeyframe() {
-		_, err = keyTree.AddFrame()
+		err = keyTree.AddFrame()
 		if err != nil {
 			return
 		}
@@ -484,7 +573,7 @@ func (keyTree *KeyTree) addGeometryRow(frame *templates.Keyframe, geo *geometry.
 	}
 
 	if geo == nil {
-		err = fmt.Errorf("Error adding keyframe %s: Geometry is nil", frame.FrameNum)
+		err = fmt.Errorf("Error adding keyframe %d: Geometry is nil", frame.FrameNum)
 		return
 	}
 
@@ -663,15 +752,20 @@ func (keyTree *KeyTree) UpdateGeometryName(geoID int, name string) {
 }
 
 func (keyTree *KeyTree) Clear() {
-	keyTree.nextFrame = 1
 	keyTree.keyGeoList.Clear()
 	keyTree.keyAttrList.Clear()
 
-	for k := range keyTree.keyframeModel {
+	for k, model := range keyTree.keyframeModel {
+		model.Clear()
 		delete(keyTree.keyframeModel, k)
 	}
 
-	for k := range keyTree.keyframeView {
+	for k, model := range keyTree.keyframeView {
+		if model == nil {
+			continue
+		}
+
+		keyTree.keyFrameStack.Remove(model)
 		delete(keyTree.keyframeView, k)
 	}
 }
