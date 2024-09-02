@@ -175,8 +175,8 @@ type editor[S any] interface {
 }
 
 func updateEditor[T editor[S], S geometer[T]](edit *Editor, editors []T, geos []S, init func() (T, error)) {
-	diff := len(editors) - len(geos)
-	if diff < 0 {
+	diff := len(geos) - len(editors)
+	if diff > 0 {
 		for _ = range diff {
 			edit, err := init()
 			if err != nil {
@@ -190,6 +190,10 @@ func updateEditor[T editor[S], S geometer[T]](edit *Editor, editors []T, geos []
 
 	var label *gtk.Label
 	for i := range geos {
+		if isNil(geos[i]) {
+			continue
+		}
+
 		err := editors[i].UpdateEditor(geos[i])
 		if err != nil {
 			log.Print(err)

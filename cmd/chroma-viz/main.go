@@ -2,18 +2,25 @@ package main
 
 import (
 	"chroma-viz/library"
+	"chroma-viz/library/pages"
+	"chroma-viz/library/templates"
 	"flag"
 	"log"
+	"math/rand"
+	"net"
 	"os"
 	"runtime/pprof"
+	"time"
 
 	"github.com/gotk3/gotk3/glib"
 	"github.com/gotk3/gotk3/gtk"
 )
 
 var profile = flag.String("profile", "", "write profile to file")
-var configPath = flag.String("c", "viz/conf.json", "config json")
+var configPath = flag.String("c", "./viz/conf.json", "config json")
+var importRandom = flag.Int("t", 0, "import random pages")
 var conf *library.Config
+var numTemplates = 100
 
 func main() {
 	flag.Parse()
@@ -31,6 +38,10 @@ func main() {
 	conf, err = library.ImportConfig(*configPath)
 	if err != nil {
 		log.Fatal(err)
+	}
+
+	if *importRandom != 0 {
+		importHook = importRandomPages
 	}
 
 	conn.hub = library.NewConnection("Hub", conf.HubAddr, conf.HubPort)
@@ -77,4 +88,28 @@ func closeViz() {
 			log.Printf("Closed %s\n", c.Name)
 		}
 	}
+}
+
+func importRandomPages(hub net.Conn, tempTree *TempTree, showTree *ShowTree) {
+	start := time.Now()
+	showTree.treeView.SetModel(nil)
+
+	for i := 0; i < *importRandom; i++ {
+		index := (rand.Int() % numTemplates) + 1
+		template, err := templates.GetTemplate(hub, index)
+		if err != nil {
+			log.Fatal(err)
+			return
+		}
+
+		page := pages.NewPageFromTemplate(&template)
+		page.PageNum = showTree.show.NumPages
+		showTree.ImportPage(page)
+	}
+
+	end := time.Now()
+	elapsed := end.Sub(start)
+	log.Printf("Built Show in %s\n", elapsed)
+
+	showTree.treeView.SetModel(showTree.treeList)
 }
