@@ -2,6 +2,7 @@ package pages
 
 import (
 	"chroma-viz/library/geometry"
+	"chroma-viz/library/templates"
 	"log"
 
 	"github.com/gotk3/gotk3/gtk"
@@ -206,4 +207,10 @@ func updateEditor[T editor[S], S geometer[T]](edit *Editor, editors []T, geos []
 
 		edit.tabs.AppendPage(editors[i].GetBox(), label)
 	}
+}
+
+func (edit *Editor) UpdateTemplate(newTemp *templates.Template) {
+	edit.CurrentPage = NewPageFromTemplate(newTemp)
+	edit.UpdateProps()
+	edit.SetPage(edit.CurrentPage)
 }

@@ -124,6 +124,23 @@ func VizGui(app *gtk.Application) {
 		SendPreview(edit.CurrentPage, library.ANIMATE_ON)
 	})
 
+	edit.AddAction("Update Template", false, func() {
+		if edit.CurrentPage == nil {
+			log.Print("No page selected")
+			return
+		}
+
+		SendPreview(edit.CurrentPage, library.UPDATE)
+		temp, err := templates.GetTemplate(conn.hub.Conn, edit.CurrentPage.TemplateID)
+		if err != nil {
+			log.Printf("Error updating template: %s", err)
+			return
+		}
+
+		edit.UpdateTemplate(&temp)
+		SendPreview(edit.CurrentPage, library.ANIMATE_ON)
+	})
+
 	preview, err := library.SetupPreviewWindow(*conf,
 		func() { SendPreview(edit.CurrentPage, library.ANIMATE_ON) },
 		func() { SendPreview(edit.CurrentPage, library.CONTINUE) },

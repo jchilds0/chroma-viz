@@ -3,6 +3,7 @@ package hub
 import (
 	"chroma-viz/library/templates"
 	"fmt"
+	"reflect"
 )
 
 func (hub *DataBase) ImportTemplate(temp templates.Template) (err error) {
@@ -11,68 +12,85 @@ func (hub *DataBase) ImportTemplate(temp templates.Template) (err error) {
 		return
 	}
 
-	for _, rect := range temp.Rectangle {
-		err = hub.AddRectangle(temp.TempID, *rect)
-
-		if err != nil {
-			err = fmt.Errorf("Error adding rect: %s", err)
-			return
-		}
+	err = importPointer(temp.TempID, temp.Rectangle, hub.AddRectangle)
+	if err != nil {
+		return
 	}
 
-	for _, text := range temp.Text {
-		err = hub.AddText(temp.TempID, *text)
-
-		if err != nil {
-			err = fmt.Errorf("Error adding text: %s", err)
-			return
-		}
+	err = importPointer(temp.TempID, temp.Circle, hub.AddCircle)
+	if err != nil {
+		return
 	}
 
-	for _, circle := range temp.Circle {
-		err = hub.AddCircle(temp.TempID, *circle)
-
-		if err != nil {
-			err = fmt.Errorf("Error adding circle: %s", err)
-			return
-		}
+	err = importPointer(temp.TempID, temp.Text, hub.AddText)
+	if err != nil {
+		return
 	}
 
-	for _, asset := range temp.Image {
-		err = hub.AddAsset(temp.TempID, *asset)
-
-		if err != nil {
-			err = fmt.Errorf("Error adding asset: %s", err)
-			return
-		}
+	err = importPointer(temp.TempID, temp.Image, hub.AddAsset)
+	if err != nil {
+		return
 	}
 
-	for _, bind := range temp.BindFrame {
-		err = hub.AddBindFrame(temp.TempID, bind)
-		if err != nil {
-			err = fmt.Errorf("Error adding bind frame: %s", err)
-			return
-		}
+	err = importPointer(temp.TempID, temp.Polygon, hub.AddPolygon)
+	if err != nil {
+		return
 	}
 
-	for _, set := range temp.SetFrame {
-		err = hub.AddSetFrame(temp.TempID, set)
-
-		if err != nil {
-			err = fmt.Errorf("Error adding set frame: %s", err)
-			return
-		}
+	err = importPointer(temp.TempID, temp.Ticker, hub.AddTicker)
+	if err != nil {
+		return
 	}
 
-	for _, user := range temp.UserFrame {
-		err = hub.AddUserFrame(temp.TempID, user)
-		if err != nil {
-			err = fmt.Errorf("Error adding user frame: %s", err)
-			return
-		}
+	err = importStruct(temp.TempID, temp.Clock, hub.AddClock)
+	if err != nil {
+		return
+	}
+
+	err = importStruct(temp.TempID, temp.SetFrame, hub.AddSetFrame)
+	if err != nil {
+		return
+	}
+
+	err = importStruct(temp.TempID, temp.BindFrame, hub.AddBindFrame)
+	if err != nil {
+		return
+	}
+
+	err = importStruct(temp.TempID, temp.UserFrame, hub.AddUserFrame)
+	if err != nil {
+		return
 	}
 
 	hub.Templates[temp.TempID] = &temp
+
+	return
+}
+
+func importPointer[T any](tempID int64, geos []*T, f func(tempID int64, geo T) error) (err error) {
+	for _, geo := range geos {
+		if geo == nil {
+			continue
+		}
+
+		err = f(tempID, *geo)
+		if err != nil {
+			err = fmt.Errorf("Error adding %s: %s", reflect.TypeOf(geo).String(), err)
+			return
+		}
+	}
+
+	return
+}
+
+func importStruct[T any](tempID int64, keys []T, f func(tempID int64, geo T) error) (err error) {
+	for _, key := range keys {
+		err = f(tempID, key)
+		if err != nil {
+			err = fmt.Errorf("Error adding %s: %s", reflect.TypeOf(key).String(), err)
+			return
+		}
+	}
 
 	return
 }
@@ -142,6 +160,18 @@ func (hub *DataBase) GetTemplate(tempID int64) (temp *templates.Template, err er
 	err = hub.GetAssets(temp)
 	if err != nil {
 		err = fmt.Errorf("Assets: %s", err)
+		return
+	}
+
+	err = hub.GetClocks(temp)
+	if err != nil {
+		err = fmt.Errorf("Clock: %s", err)
+		return
+	}
+
+	err = hub.GetTickers(temp)
+	if err != nil {
+		err = fmt.Errorf("Ticker: %s", err)
 		return
 	}
 

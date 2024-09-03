@@ -80,6 +80,48 @@ func (hub *DataBase) AddAsset(tempID int64, a geometry.Image) (err error) {
 	return
 }
 
+func (hub *DataBase) AddClock(tempID int64, c *geometry.Clock) (err error) {
+	q := `
+        INSERT INTO clock VALUES (?, ?, ?);
+    `
+
+	geoID, err := hub.addGeometry(tempID, c.Geometry)
+	if err != nil {
+		return
+	}
+
+	_, err = hub.db.Exec(q, geoID, c.Scale.Value, c.Color.ToString())
+	return
+}
+
+func (hub *DataBase) AddPolygon(tempID int64, p geometry.Polygon) (err error) {
+	q := `
+        INSERT INTO asset VALUES (?, ?, ?, ?, ?);
+    `
+
+	geoID, err := hub.addGeometry(tempID, p.Geometry)
+	if err != nil {
+		return
+	}
+
+	_, err = hub.db.Exec(q, geoID, 
+	return
+}
+
+func (hub *DataBase) AddTicker(tempID int64, t geometry.Ticker) (err error) {
+	q := `
+        INSERT INTO asset VALUES (?, ?, ?, ?, ?);
+    `
+
+	geoID, err := hub.addGeometry(tempID, a.Geometry)
+	if err != nil {
+		return
+	}
+
+	_, err = hub.db.Exec(q, geoID, a.Image.Directory(), a.Image.Name, a.Image.Value, a.Scale.Value)
+	return
+}
+
 func (hub *DataBase) GetGeometry(geoID int64) (geo geometry.Geometry, err error) {
 	q := `
         SELECT g.geoNum, g.name, g.geoType, g.rel_x, g.rel_y, g.parent, g.mask
@@ -338,5 +380,14 @@ func (hub *DataBase) GetPolygons(temp *templates.Template) (err error) {
 		temp.Polygon = append(temp.Polygon, poly)
 	}
 
+	return
+}
+
+func (hub *DataBase) GetClocks(temp *templates.Template) (err error) {
+
+	return
+}
+
+func (hub *DataBase) GetTickers(temp *templates.Template) (err error) {
 	return
 }
