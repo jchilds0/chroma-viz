@@ -218,12 +218,11 @@ func ArtistGui(app *gtk.Application) {
 	if err != nil {
 		log.Fatal(err)
 	}
-	editView.CurrentTemp = template
 
 	preview, err := library.SetupPreviewWindow(*conf,
-		func() { SendPreview(editView.CurrentTemp, library.ANIMATE_ON) },
-		func() { SendPreview(editView.CurrentTemp, library.CONTINUE) },
-		func() { SendPreview(editView.CurrentTemp, library.ANIMATE_OFF) },
+		func() { SendPreview(template, library.ANIMATE_ON) },
+		func() { SendPreview(template, library.CONTINUE) },
+		func() { SendPreview(template, library.ANIMATE_OFF) },
 	)
 	if err != nil {
 		log.Fatalf("Error setting up preview window: %s", err)
@@ -232,7 +231,7 @@ func ArtistGui(app *gtk.Application) {
 	geometryToEditor := func(geoID int) {
 		editView.CurrentGeoID = geoID
 
-		err := editView.UpdateEditor()
+		err := editView.UpdateEditor(template)
 		if err != nil {
 			log.Printf("Error sending prop %d to editor: %s", geoID, err)
 		}
@@ -257,15 +256,16 @@ func ArtistGui(app *gtk.Application) {
 			return
 		}
 
+		editView.UpdateGeometry(template)
+
 		err = chromaHub.ImportTemplate(*template)
 		if err != nil {
 			log.Printf("Error sending template to chroma hub (%s)", err)
 		}
 
-		editView.UpdateGeometry()
-		SendPreview(editView.CurrentTemp, library.UPDATE)
+		SendPreview(template, library.UPDATE)
 		time.Sleep(10 * time.Millisecond)
-		SendPreview(editView.CurrentTemp, library.ANIMATE_ON)
+		SendPreview(template, library.ANIMATE_ON)
 	})
 
 	/* actions */
@@ -276,7 +276,7 @@ func ArtistGui(app *gtk.Application) {
 			titleEntry, tempIDEntry, layerEntry,
 		)
 
-		SendPreview(editView.CurrentTemp, library.UPDATE)
+		SendPreview(template, library.UPDATE)
 	})
 
 	importTemplateJSON.Connect("activate", func() {

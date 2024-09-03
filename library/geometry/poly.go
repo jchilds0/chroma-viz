@@ -9,15 +9,16 @@ type Polygon struct {
 	Geometry
 
 	Polygon attribute.PolygonAttribute
+	Color   attribute.ColorAttribute
 }
 
-func NewPolygon(geo Geometry, numPoints int) *Polygon {
+func NewPolygon(geo Geometry) *Polygon {
 	poly := &Polygon{
 		Geometry: geo,
 	}
 
-	poly.Polygon.PosX = make([]int, 0, numPoints)
-	poly.Polygon.PosY = make([]int, 0, numPoints)
+	poly.Polygon.PosX = make(map[int]int, 128)
+	poly.Polygon.PosY = make(map[int]int, 128)
 
 	return poly
 }

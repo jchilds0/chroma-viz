@@ -10,7 +10,7 @@ import (
 )
 
 func Logger(message string, args ...any) {
-	file, err := os.Create("./chroma_hub.log")
+	file, err := os.Open("./chroma_hub.log")
 	if err != nil {
 		log.Printf("Error opening log file (%s)", err)
 	}

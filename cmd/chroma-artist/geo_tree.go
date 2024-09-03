@@ -129,7 +129,7 @@ func NewGeoTree(geoSelector *gtk.ComboBox, geoToEditor func(geoID int), editName
 	model.SetValue(model.Append(), SELECTOR_GEO_NAME, geometry.GEO_TEXT)
 	model.SetValue(model.Append(), SELECTOR_GEO_NAME, geometry.GEO_IMAGE)
 	model.SetValue(model.Append(), SELECTOR_GEO_NAME, geometry.GEO_POLY)
-	model.SetValue(model.Append(), SELECTOR_GEO_NAME, geometry.GEO_TICKER)
+	model.SetValue(model.Append(), SELECTOR_GEO_NAME, geometry.GEO_LIST)
 	model.SetValue(model.Append(), SELECTOR_GEO_NAME, geometry.GEO_CLOCK)
 
 	cell, err := gtk.CellRendererTextNew()

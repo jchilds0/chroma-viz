@@ -1,9 +1,10 @@
 package hub
 
 import (
+	"chroma-viz/library/attribute"
 	"chroma-viz/library/geometry"
 	"chroma-viz/library/templates"
-	"fmt"
+	"database/sql"
 )
 
 func (hub *DataBase) addGeometry(tempID int64, geo geometry.Geometry) (geoID int64, err error) {
@@ -95,30 +96,63 @@ func (hub *DataBase) AddClock(tempID int64, c *geometry.Clock) (err error) {
 }
 
 func (hub *DataBase) AddPolygon(tempID int64, p geometry.Polygon) (err error) {
-	q := `
-        INSERT INTO asset VALUES (?, ?, ?, ?, ?);
-    `
+	qPoly := `
+	       INSERT INTO polygon VALUES (?, ?);
+	   `
+
+	qPoint := `
+	       INSERT INTO point VALUES (?, ?, ?, ?);
+	   `
 
 	geoID, err := hub.addGeometry(tempID, p.Geometry)
 	if err != nil {
 		return
 	}
 
-	_, err = hub.db.Exec(q, geoID, 
-	return
-}
-
-func (hub *DataBase) AddTicker(tempID int64, t geometry.Ticker) (err error) {
-	q := `
-        INSERT INTO asset VALUES (?, ?, ?, ?, ?);
-    `
-
-	geoID, err := hub.addGeometry(tempID, a.Geometry)
+	_, err = hub.db.Exec(qPoly, geoID, p.Color.ToString())
 	if err != nil {
 		return
 	}
 
-	_, err = hub.db.Exec(q, geoID, a.Image.Directory(), a.Image.Name, a.Image.Value, a.Scale.Value)
+	for i := range p.Polygon.PosX {
+		posX := p.Polygon.PosX[i]
+		posY := p.Polygon.PosY[i]
+
+		_, err = hub.db.Exec(qPoint, geoID, i, posX, posY)
+		if err != nil {
+			return
+		}
+	}
+
+	return
+}
+
+func (hub *DataBase) AddList(tempID int64, l geometry.List) (err error) {
+	qList := `
+        INSERT INTO list VALUES (?, ?, ?);
+    `
+
+	qRows := `
+        INSERT INTO row VALUES (?, ?, ?);
+    `
+
+	geoID, err := hub.addGeometry(tempID, l.Geometry)
+	if err != nil {
+		return
+	}
+
+	_, err = hub.db.Exec(qList, geoID, l.Color.ToString(), l.String.Selected)
+	if err != nil {
+		return
+	}
+
+	for index, row := range l.String.Rows {
+		_, err = hub.db.Exec(qRows, geoID, index, row.ToString())
+		if err != nil {
+			return
+		}
+	}
+
 	return
 }
 
@@ -259,7 +293,7 @@ func (hub *DataBase) GetTexts(temp *templates.Template) (err error) {
 	for rows.Next() {
 		err = rows.Scan(&geoID, &text, &scale, &color)
 		if err != nil {
-			err = fmt.Errorf("Text: %s", err)
+			return
 		}
 
 		geo, err = hub.GetGeometry(geoID)
@@ -318,7 +352,7 @@ func (hub *DataBase) GetAssets(temp *templates.Template) (err error) {
 
 func (hub *DataBase) GetPolygons(temp *templates.Template) (err error) {
 	q := `
-        SELECT p.geometryID, p.point_index, p.pos_x, p.pos_y
+        SELECT p.geometryID, p.color
         FROM polygon p
         INNER JOIN geometry g 
         ON p.geometryID = g.geometryID 
@@ -330,64 +364,165 @@ func (hub *DataBase) GetPolygons(temp *templates.Template) (err error) {
 		return
 	}
 
-	pointsX := make(map[int64]map[int]int, 128)
-	pointsY := make(map[int64]map[int]int, 128)
-
 	var (
-		geo        geometry.Geometry
-		geoID      int64
-		pointIndex int
-		posX, posY int
+		geo   geometry.Geometry
+		geoID int64
+		color string
 	)
 
 	for rows.Next() {
-		err = rows.Scan(&geoID, &pointIndex, &posX, &posY)
+		err = rows.Scan(&geoID, &color)
 		if err != nil {
 			return
 		}
 
-		if _, ok := pointsX[geoID]; !ok {
-			pointsX[geoID] = make(map[int]int, 128)
-			pointsY[geoID] = make(map[int]int, 128)
-		}
-
-		pointsX[geoID][pointIndex] = posX
-		pointsY[geoID][pointIndex] = posY
+		poly := geometry.NewPolygon(geo)
+		poly.Color.FromString(color)
+		temp.Polygon = append(temp.Polygon, poly)
 	}
 
-	for geoID := range pointsX {
-		geo, err = hub.GetGeometry(geoID)
+	err = hub.GetPolyPoints(temp)
+	return
+}
+
+func (hub *DataBase) GetPolyPoints(temp *templates.Template) (err error) {
+	q := `
+        SELECT p.pointID, p.pos_x, p.pos_y
+        FROM point p
+        WHERE p.geometryID = ?;
+    `
+
+	var (
+		rows       *sql.Rows
+		pointIndex int
+		posX, posY int
+	)
+	for _, poly := range temp.Polygon {
+		rows, err = hub.db.Query(q, poly.GeometryID)
 		if err != nil {
 			return
 		}
 
-		poly := geometry.NewPolygon(geo, len(pointsX[geoID])+10)
-		for i := range len(pointsX[geoID]) {
-			if _, ok := pointsX[geoID][i]; !ok {
-				err = fmt.Errorf("Missing point %d for geometry %d", i, geoID)
+		for rows.Next() {
+			err = rows.Scan(&pointIndex, &posX, &posY)
+			if err != nil {
 				return
 			}
 
-			if _, ok := pointsY[geoID][i]; !ok {
-				err = fmt.Errorf("Missing point %d for geometry %d", i, geoID)
-				return
-			}
-
-			poly.Polygon.PosX = append(poly.Polygon.PosX, pointsX[geoID][i])
-			poly.Polygon.PosY = append(poly.Polygon.PosY, pointsY[geoID][i])
+			poly.Polygon.AddPoint(pointIndex, posX, posY)
 		}
-
-		temp.Polygon = append(temp.Polygon, poly)
 	}
 
 	return
 }
 
 func (hub *DataBase) GetClocks(temp *templates.Template) (err error) {
+	q := `
+        SELECT c.geometryID, c.scale, c.color
+        FROM clock c
+        INNER JOIN geometry g
+        ON g.geometryID = c.geometryID
+        WHERE g.templateID = ?;
+    `
+
+	rows, err := hub.db.Query(q, temp.TempID)
+	if err != nil {
+		return
+	}
+
+	var geo geometry.Geometry
+	var color string
+	var geoID int64
+	var scale float64
+
+	for rows.Next() {
+		err = rows.Scan(&geoID, &scale, &color)
+		if err != nil {
+			return
+		}
+
+		geo, err = hub.GetGeometry(geoID)
+		if err != nil {
+			return
+		}
+
+		c := geometry.NewClock(geo)
+		temp.Clock = append(temp.Clock, c)
+	}
 
 	return
 }
 
-func (hub *DataBase) GetTickers(temp *templates.Template) (err error) {
+func (hub *DataBase) GetLists(temp *templates.Template) (err error) {
+	q := `
+        SELECT l.geometryID, l.color, l.single_row
+        FROM list l
+        INNER JOIN geometry g
+        ON g.geometryID = l.geometryID
+        WHERE g.templateID = ?;
+    `
+
+	rows, err := hub.db.Query(q, temp.TempID)
+	if err != nil {
+		return
+	}
+
+	var geoID int64
+	var color string
+	var singleRow bool
+	var geo geometry.Geometry
+
+	for rows.Next() {
+		err = rows.Scan(&geoID, &color, &singleRow)
+		if err != nil {
+			return
+		}
+
+		geo, err = hub.GetGeometry(geoID)
+		if err != nil {
+			return
+		}
+
+		l := geometry.NewList(geo)
+		l.Color.FromString(color)
+		l.String.Selected = singleRow
+
+		temp.List = append(temp.List, l)
+	}
+
+	err = hub.GetListRows(temp)
+	return
+}
+
+func (hub *DataBase) GetListRows(temp *templates.Template) (err error) {
+	q := `
+        SELECT r.rowID, r.row
+        FROM row r
+        WHERE r.geometryID = ?;
+    `
+
+	var (
+		rows  *sql.Rows
+		row   string
+		index int
+	)
+
+	for _, list := range temp.List {
+		rows, err = hub.db.Query(q, list.GeometryID)
+		if err != nil {
+			return
+		}
+
+		for rows.Next() {
+			err = rows.Scan(&index, &row)
+			if err != nil {
+				return
+			}
+
+			rowAttr := attribute.NewListRow(row)
+			list.AddRow(index, rowAttr)
+		}
+	}
+
 	return
 }

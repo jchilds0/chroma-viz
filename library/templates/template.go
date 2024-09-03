@@ -39,7 +39,7 @@ type Template struct {
 	Image     []*geometry.Image
 	Polygon   []*geometry.Polygon
 	Text      []*geometry.Text
-	Ticker    []*geometry.Ticker
+	List      []*geometry.List
 }
 
 func NewTemplate(title string, id int64, layer, numKey, numGeo int) *Template {
@@ -61,7 +61,7 @@ func NewTemplate(title string, id int64, layer, numKey, numGeo int) *Template {
 	temp.Image = make([]*geometry.Image, 0, numGeo)
 	temp.Polygon = make([]*geometry.Polygon, 0, numGeo)
 	temp.Text = make([]*geometry.Text, 0, numGeo)
-	temp.Ticker = make([]*geometry.Ticker, 0, numGeo)
+	temp.List = make([]*geometry.List, 0, numGeo)
 
 	return temp
 }
@@ -85,7 +85,7 @@ func NewTemplateFromFile(fileName string) (temp Template, err error) {
 	updateGeometryEntry[*geometry.Image](&temp, temp.Image)
 	updateGeometryEntry[*geometry.Polygon](&temp, temp.Polygon)
 	updateGeometryEntry[*geometry.Text](&temp, temp.Text)
-	updateGeometryEntry[*geometry.Ticker](&temp, temp.Ticker)
+	updateGeometryEntry[*geometry.List](&temp, temp.List)
 
 	return
 }
@@ -116,7 +116,7 @@ func (temp *Template) Clean() {
 	temp.Image = make([]*geometry.Image, 0, numGeo)
 	temp.Polygon = make([]*geometry.Polygon, 0, numGeo)
 	temp.Text = make([]*geometry.Text, 0, numGeo)
-	temp.Ticker = make([]*geometry.Ticker, 0, numGeo)
+	temp.List = make([]*geometry.List, 0, numGeo)
 
 	temp.UserFrame = make([]UserFrame, 0, numKey)
 	temp.SetFrame = make([]SetFrame, 0, numKey)
@@ -124,6 +124,10 @@ func (temp *Template) Clean() {
 }
 
 func (temp *Template) AddGeometry(geoType, geoName string) (id int, err error) {
+	if temp.Geos == nil {
+		temp.Geos = make(map[int]*geometry.Geometry, 128)
+	}
+
 	ok := true
 	for id = 1; ok; id++ {
 		geo, ok := temp.Geos[id]
@@ -160,14 +164,14 @@ func (temp *Template) AddGeometry(geoType, geoName string) (id int, err error) {
 		temp.Image = append(temp.Image, img)
 
 	case geometry.GEO_POLY:
-		poly := geometry.NewPolygon(geo, 10)
+		poly := geometry.NewPolygon(geo)
 		temp.Geos[geo.GeometryID] = &poly.Geometry
 		temp.Polygon = append(temp.Polygon)
 
-	case geometry.GEO_TICKER:
-		ticker := geometry.NewTicker(geo)
+	case geometry.GEO_LIST:
+		ticker := geometry.NewList(geo)
 		temp.Geos[geo.GeometryID] = &ticker.Geometry
-		temp.Ticker = append(temp.Ticker, ticker)
+		temp.List = append(temp.List, ticker)
 
 	case geometry.GEO_CLOCK:
 		clock := geometry.NewClock(geo)
@@ -188,7 +192,7 @@ func (temp *Template) RemoveGeometry(geoID int) {
 	temp.Image = removeGeometry(temp.Image, geoID)
 	temp.Polygon = removeGeometry(temp.Polygon, geoID)
 	temp.Text = removeGeometry(temp.Text, geoID)
-	temp.Ticker = removeGeometry(temp.Ticker, geoID)
+	temp.List = removeGeometry(temp.List, geoID)
 
 	delete(temp.Geos, geoID)
 }
@@ -207,7 +211,7 @@ func removeGeometry[T interface{ GetGeometryID() int }](geos []T, geoID int) (re
 		return
 	}
 
-	return
+	return geos
 }
 
 func (temp *Template) TemplateToListRow() (row *gtk.ListBoxRow, err error) {
@@ -256,7 +260,7 @@ func (temp *Template) MarshalJSON() (buf []byte, err error) {
 		Image     []geometry.Image
 		Polygon   []geometry.Polygon
 		Text      []geometry.Text
-		Ticker    []geometry.Ticker
+		List      []geometry.List
 	}
 
 	tempJSON.Title = temp.Title
@@ -272,7 +276,7 @@ func (temp *Template) MarshalJSON() (buf []byte, err error) {
 	tempJSON.Image = removeNil(temp.Image)
 	tempJSON.Polygon = removeNil(temp.Polygon)
 	tempJSON.Text = removeNil(temp.Text)
-	tempJSON.Ticker = removeNil(temp.Ticker)
+	tempJSON.List = removeNil(temp.List)
 
 	return json.Marshal(tempJSON)
 }
@@ -338,7 +342,7 @@ func GetTemplate(conn net.Conn, tempid int) (temp Template, err error) {
 	updateGeometryEntry[*geometry.Image](&temp, temp.Image)
 	updateGeometryEntry[*geometry.Polygon](&temp, temp.Polygon)
 	updateGeometryEntry[*geometry.Text](&temp, temp.Text)
-	updateGeometryEntry[*geometry.Ticker](&temp, temp.Ticker)
+	updateGeometryEntry[*geometry.List](&temp, temp.List)
 
 	return
 }
@@ -350,7 +354,7 @@ func (temp *Template) NumGeometry() (maxID int) {
 	maxID = max(maxID, maxGeoNum(temp.Image))
 	maxID = max(maxID, maxGeoNum(temp.Polygon))
 	maxID = max(maxID, maxGeoNum(temp.Text))
-	maxID = max(maxID, maxGeoNum(temp.Ticker))
+	maxID = max(maxID, maxGeoNum(temp.List))
 
 	return
 }
@@ -393,7 +397,7 @@ func (temp *Template) Encode(b *strings.Builder) {
 	encodeGeometry(b, temp.Image)
 	encodeGeometry(b, temp.Polygon)
 	encodeGeometry(b, temp.Text)
-	encodeGeometry(b, temp.Ticker)
+	encodeGeometry(b, temp.List)
 }
 
 type encoder interface {
@@ -422,7 +426,7 @@ func (temp *Template) ApplyGeometryFunc(geoID int, f func(*geometry.Geometry)) {
 	applyFunction(temp.Image, geoID, f)
 	applyFunction(temp.Polygon, geoID, f)
 	applyFunction(temp.Text, geoID, f)
-	applyFunction(temp.Ticker, geoID, f)
+	applyFunction(temp.List, geoID, f)
 }
 
 func applyFunction[T geoInterface](geos []T, geoID int, f func(*geometry.Geometry)) {

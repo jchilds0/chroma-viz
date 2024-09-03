@@ -20,7 +20,7 @@ type Editor struct {
 	Image  []*geometry.ImageEditor
 	Poly   []*geometry.PolygonEditor
 	Text   []*geometry.TextEditor
-	Ticker []*geometry.TickerEditor
+	List   []*geometry.ListEditor
 }
 
 func NewEditor() (editor *Editor, err error) {
@@ -65,7 +65,7 @@ func NewEditor() (editor *Editor, err error) {
 	editor.Image = initEditors[geometry.ImageEditor](numEditors, geometry.NewImageEditor)
 	editor.Poly = initEditors[geometry.PolygonEditor](numEditors, geometry.NewPolygonEditor)
 	editor.Text = initEditors[geometry.TextEditor](numEditors, geometry.NewTextEditor)
-	editor.Ticker = initEditors[geometry.TickerEditor](numEditors, geometry.NewTickerEditor)
+	editor.List = initEditors[geometry.ListEditor](numEditors, geometry.NewListEditor)
 
 	return
 }
@@ -113,7 +113,7 @@ func (edit *Editor) UpdateProps() {
 	updateGeometry[*geometry.Image, *geometry.ImageEditor](edit.CurrentPage.Image, edit.Image)
 	updateGeometry[*geometry.Polygon, *geometry.PolygonEditor](edit.CurrentPage.Poly, edit.Poly)
 	updateGeometry[*geometry.Text, *geometry.TextEditor](edit.CurrentPage.Text, edit.Text)
-	updateGeometry[*geometry.Ticker, *geometry.TickerEditor](edit.CurrentPage.Ticker, edit.Ticker)
+	updateGeometry[*geometry.List, *geometry.ListEditor](edit.CurrentPage.List, edit.List)
 }
 
 type geometer[S any] interface {
@@ -163,8 +163,8 @@ func (edit *Editor) SetPage(page *Page) (err error) {
 		edit, edit.Text, edit.CurrentPage.Text, geometry.NewTextEditor,
 	)
 
-	updateEditor[*geometry.TickerEditor, *geometry.Ticker](
-		edit, edit.Ticker, edit.CurrentPage.Ticker, geometry.NewTickerEditor,
+	updateEditor[*geometry.ListEditor, *geometry.List](
+		edit, edit.List, edit.CurrentPage.List, geometry.NewListEditor,
 	)
 
 	return

@@ -24,7 +24,7 @@ const (
 	GEO_TEXT   = "Text"
 	GEO_IMAGE  = "Image"
 	GEO_POLY   = "Polygon"
-	GEO_TICKER = "Ticker"
+	GEO_LIST   = "List"
 	GEO_CLOCK  = "Clock"
 )
 

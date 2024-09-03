@@ -126,8 +126,8 @@ func (asset *AssetAttribute) Update(assetEdit *AssetEditor) (err error) {
 }
 
 type AssetEditor struct {
-	name        string
-	box         *gtk.Box
+	Name        string
+	Box         *gtk.Box
 	dirs        *gtk.TreeView
 	dirsStore   *gtk.TreeStore
 	assets      *gtk.TreeView
@@ -135,14 +135,14 @@ type AssetEditor struct {
 }
 
 func NewAssetEditor(name string) *AssetEditor {
-	assetEdit := &AssetEditor{name: name}
+	assetEdit := &AssetEditor{Name: name}
 
-	assetEdit.box, _ = gtk.BoxNew(gtk.ORIENTATION_VERTICAL, 0)
-	assetEdit.box.SetVisible(true)
-	assetEdit.box.SetVExpand(true)
+	assetEdit.Box, _ = gtk.BoxNew(gtk.ORIENTATION_VERTICAL, 0)
+	assetEdit.Box.SetVisible(true)
+	assetEdit.Box.SetVExpand(true)
 
 	paned, _ := gtk.PanedNew(gtk.ORIENTATION_HORIZONTAL)
-	assetEdit.box.PackStart(paned, true, true, 0)
+	assetEdit.Box.PackStart(paned, true, true, 0)
 	paned.SetPosition(200)
 	paned.SetVisible(true)
 

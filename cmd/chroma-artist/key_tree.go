@@ -163,7 +163,7 @@ func (keyTree *KeyTree) UpdateAttrList(geoType string) {
 	case geometry.GEO_TEXT:
 	case geometry.GEO_IMAGE:
 	case geometry.GEO_POLY:
-	case geometry.GEO_TICKER:
+	case geometry.GEO_LIST:
 	case geometry.GEO_CLOCK:
 
 	default:

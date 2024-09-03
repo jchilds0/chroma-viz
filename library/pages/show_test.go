@@ -69,7 +69,7 @@ func clockPropTest(t *testing.T, c *geometry.Clock, x, y int) {
 	assert(t, c.RelY.Value, x, "Clock rel_y")
 }
 
-func tickerPropTest(t *testing.T, ticker *geometry.Ticker, x, y int, s ...string) {
+func tickerPropTest(t *testing.T, ticker *geometry.List, x, y int, s ...string) {
 	assert(t, ticker.RelX.Value, x, "Ticker rel_x")
 	assert(t, ticker.RelY.Value, y, "Ticker rel_y")
 	// check list store values

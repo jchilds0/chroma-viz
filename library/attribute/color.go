@@ -18,7 +18,7 @@ type ColorAttribute struct {
 }
 
 func (colorAttr *ColorAttribute) ToString() string {
-	return fmt.Sprintf("%f %f %f %f", colorAttr.Red, colorAttr.Blue, colorAttr.Green, colorAttr.Alpha)
+	return fmt.Sprintf("%f %f %f %f", colorAttr.Red, colorAttr.Green, colorAttr.Blue, colorAttr.Alpha)
 }
 
 func (colorAttr *ColorAttribute) FromString(s string) (err error) {

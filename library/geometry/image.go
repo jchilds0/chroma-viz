@@ -18,7 +18,7 @@ func NewImage(geo Geometry) *Image {
 		Geometry: geo,
 	}
 
-	image.Scale.Name = "scale"
+	image.Scale.Name = ATTR_SCALE
 	image.Image.Name = "image_id"
 	return image
 }
@@ -37,12 +37,30 @@ func (i *Image) Encode(b *strings.Builder) {
 type ImageEditor struct {
 	GeometryEditor
 
-	Scale attribute.FloatEditor
-	Image attribute.AssetEditor
+	Scale *attribute.FloatEditor
+	Image *attribute.AssetEditor
 }
 
-func NewImageEditor() (*ImageEditor, error) {
-	return nil, nil
+func NewImageEditor() (imgEdit *ImageEditor, err error) {
+	geoEdit, err := NewGeometryEditor()
+	if err != nil {
+		return
+	}
+
+	imgEdit = &ImageEditor{
+		GeometryEditor: *geoEdit,
+	}
+
+	imgEdit.Scale, err = attribute.NewFloatEditor(Attrs[ATTR_SCALE], 0.0, 10.0, 0.01)
+	if err != nil {
+		return
+	}
+
+	imgEdit.Image = attribute.NewAssetEditor("Image")
+
+	imgEdit.ScrollBox.PackStart(imgEdit.Scale.Box, false, false, padding)
+	imgEdit.ScrollBox.PackStart(imgEdit.Image.Box, true, true, padding)
+	return
 }
 
 func (iEdit *ImageEditor) UpdateEditor(i *Image) (err error) {

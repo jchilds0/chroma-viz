@@ -37,7 +37,7 @@ func (hub *DataBase) ImportTemplate(temp templates.Template) (err error) {
 		return
 	}
 
-	err = importPointer(temp.TempID, temp.Ticker, hub.AddTicker)
+	err = importPointer(temp.TempID, temp.List, hub.AddList)
 	if err != nil {
 		return
 	}
@@ -169,9 +169,9 @@ func (hub *DataBase) GetTemplate(tempID int64) (temp *templates.Template, err er
 		return
 	}
 
-	err = hub.GetTickers(temp)
+	err = hub.GetLists(temp)
 	if err != nil {
-		err = fmt.Errorf("Ticker: %s", err)
+		err = fmt.Errorf("Lists: %s", err)
 		return
 	}
 

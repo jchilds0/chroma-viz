@@ -9,8 +9,21 @@ import (
 
 type PolygonAttribute struct {
 	Name string
-	PosX []int
-	PosY []int
+	PosX map[int]int
+	PosY map[int]int
+}
+
+func (polyAttr *PolygonAttribute) AddPoint(index, posX, posY int) {
+	if polyAttr.PosX == nil {
+		polyAttr.PosX = make(map[int]int, 128)
+	}
+
+	if polyAttr.PosY == nil {
+		polyAttr.PosY = make(map[int]int, 128)
+	}
+
+	polyAttr.PosX[index] = posX
+	polyAttr.PosY[index] = posY
 }
 
 func (polyAttr *PolygonAttribute) Encode(b *strings.Builder) {

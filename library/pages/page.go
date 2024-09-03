@@ -40,7 +40,7 @@ type Page struct {
 	Image  []*geometry.Image
 	Poly   []*geometry.Polygon
 	Text   []*geometry.Text
-	Ticker []*geometry.Ticker
+	List   []*geometry.List
 }
 
 func NewPage(pageNum, tempID, layer, numGeo int, title string) *Page {
@@ -59,7 +59,7 @@ func NewPage(pageNum, tempID, layer, numGeo int, title string) *Page {
 	page.Image = make([]*geometry.Image, 0, numGeo)
 	page.Poly = make([]*geometry.Polygon, 0, numGeo)
 	page.Text = make([]*geometry.Text, 0, numGeo)
-	page.Ticker = make([]*geometry.Ticker, 0, numGeo)
+	page.List = make([]*geometry.List, 0, numGeo)
 
 	return page
 }
@@ -73,7 +73,7 @@ func NewPageFromTemplate(temp *templates.Template) *Page {
 	page.Image = temp.Image
 	page.Poly = temp.Polygon
 	page.Text = temp.Text
-	page.Ticker = temp.Ticker
+	page.List = temp.List
 
 	return page
 }
@@ -109,8 +109,8 @@ func AddGeometry(page *Page, geo geoInterface) (err error) {
 	case *geometry.Text:
 		page.Text = append(page.Text, g)
 
-	case *geometry.Ticker:
-		page.Ticker = append(page.Ticker, g)
+	case *geometry.List:
+		page.List = append(page.List, g)
 
 	default:
 		err = fmt.Errorf("Unknown type to add to page")
@@ -185,7 +185,7 @@ func (page *Page) Encode(b *strings.Builder) {
 	encodeGeometry(b, page.Image)
 	encodeGeometry(b, page.Poly)
 	encodeGeometry(b, page.Text)
-	encodeGeometry(b, page.Ticker)
+	encodeGeometry(b, page.List)
 }
 
 type encoder interface {
