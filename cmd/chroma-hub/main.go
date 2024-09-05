@@ -166,7 +166,12 @@ func exported(db *hub.DataBase, inputs []string) {
 			return
 		}
 
-		db.ExportTemplate(inputs[2], tempID)
+		err = db.ExportTemplate(inputs[2], tempID)
+		if err != nil {
+			hub.Logger("CLI: %s", err)
+			return
+		}
+
 	default:
 		fmt.Println(usage)
 	}

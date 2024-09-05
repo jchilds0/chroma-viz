@@ -14,7 +14,8 @@ type Animator interface {
 }
 
 const (
-	END_OF_CONN = iota + 1
+	BLANK = iota
+	END_OF_CONN
 	END_OF_MESSAGE
 	ANIMATE_ON
 	CONTINUE

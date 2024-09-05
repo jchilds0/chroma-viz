@@ -5,6 +5,7 @@ import (
 	"chroma-viz/library/geometry"
 	"chroma-viz/library/templates"
 	"database/sql"
+	"fmt"
 )
 
 func (hub *DataBase) addGeometry(tempID int64, geo geometry.Geometry) (geoID int64, err error) {
@@ -498,7 +499,12 @@ func (hub *DataBase) GetListRows(temp *templates.Template) (err error) {
 	q := `
         SELECT r.rowID, r.row
         FROM row r
-        WHERE r.geometryID = ?;
+        INNER JOIN list l 
+        INNER JOIN geometry g
+        ON r.geometryID = l.geometryID
+        AND l.geometryID = g.geometryID
+        WHERE g.geoNum = ?
+        AND g.templateID = ?;
     `
 
 	var (
@@ -508,8 +514,9 @@ func (hub *DataBase) GetListRows(temp *templates.Template) (err error) {
 	)
 
 	for _, list := range temp.List {
-		rows, err = hub.db.Query(q, list.GeometryID)
+		rows, err = hub.db.Query(q, list.GeometryID, temp.TempID)
 		if err != nil {
+			fmt.Println(err)
 			return
 		}
 

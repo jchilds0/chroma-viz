@@ -271,10 +271,13 @@ func ArtistGui(app *gtk.Application) {
 	/* actions */
 	newTemplate.Connect("activate", func() {
 		template.Clean()
+
 		updateUIFromTemplate(
 			template, geoTree, keyTree, framePane,
 			titleEntry, tempIDEntry, layerEntry,
 		)
+
+		editView.Clear()
 
 		SendPreview(template, library.UPDATE)
 	})
@@ -302,6 +305,8 @@ func ArtistGui(app *gtk.Application) {
 				template, geoTree, keyTree, framePane,
 				titleEntry, tempIDEntry, layerEntry,
 			)
+
+			editView.Clear()
 		}
 	})
 
@@ -336,6 +341,8 @@ func ArtistGui(app *gtk.Application) {
 				template, geoTree, keyTree, framePane,
 				titleEntry, tempIDEntry, layerEntry,
 			)
+
+			editView.Clear()
 		}
 	})
 

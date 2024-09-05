@@ -42,17 +42,6 @@ func NewEditor() (editor *Editor, err error) {
 		return
 	}
 
-	tab, err := gtk.BoxNew(gtk.ORIENTATION_VERTICAL, 0)
-	if err != nil {
-		return
-	}
-
-	tabLabel, err := gtk.LabelNew("Select A Page")
-	if err != nil {
-		return
-	}
-
-	editor.tabs.AppendPage(tab, tabLabel)
 	editor.Box.PackStart(editor.tabs, true, true, 0)
 
 	editor.Rect, err = geometry.NewRectangleEditor()
@@ -90,7 +79,29 @@ func NewEditor() (editor *Editor, err error) {
 		log.Print(err)
 	}
 
+	editor.Clear()
+
 	return
+}
+
+func (edit *Editor) Clear() {
+	num_pages := edit.tabs.GetNPages()
+	for i := 0; i < num_pages; i++ {
+		edit.tabs.RemovePage(0)
+	}
+
+	tab, err := gtk.BoxNew(gtk.ORIENTATION_VERTICAL, 0)
+	if err != nil {
+		return
+	}
+
+	tabLabel, err := gtk.LabelNew("Select Geometry")
+	if err != nil {
+		return
+	}
+
+	tab.SetVisible(true)
+	edit.tabs.AppendPage(tab, tabLabel)
 }
 
 /*

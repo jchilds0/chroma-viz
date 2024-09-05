@@ -516,6 +516,10 @@ func (keyTree *KeyTree) getSelectedFrameNum() (frameNum int, err error) {
 }
 
 func (keyTree *KeyTree) ImportKeyframes(temp *templates.Template) (err error) {
+	for _, geo := range temp.Geos {
+		keyTree.AddGeometry(geo.Name, geo.GeometryID)
+	}
+
 	for range temp.MaxKeyframe() {
 		err = keyTree.AddFrame()
 		if err != nil {
@@ -760,12 +764,14 @@ func (keyTree *KeyTree) Clear() {
 		delete(keyTree.keyframeModel, k)
 	}
 
+	stack := keyTree.keyFrameStack.GetStack()
+
 	for k, model := range keyTree.keyframeView {
 		if model == nil {
 			continue
 		}
 
-		keyTree.keyFrameStack.Remove(model)
+		stack.Remove(model)
 		delete(keyTree.keyframeView, k)
 	}
 }

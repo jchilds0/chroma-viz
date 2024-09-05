@@ -28,7 +28,6 @@ type ListAttribute struct {
 	Name        string
 	Selected    bool
 	SelectedRow int
-	Header      ListRow
 	Rows        map[int]ListRow
 }
 
