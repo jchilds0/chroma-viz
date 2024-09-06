@@ -247,9 +247,12 @@ func TextToBuffer(text string) (textView *gtk.TextView, err error) {
 // T -> {'id': num, 'num_geo': num, 'layer': num, 'geometry': [G]} | T, T
 func (temp *Template) MarshalJSON() (buf []byte, err error) {
 	var tempJSON struct {
-		Title     string
-		TempID    int64
-		Layer     int
+		Title       string
+		TempID      int64
+		Layer       int
+		MaxGeometry int
+		MaxKeyframe int
+
 		UserFrame []UserFrame
 		SetFrame  []SetFrame
 		BindFrame []BindFrame
@@ -262,6 +265,9 @@ func (temp *Template) MarshalJSON() (buf []byte, err error) {
 		Text      []geometry.Text
 		List      []geometry.List
 	}
+
+	tempJSON.MaxGeometry = temp.NumGeometry() + 1
+	tempJSON.MaxKeyframe = temp.MaxKeyframe() + 1
 
 	tempJSON.Title = temp.Title
 	tempJSON.TempID = temp.TempID
