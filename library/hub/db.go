@@ -102,8 +102,12 @@ func (hub *DataBase) EncodeDB() (buf []byte, err error) {
 	return json.Marshal(databaseJSON)
 }
 
-func (hub *DataBase) CleanDB() (err error) {
-	_, err = hub.db.Exec("DELETE FROM template")
+func (hub *DataBase) CleanDB() {
+	_, err := hub.db.Exec("DELETE FROM template")
+	if err != nil {
+		Logger("Error clearing db: %s", err)
+	}
+
 	return
 }
 

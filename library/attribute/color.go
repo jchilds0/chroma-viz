@@ -32,12 +32,12 @@ func (colorAttr *ColorAttribute) FromString(s string) (err error) {
 		return
 	}
 
-	colorAttr.Blue, err = strconv.ParseFloat(nums[1], 64)
+	colorAttr.Green, err = strconv.ParseFloat(nums[1], 64)
 	if err != nil {
 		return
 	}
 
-	colorAttr.Green, err = strconv.ParseFloat(nums[2], 64)
+	colorAttr.Blue, err = strconv.ParseFloat(nums[2], 64)
 	if err != nil {
 		return
 	}

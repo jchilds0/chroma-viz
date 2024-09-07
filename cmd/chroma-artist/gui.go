@@ -422,7 +422,6 @@ func ArtistGui(app *gtk.Application) {
 	keyGeo.Connect("changed", func() {
 		geoID, _, err := keyTree.SelectedGeometry()
 		if err != nil {
-			log.Printf("Error getting selected geometry: %s", err)
 			return
 		}
 

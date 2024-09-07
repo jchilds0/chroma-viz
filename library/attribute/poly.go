@@ -4,6 +4,7 @@ import (
 	"chroma-viz/library/parser"
 	"strings"
 
+	"github.com/gotk3/gotk3/glib"
 	"github.com/gotk3/gotk3/gtk"
 )
 
@@ -41,6 +42,32 @@ type PolygonEditor struct {
 }
 
 func NewPolygonEditor(name string) (polyEdit *PolygonEditor, err error) {
+	polyEdit = &PolygonEditor{
+		Name: name,
+	}
+
+	polyEdit.Box, err = gtk.BoxNew(gtk.ORIENTATION_VERTICAL, 0)
+	if err != nil {
+		return
+	}
+
+	polyEdit.Box.SetVisible(true)
+	polyEdit.points, err = gtk.ListStoreNew(glib.TYPE_INT, glib.TYPE_STRING, glib.TYPE_STRING)
+	if err != nil {
+		return
+	}
+
+	treeView, err := gtk.TreeViewNew()
+	if err != nil {
+		return
+	}
+
+	treeView.SetModel(polyEdit.points)
+	cell, _ := NewListCell(0)
+	cell.editableCell(polyEdit.points)
+	column, _ := gtk.TreeViewColumnNewWithAttribute("Rows", cell, "text", 0)
+	treeView.AppendColumn(column)
+
 	return
 }
 

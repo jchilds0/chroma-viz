@@ -6,7 +6,6 @@ import (
 	"chroma-viz/library/templates"
 	"flag"
 	"fmt"
-	"log"
 	"os"
 	"strconv"
 	"strings"
@@ -183,12 +182,7 @@ func generate(db *hub.DataBase, inputs []string) {
 		return
 	}
 
-	err := db.CleanDB()
-	if err != nil {
-		log.Print(err)
-		return
-	}
-
+	db.CleanDB()
 	numTemp, err := strconv.Atoi(inputs[0])
 	if err != nil {
 		fmt.Println(usage)

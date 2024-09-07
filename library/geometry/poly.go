@@ -36,11 +36,21 @@ func (p *Polygon) Encode(b *strings.Builder) {
 type PolygonEditor struct {
 	GeometryEditor
 
-	Poly attribute.PolygonAttribute
+	Poly *attribute.PolygonEditor
 }
 
-func NewPolygonEditor() (*PolygonEditor, error) {
-	return nil, nil
+func NewPolygonEditor() (pEdit *PolygonEditor, err error) {
+	geoEdit, err := NewGeometryEditor()
+	if err != nil {
+		return
+	}
+
+	pEdit = &PolygonEditor{
+		GeometryEditor: *geoEdit,
+	}
+
+	pEdit.Poly, err = attribute.NewPolygonEditor("Polygon")
+	return
 }
 
 func (pEdit *PolygonEditor) UpdateEditor(p *Polygon) (err error) {

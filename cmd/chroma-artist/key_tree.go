@@ -95,7 +95,6 @@ func NewKeyframeTree(keyGeo, keyAttr *gtk.ComboBox, sideBar *gtk.StackSidebar) (
 func (keyTree *KeyTree) SelectedGeometry() (geoID int, geoName string, err error) {
 	iter, err := keyTree.keyGeoSelect.GetActiveIter()
 	if err != nil {
-		log.Printf("No geometry selected")
 		return
 	}
 
@@ -115,7 +114,6 @@ func (keyTree *KeyTree) SelectedGeometry() (geoID int, geoName string, err error
 func (keyTree *KeyTree) SelectedAttribute() (attrType, attr string, err error) {
 	iter, err := keyTree.keyAttrSelect.GetActiveIter()
 	if err != nil {
-		log.Printf("No attribute selected")
 		return
 	}
 

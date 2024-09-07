@@ -130,7 +130,7 @@ func (hub *DataBase) AddPolygon(tempID int64, p geometry.Polygon) (err error) {
 
 func (hub *DataBase) AddList(tempID int64, l geometry.List) (err error) {
 	qList := `
-        INSERT INTO list VALUES (?, ?, ?);
+        INSERT INTO list VALUES (?, ?, ?, ?);
     `
 
 	qRows := `
@@ -142,7 +142,7 @@ func (hub *DataBase) AddList(tempID int64, l geometry.List) (err error) {
 		return
 	}
 
-	_, err = hub.db.Exec(qList, geoID, l.Color.ToString(), l.String.Selected)
+	_, err = hub.db.Exec(qList, geoID, l.Color.ToString(), l.String.Selected, l.Scale.Value)
 	if err != nil {
 		return
 	}
@@ -456,7 +456,7 @@ func (hub *DataBase) GetClocks(temp *templates.Template) (err error) {
 
 func (hub *DataBase) GetLists(temp *templates.Template) (err error) {
 	q := `
-        SELECT l.geometryID, l.color, l.single_row
+        SELECT l.geometryID, l.color, l.single_row, l.scale
         FROM list l
         INNER JOIN geometry g
         ON g.geometryID = l.geometryID
@@ -471,10 +471,11 @@ func (hub *DataBase) GetLists(temp *templates.Template) (err error) {
 	var geoID int64
 	var color string
 	var singleRow bool
+	var scale float64
 	var geo geometry.Geometry
 
 	for rows.Next() {
-		err = rows.Scan(&geoID, &color, &singleRow)
+		err = rows.Scan(&geoID, &color, &singleRow, &scale)
 		if err != nil {
 			return
 		}
@@ -487,6 +488,7 @@ func (hub *DataBase) GetLists(temp *templates.Template) (err error) {
 		l := geometry.NewList(geo)
 		l.Color.FromString(color)
 		l.String.Selected = singleRow
+		l.Scale.Value = scale
 
 		temp.List = append(temp.List, l)
 	}
