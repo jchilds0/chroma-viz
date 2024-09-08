@@ -377,6 +377,11 @@ func (hub *DataBase) GetPolygons(temp *templates.Template) (err error) {
 			return
 		}
 
+		geo, err = hub.GetGeometry(geoID)
+		if err != nil {
+			return
+		}
+
 		poly := geometry.NewPolygon(geo)
 		poly.Color.FromString(color)
 		temp.Polygon = append(temp.Polygon, poly)
@@ -388,9 +393,14 @@ func (hub *DataBase) GetPolygons(temp *templates.Template) (err error) {
 
 func (hub *DataBase) GetPolyPoints(temp *templates.Template) (err error) {
 	q := `
-        SELECT p.pointID, p.pos_x, p.pos_y
-        FROM point p
-        WHERE p.geometryID = ?;
+        SELECT point.pointID, point.pos_x, point.pos_y
+        FROM point
+        INNER JOIN polygon
+        INNER JOIN geometry g
+        ON point.geometryID = polygon.geometryID
+        AND polygon.geometryID = g.geometryID
+        WHERE g.geoNum = ?
+        AND g.templateID = ?;
     `
 
 	var (
@@ -399,7 +409,7 @@ func (hub *DataBase) GetPolyPoints(temp *templates.Template) (err error) {
 		posX, posY int
 	)
 	for _, poly := range temp.Polygon {
-		rows, err = hub.db.Query(q, poly.GeometryID)
+		rows, err = hub.db.Query(q, poly.GeometryID, temp.TempID)
 		if err != nil {
 			return
 		}

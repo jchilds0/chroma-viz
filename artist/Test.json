@@ -1,1 +1,61 @@
-{"Title":"Test","TempID":1,"Layer":0,"UserFrame":[{"FrameNum":1,"GeoID":1,"GeoAttr":"width","Type":"user-frame","Expand":false},{"FrameNum":2,"GeoID":1,"GeoAttr":"rel_x","Type":"user-frame","Expand":false},{"FrameNum":1,"GeoID":1,"GeoAttr":"height","Type":"user-frame","Expand":true},{"FrameNum":2,"GeoID":1,"GeoAttr":"width","Type":"user-frame","Expand":true},{"FrameNum":2,"GeoID":1,"GeoAttr":"height","Type":"user-frame","Expand":true},{"FrameNum":3,"GeoID":1,"GeoAttr":"height","Type":"user-frame","Expand":true}],"SetFrame":[{"FrameNum":3,"GeoID":1,"GeoAttr":"width","Type":"set-frame","Expand":false,"Value":0}],"BindFrame":[{"FrameNum":3,"GeoID":1,"GeoAttr":"rel_x","Type":"bind-frame","Expand":false,"Bind":{"FrameNum":2,"GeoID":1,"GeoAttr":"width","Type":"","Expand":false}}],"Rectangle":[{"GeoNum":1,"Name":"Rectangle","GeoType":"rect","PropType":"rect","RelX":100,"RelY":100,"Parent":0,"Mask":0,"Width":30,"Height":30,"Rounding":10,"Color":"0.109804 0.443137 0.486275 1.000000"}],"Circle":[],"Text":[{"GeoNum":2,"Name":"Text","GeoType":"text","PropType":"text","RelX":100,"RelY":30,"Parent":1,"Mask":1,"Text":"hello","Scale":1,"Color":"1.000000 1.000000 1.000000 1.000000"}],"Asset":[]}
+{
+    "Title": "test",
+    "TempID": 1,
+    "Layer": 0,
+    "MaxGeometry": 2,
+    "MaxKeyframe": 1,
+    "UserFrame": [],
+    "SetFrame": [],
+    "BindFrame": [],
+    "Rectangle": [],
+    "Circle": [],
+    "Clock": [],
+    "Image": [],
+    "Polygon": [
+        {
+            "GeometryID": 1,
+            "Name": "Polygon",
+            "GeoType": "Polygon",
+            "RelX": {
+                "Name": "rel_x",
+                "Value": 0
+            },
+            "RelY": {
+                "Name": "rel_y",
+                "Value": 0
+            },
+            "Parent": {
+                "Name": "parent",
+                "Value": 0
+            },
+            "Mask": {
+                "Name": "mask",
+                "Value": 0
+            },
+            "Polygon": {
+                "Name": "poly",
+                "PosX": {
+                    "1": 0,
+                    "2": 0,
+                    "3": 0,
+                    "4": 0
+                },
+                "PosY": {
+                    "1": 0,
+                    "2": 0,
+                    "3": 0,
+                    "4": 0
+                }
+            },
+            "Color": {
+                "Name": "color",
+                "Red": 0,
+                "Green": 0,
+                "Blue": 0,
+                "Alpha": 0
+            }
+        }
+    ],
+    "Text": [],
+    "List": []
+}

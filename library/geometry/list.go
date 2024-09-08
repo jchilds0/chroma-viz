@@ -96,9 +96,9 @@ func NewListEditor() (lEdit *ListEditor, err error) {
 		return
 	}
 
-	geo.ScrollBox.PackStart(lEdit.Scale.Box, false, false, padding)
-	geo.ScrollBox.PackStart(lEdit.Color.Box, false, false, padding)
-	geo.ScrollBox.PackStart(lEdit.String.Box, true, true, padding)
+	lEdit.ScrollBox.PackStart(lEdit.Scale.Box, false, false, padding)
+	lEdit.ScrollBox.PackStart(lEdit.Color.Box, false, false, padding)
+	lEdit.ScrollBox.PackStart(lEdit.String.Box, true, true, padding)
 
 	return
 }

@@ -43,6 +43,8 @@ const (
 	ATTR_PARENT       = "parent"
 	ATTR_STRING       = "string"
 	ATTR_SCALE        = "scale"
+	ATTR_POINT        = "point"
+	ATTR_NUM_POINTS   = "num_points"
 )
 
 var Attrs = map[string]string{

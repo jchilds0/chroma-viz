@@ -163,6 +163,12 @@ func (hub *DataBase) GetTemplate(tempID int64) (temp *templates.Template, err er
 		return
 	}
 
+	err = hub.GetPolygons(temp)
+	if err != nil {
+		err = fmt.Errorf("Polygons: %s", err)
+		return
+	}
+
 	err = hub.GetClocks(temp)
 	if err != nil {
 		err = fmt.Errorf("Clock: %s", err)

@@ -166,7 +166,7 @@ func (temp *Template) AddGeometry(geoType, geoName string) (id int, err error) {
 	case geometry.GEO_POLY:
 		poly := geometry.NewPolygon(geo)
 		temp.Geos[geo.GeometryID] = &poly.Geometry
-		temp.Polygon = append(temp.Polygon)
+		temp.Polygon = append(temp.Polygon, poly)
 
 	case geometry.GEO_LIST:
 		ticker := geometry.NewList(geo)

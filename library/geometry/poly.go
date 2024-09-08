@@ -2,6 +2,7 @@ package geometry
 
 import (
 	"chroma-viz/library/attribute"
+	"chroma-viz/library/parser"
 	"strings"
 )
 
@@ -17,6 +18,9 @@ func NewPolygon(geo Geometry) *Polygon {
 		Geometry: geo,
 	}
 
+	poly.Polygon.NumPoints = ATTR_NUM_POINTS
+	poly.Polygon.Points = ATTR_POINT
+	poly.Color.Name = ATTR_COLOR
 	poly.Polygon.PosX = make(map[int]int, 128)
 	poly.Polygon.PosY = make(map[int]int, 128)
 
@@ -24,19 +28,32 @@ func NewPolygon(geo Geometry) *Polygon {
 }
 
 func (p *Polygon) UpdateGeometry(pEdit *PolygonEditor) (err error) {
+	err = p.Geometry.UpdateGeometry(&pEdit.GeometryEditor)
+	if err != nil {
+		return
+	}
+
+	err = p.Color.UpdateAttribute(pEdit.Color)
+	if err != nil {
+		return
+	}
+
+	err = p.Polygon.UpdateAttribute(pEdit.Poly)
 	return
 }
 
 func (p *Polygon) Encode(b *strings.Builder) {
 	p.Geometry.Encode(b)
 
+	parser.EngineAddKeyValue(b, p.Color.Name, p.Color.ToString())
 	p.Polygon.Encode(b)
 }
 
 type PolygonEditor struct {
 	GeometryEditor
 
-	Poly *attribute.PolygonEditor
+	Poly  *attribute.PolygonEditor
+	Color *attribute.ColorEditor
 }
 
 func NewPolygonEditor() (pEdit *PolygonEditor, err error) {
@@ -50,9 +67,31 @@ func NewPolygonEditor() (pEdit *PolygonEditor, err error) {
 	}
 
 	pEdit.Poly, err = attribute.NewPolygonEditor("Polygon")
+	if err != nil {
+		return
+	}
+
+	pEdit.Color, err = attribute.NewColorEditor(Attrs[ATTR_COLOR])
+	if err != nil {
+		return
+	}
+
+	pEdit.ScrollBox.PackStart(pEdit.Color.Box, false, false, padding)
+	pEdit.ScrollBox.PackStart(pEdit.Poly.Box, true, true, padding)
 	return
 }
 
 func (pEdit *PolygonEditor) UpdateEditor(p *Polygon) (err error) {
+	err = pEdit.GeometryEditor.UpdateEditor(&p.Geometry)
+	if err != nil {
+		return
+	}
+
+	err = pEdit.Color.UpdateEditor(&p.Color)
+	if err != nil {
+		return
+	}
+
+	err = pEdit.Poly.UpdateEditor(&p.Polygon)
 	return
 }
