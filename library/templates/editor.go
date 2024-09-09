@@ -127,44 +127,17 @@ func (editor *Editor) AddAction(label string, start bool, action func()) (err er
 
 // Move values from editors to geometries
 func (edit *Editor) UpdateGeometry(temp *Template) {
-	updateGeometry[*geometry.Rectangle, *geometry.RectangleEditor](
-		temp.Rectangle, edit.Rect, edit.CurrentGeoID,
-	)
-
-	updateGeometry[*geometry.Circle, *geometry.CircleEditor](
-		temp.Circle, edit.Circle, edit.CurrentGeoID,
-	)
-
-	updateGeometry[*geometry.Clock, *geometry.ClockEditor](
-		temp.Clock, edit.Clock, edit.CurrentGeoID,
-	)
-
-	updateGeometry[*geometry.Image, *geometry.ImageEditor](
-		temp.Image, edit.Image, edit.CurrentGeoID,
-	)
-
-	updateGeometry[*geometry.Polygon, *geometry.PolygonEditor](
-		temp.Polygon, edit.Poly, edit.CurrentGeoID,
-	)
-
-	updateGeometry[*geometry.Text, *geometry.TextEditor](
-		temp.Text, edit.Text, edit.CurrentGeoID,
-	)
-
-	updateGeometry[*geometry.List, *geometry.ListEditor](
-		temp.List, edit.List, edit.CurrentGeoID,
-	)
+	updateGeometry(temp.Rectangle, edit.Rect, edit.CurrentGeoID)
+	updateGeometry(temp.Circle, edit.Circle, edit.CurrentGeoID)
+	updateGeometry(temp.Clock, edit.Clock, edit.CurrentGeoID)
+	updateGeometry(temp.Image, edit.Image, edit.CurrentGeoID)
+	updateGeometry(temp.Polygon, edit.Poly, edit.CurrentGeoID)
+	updateGeometry(temp.Text, edit.Text, edit.CurrentGeoID)
+	updateGeometry(temp.List, edit.List, edit.CurrentGeoID)
 
 }
 
-type geometer[S any] interface {
-	UpdateGeometry(S) error
-	GetName() string
-	GetGeometryID() int
-	GetGeometry() *geometry.Geometry
-}
-
-func updateGeometry[T geometer[S], S any](geos []T, edit S, geoID int) {
+func updateGeometry[T geometry.Geometer[S], S any](geos []T, edit S, geoID int) {
 	for _, geo := range geos {
 		if geo.GetGeometryID() != geoID {
 			continue
@@ -186,44 +159,18 @@ func (edit *Editor) UpdateEditor(temp *Template) (err error) {
 		edit.tabs.RemovePage(0)
 	}
 
-	updateEditor[*geometry.RectangleEditor, *geometry.Rectangle](
-		edit, edit.Rect, temp.Rectangle,
-	)
-
-	updateEditor[*geometry.CircleEditor, *geometry.Circle](
-		edit, edit.Circle, temp.Circle,
-	)
-
-	updateEditor[*geometry.ClockEditor, *geometry.Clock](
-		edit, edit.Clock, temp.Clock,
-	)
-
-	updateEditor[*geometry.ImageEditor, *geometry.Image](
-		edit, edit.Image, temp.Image,
-	)
-
-	updateEditor[*geometry.PolygonEditor, *geometry.Polygon](
-		edit, edit.Poly, temp.Polygon,
-	)
-
-	updateEditor[*geometry.TextEditor, *geometry.Text](
-		edit, edit.Text, temp.Text,
-	)
-
-	updateEditor[*geometry.ListEditor, *geometry.List](
-		edit, edit.List, temp.List,
-	)
+	updateEditor(edit, edit.Rect, temp.Rectangle)
+	updateEditor(edit, edit.Circle, temp.Circle)
+	updateEditor(edit, edit.Clock, temp.Clock)
+	updateEditor(edit, edit.Image, temp.Image)
+	updateEditor(edit, edit.Poly, temp.Polygon)
+	updateEditor(edit, edit.Text, temp.Text)
+	updateEditor(edit, edit.List, temp.List)
 
 	return
 }
 
-type editor[S any] interface {
-	UpdateEditor(S) error
-	GetBox() *gtk.ScrolledWindow
-	GetVisibleBox() *gtk.ScrolledWindow
-}
-
-func updateEditor[T editor[S], S geometer[T]](edit *Editor, editor T, geos []S) {
+func updateEditor[T geometry.Editor[S], S geometry.Geometer[T]](edit *Editor, editor T, geos []S) {
 	geoLabel, err := gtk.LabelNew("Geometry")
 	if err != nil {
 		return

@@ -2,10 +2,9 @@ package pages
 
 import (
 	"chroma-viz/library/geometry"
-	"chroma-viz/library/parser"
 	"chroma-viz/library/templates"
+	"chroma-viz/library/util"
 	"encoding/json"
-	"fmt"
 	"log"
 	"os"
 	"reflect"
@@ -82,63 +81,41 @@ func (page *Page) GetGeometry(geoID int) *geometry.Geometry {
 	return page.geo[geoID]
 }
 
-type geoInterface interface {
-	GetGeometryID() int
-	GetGeometry() *geometry.Geometry
-}
-
-func AddGeometry(page *Page, geo geoInterface) (err error) {
-	page.geo[geo.GetGeometryID()] = geo.GetGeometry()
-
-	switch g := geo.(type) {
-	case *geometry.Rectangle:
-		page.Rect = append(page.Rect, g)
-
-	case *geometry.Circle:
-		page.Circle = append(page.Circle, g)
-
-	case *geometry.Clock:
-		page.Clock = append(page.Clock, g)
-
-	case *geometry.Image:
-		page.Image = append(page.Image, g)
-
-	case *geometry.Polygon:
-		page.Poly = append(page.Poly, g)
-
-	case *geometry.Text:
-		page.Text = append(page.Text, g)
-
-	case *geometry.List:
-		page.List = append(page.List, g)
-
-	default:
-		err = fmt.Errorf("Unknown type to add to page")
-	}
-
-	return
-}
-
 func (page *Page) PageToListRow() (row *gtk.ListBoxRow, err error) {
 	row, err = gtk.ListBoxRowNew()
 	if err != nil {
 		return
 	}
 
-	pageText, err := templates.TextToBuffer(strconv.Itoa(page.PageNum))
+	pageText, err := TextToBuffer(strconv.Itoa(page.PageNum))
 	if err != nil {
 		return
 	}
 
 	row.Add(pageText)
 
-	titleText, err := templates.TextToBuffer(page.Title)
+	titleText, err := TextToBuffer(page.Title)
 	if err != nil {
 		return
 	}
 
 	row.Add(titleText)
 
+	return
+}
+
+func TextToBuffer(text string) (textView *gtk.TextView, err error) {
+	textView, err = gtk.TextViewNew()
+	if err != nil {
+		return
+	}
+
+	buffer, err := textView.GetBuffer()
+	if err != nil {
+		return
+	}
+
+	buffer.SetText(text)
 	return
 }
 
@@ -176,8 +153,8 @@ func ExportPage(page *Page, filename string) (err error) {
 }
 
 func (page *Page) Encode(b *strings.Builder) {
-	parser.EngineAddKeyValue(b, "temp", page.TemplateID)
-	parser.EngineAddKeyValue(b, "layer", page.Layer)
+	util.EngineAddKeyValue(b, "temp", page.TemplateID)
+	util.EngineAddKeyValue(b, "layer", page.Layer)
 
 	encodeGeometry(b, page.Rect)
 	encodeGeometry(b, page.Circle)
@@ -188,11 +165,7 @@ func (page *Page) Encode(b *strings.Builder) {
 	encodeGeometry(b, page.List)
 }
 
-type encoder interface {
-	Encode(b *strings.Builder)
-}
-
-func encodeGeometry[T encoder](b *strings.Builder, geos []T) {
+func encodeGeometry[T geometry.Geometer[S], S any](b *strings.Builder, geos []T) {
 	if isNil(geos) {
 		return
 	}

@@ -160,7 +160,7 @@ func (geoTree *GeoTree) GetSelectedGeoName() (geoName string, err error) {
 	return
 }
 
-func (geoTree *GeoTree) GetSelectedGeoID() (geoID int, err error) {
+func (geoTree *GeoTree) GetSelectedGeometry() (iter *gtk.TreeIter, err error) {
 	selection, err := geoTree.geoView.GetSelection()
 	if err != nil {
 		err = fmt.Errorf("Error getting selected: %s", err)
@@ -172,16 +172,11 @@ func (geoTree *GeoTree) GetSelectedGeoID() (geoID int, err error) {
 		err = fmt.Errorf("No geometry selected")
 		return
 	}
-
-	model := geoTree.geoModel.ToTreeModel()
-	geoID, err = util.ModelGetValue[int](model, iter, GEO_NUM)
 	return
 }
 
-func (geoTree *GeoTree) RemoveGeo(geoID int) {
-	iter := geoTree.geoIter[geoID]
+func (geoTree *GeoTree) RemoveGeo(iter *gtk.TreeIter, geoID int) {
 	geoTree.geoModel.Remove(iter)
-
 	delete(geoTree.geoIter, geoID)
 }
 
@@ -251,13 +246,13 @@ func (geoTree *GeoTree) ExportGeometry(temp *templates.Template) {
 	return
 }
 
-func (geoTree *GeoTree) AddGeoRow(geoID, parentID int, name, propName string) {
+func (geoTree *GeoTree) AddGeoRow(geoID, parentID int, geoName, geoType string) {
 	parentIter := geoTree.geoIter[parentID]
 	iter := geoTree.geoModel.Append(parentIter)
 
 	geoTree.geoIter[geoID] = iter
-	geoTree.geoModel.SetValue(iter, GEO_TYPE, propName)
-	geoTree.geoModel.SetValue(iter, GEO_NAME, name)
+	geoTree.geoModel.SetValue(iter, GEO_TYPE, geoType)
+	geoTree.geoModel.SetValue(iter, GEO_NAME, geoName)
 	geoTree.geoModel.SetValue(iter, GEO_NUM, geoID)
 }
 

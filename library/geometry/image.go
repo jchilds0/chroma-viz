@@ -2,7 +2,7 @@ package geometry
 
 import (
 	"chroma-viz/library/attribute"
-	"chroma-viz/library/parser"
+	"chroma-viz/library/util"
 	"strings"
 )
 
@@ -24,14 +24,25 @@ func NewImage(geo Geometry) *Image {
 }
 
 func (i *Image) UpdateGeometry(iEdit *ImageEditor) (err error) {
+	err = i.Geometry.UpdateGeometry(&iEdit.GeometryEditor)
+	if err != nil {
+		return
+	}
+
+	err = i.Scale.UpdateAttribute(iEdit.Scale)
+	if err != nil {
+		return
+	}
+
+	err = i.Image.UpdateAttribute(iEdit.Image)
 	return
 }
 
 func (i *Image) Encode(b *strings.Builder) {
 	i.Geometry.Encode(b)
 
-	parser.EngineAddKeyValue(b, i.Image.Name, i.Image.Value)
-	parser.EngineAddKeyValue(b, i.Scale.Name, i.Scale.Value)
+	util.EngineAddKeyValue(b, i.Image.Name, i.Image.Value)
+	util.EngineAddKeyValue(b, i.Scale.Name, i.Scale.Value)
 }
 
 type ImageEditor struct {
@@ -64,5 +75,16 @@ func NewImageEditor() (imgEdit *ImageEditor, err error) {
 }
 
 func (iEdit *ImageEditor) UpdateEditor(i *Image) (err error) {
+	err = iEdit.GeometryEditor.UpdateEditor(&i.Geometry)
+	if err != nil {
+		return
+	}
+
+	err = iEdit.Scale.UpdateEditor(&i.Scale)
+	if err != nil {
+		return
+	}
+
+	err = iEdit.Image.UpdateEditor(&i.Image)
 	return
 }

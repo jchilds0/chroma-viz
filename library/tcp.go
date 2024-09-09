@@ -1,7 +1,7 @@
 package library
 
 import (
-	"chroma-viz/library/parser"
+	"chroma-viz/library/util"
 	"log"
 	"net"
 	"strconv"
@@ -83,8 +83,8 @@ func (conn *Connection) SendPage() {
 		var b strings.Builder
 		version := "1,4"
 
-		parser.EngineAddKeyValue(&b, "version", version)
-		parser.EngineAddKeyValue(&b, "action", action)
+		util.EngineAddKeyValue(&b, "version", version)
+		util.EngineAddKeyValue(&b, "action", action)
 
 		page.Encode(&b)
 		b.WriteByte(END_OF_MESSAGE)

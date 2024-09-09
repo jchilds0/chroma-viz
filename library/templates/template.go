@@ -3,7 +3,7 @@ package templates
 import (
 	"bufio"
 	"chroma-viz/library/geometry"
-	"chroma-viz/library/parser"
+	"chroma-viz/library/util"
 	"encoding/json"
 	"fmt"
 	"log"
@@ -12,8 +12,6 @@ import (
 	"reflect"
 	"slices"
 	"strings"
-
-	"github.com/gotk3/gotk3/gtk"
 )
 
 /*
@@ -79,18 +77,18 @@ func NewTemplateFromFile(fileName string) (temp Template, err error) {
 
 	temp.Geos = make(map[int]*geometry.Geometry, 10)
 
-	updateGeometryEntry[*geometry.Rectangle](&temp, temp.Rectangle)
-	updateGeometryEntry[*geometry.Circle](&temp, temp.Circle)
-	updateGeometryEntry[*geometry.Clock](&temp, temp.Clock)
-	updateGeometryEntry[*geometry.Image](&temp, temp.Image)
-	updateGeometryEntry[*geometry.Polygon](&temp, temp.Polygon)
-	updateGeometryEntry[*geometry.Text](&temp, temp.Text)
-	updateGeometryEntry[*geometry.List](&temp, temp.List)
+	updateGeometryEntry(&temp, temp.Rectangle)
+	updateGeometryEntry(&temp, temp.Circle)
+	updateGeometryEntry(&temp, temp.Clock)
+	updateGeometryEntry(&temp, temp.Image)
+	updateGeometryEntry(&temp, temp.Polygon)
+	updateGeometryEntry(&temp, temp.Text)
+	updateGeometryEntry(&temp, temp.List)
 
 	return
 }
 
-func updateGeometryEntry[T geoInterface](temp *Template, geos []T) {
+func updateGeometryEntry[T geometry.Geometer[S], S any](temp *Template, geos []T) {
 	for _, geo := range geos {
 		if isNil(geo) {
 			continue
@@ -214,34 +212,62 @@ func removeGeometry[T interface{ GetGeometryID() int }](geos []T, geoID int) (re
 	return geos
 }
 
-func (temp *Template) TemplateToListRow() (row *gtk.ListBoxRow, err error) {
-	row, err = gtk.ListBoxRowNew()
-	if err != nil {
+func (temp *Template) CopyGeometry(fromGeoID, toGeoID int) (err error) {
+	fromGeo := temp.Geos[fromGeoID]
+	toGeo := temp.Geos[toGeoID]
+
+	if fromGeo.GeoType != toGeo.GeoType {
+		err = fmt.Errorf("Copy geometry from %s to %s is invalid", fromGeo.GeoType, toGeo.GeoType)
 		return
 	}
 
-	textView, err := TextToBuffer(temp.Title)
-	if err != nil {
-		return
-	}
+	copyGeometry(temp.Rectangle, fromGeoID, toGeoID, geometry.NewRectangleEditor)
+	copyGeometry(temp.Circle, fromGeoID, toGeoID, geometry.NewCircleEditor)
+	copyGeometry(temp.Text, fromGeoID, toGeoID, geometry.NewTextEditor)
+	copyGeometry(temp.Image, fromGeoID, toGeoID, geometry.NewImageEditor)
+	copyGeometry(temp.Polygon, fromGeoID, toGeoID, geometry.NewPolygonEditor)
+	copyGeometry(temp.Clock, fromGeoID, toGeoID, geometry.NewClockEditor)
+	copyGeometry(temp.List, fromGeoID, toGeoID, geometry.NewListEditor)
 
-	row.Add(textView)
 	return
 }
 
-func TextToBuffer(text string) (textView *gtk.TextView, err error) {
-	textView, err = gtk.TextViewNew()
-	if err != nil {
+func copyGeometry[T geometry.Geometer[S], S geometry.Editor[T]](
+	geos []T, geoID1, geoID2 int, init func() (S, error)) {
+
+	var geo1, geo2 T
+
+	for _, geo := range geos {
+		if geo.GetGeometryID() == geoID1 {
+			geo1 = geo
+		}
+
+		if geo.GetGeometryID() == geoID2 {
+			geo2 = geo
+		}
+	}
+
+	if isNil(geo1) || isNil(geo2) {
 		return
 	}
 
-	buffer, err := textView.GetBuffer()
+	editor, err := init()
 	if err != nil {
+		log.Print(err)
 		return
 	}
 
-	buffer.SetText(text)
-	return
+	err = editor.UpdateEditor(geo1)
+	if err != nil {
+		log.Print(err)
+		return
+	}
+
+	err = geo2.UpdateGeometry(editor)
+	if err != nil {
+		log.Print(err)
+		return
+	}
 }
 
 // T -> {'id': num, 'num_geo': num, 'layer': num, 'geometry': [G]} | T, T
@@ -342,13 +368,13 @@ func GetTemplate(conn net.Conn, tempid int) (temp Template, err error) {
 
 	temp.Geos = make(map[int]*geometry.Geometry, 10)
 
-	updateGeometryEntry[*geometry.Rectangle](&temp, temp.Rectangle)
-	updateGeometryEntry[*geometry.Circle](&temp, temp.Circle)
-	updateGeometryEntry[*geometry.Clock](&temp, temp.Clock)
-	updateGeometryEntry[*geometry.Image](&temp, temp.Image)
-	updateGeometryEntry[*geometry.Polygon](&temp, temp.Polygon)
-	updateGeometryEntry[*geometry.Text](&temp, temp.Text)
-	updateGeometryEntry[*geometry.List](&temp, temp.List)
+	updateGeometryEntry(&temp, temp.Rectangle)
+	updateGeometryEntry(&temp, temp.Circle)
+	updateGeometryEntry(&temp, temp.Clock)
+	updateGeometryEntry(&temp, temp.Image)
+	updateGeometryEntry(&temp, temp.Polygon)
+	updateGeometryEntry(&temp, temp.Text)
+	updateGeometryEntry(&temp, temp.List)
 
 	return
 }
@@ -394,8 +420,8 @@ func (temp *Template) MaxKeyframe() (maxFrameNum int) {
 }
 
 func (temp *Template) Encode(b *strings.Builder) {
-	parser.EngineAddKeyValue(b, "temp", temp.TempID)
-	parser.EngineAddKeyValue(b, "layer", temp.Layer)
+	util.EngineAddKeyValue(b, "temp", temp.TempID)
+	util.EngineAddKeyValue(b, "layer", temp.Layer)
 
 	encodeGeometry(b, temp.Rectangle)
 	encodeGeometry(b, temp.Circle)
@@ -406,11 +432,7 @@ func (temp *Template) Encode(b *strings.Builder) {
 	encodeGeometry(b, temp.List)
 }
 
-type encoder interface {
-	Encode(b *strings.Builder)
-}
-
-func encodeGeometry[T encoder](b *strings.Builder, geos []T) {
+func encodeGeometry[T geometry.Geometer[S], S any](b *strings.Builder, geos []T) {
 	for _, geo := range geos {
 		if isNil(geo) {
 			continue
@@ -418,36 +440,6 @@ func encodeGeometry[T encoder](b *strings.Builder, geos []T) {
 
 		geo.Encode(b)
 	}
-}
-
-type geoInterface interface {
-	GetGeometryID() int
-	GetGeometry() *geometry.Geometry
-}
-
-func (temp *Template) ApplyGeometryFunc(geoID int, f func(*geometry.Geometry)) {
-	applyFunction(temp.Rectangle, geoID, f)
-	applyFunction(temp.Circle, geoID, f)
-	applyFunction(temp.Clock, geoID, f)
-	applyFunction(temp.Image, geoID, f)
-	applyFunction(temp.Polygon, geoID, f)
-	applyFunction(temp.Text, geoID, f)
-	applyFunction(temp.List, geoID, f)
-}
-
-func applyFunction[T geoInterface](geos []T, geoID int, f func(*geometry.Geometry)) {
-	for _, geo := range geos {
-		if isNil(geo) {
-			continue
-		}
-
-		if geo.GetGeometryID() != geoID {
-			continue
-		}
-
-		f(geo.GetGeometry())
-	}
-
 }
 
 func isNil(id any) bool {

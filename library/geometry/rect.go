@@ -2,7 +2,7 @@ package geometry
 
 import (
 	"chroma-viz/library/attribute"
-	"chroma-viz/library/parser"
+	"chroma-viz/library/util"
 	"strings"
 )
 
@@ -57,10 +57,10 @@ func (r *Rectangle) UpdateGeometry(rEdit *RectangleEditor) (err error) {
 func (r *Rectangle) Encode(b *strings.Builder) {
 	r.Geometry.Encode(b)
 
-	parser.EngineAddKeyValue(b, r.Width.Name, r.Width.Value)
-	parser.EngineAddKeyValue(b, r.Height.Name, r.Height.Value)
-	parser.EngineAddKeyValue(b, r.Rounding.Name, r.Rounding.Value)
-	parser.EngineAddKeyValue(b, r.Color.Name, r.Color.ToString())
+	util.EngineAddKeyValue(b, r.Width.Name, r.Width.Value)
+	util.EngineAddKeyValue(b, r.Height.Name, r.Height.Value)
+	util.EngineAddKeyValue(b, r.Rounding.Name, r.Rounding.Value)
+	util.EngineAddKeyValue(b, r.Color.Name, r.Color.ToString())
 }
 
 type RectangleEditor struct {

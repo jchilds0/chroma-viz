@@ -5,6 +5,7 @@ import (
 	"chroma-viz/library/util"
 	"encoding/json"
 	"fmt"
+	"log"
 	"net"
 	"strings"
 
@@ -107,11 +108,7 @@ func (asset *AssetAttribute) Directory() string {
 	return ""
 }
 
-func (asset *AssetAttribute) AssetID() string {
-	return ""
-}
-
-func (asset *AssetAttribute) Update(assetEdit *AssetEditor) (err error) {
+func (asset *AssetAttribute) UpdateAttribute(assetEdit *AssetEditor) (err error) {
 	selection, err := assetEdit.dirs.GetSelection()
 	if err == nil {
 		_, iter, _ := selection.GetSelected()
@@ -122,6 +119,7 @@ func (asset *AssetAttribute) Update(assetEdit *AssetEditor) (err error) {
 	_, selected, _ := selection.GetSelected()
 
 	asset.Value, err = util.ModelGetValue[int](assetEdit.assetsStore.ToTreeModel(), selected, IMAGE_ID)
+	log.Print(asset.Value)
 	return err
 }
 
@@ -228,7 +226,7 @@ func (asset *AssetEditor) GetAssets(iter *gtk.TreeIter) *assetNode {
 	return parentNode.childNodes[name]
 }
 
-func (asset *AssetEditor) Update(assetAttr *AssetAttribute) error {
+func (asset *AssetEditor) UpdateEditor(assetAttr *AssetAttribute) error {
 	dirSelection, err := asset.dirs.GetSelection()
 	if err == nil && assetAttr.dir != nil {
 		dirSelection.SelectPath(assetAttr.dir)

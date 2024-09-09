@@ -59,13 +59,13 @@ func NewEditor() (editor *Editor, err error) {
 	editor.Box.PackStart(editor.tabs, true, true, 0)
 
 	numEditors := 10
-	editor.Rect = initEditors[geometry.RectangleEditor](numEditors, geometry.NewRectangleEditor)
-	editor.Circle = initEditors[geometry.CircleEditor](numEditors, geometry.NewCircleEditor)
-	editor.Clock = initEditors[geometry.ClockEditor](numEditors, geometry.NewClockEditor)
-	editor.Image = initEditors[geometry.ImageEditor](numEditors, geometry.NewImageEditor)
-	editor.Poly = initEditors[geometry.PolygonEditor](numEditors, geometry.NewPolygonEditor)
-	editor.Text = initEditors[geometry.TextEditor](numEditors, geometry.NewTextEditor)
-	editor.List = initEditors[geometry.ListEditor](numEditors, geometry.NewListEditor)
+	editor.Rect = initEditors(numEditors, geometry.NewRectangleEditor)
+	editor.Circle = initEditors(numEditors, geometry.NewCircleEditor)
+	editor.Clock = initEditors(numEditors, geometry.NewClockEditor)
+	editor.Image = initEditors(numEditors, geometry.NewImageEditor)
+	editor.Poly = initEditors(numEditors, geometry.NewPolygonEditor)
+	editor.Text = initEditors(numEditors, geometry.NewTextEditor)
+	editor.List = initEditors(numEditors, geometry.NewListEditor)
 
 	return
 }
@@ -91,8 +91,8 @@ func (editor *Editor) AddAction(label string, start bool, action func()) (err er
 	return
 }
 
-func initEditors[T any](numEditors int, init func() (*T, error)) []*T {
-	editors := make([]*T, numEditors)
+func initEditors[T any](numEditors int, init func() (T, error)) []T {
+	editors := make([]T, numEditors)
 
 	var err error
 	for i := range numEditors {
@@ -107,21 +107,16 @@ func initEditors[T any](numEditors int, init func() (*T, error)) []*T {
 
 // Store the editor values in the properties
 func (edit *Editor) UpdateProps() {
-	updateGeometry[*geometry.Rectangle, *geometry.RectangleEditor](edit.CurrentPage.Rect, edit.Rect)
-	updateGeometry[*geometry.Circle, *geometry.CircleEditor](edit.CurrentPage.Circle, edit.Circle)
-	updateGeometry[*geometry.Clock, *geometry.ClockEditor](edit.CurrentPage.Clock, edit.Clock)
-	updateGeometry[*geometry.Image, *geometry.ImageEditor](edit.CurrentPage.Image, edit.Image)
-	updateGeometry[*geometry.Polygon, *geometry.PolygonEditor](edit.CurrentPage.Poly, edit.Poly)
-	updateGeometry[*geometry.Text, *geometry.TextEditor](edit.CurrentPage.Text, edit.Text)
-	updateGeometry[*geometry.List, *geometry.ListEditor](edit.CurrentPage.List, edit.List)
+	updateGeometry(edit.CurrentPage.Rect, edit.Rect)
+	updateGeometry(edit.CurrentPage.Circle, edit.Circle)
+	updateGeometry(edit.CurrentPage.Clock, edit.Clock)
+	updateGeometry(edit.CurrentPage.Image, edit.Image)
+	updateGeometry(edit.CurrentPage.Poly, edit.Poly)
+	updateGeometry(edit.CurrentPage.Text, edit.Text)
+	updateGeometry(edit.CurrentPage.List, edit.List)
 }
 
-type geometer[S any] interface {
-	UpdateGeometry(S) error
-	GetName() string
-}
-
-func updateGeometry[T geometer[S], S any](geos []T, editors []S) {
+func updateGeometry[T geometry.Geometer[S], S any](geos []T, editors []S) {
 	for i := range geos {
 		err := geos[i].UpdateGeometry(editors[i])
 		if err != nil {
@@ -139,43 +134,19 @@ func (edit *Editor) SetPage(page *Page) (err error) {
 
 	edit.CurrentPage = page
 
-	updateEditor[*geometry.RectangleEditor, *geometry.Rectangle](
-		edit, edit.Rect, edit.CurrentPage.Rect, geometry.NewRectangleEditor,
-	)
-
-	updateEditor[*geometry.CircleEditor, *geometry.Circle](
-		edit, edit.Circle, edit.CurrentPage.Circle, geometry.NewCircleEditor,
-	)
-
-	updateEditor[*geometry.ClockEditor, *geometry.Clock](
-		edit, edit.Clock, edit.CurrentPage.Clock, geometry.NewClockEditor,
-	)
-
-	updateEditor[*geometry.ImageEditor, *geometry.Image](
-		edit, edit.Image, edit.CurrentPage.Image, geometry.NewImageEditor,
-	)
-
-	updateEditor[*geometry.PolygonEditor, *geometry.Polygon](
-		edit, edit.Poly, edit.CurrentPage.Poly, geometry.NewPolygonEditor,
-	)
-
-	updateEditor[*geometry.TextEditor, *geometry.Text](
-		edit, edit.Text, edit.CurrentPage.Text, geometry.NewTextEditor,
-	)
-
-	updateEditor[*geometry.ListEditor, *geometry.List](
-		edit, edit.List, edit.CurrentPage.List, geometry.NewListEditor,
-	)
+	updateEditor(edit, edit.Rect, edit.CurrentPage.Rect, geometry.NewRectangleEditor)
+	updateEditor(edit, edit.Circle, edit.CurrentPage.Circle, geometry.NewCircleEditor)
+	updateEditor(edit, edit.Clock, edit.CurrentPage.Clock, geometry.NewClockEditor)
+	updateEditor(edit, edit.Image, edit.CurrentPage.Image, geometry.NewImageEditor)
+	updateEditor(edit, edit.Poly, edit.CurrentPage.Poly, geometry.NewPolygonEditor)
+	updateEditor(edit, edit.Text, edit.CurrentPage.Text, geometry.NewTextEditor)
+	updateEditor(edit, edit.List, edit.CurrentPage.List, geometry.NewListEditor)
 
 	return
 }
 
-type editor[S any] interface {
-	UpdateEditor(S) error
-	GetBox() *gtk.ScrolledWindow
-}
-
-func updateEditor[T editor[S], S geometer[T]](edit *Editor, editors []T, geos []S, init func() (T, error)) {
+func updateEditor[T geometry.Editor[S], S geometry.Geometer[T]](
+	edit *Editor, editors []T, geos []S, init func() (T, error)) {
 	diff := len(geos) - len(editors)
 	if diff > 0 {
 		for _ = range diff {

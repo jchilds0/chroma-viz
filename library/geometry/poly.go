@@ -2,7 +2,7 @@ package geometry
 
 import (
 	"chroma-viz/library/attribute"
-	"chroma-viz/library/parser"
+	"chroma-viz/library/util"
 	"strings"
 )
 
@@ -45,7 +45,7 @@ func (p *Polygon) UpdateGeometry(pEdit *PolygonEditor) (err error) {
 func (p *Polygon) Encode(b *strings.Builder) {
 	p.Geometry.Encode(b)
 
-	parser.EngineAddKeyValue(b, p.Color.Name, p.Color.ToString())
+	util.EngineAddKeyValue(b, p.Color.Name, p.Color.ToString())
 	p.Polygon.Encode(b)
 }
 

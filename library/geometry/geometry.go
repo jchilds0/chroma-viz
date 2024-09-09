@@ -2,7 +2,7 @@ package geometry
 
 import (
 	"chroma-viz/library/attribute"
-	"chroma-viz/library/parser"
+	"chroma-viz/library/util"
 	"strings"
 
 	"github.com/gotk3/gotk3/gtk"
@@ -64,33 +64,13 @@ var Attrs = map[string]string{
 	ATTR_SCALE:        "Scale",
 }
 
-/*
-
-   Templates are made up of a collection of Properties.
-
-   Property encodes the data needed by chroma engine to display a geometry.
-   Each Property has an associated PropertyEditor which generates the gtk
-   ui elements needed to edit the corresponding Property. The app generates
-   a small set of PropertyEditor's (enough to show one template) due to the
-   cost of creating gtk ui elements greater than the objects to store the
-   data.
-
-   The user creates a Page from a Template, which involves creating a
-   Property for each Property in the Template. When the user wants to edit
-   the Properties of a Page,
-
-   Each Property is built up from Attributes, which are simple building
-   blocks like an integer field. We don't always want to show all
-   Attributes so the Property keeps track of the visible Attributes with
-   a map, and updates the SetVisible of each gtk element accordingly
-
-   For synchronizing of attributes, the key of the Attributes map in a
-   Property matches the key of the Editors map in a PropertyEditor.
-   Each Attribute has a name attribute which is the identifier used when sending
-   the attribute to Chroma Engine. Each Editor also has a name, which is
-   string displayed to the user when editing the attribute.
-
-*/
+type Geometer[S any] interface {
+	UpdateGeometry(S) error
+	GetName() string
+	GetGeometry() *Geometry
+	GetGeometryID() int
+	Encode(*strings.Builder)
+}
 
 type Geometry struct {
 	GeometryID int
@@ -135,22 +115,27 @@ func (g *Geometry) UpdateGeometry(gEdit *GeometryEditor) (err error) {
 }
 
 func (g *Geometry) Encode(b *strings.Builder) {
-	parser.EngineAddKeyValue(b, "geo_num", g.GeometryID)
-	parser.EngineAddKeyValue(b, g.RelX.Name, g.RelX.Value)
-	parser.EngineAddKeyValue(b, g.RelY.Name, g.RelY.Value)
-	parser.EngineAddKeyValue(b, g.Mask.Name, g.Mask.Value)
+	util.EngineAddKeyValue(b, "geo_num", g.GeometryID)
+	util.EngineAddKeyValue(b, g.RelX.Name, g.RelX.Value)
+	util.EngineAddKeyValue(b, g.RelY.Name, g.RelY.Value)
+	util.EngineAddKeyValue(b, g.Mask.Name, g.Mask.Value)
 }
 
-func (g *Geometry) GetName() string {
+func (g Geometry) GetName() string {
 	return g.Name
 }
 
-func (g *Geometry) GetGeometryID() int {
+func (g Geometry) GetGeometryID() int {
 	return g.GeometryID
 }
 
-func (g *Geometry) GetGeometry() *Geometry {
-	return g
+func (g Geometry) GetGeometry() *Geometry {
+	return &g
+}
+
+type Editor[S any] interface {
+	UpdateEditor(S) error
+	GetBox() *gtk.ScrolledWindow
 }
 
 type GeometryEditor struct {

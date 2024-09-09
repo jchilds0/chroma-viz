@@ -1,7 +1,6 @@
 package attribute
 
 import (
-	"chroma-viz/library/parser"
 	"chroma-viz/library/util"
 	"fmt"
 	"log"
@@ -33,11 +32,11 @@ func (polyAttr *PolygonAttribute) AddPoint(index, posX, posY int) {
 }
 
 func (polyAttr *PolygonAttribute) Encode(b *strings.Builder) {
-	parser.EngineAddKeyValue(b, polyAttr.NumPoints, len(polyAttr.PosX))
+	util.EngineAddKeyValue(b, polyAttr.NumPoints, len(polyAttr.PosX))
 
 	for i := range polyAttr.PosX {
 		point := fmt.Sprintf("%d %d %d", i-1, polyAttr.PosX[i], polyAttr.PosY[i])
-		parser.EngineAddKeyValue(b, polyAttr.Points, point)
+		util.EngineAddKeyValue(b, polyAttr.Points, point)
 	}
 }
 
@@ -212,7 +211,11 @@ func (polyEdit *PolygonEditor) UpdateEditor(polyAttr *PolygonAttribute) error {
 	polyEdit.points.Clear()
 	polyEdit.numPoints = len(polyAttr.PosX)
 
-	for i := range polyAttr.PosX {
+	for i := range polyAttr.NumPoints {
+		if _, ok := polyAttr.PosX[i]; !ok {
+			continue
+		}
+
 		iter := polyEdit.points.Append()
 		polyEdit.points.SetValue(iter, 0, i)
 		polyEdit.points.SetValue(iter, 1, polyAttr.PosX[i])

@@ -2,7 +2,7 @@ package geometry
 
 import (
 	"chroma-viz/library/attribute"
-	"chroma-viz/library/parser"
+	"chroma-viz/library/util"
 	"strings"
 )
 
@@ -59,8 +59,8 @@ func (l *List) Encode(b *strings.Builder) {
 	l.Geometry.Encode(b)
 
 	l.String.Encode(b)
-	parser.EngineAddKeyValue(b, l.Scale.Name, l.Scale.Value)
-	parser.EngineAddKeyValue(b, l.Color.Name, l.Color.ToString())
+	util.EngineAddKeyValue(b, l.Scale.Name, l.Scale.Value)
+	util.EngineAddKeyValue(b, l.Color.Name, l.Color.ToString())
 }
 
 type ListEditor struct {

@@ -2,7 +2,7 @@ package geometry
 
 import (
 	"chroma-viz/library/attribute"
-	"chroma-viz/library/parser"
+	"chroma-viz/library/util"
 	"strings"
 )
 
@@ -50,9 +50,9 @@ func (t *Text) UpdateGeometry(tEdit *TextEditor) (err error) {
 func (t *Text) Encode(b *strings.Builder) {
 	t.Geometry.Encode(b)
 
-	parser.EngineAddKeyValue(b, t.String.Name, t.String.Value)
-	parser.EngineAddKeyValue(b, t.Scale.Name, t.Scale.Value)
-	parser.EngineAddKeyValue(b, t.Color.Name, t.Color.ToString())
+	util.EngineAddKeyValue(b, t.String.Name, t.String.Value)
+	util.EngineAddKeyValue(b, t.Scale.Name, t.Scale.Value)
+	util.EngineAddKeyValue(b, t.Color.Name, t.Color.ToString())
 }
 
 type TextEditor struct {

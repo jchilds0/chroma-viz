@@ -11,9 +11,14 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/gotk3/gotk3/gdk"
 	"github.com/gotk3/gotk3/glib"
 	"github.com/gotk3/gotk3/gtk"
 )
+
+const iconSize = 24
+const addFrameIcon = "artist/add-file-icon.svg"
+const removeFrameIcon = "artist/remove-file-icon.svg"
 
 var conn map[string]*library.Connection
 var conf *library.Config
@@ -121,6 +126,11 @@ func ArtistGui(app *gtk.Application) {
 	}
 
 	removeGeoButton, err := util.BuilderGetObject[*gtk.Button](builder, "remove-geo")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	duplicateGeoButton, err := util.BuilderGetObject[*gtk.Button](builder, "duplicate-geo")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -417,6 +427,8 @@ func ArtistGui(app *gtk.Application) {
 
 	addGeoButton.Connect("clicked", func() { addGeo(template, geoTree, keyTree) })
 	removeGeoButton.Connect("clicked", func() { removeGeo(template, geoTree, keyTree) })
+	duplicateGeoButton.Connect("clicked", func() { duplicateGeo(template, geoTree, keyTree) })
+
 	geoScroll.Add(geoTree.geoView)
 
 	keyGeo.Connect("changed", func() {
@@ -436,33 +448,76 @@ func ArtistGui(app *gtk.Application) {
 
 	frameSideBar.SetStack(frameStack)
 
-	addFrameButton.Connect("clicked", func() {
-		err := keyTree.AddFrame()
+	{
+		buf, err := gdk.PixbufNewFromFileAtSize(addFrameIcon, iconSize, iconSize)
 		if err != nil {
-			log.Printf("Error adding frame: %s", err)
+			log.Fatal(err)
 		}
-	})
 
-	removeFrameButton.Connect("clicked", func() {
-		err := keyTree.RemoveFrame()
+		img, err := gtk.ImageNewFromPixbuf(buf)
 		if err != nil {
-			log.Printf("Error removing frame: %s", err)
+			log.Print(err)
 		}
-	})
+		addFrameButton.SetImage(img)
 
-	addKeyframeButton.Connect("clicked", func() {
-		err := keyTree.AddKeyframe()
-		if err != nil {
-			log.Printf("Error adding keyframe: %s", err)
-		}
-	})
+		addFrameButton.Connect("clicked", func() {
+			err := keyTree.AddFrame()
+			if err != nil {
+				log.Printf("Error adding frame: %s", err)
+			}
+		})
+	}
 
-	removeKeyframeButton.Connect("clicked", func() {
-		err := keyTree.RemoveKeyframe()
+	{
+		buf, err := gdk.PixbufNewFromFileAtSize(removeFrameIcon, iconSize, iconSize)
 		if err != nil {
-			log.Printf("Error removing keyframe: %s", err)
+			log.Fatal(err)
 		}
-	})
+
+		img, err := gtk.ImageNewFromPixbuf(buf)
+		if err != nil {
+			log.Print(err)
+		}
+
+		removeFrameButton.SetImage(img)
+
+		removeFrameButton.Connect("clicked", func() {
+			err := keyTree.RemoveFrame()
+			if err != nil {
+				log.Printf("Error removing frame: %s", err)
+			}
+		})
+	}
+
+	{
+		img, err := gtk.ImageNewFromIconName("list-add", 3)
+		if err != nil {
+			log.Print(err)
+		}
+		addKeyframeButton.SetImage(img)
+
+		addKeyframeButton.Connect("clicked", func() {
+			err := keyTree.AddKeyframe()
+			if err != nil {
+				log.Printf("Error adding keyframe: %s", err)
+			}
+		})
+	}
+
+	{
+		img, err := gtk.ImageNewFromIconName("list-remove", 3)
+		if err != nil {
+			log.Print(err)
+		}
+		removeKeyframeButton.SetImage(img)
+
+		removeKeyframeButton.Connect("clicked", func() {
+			err := keyTree.RemoveKeyframe()
+			if err != nil {
+				log.Printf("Error removing keyframe: %s", err)
+			}
+		})
+	}
 
 	editBox.PackStart(editView.Box, true, true, 0)
 
@@ -557,14 +612,61 @@ func addGeo(temp *templates.Template, geoTree *GeoTree, keyTree *KeyTree) {
 }
 
 func removeGeo(temp *templates.Template, geoTree *GeoTree, keyTree *KeyTree) {
-	geoID, err := geoTree.GetSelectedGeoID()
+	iter, err := geoTree.GetSelectedGeometry()
+	if err != nil {
+		log.Printf("Error removing geometry: %s", err)
+		return
+	}
+
+	geoID, err := util.ModelGetValue[int](geoTree.geoModel.ToTreeModel(), iter, GEO_NUM)
 	if err != nil {
 		log.Printf("Error removing geo: %s", err)
 		return
 	}
 
 	temp.RemoveGeometry(geoID)
-
-	geoTree.RemoveGeo(geoID)
+	geoTree.RemoveGeo(iter, geoID)
 	keyTree.RemoveGeo(geoID)
+}
+
+func duplicateGeo(temp *templates.Template, geoTree *GeoTree, keyTree *KeyTree) {
+	iter, err := geoTree.GetSelectedGeometry()
+	if err != nil {
+		log.Printf("Error duplicating geometry: %s", err)
+		return
+	}
+
+	geoID, err := util.ModelGetValue[int](geoTree.geoModel.ToTreeModel(), iter, GEO_NUM)
+	if err != nil {
+		log.Printf("Error duplicating geometry: %s", err)
+		return
+	}
+
+	geoType, err := util.ModelGetValue[string](geoTree.geoModel.ToTreeModel(), iter, GEO_TYPE)
+	if err != nil {
+		log.Printf("Error duplicating geometry: %s", err)
+		return
+	}
+
+	geoName, err := util.ModelGetValue[string](geoTree.geoModel.ToTreeModel(), iter, GEO_NAME)
+	if err != nil {
+		log.Printf("Error duplicating geometry: %s", err)
+		return
+	}
+
+	newGeoName := geoName + " copy"
+	newGeoID, err := temp.AddGeometry(geoType, newGeoName)
+	if err != nil {
+		log.Printf("Error adding geometry: %s", err)
+		return
+	}
+
+	err = temp.CopyGeometry(geoID, newGeoID)
+	if err != nil {
+		log.Printf("Error adding geometry: %s", err)
+		return
+	}
+
+	geoTree.AddGeoRow(newGeoID, 0, newGeoName, geoType)
+	keyTree.AddGeometry(newGeoName, newGeoID)
 }
