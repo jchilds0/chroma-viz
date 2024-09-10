@@ -18,17 +18,13 @@ import (
 type DataBase struct {
 	db        *sql.DB
 	Templates map[int64]*templates.Template
-	Assets    map[int][]byte
-	Dirs      map[int]string
-	Names     map[int]string
+	Assets    map[int]Asset
 }
 
 func NewDataBase(numTemp int, username, password string) (hub *DataBase, err error) {
 	hub = &DataBase{}
 	hub.Templates = make(map[int64]*templates.Template, 100)
-	hub.Assets = make(map[int][]byte, 10)
-	hub.Dirs = make(map[int]string, 10)
-	hub.Names = make(map[int]string, 10)
+	hub.Assets = make(map[int]Asset, 10)
 
 	hub.db, err = sql.Open("mysql", fmt.Sprintf("%s:%s@/?multiStatements=true", username, password))
 	if err != nil {
@@ -256,32 +252,25 @@ func (hub *DataBase) HandleConn(conn net.Conn) {
 
 		case "img":
 			imageID, _ := strconv.Atoi(cmds[4])
-			image := hub.Assets[imageID]
-			if image == nil {
+			asset, ok := hub.Assets[imageID]
+			if !ok {
 				Logger("Image %d does not exist", imageID)
 				_, err = conn.Write([]byte{0, 1, 0, 0})
 				_, err = conn.Write([]byte{0, 0, 0, 0})
 				continue
 			}
 
-			lenByte0 := byte(len(image) & (1<<8 - 1))
-			lenByte1 := byte((len(image) >> 8) & (1<<8 - 1))
-			lenByte2 := byte((len(image) >> 16) & (1<<8 - 1))
-			lenByte3 := byte((len(image) >> 24) & (1<<8 - 1))
+			lenByte0 := byte(len(asset.image) & (1<<8 - 1))
+			lenByte1 := byte((len(asset.image) >> 8) & (1<<8 - 1))
+			lenByte2 := byte((len(asset.image) >> 16) & (1<<8 - 1))
+			lenByte3 := byte((len(asset.image) >> 24) & (1<<8 - 1))
 
 			_, err = conn.Write([]byte{0, 1, 0, 0})
 			_, err = conn.Write([]byte{lenByte3, lenByte2, lenByte1, lenByte0})
-			_, err = conn.Write(image)
+			_, err = conn.Write(asset.image)
 
 		case "assets":
-			var assets struct {
-				Dirs  map[int]string
-				Names map[int]string
-			}
-			assets.Dirs = hub.Dirs
-			assets.Names = hub.Names
-
-			assetsJson, err := json.Marshal(assets)
+			assetsJson, err := json.Marshal(hub.Assets)
 			if err != nil {
 				break
 			}

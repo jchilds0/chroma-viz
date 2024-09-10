@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"strconv"
 	"time"
 )
 
@@ -49,12 +48,10 @@ func (hub *DataBase) ImportArchive(fileName string) error {
 		log.Printf("Loaded Template %d (%s)", temp.TempID, temp.Title)
 	}
 
-	for id := range archive.Assets {
+	for id, a := range archive.Assets {
 		hub.Assets[id] = archive.Assets[id]
-		hub.Dirs[id] = archive.Dirs[id]
-		hub.Names[id] = archive.Names[id]
 
-		log.Printf("Loaded Asset %d at %s/%s", id, archive.Dirs[id], archive.Names[id])
+		log.Printf("Loaded Asset %d at %s/%s", id, a.Directory, a.Name)
 	}
 
 	//log.Printf("Imported Hub")
@@ -91,23 +88,44 @@ func (hub *DataBase) ExportTemplate(fileName string, tempID int64) error {
 	return err
 }
 
-func (hub *DataBase) ImportAsset(args []string) (err error) {
-	if len(args) != 4 {
-		return fmt.Errorf("Incorrect number of args to import asset")
-	}
-
-	image, err := os.ReadFile(args[0])
+func (hub *DataBase) ImportAssets(fileName string) (err error) {
+	buf, err := os.ReadFile(fileName)
 	if err != nil {
 		return
 	}
 
-	imageID, err := strconv.Atoi(args[3])
-	if err != nil {
-		return
+	var assets Assets
+	err = json.Unmarshal(buf, &assets)
+
+	for _, a := range assets {
+		err = a.fetchImage()
+		if err != nil {
+			Logger("Error importing asset %d: %s", a.ImageID, err)
+			continue
+		}
+
+		hub.Assets[a.ImageID] = a
 	}
 
-	hub.Assets[imageID] = image
-	hub.Dirs[imageID] = args[1]
-	hub.Names[imageID] = args[2]
 	return
+}
+
+func (hub *DataBase) ExportAssets(fileName string) {
+	file, err := os.Create(fileName)
+	if err != nil {
+		Logger("Couldn't open file: %s", err)
+	}
+	defer file.Close()
+
+	buf, err := json.Marshal(hub.Assets)
+	if err != nil {
+		Logger("Error encoding assets: %s", err)
+	}
+
+	_, err = file.Write(buf)
+	if err != nil {
+		Logger("Error writing assets: %s", err)
+	}
+
+	log.Printf("Exported assets to %s", fileName)
 }

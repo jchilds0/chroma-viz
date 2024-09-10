@@ -71,9 +71,9 @@ func ImportAssets(hub net.Conn) (err error) {
 		return
 	}
 
-	var asset struct {
-		Dirs  map[int]string
-		Names map[int]string
+	var asset map[int]struct {
+		Directory string
+		Name      string
 	}
 
 	bytes := assetBytes[:len(assetBytes)-1]
@@ -82,8 +82,8 @@ func ImportAssets(hub net.Conn) (err error) {
 		return
 	}
 
-	for id, path := range asset.Dirs {
-		InsertAsset(path, asset.Names[id], id)
+	for id, a := range asset {
+		InsertAsset(a.Directory, a.Name, id)
 	}
 
 	return

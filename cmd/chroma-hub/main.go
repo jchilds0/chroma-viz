@@ -13,10 +13,9 @@ import (
 )
 
 var usage = `Usage:
-    - import [archive|template] <filename>.json
-    - import asset <filename>.png <directory> <name> <image id>
-    - export archive <filename>.json
-    - export template <template id> <filename>.json
+    - import [archive|template|assets] <filename>
+    - export [archive|assets] <filename>
+    - export [template] <id> <filename>
     - generate <num. templates> <num. geometries>
     - clean 
 `
@@ -102,25 +101,16 @@ func createSchema(db *hub.DataBase) (err error) {
 func imported(db *hub.DataBase, inputs []string) {
 	var err error
 
-	if len(inputs) == 0 {
+	if len(inputs) != 2 {
 		fmt.Println(usage)
 		return
 	}
 
 	switch inputs[0] {
 	case "archive":
-		if len(inputs) != 2 {
-			fmt.Println(usage)
-			return
-		}
-
 		err = db.ImportArchive(inputs[1])
-	case "template":
-		if len(inputs) != 2 {
-			fmt.Println(usage)
-			return
-		}
 
+	case "template":
 		var temp templates.Template
 		temp, err = templates.NewTemplateFromFile(inputs[1])
 		if err != nil {
@@ -128,13 +118,10 @@ func imported(db *hub.DataBase, inputs []string) {
 		}
 
 		err = db.ImportTemplate(temp)
-	case "asset":
-		if len(inputs) != 5 {
-			fmt.Println(usage)
-			return
-		}
 
-		err = db.ImportAsset(inputs[1:])
+	case "assets":
+		err = db.ImportAssets(inputs[1])
+
 	default:
 		fmt.Println(usage)
 	}
@@ -170,6 +157,14 @@ func exported(db *hub.DataBase, inputs []string) {
 			hub.Logger("CLI: %s", err)
 			return
 		}
+
+	case "assets":
+		if len(inputs) != 2 {
+			fmt.Println(usage)
+			return
+		}
+
+		db.ExportAssets(inputs[1])
 
 	default:
 		fmt.Println(usage)
