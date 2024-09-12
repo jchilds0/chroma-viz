@@ -1,17 +1,13 @@
 package hub
 
 import (
-	"bufio"
 	"chroma-viz/library/templates"
 	"database/sql"
-	"encoding/json"
 	"fmt"
-	"io"
-	"net"
 	"os"
 	"strconv"
-	"strings"
 
+	"github.com/gin-gonic/gin"
 	_ "github.com/go-sql-driver/mysql"
 )
 
@@ -58,19 +54,13 @@ func (hub *DataBase) SelectDatabase(name, username, password string) (err error)
 	return
 }
 
-// S -> {'num_temp': num, 'templates': [T]}
-func (hub *DataBase) EncodeDB() (buf []byte, err error) {
+func (hub *DataBase) GetTemplates() (temps []*templates.Template, err error) {
 	rows, err := hub.db.Query("SELECT t.templateID FROM template t;")
 	if err != nil {
 		return
 	}
 
-	var databaseJSON struct {
-		NumTemplates int
-		Templates    []*templates.Template
-	}
-
-	databaseJSON.Templates = make([]*templates.Template, 0, 10)
+	temps = make([]*templates.Template, 0, 10)
 
 	var (
 		maxTempID int64
@@ -91,11 +81,10 @@ func (hub *DataBase) EncodeDB() (buf []byte, err error) {
 		}
 
 		maxTempID = max(maxTempID, temp.TempID)
-		databaseJSON.Templates = append(databaseJSON.Templates, temp)
+		temps = append(temps, temp)
 	}
 
-	databaseJSON.NumTemplates = int(maxTempID)
-	return json.Marshal(databaseJSON)
+	return
 }
 
 func (hub *DataBase) CleanDB() {
@@ -107,7 +96,7 @@ func (hub *DataBase) CleanDB() {
 	return
 }
 
-func (hub *DataBase) TempIDs() (s string, err error) {
+func (hub *DataBase) TempIDs() (ids map[int]string, err error) {
 	q := `
         SELECT t.templateID, t.Name
         FROM template t;
@@ -118,174 +107,35 @@ func (hub *DataBase) TempIDs() (s string, err error) {
 		return
 	}
 
+	ids = make(map[int]string)
+
 	var (
 		tempID int
 		title  string
 	)
-
-	var b strings.Builder
 	for rows.Next() {
 		err = rows.Scan(&tempID, &title)
 		if err != nil {
 			return
 		}
 
-		b.WriteString(strconv.Itoa(tempID))
-		b.WriteByte(' ')
-		b.WriteString(title)
-		b.WriteByte(';')
+		ids[tempID] = title
 	}
 
-	b.WriteString("EOF;")
-	s = b.String()
 	return
 }
 
 func (hub *DataBase) StartHub(port int) {
-	ln, err := net.Listen("tcp", ":"+strconv.Itoa(port))
-	if err != nil {
-		Logger("Error creating server (%s)", err)
-	}
-	defer ln.Close()
+	temp, _ := templates.NewTemplateFromFile("./artist/Lower_Frame_Anim.json")
+	hub.ImportTemplate(temp)
 
-	for {
-		conn, err := ln.Accept()
-		if err != nil {
-			Logger("Error accepting connection (%s)", err)
-			continue
-		}
+	router := gin.Default()
 
-		go hub.HandleConn(conn)
-	}
-}
+	router.GET("/templates", hub.getTemplates)
+	router.GET("/template/[id]", hub.getTemplate)
+	router.GET("/tempIDs", hub.getTemplateIDs)
+	router.GET("/assets", hub.getAssets)
+	router.GET("/asset/[id]", hub.getAsset)
 
-var EOM = 6
-
-/*
-Protocol for Chroma Hub <=> Chroma Viz/Engine communication
-
-S -> V C;
-V -> ver %d %d
-C -> full | tempids | temp %d
-
-A command consists of a header with the protocol version,
-the command which is currently either full or a single page,
-and a template id if the command is template.
-
-	full - encode the entire chroma hub and send to client
-
-	tempids - send all current template ids
-
-	temp i - encode template with template id 'i' and send
-	to clint
-*/
-func (hub *DataBase) HandleConn(conn net.Conn) {
-	var b []byte
-	req := make([]byte, 0, 1024)
-	buf := bufio.NewReader(conn)
-
-	for {
-		s, err := buf.ReadString(';')
-		if err == io.EOF {
-			break
-		} else if err != nil {
-			Logger("Error reading request (%s)", err)
-			continue
-		}
-
-		cmds := strings.Split(strings.TrimSuffix(s, ";"), " ")
-
-		if len(s) < 4 {
-			continue
-		}
-
-		if cmds[1] != "0" || cmds[2] != "1" {
-			Logger("Request has incorrect ver %s %s, expected 0 1 (%s)", cmds[1], cmds[2], s)
-			_, err = conn.Write([]byte(string(EOM)))
-			continue
-		}
-
-		switch cmds[3] {
-		case "full":
-			b, err = hub.EncodeDB()
-			if err != nil {
-				Logger("Error retrieving database (%s)", err)
-				_, err = conn.Write([]byte(string(EOM)))
-				continue
-			}
-
-			_, err = conn.Write(append(b, byte(EOM)))
-
-		case "tempids":
-			s, err = hub.TempIDs()
-			if err != nil {
-				Logger("Error retrieving template IDs (%s)", err)
-				_, err = conn.Write([]byte(string(EOM)))
-				continue
-			}
-
-			_, err = conn.Write([]byte(s + string(EOM)))
-
-		case "temp":
-			tempid, err := strconv.ParseInt(cmds[4], 10, 64)
-			if err != nil {
-				Logger("Error getting template id: %s", err)
-				_, err = conn.Write([]byte(string(EOM)))
-				continue
-			}
-
-			template, err := hub.GetTemplate(tempid)
-			if err != nil {
-				Logger("Error getting template %d: %s", tempid, err)
-				_, err = conn.Write([]byte(string(EOM)))
-				continue
-			}
-
-			b, err = json.Marshal(template)
-			if err != nil {
-				Logger("Error encoding template %d: %s", tempid, err)
-				_, err = conn.Write([]byte(string(EOM)))
-				continue
-			}
-
-			_, err = conn.Write(append(b, byte(EOM)))
-
-		case "img":
-			imageID, _ := strconv.Atoi(cmds[4])
-			asset, ok := hub.Assets[imageID]
-			if !ok {
-				Logger("Image %d does not exist", imageID)
-				_, err = conn.Write([]byte{0, 1, 0, 0})
-				_, err = conn.Write([]byte{0, 0, 0, 0})
-				continue
-			}
-
-			lenByte0 := byte(len(asset.image) & (1<<8 - 1))
-			lenByte1 := byte((len(asset.image) >> 8) & (1<<8 - 1))
-			lenByte2 := byte((len(asset.image) >> 16) & (1<<8 - 1))
-			lenByte3 := byte((len(asset.image) >> 24) & (1<<8 - 1))
-
-			_, err = conn.Write([]byte{0, 1, 0, 0})
-			_, err = conn.Write([]byte{lenByte3, lenByte2, lenByte1, lenByte0})
-			_, err = conn.Write(asset.image)
-
-		case "assets":
-			assetsJson, err := json.Marshal(hub.Assets)
-			if err != nil {
-				break
-			}
-
-			_, err = conn.Write(assetsJson)
-			_, err = conn.Write([]byte{0})
-
-		default:
-			Logger("Unknown request %s", string(req[:]))
-			continue
-		}
-
-		if err != nil {
-			Logger("Error responding to request %s (%s)", string(req[:]), err)
-			continue
-		}
-	}
+	router.Run("localhost:" + strconv.Itoa(port))
 }

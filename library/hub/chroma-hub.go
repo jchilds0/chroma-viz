@@ -19,14 +19,6 @@ func Logger(message string, args ...any) {
 	file.Write([]byte(s))
 }
 
-/*
-Send graphics hub to client using the following grammar
-
-S -> {'num_temp': num, 'templates': [T]}
-T -> {'id': num, 'num_geo': num, 'geometry': [G]} | T, T
-G -> {'id': num, 'type': string, 'attr': [A]} | G, G
-A -> {'name': string, 'value': string} | A, A
-*/
 func (hub *DataBase) ImportArchive(fileName string) error {
 	buf, err := os.ReadFile(fileName)
 	if err != nil {
