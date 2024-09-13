@@ -1,12 +1,8 @@
 package attribute
 
 import (
-	"bufio"
 	"chroma-viz/library/util"
-	"encoding/json"
-	"fmt"
 	"log"
-	"net"
 	"strings"
 
 	"github.com/gotk3/gotk3/glib"
@@ -57,34 +53,17 @@ func InsertAsset(path, name string, id int) {
 	currentNode.assetNames = append(currentNode.assetNames, name)
 }
 
-func ImportAssets(hub net.Conn) (err error) {
-	if hub == nil {
-		err = fmt.Errorf("Chroma Hub is disconnected")
-		return
-	}
+func ImportAssets() (err error) {
+	/*
+		var asset map[int]struct {
+			Directory string
+			Name      string
+		}
 
-	hub.Write([]byte("ver 0 1 assets;"))
-	buf := bufio.NewReader(hub)
-
-	assetBytes, err := buf.ReadBytes(0)
-	if err != nil {
-		return
-	}
-
-	var asset map[int]struct {
-		Directory string
-		Name      string
-	}
-
-	bytes := assetBytes[:len(assetBytes)-1]
-	err = json.Unmarshal(bytes, &asset)
-	if err != nil {
-		return
-	}
-
-	for id, a := range asset {
-		InsertAsset(a.Directory, a.Name, id)
-	}
+		for id, a := range asset {
+			InsertAsset(a.Directory, a.Name, id)
+		}
+	*/
 
 	return
 }

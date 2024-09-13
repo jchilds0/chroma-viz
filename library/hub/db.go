@@ -5,9 +5,7 @@ import (
 	"database/sql"
 	"fmt"
 	"os"
-	"strconv"
 
-	"github.com/gin-gonic/gin"
 	_ "github.com/go-sql-driver/mysql"
 )
 
@@ -123,19 +121,4 @@ func (hub *DataBase) TempIDs() (ids map[int]string, err error) {
 	}
 
 	return
-}
-
-func (hub *DataBase) StartHub(port int) {
-	temp, _ := templates.NewTemplateFromFile("./artist/Lower_Frame_Anim.json")
-	hub.ImportTemplate(temp)
-
-	router := gin.Default()
-
-	router.GET("/templates", hub.getTemplates)
-	router.GET("/template/[id]", hub.getTemplate)
-	router.GET("/tempIDs", hub.getTemplateIDs)
-	router.GET("/assets", hub.getAssets)
-	router.GET("/asset/[id]", hub.getAsset)
-
-	router.Run("localhost:" + strconv.Itoa(port))
 }

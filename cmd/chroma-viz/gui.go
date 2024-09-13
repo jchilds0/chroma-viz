@@ -3,12 +3,11 @@ package main
 import (
 	"chroma-viz/library"
 	"chroma-viz/library/attribute"
+	"chroma-viz/library/hub"
 	"chroma-viz/library/pages"
-	"chroma-viz/library/templates"
 	"chroma-viz/library/util"
 	"fmt"
 	"log"
-	"net"
 	"time"
 
 	"github.com/gotk3/gotk3/glib"
@@ -18,7 +17,6 @@ import (
 var conn *GuiConn = NewGuiConn()
 
 type GuiConn struct {
-	hub  *library.Connection
 	eng  []*library.Connection
 	prev []*library.Connection
 }
@@ -68,7 +66,7 @@ A hook which is run after the viz TempTree and
 ShowTree are initialised. This allows a test to
 to call the import methods of these structs
 */
-var importHook = func(hub net.Conn, temp *TempTree, show *ShowTree) {}
+var importHook = func(c hub.Client, temp *TempTree, show *ShowTree) {}
 
 func VizGui(app *gtk.Application) {
 	win, err := gtk.ApplicationWindowNew(app)
@@ -87,7 +85,7 @@ func VizGui(app *gtk.Application) {
 	win.Add(box)
 
 	start := time.Now()
-	err = attribute.ImportAssets(conn.hub.Conn)
+	err = attribute.ImportAssets()
 	if err != nil {
 		log.Print(err)
 	}
@@ -103,7 +101,7 @@ func VizGui(app *gtk.Application) {
 
 	showTree := NewShowTree(func(page *pages.Page) { edit.SetPage(page) })
 	tempTree := NewTempTree(func(tempid int) {
-		template, err := templates.GetTemplate(conn.hub.Conn, tempid)
+		template, err := hub.GetTemplate(conf.ChromaHub, tempid)
 		if err != nil {
 			log.Print(err)
 			return
@@ -131,7 +129,7 @@ func VizGui(app *gtk.Application) {
 		}
 
 		SendPreview(edit.CurrentPage, library.UPDATE)
-		temp, err := templates.GetTemplate(conn.hub.Conn, edit.CurrentPage.TemplateID)
+		temp, err := hub.GetTemplate(conf.ChromaHub, edit.CurrentPage.TemplateID)
 		if err != nil {
 			log.Printf("Error updating template: %s", err)
 			return
@@ -151,12 +149,12 @@ func VizGui(app *gtk.Application) {
 	}
 
 	start = time.Now()
-	tempTree.ImportTemplates(conn.hub.Conn)
+	tempTree.ImportTemplates(conf.ChromaHub)
 	end = time.Now()
 	elapsed = end.Sub(start)
 	log.Printf("Imported Graphics Hub in %s", elapsed)
 
-	go importHook(conn.hub.Conn, tempTree, showTree)
+	go importHook(conf.ChromaHub, tempTree, showTree)
 
 	/* Menu layout */
 	builder, err := gtk.BuilderNew()

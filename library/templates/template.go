@@ -1,13 +1,11 @@
 package templates
 
 import (
-	"bufio"
 	"chroma-viz/library/geometry"
 	"chroma-viz/library/util"
 	"encoding/json"
 	"fmt"
 	"log"
-	"net"
 	"os"
 	"reflect"
 	"slices"
@@ -347,34 +345,16 @@ func (temp *Template) ExportTemplate(filename string) error {
 	return nil
 }
 
-func GetTemplate(conn net.Conn, tempid int) (temp Template, err error) {
-	s := fmt.Sprintf("ver 0 1 temp %d;", tempid)
-
-	_, err = conn.Write([]byte(s))
-	if err != nil {
-		return
-	}
-
-	buf := bufio.NewReader(conn)
-	data, err := buf.ReadBytes(6)
-	if err != nil {
-		return
-	}
-
-	err = json.Unmarshal(data[:len(data)-1], &temp)
-	if err != nil {
-		return
-	}
-
+func (temp *Template) Init() (err error) {
 	temp.Geos = make(map[int]*geometry.Geometry, 10)
 
-	updateGeometryEntry(&temp, temp.Rectangle)
-	updateGeometryEntry(&temp, temp.Circle)
-	updateGeometryEntry(&temp, temp.Clock)
-	updateGeometryEntry(&temp, temp.Image)
-	updateGeometryEntry(&temp, temp.Polygon)
-	updateGeometryEntry(&temp, temp.Text)
-	updateGeometryEntry(&temp, temp.List)
+	updateGeometryEntry(temp, temp.Rectangle)
+	updateGeometryEntry(temp, temp.Circle)
+	updateGeometryEntry(temp, temp.Clock)
+	updateGeometryEntry(temp, temp.Image)
+	updateGeometryEntry(temp, temp.Polygon)
+	updateGeometryEntry(temp, temp.Text)
+	updateGeometryEntry(temp, temp.List)
 
 	return
 }

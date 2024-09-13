@@ -1,6 +1,7 @@
 package library
 
 import (
+	"chroma-viz/library/hub"
 	"encoding/json"
 	"fmt"
 	"os"
@@ -14,8 +15,7 @@ type Conn struct {
 }
 
 type Config struct {
-	HubAddr          string
-	HubPort          int
+	ChromaHub        hub.Client
 	PreviewDirectory string
 	PreviewConfig    string
 	PreviewName      string

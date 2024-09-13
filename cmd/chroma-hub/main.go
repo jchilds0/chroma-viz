@@ -1,14 +1,11 @@
 package main
 
 import (
-	"bufio"
 	"chroma-viz/library/hub"
 	"chroma-viz/library/templates"
 	"flag"
 	"fmt"
-	"os"
 	"strconv"
-	"strings"
 	"time"
 )
 
@@ -58,28 +55,30 @@ func main() {
 		return
 	}
 
-	ok := true
-	go db.StartHub(*port)
+	db.StartRestAPI(*port)
 
-	read := bufio.NewScanner(os.Stdin)
-	for ok {
-		printMessage(*port, "")
-		read.Scan()
-		input := strings.Split(read.Text(), " ")
+	/*
+		ok := true
+		read := bufio.NewScanner(os.Stdin)
+		for ok {
+		    printMessage(*port, "")
+		    read.Scan()
+		    input := strings.Split(read.Text(), " ")
 
-		switch input[0] {
-		case "import":
-			imported(db, input[1:])
-		case "export":
-			exported(db, input[1:])
-		case "generate":
-			generate(db, input[1:])
-		case "clean":
-			db.CleanDB()
-		default:
-			fmt.Println(usage)
+		    switch input[0] {
+		    case "import":
+		        imported(db, input[1:])
+		    case "export":
+		        exported(db, input[1:])
+		    case "generate":
+		        generate(db, input[1:])
+		    case "clean":
+		        db.CleanDB()
+		    default:
+		        fmt.Println(usage)
+		    }
 		}
-	}
+	*/
 }
 
 func createSchema(db *hub.DataBase) (err error) {

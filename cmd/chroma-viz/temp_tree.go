@@ -1,13 +1,9 @@
 package main
 
 import (
-	"bufio"
+	"chroma-viz/library/hub"
 	"chroma-viz/library/util"
-	"fmt"
 	"log"
-	"net"
-	"strconv"
-	"strings"
 
 	"github.com/gotk3/gotk3/glib"
 	"github.com/gotk3/gotk3/gtk"
@@ -81,43 +77,24 @@ func NewTempTree(templateToShow func(int)) *TempTree {
 	return temp
 }
 
-func (temp *TempTree) ImportTemplates(hub net.Conn) {
-	if hub == nil {
-		log.Print("Chroma Hub is disconnected")
+func (temp *TempTree) ImportTemplates(c hub.Client) {
+	tempids, err := hub.GetTemplateIDs(c)
+	if err != nil {
+		log.Printf("Error importing templates: %s", err)
 		return
 	}
 
-	s := fmt.Sprintf("ver 0 1 tempids;")
-	hub.Write([]byte(s))
-
-	buf := bufio.NewReader(hub)
-	for {
-		s, err := buf.ReadString(';')
+	for id, title := range tempids {
+		iter := temp.treeList.Append()
+		err := temp.treeList.SetValue(iter, 0, title)
 		if err != nil {
+			log.Printf("Error importing templates: %s", err)
 			return
 		}
 
-		s = strings.TrimSuffix(s, ";")
-		if s == "EOF" {
-			return
-		}
-
-		data := strings.Split(s, " ")
-
-		tempID, err := strconv.Atoi(data[0])
+		err = temp.treeList.SetValue(iter, 1, id)
 		if err != nil {
-			log.Printf("Error reading template id (%s)", err)
-			continue
-		}
-		title := strings.Join(data[1:], " ")
-
-		err = temp.treeList.Set(
-			temp.treeList.Append(),
-			[]int{0, 1},
-			[]interface{}{title, tempID},
-		)
-		if err != nil {
-			log.Printf("Error adding template to gtk treestore (%s)", err)
+			log.Printf("Error importing templates: %s", err)
 			return
 		}
 	}

@@ -1,6 +1,8 @@
 {
-    "HubAddr": "127.0.0.1",
-    "HubPort": 9000,
+    "ChromaHub": {
+        "Address": "127.0.0.1",
+        "Port": 9000
+    },
     "PreviewDirectory": "/home/josh/Documents/projects/chroma-engine/build/",
     "PreviewConfig": "viz/preview_conf.toml",
     "PreviewName": "chroma-engine",

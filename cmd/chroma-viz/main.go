@@ -2,12 +2,11 @@ package main
 
 import (
 	"chroma-viz/library"
+	"chroma-viz/library/hub"
 	"chroma-viz/library/pages"
-	"chroma-viz/library/templates"
 	"flag"
 	"log"
 	"math/rand"
-	"net"
 	"os"
 	"runtime/pprof"
 	"time"
@@ -43,9 +42,6 @@ func main() {
 	if *importRandom != 0 {
 		importHook = importRandomPages
 	}
-
-	conn.hub = library.NewConnection("Hub", conf.HubAddr, conf.HubPort)
-	conn.hub.Connect()
 
 	for _, c := range conf.Connections {
 		if c.Type == "engine" {
@@ -90,13 +86,13 @@ func closeViz() {
 	}
 }
 
-func importRandomPages(hub net.Conn, tempTree *TempTree, showTree *ShowTree) {
+func importRandomPages(c hub.Client, tempTree *TempTree, showTree *ShowTree) {
 	start := time.Now()
 	showTree.treeView.SetModel(nil)
 
 	for i := 0; i < *importRandom; i++ {
 		index := (rand.Int() % numTemplates) + 1
-		template, err := templates.GetTemplate(hub, index)
+		template, err := hub.GetTemplate(c, index)
 		if err != nil {
 			log.Fatal(err)
 			return

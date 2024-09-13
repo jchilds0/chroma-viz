@@ -2,7 +2,6 @@ package main
 
 import (
 	"chroma-viz/library"
-	"chroma-viz/library/attribute"
 	"chroma-viz/library/hub"
 	"chroma-viz/library/pages"
 	"chroma-viz/library/templates"
@@ -206,18 +205,20 @@ func ArtistGui(app *gtk.Application) {
 		log.Fatal(err)
 	}
 
-	hubConn := library.NewConnection("Hub", conf.HubAddr, conf.HubPort)
-	hubConn.Connect()
+	/*
+		hubConn := library.NewConnection("Hub", conf.HubAddr, conf.HubPort)
+		hubConn.Connect()
 
-	start := time.Now()
-	err = attribute.ImportAssets(hubConn.Conn)
-	if err != nil {
-		log.Print(err)
-	}
+		start := time.Now()
+		err = attribute.ImportAssets(hubConn.Conn)
+		if err != nil {
+			log.Print(err)
+		}
 
-	end := time.Now()
-	elapsed := end.Sub(start)
-	log.Printf("Imported Assets in %s", elapsed)
+		end := time.Now()
+		elapsed := end.Sub(start)
+		log.Printf("Imported Assets in %s", elapsed)
+	*/
 
 	conn = make(map[string]*library.Connection)
 	for _, c := range conf.Connections {
@@ -268,7 +269,7 @@ func ArtistGui(app *gtk.Application) {
 
 		editView.UpdateGeometry(template)
 
-		err = chromaHub.ImportTemplate(*template)
+		err = hub.PutTemplate(conf.ChromaHub, template)
 		if err != nil {
 			log.Printf("Error sending template to chroma hub (%s)", err)
 		}
@@ -324,7 +325,7 @@ func ArtistGui(app *gtk.Application) {
 		dialog := NewTemplateChooserDialog(&win.Window)
 		defer dialog.Destroy()
 
-		dialog.ImportTemplates(hubConn.Conn)
+		dialog.ImportTemplates(conf.ChromaHub)
 		res := dialog.Run()
 		if res == gtk.RESPONSE_ACCEPT {
 			selection, err := dialog.treeView.GetSelection()
@@ -341,7 +342,7 @@ func ArtistGui(app *gtk.Application) {
 
 			tempID, err := util.ModelGetValue[int](dialog.treeList.ToTreeModel(), iter, 1)
 
-			*template, err = templates.GetTemplate(hubConn.Conn, tempID)
+			*template, err = hub.GetTemplate(conf.ChromaHub, tempID)
 			if err != nil {
 				log.Printf("Error importing template: %s", err)
 				return
