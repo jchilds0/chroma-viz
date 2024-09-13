@@ -97,7 +97,9 @@ func NewTemplateChooserDialog(win *gtk.Window) *TemplateChooserDialog {
 func (dialog *TemplateChooserDialog) ImportTemplates(c hub.Client) {
 	dialog.treeList.Clear()
 
-	tempids, err := hub.GetTemplateIDs(c)
+	var tempids map[int]string
+
+	err := c.GetJSON("/template/list", &tempids)
 	if err != nil {
 		log.Printf("Error importing templates: %s", err)
 		return

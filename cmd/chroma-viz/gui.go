@@ -5,6 +5,7 @@ import (
 	"chroma-viz/library/attribute"
 	"chroma-viz/library/hub"
 	"chroma-viz/library/pages"
+	"chroma-viz/library/templates"
 	"chroma-viz/library/util"
 	"fmt"
 	"log"
@@ -101,7 +102,16 @@ func VizGui(app *gtk.Application) {
 
 	showTree := NewShowTree(func(page *pages.Page) { edit.SetPage(page) })
 	tempTree := NewTempTree(func(tempid int) {
-		template, err := hub.GetTemplate(conf.ChromaHub, tempid)
+		var template templates.Template
+		path := fmt.Sprintf("/template/%d", tempid)
+
+		err := conf.ChromaHub.GetJSON(path, &template)
+		if err != nil {
+			log.Print(err)
+			return
+		}
+
+		err = template.Init()
 		if err != nil {
 			log.Print(err)
 			return
@@ -129,13 +139,22 @@ func VizGui(app *gtk.Application) {
 		}
 
 		SendPreview(edit.CurrentPage, library.UPDATE)
-		temp, err := hub.GetTemplate(conf.ChromaHub, edit.CurrentPage.TemplateID)
+		var template templates.Template
+		path := fmt.Sprintf("/template/%d", edit.CurrentPage.TemplateID)
+
+		err := conf.ChromaHub.GetJSON(path, &template)
 		if err != nil {
 			log.Printf("Error updating template: %s", err)
 			return
 		}
 
-		edit.UpdateTemplate(&temp)
+		err = template.Init()
+		if err != nil {
+			log.Printf("Error updating template: %s", err)
+			return
+		}
+
+		edit.UpdateTemplate(&template)
 		SendPreview(edit.CurrentPage, library.ANIMATE_ON)
 	})
 

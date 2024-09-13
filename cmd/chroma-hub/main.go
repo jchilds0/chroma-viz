@@ -2,10 +2,10 @@ package main
 
 import (
 	"chroma-viz/library/hub"
-	"chroma-viz/library/templates"
 	"flag"
 	"fmt"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -31,6 +31,7 @@ var port = flag.Int("port", 9000, "chroma hub port")
 var username = flag.String("u", "", "SQL Database username")
 var password = flag.String("p", "", "SQL Database password")
 var schema = flag.Bool("c", false, "create database")
+var gen = flag.String("g", "", "generate templates")
 
 func main() {
 	flag.Parse()
@@ -55,30 +56,12 @@ func main() {
 		return
 	}
 
+	if *gen != "" {
+		input := strings.Split(*gen, ",")
+		generate(db, input)
+	}
+
 	db.StartRestAPI(*port)
-
-	/*
-		ok := true
-		read := bufio.NewScanner(os.Stdin)
-		for ok {
-		    printMessage(*port, "")
-		    read.Scan()
-		    input := strings.Split(read.Text(), " ")
-
-		    switch input[0] {
-		    case "import":
-		        imported(db, input[1:])
-		    case "export":
-		        exported(db, input[1:])
-		    case "generate":
-		        generate(db, input[1:])
-		    case "clean":
-		        db.CleanDB()
-		    default:
-		        fmt.Println(usage)
-		    }
-		}
-	*/
 }
 
 func createSchema(db *hub.DataBase) (err error) {
@@ -97,82 +80,8 @@ func createSchema(db *hub.DataBase) (err error) {
 	return
 }
 
-func imported(db *hub.DataBase, inputs []string) {
-	var err error
-
-	if len(inputs) != 2 {
-		fmt.Println(usage)
-		return
-	}
-
-	switch inputs[0] {
-	case "archive":
-		err = db.ImportArchive(inputs[1])
-
-	case "template":
-		var temp templates.Template
-		temp, err = templates.NewTemplateFromFile(inputs[1])
-		if err != nil {
-			break
-		}
-
-		err = db.ImportTemplate(temp)
-
-	case "assets":
-		err = db.ImportAssets(inputs[1])
-
-	default:
-		fmt.Println(usage)
-	}
-
-	if err != nil {
-		hub.Logger("CLI: %s", err)
-	}
-}
-
-func exported(db *hub.DataBase, inputs []string) {
-	switch inputs[0] {
-	case "archive":
-		if len(inputs) != 2 {
-			fmt.Println(usage)
-			return
-		}
-
-		db.ExportArchive(inputs[1])
-	case "template":
-		if len(inputs) != 3 {
-			fmt.Println(usage)
-			return
-		}
-
-		tempID, err := strconv.ParseInt(inputs[1], 10, 64)
-		if err != nil {
-			hub.Logger("CLI: %s", err)
-			return
-		}
-
-		err = db.ExportTemplate(inputs[2], tempID)
-		if err != nil {
-			hub.Logger("CLI: %s", err)
-			return
-		}
-
-	case "assets":
-		if len(inputs) != 2 {
-			fmt.Println(usage)
-			return
-		}
-
-		db.ExportAssets(inputs[1])
-
-	default:
-		fmt.Println(usage)
-	}
-}
-
 func generate(db *hub.DataBase, inputs []string) {
 	if len(inputs) != 2 {
-		fmt.Println(usage)
 		return
 	}
 

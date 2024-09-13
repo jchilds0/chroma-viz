@@ -11,14 +11,19 @@ import (
 
 type DataBase struct {
 	db        *sql.DB
-	Templates map[int64]*templates.Template
+	Templates map[int]*templates.Template
 	Assets    map[int]Asset
+}
+
+type Templates struct {
+	NumTemplates int
+	Templates    []*templates.Template
 }
 
 func NewDataBase(numTemp int, username, password string) (hub *DataBase, err error) {
 	hub = &DataBase{}
-	hub.Templates = make(map[int64]*templates.Template, 100)
-	hub.Assets = make(map[int]Asset, 10)
+	hub.Assets = make(map[int]Asset, 128)
+	hub.Templates = make(map[int]*templates.Template, 128)
 
 	hub.db, err = sql.Open("mysql", fmt.Sprintf("%s:%s@/?multiStatements=true", username, password))
 	if err != nil {

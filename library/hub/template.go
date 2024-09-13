@@ -62,8 +62,7 @@ func (hub *DataBase) ImportTemplate(temp templates.Template) (err error) {
 		return
 	}
 
-	hub.Templates[temp.TempID] = &temp
-
+	hub.Templates[int(temp.TempID)] = &temp
 	return
 }
 
@@ -114,11 +113,10 @@ func (hub *DataBase) AddTemplate(tempID int64, name string, layer int) (err erro
 }
 
 func (hub *DataBase) GetTemplate(tempID int64) (temp *templates.Template, err error) {
-	// Needs template versioning to update correctly
-	// temp, ok := hub.Templates[tempID]
-	// if ok {
-	// 	return
-	// }
+	temp, ok := hub.Templates[int(tempID)]
+	if ok {
+		return
+	}
 
 	tempQuery := `
         SELECT t.Name, t.Layer, COUNT(*)
@@ -199,6 +197,6 @@ func (hub *DataBase) GetTemplate(tempID int64) (temp *templates.Template, err er
 		return
 	}
 
-	hub.Templates[tempID] = temp
+	hub.Templates[int(tempID)] = temp
 	return
 }

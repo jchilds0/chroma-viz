@@ -19,38 +19,28 @@ func Logger(message string, args ...any) {
 	file.Write([]byte(s))
 }
 
-func (hub *DataBase) ImportArchive(fileName string) error {
+func (hub *DataBase) ImportTemplates(fileName string) error {
 	buf, err := os.ReadFile(fileName)
 	if err != nil {
 		return err
 	}
 
-	var archive DataBase
-	err = json.Unmarshal(buf, &archive)
+	var temp Templates
+	err = json.Unmarshal(buf, &temp)
 	if err != nil {
 		return err
 	}
 
-	for _, temp := range archive.Templates {
-		if _, ok := hub.Templates[temp.TempID]; ok {
-			return fmt.Errorf("Template ID %d already exists", temp.TempID)
-		}
-
+	for _, temp := range temp.Templates {
 		hub.ImportTemplate(*temp)
 		log.Printf("Loaded Template %d (%s)", temp.TempID, temp.Title)
-	}
-
-	for id, a := range archive.Assets {
-		hub.Assets[id] = archive.Assets[id]
-
-		log.Printf("Loaded Asset %d at %s/%s", id, a.Directory, a.Name)
 	}
 
 	//log.Printf("Imported Hub")
 	return nil
 }
 
-func (hub *DataBase) ExportArchive(fileName string) {
+func (hub *DataBase) ExportTemplates(fileName string) {
 	file, err := os.Create(fileName)
 	if err != nil {
 		Logger("Couldn't open file (%s)", err)

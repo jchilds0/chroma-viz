@@ -78,7 +78,9 @@ func NewTempTree(templateToShow func(int)) *TempTree {
 }
 
 func (temp *TempTree) ImportTemplates(c hub.Client) {
-	tempids, err := hub.GetTemplateIDs(c)
+	var tempids map[int]string
+
+	err := c.GetJSON("/template/list", &tempids)
 	if err != nil {
 		log.Printf("Error importing templates: %s", err)
 		return

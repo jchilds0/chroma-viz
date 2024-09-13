@@ -4,7 +4,9 @@ import (
 	"chroma-viz/library"
 	"chroma-viz/library/hub"
 	"chroma-viz/library/pages"
+	"chroma-viz/library/templates"
 	"flag"
+	"fmt"
 	"log"
 	"math/rand"
 	"os"
@@ -92,9 +94,18 @@ func importRandomPages(c hub.Client, tempTree *TempTree, showTree *ShowTree) {
 
 	for i := 0; i < *importRandom; i++ {
 		index := (rand.Int() % numTemplates) + 1
-		template, err := hub.GetTemplate(c, index)
+		path := fmt.Sprintf("/template/%d", index)
+
+		var template templates.Template
+		err := conf.ChromaHub.GetJSON(path, &template)
 		if err != nil {
 			log.Fatal(err)
+			return
+		}
+
+		err = template.Init()
+		if err != nil {
+			log.Print(err)
 			return
 		}
 

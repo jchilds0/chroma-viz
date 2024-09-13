@@ -6,6 +6,7 @@ import (
 	"chroma-viz/library/pages"
 	"chroma-viz/library/templates"
 	"chroma-viz/library/util"
+	"fmt"
 	"log"
 	"strconv"
 	"time"
@@ -269,7 +270,7 @@ func ArtistGui(app *gtk.Application) {
 
 		editView.UpdateGeometry(template)
 
-		err = hub.PutTemplate(conf.ChromaHub, template)
+		err = conf.ChromaHub.PutJSON("/template", template)
 		if err != nil {
 			log.Printf("Error sending template to chroma hub (%s)", err)
 		}
@@ -341,8 +342,15 @@ func ArtistGui(app *gtk.Application) {
 			}
 
 			tempID, err := util.ModelGetValue[int](dialog.treeList.ToTreeModel(), iter, 1)
+			path := fmt.Sprintf("/template/%d", tempID)
 
-			*template, err = hub.GetTemplate(conf.ChromaHub, tempID)
+			err = conf.ChromaHub.GetJSON(path, template)
+			if err != nil {
+				log.Printf("Error importing template: %s", err)
+				return
+			}
+
+			err = template.Init()
 			if err != nil {
 				log.Printf("Error importing template: %s", err)
 				return

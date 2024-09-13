@@ -2,7 +2,6 @@ package hub
 
 import (
 	"bytes"
-	"chroma-viz/library/templates"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -16,51 +15,19 @@ type Client struct {
 	Client  http.Client
 }
 
-func (c *Client) URL() string {
+func (c Client) URL() string {
 	return "http://" + c.Address + ":" + strconv.Itoa(c.Port)
 }
 
-func GetTemplates(c Client) (temps []*templates.Template, err error) {
-	res, err := c.Client.Get(c.URL() + "/templates")
-	if err != nil {
-		return
-	}
-
-	jsonData, err := io.ReadAll(res.Body)
-	if err != nil {
-		return
-	}
-
-	err = json.Unmarshal(jsonData, &temps)
-	if err != nil {
-		return
-	}
-
-	for _, t := range temps {
-		if t == nil {
-			continue
-		}
-
-		err = t.Init()
-		if err != nil {
-			return
-		}
-	}
-
-	return
-}
-
-func GetTemplate(c Client, tempID int) (temp templates.Template, err error) {
-	url := fmt.Sprintf("%s/template/%d", c.URL(), tempID)
-
-	res, err := c.Client.Get(url)
+func (c Client) GetJSON(path string, v any) (err error) {
+	res, err := c.Client.Get(c.URL() + path)
 	if err != nil {
 		return
 	}
 	defer res.Body.Close()
 
-	if res.StatusCode != 200 {
-		err = fmt.Errorf("Server returned: %s", res.Status)
+	if res.StatusCode != http.StatusOK {
+		err = fmt.Errorf("Response: %s", res.Status)
 		return
 	}
 
@@ -69,44 +36,22 @@ func GetTemplate(c Client, tempID int) (temp templates.Template, err error) {
 		return
 	}
 
-	err = json.Unmarshal(jsonData, &temp)
-	if err != nil {
-		return
-	}
-
-	err = temp.Init()
+	err = json.Unmarshal(jsonData, v)
 	return
 }
 
-func PutTemplate(c Client, temp *templates.Template) (err error) {
-	jsonData, err := json.Marshal(temp)
+func (c Client) PutJSON(dir string, v any) (err error) {
+	jsonData, err := json.Marshal(v)
 	if err != nil {
 		return
 	}
 
 	buf := bytes.NewBuffer(jsonData)
 
-	res, err := c.Client.Post(c.URL()+"/template", "", buf)
+	res, err := c.Client.Post(c.URL()+dir, "", buf)
 	if err != nil {
 		return
 	}
 	defer res.Body.Close()
-
-	return
-}
-
-func GetTemplateIDs(c Client) (tempIDs map[int]string, err error) {
-	res, err := c.Client.Get(c.URL() + "/tempIDs")
-	if err != nil {
-		return
-	}
-	defer res.Body.Close()
-
-	jsonData, err := io.ReadAll(res.Body)
-	if err != nil {
-		return
-	}
-
-	err = json.Unmarshal(jsonData, &tempIDs)
 	return
 }
