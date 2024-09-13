@@ -3,6 +3,7 @@ package geometry
 import (
 	"chroma-viz/library/attribute"
 	"chroma-viz/library/util"
+	"fmt"
 	"strings"
 
 	"github.com/gotk3/gotk3/gtk"
@@ -62,6 +63,42 @@ var Attrs = map[string]string{
 	ATTR_PARENT:       "Parent",
 	ATTR_STRING:       "String",
 	ATTR_SCALE:        "Scale",
+}
+
+func UpdateAttrList(model *gtk.ListStore, geoType string) (err error) {
+	model.Clear()
+
+	attrs := []string{ATTR_REL_X, ATTR_REL_Y}
+
+	switch geoType {
+	case GEO_RECT:
+		attrs = append(attrs, ATTR_WIDTH)
+		attrs = append(attrs, ATTR_HEIGHT)
+
+	case GEO_CIRCLE:
+		attrs = append(attrs, ATTR_INNER_RADIUS)
+		attrs = append(attrs, ATTR_OUTER_RADIUS)
+		attrs = append(attrs, ATTR_START_ANGLE)
+		attrs = append(attrs, ATTR_END_ANGLE)
+
+	case GEO_TEXT:
+	case GEO_IMAGE:
+	case GEO_POLY:
+	case GEO_LIST:
+	case GEO_CLOCK:
+
+	default:
+		return fmt.Errorf("Unknown geometry type %s", geoType)
+	}
+
+	for _, name := range attrs {
+		iter := model.Append()
+
+		model.SetValue(iter, 0, name)
+		model.SetValue(iter, 1, Attrs[name])
+	}
+
+	return
 }
 
 type Geometer[S any] interface {

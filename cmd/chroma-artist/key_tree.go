@@ -13,27 +13,24 @@ import (
 )
 
 const (
-	FRAME_GEO_ATTR = iota
-	FRAME_ATTR_NAME
+	ATTR_SELECT_TYPE = iota
+	ATTR_SELECT_NAME
 )
 
 const (
-	FRAME_GEOMETRY = iota
+	FRAME_KEY_TYPE = iota
+	FRAME_KEY_ID
+	FRAME_GEOMETRY
 	FRAME_GEOMETRY_ID
 	FRAME_ATTR_TYPE
-	FRAME_ATTR
-	FRAME_VALUE
-	FRAME_USER_VALUE
-	FRAME_EXPAND
-	FRAME_BIND_FRAME
-	FRAME_BIND_GEO
-	FRAME_BIND_ATTR
-	FRAME_NUM_COLS
+	FRAME_ATTR_NAME
 )
 
 type KeyTree struct {
 	keyframeModel map[int]*gtk.ListStore
 	keyframeView  map[int]*gtk.TreeView
+
+	keyTypeSelect *gtk.ComboBoxText
 
 	keyGeoList   *gtk.ListStore
 	keyGeoSelect *gtk.ComboBox
@@ -44,8 +41,9 @@ type KeyTree struct {
 	keyFrameStack *gtk.StackSidebar
 }
 
-func NewKeyframeTree(keyGeo, keyAttr *gtk.ComboBox, sideBar *gtk.StackSidebar) (keyTree *KeyTree) {
+func NewKeyframeTree(keyType *gtk.ComboBoxText, keyGeo, keyAttr *gtk.ComboBox, sideBar *gtk.StackSidebar) (keyTree *KeyTree) {
 	keyTree = &KeyTree{
+		keyTypeSelect: keyType,
 		keyGeoSelect:  keyGeo,
 		keyAttrSelect: keyAttr,
 		keyFrameStack: sideBar,
@@ -83,10 +81,23 @@ func NewKeyframeTree(keyGeo, keyAttr *gtk.ComboBox, sideBar *gtk.StackSidebar) (
 		}
 
 		keyTree.keyAttrSelect.PackStart(geoCell, true)
-		keyTree.keyAttrSelect.CellLayout.AddAttribute(geoCell, "text", FRAME_ATTR_NAME)
-		keyTree.keyAttrSelect.SetActive(GEO_NAME)
+		keyTree.keyAttrSelect.CellLayout.AddAttribute(geoCell, "text", ATTR_SELECT_NAME)
+		keyTree.keyAttrSelect.SetActive(ATTR_SELECT_NAME)
 		keyTree.keyAttrSelect.SetModel(keyTree.keyAttrList)
 
+	}
+
+	return
+}
+
+func (keyTree *KeyTree) SelectedFrame() (frameNum int, err error) {
+	stack := keyTree.keyFrameStack.GetStack()
+	frameString := stack.GetVisibleChildName()
+
+	frameNum, err = strconv.Atoi(frameString)
+	if err != nil {
+		err = fmt.Errorf("Error getting frame num: %s", err)
+		return
 	}
 
 	return
@@ -111,18 +122,13 @@ func (keyTree *KeyTree) SelectedGeometry() (geoID int, geoName string, err error
 	return
 }
 
-func (keyTree *KeyTree) SelectedAttribute() (attrType, attr string, err error) {
+func (keyTree *KeyTree) SelectedAttribute() (attrType string, err error) {
 	iter, err := keyTree.keyAttrSelect.GetActiveIter()
 	if err != nil {
 		return
 	}
 
-	attrType, err = util.ModelGetValue[string](keyTree.keyAttrList.ToTreeModel(), iter, FRAME_GEO_ATTR)
-	if err != nil {
-		return
-	}
-
-	attr, err = util.ModelGetValue[string](keyTree.keyAttrList.ToTreeModel(), iter, FRAME_ATTR_NAME)
+	attrType, err = util.ModelGetValue[string](keyTree.keyAttrList.ToTreeModel(), iter, ATTR_SELECT_TYPE)
 	if err != nil {
 		return
 	}
@@ -130,58 +136,12 @@ func (keyTree *KeyTree) SelectedAttribute() (attrType, attr string, err error) {
 	return
 }
 
-var keyframeAttrs = map[string]bool{
-	"rel_x":        true,
-	"rel_y":        true,
-	"width":        true,
-	"height":       true,
-	"rounding":     true,
-	"start_angle":  true,
-	"end_angle":    true,
-	"inner_radius": true,
-	"outer_radius": true,
-}
-
-func (keyTree *KeyTree) UpdateAttrList(geoType string) {
-	keyTree.keyAttrList.Clear()
-
-	attrs := []string{geometry.ATTR_REL_X, geometry.ATTR_REL_Y}
-
-	switch geoType {
-	case geometry.GEO_RECT:
-		attrs = append(attrs, geometry.ATTR_WIDTH)
-		attrs = append(attrs, geometry.ATTR_HEIGHT)
-
-	case geometry.GEO_CIRCLE:
-		attrs = append(attrs, geometry.ATTR_INNER_RADIUS)
-		attrs = append(attrs, geometry.ATTR_OUTER_RADIUS)
-		attrs = append(attrs, geometry.ATTR_START_ANGLE)
-		attrs = append(attrs, geometry.ATTR_END_ANGLE)
-
-	case geometry.GEO_TEXT:
-	case geometry.GEO_IMAGE:
-	case geometry.GEO_POLY:
-	case geometry.GEO_LIST:
-	case geometry.GEO_CLOCK:
-
-	default:
-		log.Fatalf("Unknown geometry type %s", geoType)
-	}
-
-	for _, name := range attrs {
-		iter := keyTree.keyAttrList.Append()
-
-		keyTree.keyAttrList.SetValue(iter, FRAME_GEO_ATTR, name)
-		keyTree.keyAttrList.SetValue(iter, FRAME_ATTR_NAME, geometry.Attrs[name])
-	}
-}
-
-func (keyTree *KeyTree) AddGeometry(name string, propNum int) {
+func (keyTree *KeyTree) AddGeometry(geoType, geoName string, geoID int) {
 	newIter := keyTree.keyGeoList.Append()
 
-	keyTree.keyGeoList.SetValue(newIter, GEO_TYPE, name)
-	keyTree.keyGeoList.SetValue(newIter, GEO_NAME, name)
-	keyTree.keyGeoList.SetValue(newIter, GEO_NUM, propNum)
+	keyTree.keyGeoList.SetValue(newIter, GEO_TYPE, geoType)
+	keyTree.keyGeoList.SetValue(newIter, GEO_NAME, geoName)
+	keyTree.keyGeoList.SetValue(newIter, GEO_NUM, geoID)
 }
 
 func (keyTree *KeyTree) RemoveGeo(geoID int) {
@@ -207,16 +167,12 @@ func (keyTree *KeyTree) RemoveGeo(geoID int) {
 
 func (keyTree *KeyTree) AddFrame() (err error) {
 	model, err := gtk.ListStoreNew(
-		glib.TYPE_STRING,  // Geometry Name
-		glib.TYPE_INT,     // Geometry Num
-		glib.TYPE_STRING,  // Geometry Attr Type
-		glib.TYPE_STRING,  // Geometry Attr
-		glib.TYPE_INT,     // Value Entry
-		glib.TYPE_BOOLEAN, // User Value Selector
-		glib.TYPE_BOOLEAN, // Expand Children
-		glib.TYPE_STRING,  // Derived Value Frame
-		glib.TYPE_STRING,  // Derived Value Geo
-		glib.TYPE_STRING,  // Derived Value Attr
+		glib.TYPE_STRING, // Keyframe Type
+		glib.TYPE_INT,    // Keyframe ID
+		glib.TYPE_STRING, // Geometry Name
+		glib.TYPE_INT,    // Geometry Num
+		glib.TYPE_STRING, // Geometry Attr Type
+		glib.TYPE_STRING, // Geometry Attr Name
 	)
 	if err != nil {
 		return
@@ -273,7 +229,7 @@ func (keyTree *KeyTree) AddFrame() (err error) {
 			return
 		}
 
-		column, err = gtk.TreeViewColumnNewWithAttribute("Attribute", attrCell, "text", FRAME_ATTR)
+		column, err = gtk.TreeViewColumnNewWithAttribute("Attribute", attrCell, "text", FRAME_ATTR_NAME)
 		if err != nil {
 			return
 		}
@@ -284,134 +240,21 @@ func (keyTree *KeyTree) AddFrame() (err error) {
 	}
 
 	{
-		// Set Value
-		var valueCell *gtk.CellRendererText
+		// Keyframe Type
+		var frameCell *gtk.CellRendererText
 		var column *gtk.TreeViewColumn
 
-		valueCell, err = gtk.CellRendererTextNew()
+		frameCell, err = gtk.CellRendererTextNew()
 		if err != nil {
 			return
 		}
 
-		valueCell.SetProperty("editable", true)
-		valueCell.SetProperty("xalign", 1.0)
-		valueCell.SetProperty("xpad", 15)
-		valueCell.Connect("edited", func(cell *gtk.CellRendererText, path, text string) {
-			iter, err := model.GetIterFromString(path)
-			if err != nil {
-				log.Printf("Error editing keyframe (%s)", err)
-				return
-			}
-
-			num, err := strconv.Atoi(text)
-			if err != nil {
-				log.Printf("Error editing keyframe (%s)", err)
-				return
-			}
-
-			model.SetValue(iter, FRAME_VALUE, num)
-		})
-
-		column, err = gtk.TreeViewColumnNewWithAttribute("Set Value", valueCell, "text", FRAME_VALUE)
+		column, err = gtk.TreeViewColumnNewWithAttribute("Keyframe Type", frameCell, "text", FRAME_KEY_TYPE)
 		if err != nil {
 			return
 		}
 
 		column.SetResizable(true)
-		view.AppendColumn(column)
-
-	}
-
-	{
-		// Bool Value
-		var toggleCell *gtk.CellRendererToggle
-		var column *gtk.TreeViewColumn
-
-		names := []string{"Expand", "User Value"}
-		cols := []int{FRAME_EXPAND, FRAME_USER_VALUE}
-
-		for i := range names {
-			toggleCell, err = gtk.CellRendererToggleNew()
-			if err != nil {
-				return
-			}
-
-			toggleCell.SetProperty("activatable", true)
-			toggleCell.Connect("toggled",
-				func(cell *gtk.CellRendererToggle, path string) {
-					iter, err := model.GetIterFromString(path)
-					if err != nil {
-						log.Printf("Error toggling toggle (%s)", err)
-						return
-					}
-
-					state, err := util.ModelGetValue[bool](model.ToTreeModel(), iter, cols[i])
-					if err != nil {
-						log.Printf("Error toggling toggle: %s", err)
-						return
-					}
-
-					model.SetValue(iter, cols[i], !state)
-				})
-
-			column, err = gtk.TreeViewColumnNewWithAttribute(names[i], toggleCell, "active", cols[i])
-			if err != nil {
-				return
-			}
-
-			column.SetResizable(true)
-			view.AppendColumn(column)
-		}
-
-	}
-
-	{
-		// Derived Value
-		var valueText, valueCell *gtk.CellRendererText
-		var column *gtk.TreeViewColumn
-
-		column, err = gtk.TreeViewColumnNew()
-		if err != nil {
-			return
-		}
-
-		column.SetTitle("Value From Keyframe")
-
-		names := []string{"Frame", "Geometry", "Attr"}
-		cols := []int{FRAME_BIND_FRAME, FRAME_BIND_GEO, FRAME_BIND_ATTR}
-
-		for i, name := range names {
-			valueText, err = gtk.CellRendererTextNew()
-			if err != nil {
-				return
-			}
-
-			valueText.SetProperty("text", name+": ")
-
-			valueCell, err = gtk.CellRendererTextNew()
-			if err != nil {
-				return
-			}
-
-			valueCell.SetProperty("editable", true)
-
-			column.PackStart(valueText, false)
-			column.PackStart(valueCell, true)
-
-			column.AddAttribute(valueCell, "text", cols[i])
-
-			valueCell.Connect("edited", func(cell *gtk.CellRendererText, path, text string) {
-				iter, err := model.GetIterFromString(path)
-				if err != nil {
-					log.Printf("Error editing geometry: %s", err)
-					return
-				}
-
-				model.SetValue(iter, cols[i], text)
-			})
-		}
-
-		column.SetExpand(true)
 		view.AppendColumn(column)
 
 	}
@@ -424,7 +267,7 @@ func (keyTree *KeyTree) AddFrame() (err error) {
 }
 
 func (keyTree *KeyTree) RemoveFrame() (err error) {
-	frameNum, err := keyTree.getSelectedFrameNum()
+	frameNum, err := keyTree.SelectedFrame()
 	if err != nil {
 		return
 	}
@@ -443,13 +286,14 @@ func (keyTree *KeyTree) AddKeyframe() (err error) {
 		return
 	}
 
-	attrType, attrName, err := keyTree.SelectedAttribute()
+	attrType, err := keyTree.SelectedAttribute()
 	if err != nil {
 		err = fmt.Errorf("Error getting attribute: %s", err)
 		return
 	}
 
-	frameNum, err := keyTree.getSelectedFrameNum()
+	frameType := keyTree.keyTypeSelect.GetActiveText()
+	frameNum, err := keyTree.SelectedFrame()
 	if err != nil {
 		return
 	}
@@ -464,12 +308,14 @@ func (keyTree *KeyTree) AddKeyframe() (err error) {
 	model.SetValue(iter, FRAME_GEOMETRY, geoName)
 	model.SetValue(iter, FRAME_GEOMETRY_ID, geoID)
 	model.SetValue(iter, FRAME_ATTR_TYPE, attrType)
-	model.SetValue(iter, FRAME_ATTR, attrName)
+	model.SetValue(iter, FRAME_ATTR_NAME, geometry.Attrs[attrType])
+	model.SetValue(iter, FRAME_KEY_TYPE, frameType)
+	model.SetValue(iter, FRAME_KEY_ID, frameType)
 	return
 }
 
 func (keyTree *KeyTree) RemoveKeyframe() (err error) {
-	frameNum, err := keyTree.getSelectedFrameNum()
+	frameNum, err := keyTree.SelectedFrame()
 	if err != nil {
 		return
 	}
@@ -500,22 +346,9 @@ func (keyTree *KeyTree) RemoveKeyframe() (err error) {
 	return
 }
 
-func (keyTree *KeyTree) getSelectedFrameNum() (frameNum int, err error) {
-	stack := keyTree.keyFrameStack.GetStack()
-	frameString := stack.GetVisibleChildName()
-
-	frameNum, err = strconv.Atoi(frameString)
-	if err != nil {
-		err = fmt.Errorf("Error getting frame num: %s", err)
-		return
-	}
-
-	return
-}
-
 func (keyTree *KeyTree) ImportKeyframes(temp *templates.Template) (err error) {
 	for _, geo := range temp.Geos {
-		keyTree.AddGeometry(geo.Name, geo.GeometryID)
+		keyTree.AddGeometry(geo.GeoType, geo.Name, geo.GeometryID)
 	}
 
 	for range temp.MaxKeyframe() {
@@ -525,49 +358,38 @@ func (keyTree *KeyTree) ImportKeyframes(temp *templates.Template) (err error) {
 		}
 	}
 
-	var iter *gtk.TreeIter
-	for _, frame := range temp.UserFrame {
-		model := keyTree.keyframeModel[frame.FrameNum]
+	for id, frame := range temp.UserFrame {
 		geo := temp.Geos[frame.GeoID]
 
-		iter, err = keyTree.addGeometryRow(&frame.Keyframe, geo)
+		_, err = keyTree.addGeometryRow(geo, frame.Keyframe, id, templates.USER_FRAME)
 		if err != nil {
 			return
 		}
-
-		model.SetValue(iter, FRAME_USER_VALUE, true)
 	}
 
-	for _, frame := range temp.BindFrame {
-		model := keyTree.keyframeModel[frame.FrameNum]
+	for id, frame := range temp.BindFrame {
 		geo := temp.Geos[frame.GeoID]
 
-		iter, err = keyTree.addGeometryRow(&frame.Keyframe, geo)
+		_, err = keyTree.addGeometryRow(geo, frame.Keyframe, id, templates.BIND_FRAME)
 		if err != nil {
 			return
 		}
-
-		model.SetValue(iter, FRAME_BIND_FRAME, frame.Bind.FrameNum)
-		model.SetValue(iter, FRAME_BIND_GEO, frame.Bind.GeoID)
-		model.SetValue(iter, FRAME_BIND_ATTR, frame.Bind.GeoAttr)
 	}
 
-	for _, frame := range temp.SetFrame {
-		model := keyTree.keyframeModel[frame.FrameNum]
+	for id, frame := range temp.SetFrame {
 		geo := temp.Geos[frame.GeoID]
 
-		iter, err = keyTree.addGeometryRow(&frame.Keyframe, geo)
+		_, err = keyTree.addGeometryRow(geo, frame.Keyframe, id, templates.SET_FRAME)
 		if err != nil {
 			return
 		}
-
-		model.SetValue(iter, FRAME_VALUE, frame.Value)
 	}
 
 	return
 }
 
-func (keyTree *KeyTree) addGeometryRow(frame *templates.Keyframe, geo *geometry.Geometry) (iter *gtk.TreeIter, err error) {
+func (keyTree *KeyTree) addGeometryRow(geo *geometry.Geometry, frame templates.Keyframe,
+	id int, keyType string) (iter *gtk.TreeIter, err error) {
 	model := keyTree.keyframeModel[frame.FrameNum]
 	if model == nil {
 		err = fmt.Errorf("Keyframe %d model does not exist", frame.FrameNum)
@@ -583,8 +405,9 @@ func (keyTree *KeyTree) addGeometryRow(frame *templates.Keyframe, geo *geometry.
 	model.SetValue(iter, FRAME_GEOMETRY_ID, frame.GeoID)
 	model.SetValue(iter, FRAME_GEOMETRY, geo.Name)
 	model.SetValue(iter, FRAME_ATTR_TYPE, frame.GeoAttr)
-	model.SetValue(iter, FRAME_ATTR, geometry.Attrs[frame.GeoAttr])
-	model.SetValue(iter, FRAME_EXPAND, frame.Expand)
+	model.SetValue(iter, FRAME_ATTR_NAME, geometry.Attrs[frame.GeoAttr])
+	model.SetValue(iter, FRAME_KEY_TYPE, keyType)
+	model.SetValue(iter, FRAME_KEY_ID, id)
 
 	return
 }
@@ -613,11 +436,6 @@ func getKeyframeFromIter(model *gtk.ListStore, iter *gtk.TreeIter, frameNum int)
 	}
 
 	frame.GeoAttr, err = util.ModelGetValue[string](model.ToTreeModel(), iter, FRAME_ATTR_TYPE)
-	if err != nil {
-		return
-	}
-
-	frame.Expand, err = util.ModelGetValue[bool](model.ToTreeModel(), iter, FRAME_EXPAND)
 	if err != nil {
 		return
 	}

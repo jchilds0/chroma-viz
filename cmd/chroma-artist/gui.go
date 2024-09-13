@@ -2,6 +2,7 @@ package main
 
 import (
 	"chroma-viz/library"
+	"chroma-viz/library/geometry"
 	"chroma-viz/library/hub"
 	"chroma-viz/library/pages"
 	"chroma-viz/library/templates"
@@ -452,7 +453,7 @@ func ArtistGui(app *gtk.Application) {
 			return
 		}
 
-		keyTree.UpdateAttrList(geo.GeoType)
+		geometry.UpdateAttrList(keyTree.keyAttrList, geo.GeoType)
 	})
 
 	frameSideBar.SetStack(frameStack)
