@@ -2,7 +2,6 @@ package main
 
 import (
 	"chroma-viz/library"
-	"chroma-viz/library/geometry"
 	"chroma-viz/library/hub"
 	"chroma-viz/library/pages"
 	"chroma-viz/library/templates"
@@ -138,11 +137,6 @@ func ArtistGui(app *gtk.Application) {
 	}
 
 	geoScroll, err := util.BuilderGetObject[*gtk.ScrolledWindow](builder, "geo-win")
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	keyGeo, err := util.BuilderGetObject[*gtk.ComboBox](builder, "key-geo")
 	if err != nil {
 		log.Fatal(err)
 	}

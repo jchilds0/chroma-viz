@@ -17,6 +17,7 @@ const (
 	FRAME_GEOMETRY_ID
 	FRAME_ATTR_TYPE
 	FRAME_ATTR_NAME
+	FRAME_EXPAND
 )
 
 type KeyTree struct {
@@ -38,12 +39,13 @@ func NewKeyframeTree(sendEditor func(frameID int, keyType string)) (keyTree *Key
 	keyTree.bindFrame = make(map[int]templates.BindFrame, 20)
 
 	keyTree.model, err = gtk.ListStoreNew(
-		glib.TYPE_STRING, // Keyframe Type
-		glib.TYPE_INT,    // Keyframe ID
-		glib.TYPE_STRING, // Geometry Name
-		glib.TYPE_INT,    // Geometry Num
-		glib.TYPE_STRING, // Geometry Attr Type
-		glib.TYPE_STRING, // Geometry Attr Name
+		glib.TYPE_STRING,  // Keyframe Type
+		glib.TYPE_INT,     // Keyframe ID
+		glib.TYPE_STRING,  // Geometry Name
+		glib.TYPE_INT,     // Geometry Num
+		glib.TYPE_STRING,  // Geometry Attr Type
+		glib.TYPE_STRING,  // Geometry Attr Name
+		glib.TYPE_BOOLEAN, // Expand Attr
 	)
 	if err != nil {
 		return
@@ -119,6 +121,60 @@ func NewKeyframeTree(sendEditor func(frameID int, keyType string)) (keyTree *Key
 
 		column.SetResizable(true)
 		keyTree.view.AppendColumn(column)
+	}
+
+	{
+		// Bool Value
+		var toggleCell *gtk.CellRendererToggle
+		var column *gtk.TreeViewColumn
+
+		toggleCell, err = gtk.CellRendererToggleNew()
+		if err != nil {
+			return
+		}
+
+		toggleCell.SetProperty("activatable", true)
+		toggleCell.Connect("toggled",
+			func(cell *gtk.CellRendererToggle, path string) {
+				iter, err := keyTree.model.GetIterFromString(path)
+				if err != nil {
+					log.Printf("Error toggling toggle (%s)", err)
+					return
+				}
+
+				state, err := util.ModelGetValue[bool](keyTree.model.ToTreeModel(), iter, FRAME_EXPAND)
+				if err != nil {
+					log.Printf("Error toggling toggle: %s", err)
+					return
+				}
+
+				keyTree.model.SetValue(iter, FRAME_EXPAND, !state)
+				frameID, err := util.ModelGetValue[int](keyTree.model.ToTreeModel(), iter, FRAME_KEY_ID)
+				if err != nil {
+					log.Printf("Error toggling toggle: %s", err)
+					return
+				}
+
+				if frame, ok := keyTree.bindFrame[frameID]; ok {
+					frame.Expand = !state
+					keyTree.bindFrame[frameID] = frame
+				} else if frame, ok := keyTree.setFrame[frameID]; ok {
+					frame.Expand = !state
+					keyTree.setFrame[frameID] = frame
+				} else if frame, ok := keyTree.userFrame[frameID]; ok {
+					frame.Expand = !state
+					keyTree.userFrame[frameID] = frame
+				}
+			})
+
+		column, err = gtk.TreeViewColumnNewWithAttribute("Expand", toggleCell, "active", FRAME_EXPAND)
+		if err != nil {
+			return
+		}
+
+		column.SetResizable(true)
+		keyTree.view.AppendColumn(column)
+
 	}
 
 	return

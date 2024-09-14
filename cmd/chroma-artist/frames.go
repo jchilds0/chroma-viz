@@ -435,7 +435,7 @@ func (frames *Frames) InitActions() (err error) {
 				return
 			}
 
-			geometry.UpdateAttrList(keyTree.keyAttrList, geo.GeoType)
+			geometry.UpdateAttrList(frames.keyAttrList, geo.GeoType)
 		})
 
 		frames.keyGeoSelect.PackStart(geoCell, true)
