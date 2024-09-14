@@ -80,13 +80,10 @@ func NewUserFrame(frame Keyframe) *UserFrame {
 type KeyframeEditor struct {
 	Scroll *gtk.ScrolledWindow
 	Box    *gtk.Box
-	ID     int
 }
 
-func NewKeyFrameEditor(id int) (edit *KeyframeEditor, err error) {
-	edit = &KeyframeEditor{
-		ID: id,
-	}
+func NewKeyFrameEditor() (edit *KeyframeEditor, err error) {
+	edit = &KeyframeEditor{}
 
 	edit.Scroll, err = gtk.ScrolledWindowNew(nil, nil)
 	if err != nil {
@@ -113,8 +110,8 @@ type SetFrameEditor struct {
 	Value *gtk.SpinButton
 }
 
-func NewSetFrameEditor(frame SetFrame, id int) (edit *SetFrameEditor, err error) {
-	keyEdit, err := NewKeyFrameEditor(id)
+func NewSetFrameEditor() (edit *SetFrameEditor, err error) {
+	keyEdit, err := NewKeyFrameEditor()
 	if err != nil {
 		return
 	}
@@ -146,7 +143,7 @@ func NewSetFrameEditor(frame SetFrame, id int) (edit *SetFrameEditor, err error)
 	}
 
 	edit.Value.SetVisible(true)
-	edit.Value.SetValue(float64(frame.Value))
+	edit.Value.SetValue(0)
 	box.PackStart(edit.Value, false, false, 0)
 
 	return
@@ -157,6 +154,10 @@ func (edit *SetFrameEditor) UpdateKeyframe(frame SetFrame) SetFrame {
 	return frame
 }
 
+func (edit *SetFrameEditor) UpdateEditor(frame SetFrame) {
+	edit.Value.SetValue(float64(frame.Value))
+}
+
 type BindFrameEditor struct {
 	KeyframeEditor
 
@@ -165,8 +166,8 @@ type BindFrameEditor struct {
 	Attribute *gtk.ComboBox
 }
 
-func NewBindFrameEditor(frame BindFrame, id int, frameModel *gtk.ListStore, geoModel *gtk.ListStore) (edit *BindFrameEditor, err error) {
-	keyEdit, err := NewKeyFrameEditor(id)
+func NewBindFrameEditor(frameModel *gtk.ListStore, geoModel *gtk.ListStore) (edit *BindFrameEditor, err error) {
+	keyEdit, err := NewKeyFrameEditor()
 	if err != nil {
 		return
 	}
@@ -188,6 +189,7 @@ func NewBindFrameEditor(frame BindFrame, id int, frameModel *gtk.ListStore, geoM
 			return
 		}
 
+		edit.Frame.SetVisible(true)
 		edit.Frame.PackStart(geoCell, true)
 		edit.Frame.CellLayout.AddAttribute(geoCell, "text", 1)
 		edit.Frame.SetActive(1)
@@ -206,8 +208,11 @@ func NewBindFrameEditor(frame BindFrame, id int, frameModel *gtk.ListStore, geoM
 			return
 		}
 
+		box.SetVisible(true)
 		box.PackStart(label, false, false, 10)
 		box.PackStart(edit.Frame, false, false, 0)
+
+		edit.Box.PackStart(box, false, false, 10)
 	}
 
 	{
@@ -216,6 +221,7 @@ func NewBindFrameEditor(frame BindFrame, id int, frameModel *gtk.ListStore, geoM
 			return
 		}
 
+		edit.Geometry.SetVisible(true)
 		edit.Geometry.PackStart(geoCell, true)
 		edit.Geometry.CellLayout.AddAttribute(geoCell, "text", 1)
 		edit.Geometry.SetActive(1)
@@ -234,8 +240,11 @@ func NewBindFrameEditor(frame BindFrame, id int, frameModel *gtk.ListStore, geoM
 			return
 		}
 
+		box.SetVisible(true)
 		box.PackStart(label, false, false, 10)
 		box.PackStart(edit.Geometry, false, false, 0)
+
+		edit.Box.PackStart(box, false, false, 10)
 	}
 
 	{
@@ -251,6 +260,7 @@ func NewBindFrameEditor(frame BindFrame, id int, frameModel *gtk.ListStore, geoM
 			return
 		}
 
+		edit.Attribute.SetVisible(true)
 		edit.Attribute.PackStart(geoCell, true)
 		edit.Attribute.CellLayout.AddAttribute(geoCell, "text", 1)
 		edit.Attribute.SetActive(1)
@@ -285,8 +295,11 @@ func NewBindFrameEditor(frame BindFrame, id int, frameModel *gtk.ListStore, geoM
 			return
 		}
 
+		box.SetVisible(true)
 		box.PackStart(label, false, false, 10)
 		box.PackStart(edit.Attribute, false, false, 0)
+
+		edit.Box.PackStart(box, false, false, 10)
 	}
 
 	return
@@ -328,4 +341,8 @@ func comboBoxSelection[T any](combo *gtk.ComboBox, col int) (t T, err error) {
 	}
 
 	return util.ModelGetValue[T](model.ToTreeModel(), iter, col)
+}
+
+func (edit *BindFrameEditor) UpdateEditor(frame BindFrame) {
+
 }

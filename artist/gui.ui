@@ -204,6 +204,20 @@
                         </child>
 
                         <child>
+                          <object class="GtkComboBoxText" id="key-type">
+                            <items>
+                              <item>UserFrame</item>
+                              <item>BindFrame</item>
+                              <item>SetFrame</item>
+                            </items>
+                          </object>
+
+                          <packing>
+                            <property name="padding">10</property>
+                          </packing>
+                        </child>
+
+                        <child>
                           <object class="GtkButton" id="add-key">
                             <property name="tooltip-text">Add Keyframe</property>
                           </object>

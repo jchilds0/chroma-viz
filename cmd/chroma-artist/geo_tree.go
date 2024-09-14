@@ -23,15 +23,18 @@ const (
 )
 
 type GeoTree struct {
-	geoModel    *gtk.TreeStore
+	geoModel *gtk.TreeStore
+	geoList  *gtk.ListStore
+
 	geoView     *gtk.TreeView
 	geoIter     map[int]*gtk.TreeIter
 	geoSelector *gtk.ComboBox
 }
 
-func NewGeoTree(geoSelector *gtk.ComboBox, geoToEditor func(geoID int), editName func(geoID int, name string)) (geoTree *GeoTree, err error) {
+func NewGeoTree(geoSelector *gtk.ComboBox, geoList *gtk.ListStore, geoToEditor func(geoID int), editName func(geoID int, name string)) (geoTree *GeoTree, err error) {
 	geoTree = &GeoTree{
 		geoSelector: geoSelector,
+		geoList:     geoList,
 	}
 
 	geoTree.geoIter = make(map[int]*gtk.TreeIter)
@@ -81,6 +84,25 @@ func NewGeoTree(geoSelector *gtk.ComboBox, geoToEditor func(geoID int), editName
 		}
 
 		geoTree.geoModel.SetValue(iter, GEO_NAME, text)
+
+		iter, ok := geoTree.geoList.GetIterFirst()
+		model = geoTree.geoList.ToTreeModel()
+
+		for ok {
+			currentID, err := util.ModelGetValue[int](model, iter, GEO_NUM)
+			if err != nil {
+				log.Printf("Error getting geometry (%s)", err)
+				ok = model.IterNext(iter)
+				continue
+			}
+
+			if currentID == geoID {
+				geoTree.geoList.SetValue(iter, GEO_NAME, text)
+			}
+
+			ok = model.IterNext(iter)
+		}
+
 		editName(geoID, text)
 	})
 
@@ -254,6 +276,12 @@ func (geoTree *GeoTree) AddGeoRow(geoID, parentID int, geoName, geoType string) 
 	geoTree.geoModel.SetValue(iter, GEO_TYPE, geoType)
 	geoTree.geoModel.SetValue(iter, GEO_NAME, geoName)
 	geoTree.geoModel.SetValue(iter, GEO_NUM, geoID)
+
+	iter = geoTree.geoList.Append()
+
+	geoTree.geoList.SetValue(iter, GEO_TYPE, geoType)
+	geoTree.geoList.SetValue(iter, GEO_NAME, geoName)
+	geoTree.geoList.SetValue(iter, GEO_NUM, geoID)
 }
 
 func (geoTree *GeoTree) Clear() {

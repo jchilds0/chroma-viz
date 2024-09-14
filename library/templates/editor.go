@@ -8,10 +8,18 @@ import (
 )
 
 type Editor struct {
-	Box          *gtk.Box
-	tabs         *gtk.Notebook
-	actions      *gtk.Box
+	Box     *gtk.Box
+	tabs    *gtk.Notebook
+	actions *gtk.Box
+
 	CurrentGeoID int
+	CurrentKeyID int
+	geometryTab  *gtk.Box
+	visibleTab   *gtk.Box
+	keyframeTab  *gtk.Box
+
+	SetFrameEdit  *SetFrameEditor
+	BindFrameEdit *BindFrameEditor
 
 	Rect   *geometry.RectangleEditor
 	Circle *geometry.CircleEditor
@@ -22,7 +30,7 @@ type Editor struct {
 	List   *geometry.ListEditor
 }
 
-func NewEditor() (editor *Editor, err error) {
+func NewEditor(frameModel *gtk.ListStore, geoModel *gtk.ListStore) (editor *Editor, err error) {
 	editor = &Editor{}
 
 	editor.Box, err = gtk.BoxNew(gtk.ORIENTATION_VERTICAL, 0)
@@ -44,39 +52,92 @@ func NewEditor() (editor *Editor, err error) {
 
 	editor.Box.PackStart(editor.tabs, true, true, 0)
 
+	var label *gtk.Label
+	{
+		editor.geometryTab, err = gtk.BoxNew(gtk.ORIENTATION_VERTICAL, 0)
+		if err != nil {
+			return
+		}
+
+		label, err = gtk.LabelNew("Geometry")
+		if err != nil {
+			return
+		}
+
+		editor.tabs.AppendPage(editor.geometryTab, label)
+	}
+
+	{
+		editor.visibleTab, err = gtk.BoxNew(gtk.ORIENTATION_VERTICAL, 0)
+		if err != nil {
+			return
+		}
+
+		label, err = gtk.LabelNew("Visible")
+		if err != nil {
+			return
+		}
+
+		editor.tabs.AppendPage(editor.visibleTab, label)
+	}
+
+	{
+		editor.keyframeTab, err = gtk.BoxNew(gtk.ORIENTATION_VERTICAL, 0)
+		if err != nil {
+			return
+		}
+
+		label, err = gtk.LabelNew("Keyframe")
+		if err != nil {
+			return
+		}
+
+		editor.tabs.AppendPage(editor.keyframeTab, label)
+	}
+
+	editor.SetFrameEdit, err = NewSetFrameEditor()
+	if err != nil {
+		return
+	}
+
+	editor.BindFrameEdit, err = NewBindFrameEditor(frameModel, geoModel)
+	if err != nil {
+		return
+	}
+
 	editor.Rect, err = geometry.NewRectangleEditor()
 	if err != nil {
-		log.Print(err)
+		return
 	}
 
 	editor.Circle, err = geometry.NewCircleEditor()
 	if err != nil {
-		log.Print(err)
+		return
 	}
 
 	editor.Clock, err = geometry.NewClockEditor()
 	if err != nil {
-		log.Print(err)
+		return
 	}
 
 	editor.Image, err = geometry.NewImageEditor()
 	if err != nil {
-		log.Print(err)
+		return
 	}
 
 	editor.Poly, err = geometry.NewPolygonEditor()
 	if err != nil {
-		log.Print(err)
+		return
 	}
 
 	editor.Text, err = geometry.NewTextEditor()
 	if err != nil {
-		log.Print(err)
+		return
 	}
 
 	editor.List, err = geometry.NewListEditor()
 	if err != nil {
-		log.Print(err)
+		return
 	}
 
 	editor.Clear()
@@ -85,23 +146,20 @@ func NewEditor() (editor *Editor, err error) {
 }
 
 func (edit *Editor) Clear() {
-	num_pages := edit.tabs.GetNPages()
-	for i := 0; i < num_pages; i++ {
-		edit.tabs.RemovePage(0)
-	}
+	clearBox(edit.geometryTab)
+	clearBox(edit.keyframeTab)
+	clearBox(edit.visibleTab)
+}
 
-	tab, err := gtk.BoxNew(gtk.ORIENTATION_VERTICAL, 0)
-	if err != nil {
+func clearBox(box *gtk.Box) {
+	children := box.GetChildren()
+	if children == nil {
 		return
 	}
 
-	tabLabel, err := gtk.LabelNew("Select Geometry")
-	if err != nil {
-		return
-	}
-
-	tab.SetVisible(true)
-	edit.tabs.AppendPage(tab, tabLabel)
+	children.Foreach(func(child any) {
+		box.Remove(child.(*gtk.Widget))
+	})
 }
 
 /*
@@ -154,10 +212,8 @@ func updateGeometry[T geometry.Geometer[S], S any](geos []T, edit S, geoID int) 
 
 // Load a geometry into the editor
 func (edit *Editor) UpdateEditor(temp *Template) (err error) {
-	num_pages := edit.tabs.GetNPages()
-	for i := 0; i < num_pages; i++ {
-		edit.tabs.RemovePage(0)
-	}
+	clearBox(edit.geometryTab)
+	clearBox(edit.visibleTab)
 
 	updateEditor(edit, edit.Rect, temp.Rectangle)
 	updateEditor(edit, edit.Circle, temp.Circle)
@@ -171,23 +227,27 @@ func (edit *Editor) UpdateEditor(temp *Template) (err error) {
 }
 
 func updateEditor[T geometry.Editor[S], S geometry.Geometer[T]](edit *Editor, editor T, geos []S) {
-	geoLabel, err := gtk.LabelNew("Geometry")
-	if err != nil {
-		return
-	}
-
-	//visibleLabel, err := gtk.LabelNew("Visible")
-	if err != nil {
-		return
-	}
-
 	for _, geo := range geos {
 		if geo.GetGeometryID() != edit.CurrentGeoID {
 			continue
 		}
 
 		editor.UpdateEditor(geo)
-		edit.tabs.AppendPage(editor.GetBox(), geoLabel)
+		edit.geometryTab.PackStart(editor.GetBox(), true, true, 0)
 		//edit.tabs.AppendPage(editor.GetVisibleBox(), visibleLabel)
 	}
+}
+
+func (edit *Editor) SetFrame(frame SetFrame) {
+	clearBox(edit.keyframeTab)
+
+	edit.SetFrameEdit.UpdateEditor(frame)
+	edit.keyframeTab.PackStart(edit.SetFrameEdit.Scroll, true, true, 0)
+}
+
+func (edit *Editor) BindFrame(frame BindFrame) {
+	clearBox(edit.keyframeTab)
+
+	edit.BindFrameEdit.UpdateEditor(frame)
+	edit.keyframeTab.PackStart(edit.BindFrameEdit.Scroll, true, true, 0)
 }

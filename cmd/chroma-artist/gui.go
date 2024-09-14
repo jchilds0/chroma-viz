@@ -141,11 +141,6 @@ func ArtistGui(app *gtk.Application) {
 		log.Fatal(err)
 	}
 
-	framePane, err := util.BuilderGetObject[*gtk.Paned](builder, "keyframe-win")
-	if err != nil {
-		log.Fatal(err)
-	}
-
 	frameSideBar, err := util.BuilderGetObject[*gtk.StackSidebar](builder, "frame-sidebar")
 	if err != nil {
 		log.Fatal(err)
@@ -162,6 +157,11 @@ func ArtistGui(app *gtk.Application) {
 	}
 
 	keyAttr, err := util.BuilderGetObject[*gtk.ComboBox](builder, "key-attr")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	keyType, err := util.BuilderGetObject[*gtk.ComboBoxText](builder, "key-type")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -227,7 +227,21 @@ func ArtistGui(app *gtk.Application) {
 		conn[c.Name] = library.NewConnection(c.Name, c.Address, c.Port)
 	}
 
-	editView, err := templates.NewEditor()
+	geoModel, err := gtk.ListStoreNew(
+		glib.TYPE_STRING, // GEO TYPE
+		glib.TYPE_STRING, // GEO NAME
+		glib.TYPE_INT,    // GEO NUM
+	)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	frameModel, err := gtk.ListStoreNew(glib.TYPE_STRING)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	editView, err := templates.NewEditor(frameModel, geoModel)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -250,9 +264,9 @@ func ArtistGui(app *gtk.Application) {
 		}
 	}
 
-	keyTree := NewKeyframeTree(keyGeo, keyAttr, frameSideBar)
+	keyTree := NewKeyframeTree(editView, keyType, geoModel, frameModel, keyGeo, keyAttr, frameSideBar)
 
-	geoTree, err := NewGeoTree(geoSelector, geometryToEditor, keyTree.UpdateGeometryName)
+	geoTree, err := NewGeoTree(geoSelector, geoModel, geometryToEditor, keyTree.UpdateGeometryName)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -286,8 +300,7 @@ func ArtistGui(app *gtk.Application) {
 		template.Clean()
 
 		updateUIFromTemplate(
-			template, geoTree, keyTree, framePane,
-			titleEntry, tempIDEntry, layerEntry,
+			template, geoTree, keyTree, titleEntry, tempIDEntry, layerEntry,
 		)
 
 		editView.Clear()
@@ -315,8 +328,7 @@ func ArtistGui(app *gtk.Application) {
 			}
 
 			updateUIFromTemplate(
-				template, geoTree, keyTree, framePane,
-				titleEntry, tempIDEntry, layerEntry,
+				template, geoTree, keyTree, titleEntry, tempIDEntry, layerEntry,
 			)
 
 			editView.Clear()
@@ -358,8 +370,7 @@ func ArtistGui(app *gtk.Application) {
 			}
 
 			updateUIFromTemplate(
-				template, geoTree, keyTree, framePane,
-				titleEntry, tempIDEntry, layerEntry,
+				template, geoTree, keyTree, titleEntry, tempIDEntry, layerEntry,
 			)
 
 			editView.Clear()
@@ -435,7 +446,7 @@ func ArtistGui(app *gtk.Application) {
 		template.Layer = id
 	})
 
-	addGeoButton.Connect("clicked", func() { addGeo(template, geoTree, keyTree) })
+	addGeoButton.Connect("clicked", func() { addGeo(template, geoTree) })
 	removeGeoButton.Connect("clicked", func() { removeGeo(template, geoTree, keyTree) })
 	duplicateGeoButton.Connect("clicked", func() { duplicateGeo(template, geoTree, keyTree) })
 
@@ -559,7 +570,7 @@ func ArtistGui(app *gtk.Application) {
 }
 
 func updateUIFromTemplate(temp *templates.Template, geoTree *GeoTree, keyTree *KeyTree,
-	framePane *gtk.Paned, titleEntry, tempIDEntry, layerEntry *gtk.Entry) (page *pages.Page) {
+	titleEntry, tempIDEntry, layerEntry *gtk.Entry) (page *pages.Page) {
 	titleEntry.SetText(temp.Title)
 	tempIDEntry.SetText(strconv.FormatInt(temp.TempID, 10))
 	layerEntry.SetText(strconv.Itoa(temp.Layer))
@@ -604,7 +615,7 @@ func updateTemplateFromUI(temp *templates.Template, geoTree *GeoTree, keyTree *K
 	return
 }
 
-func addGeo(temp *templates.Template, geoTree *GeoTree, keyTree *KeyTree) {
+func addGeo(temp *templates.Template, geoTree *GeoTree) {
 	geoName, err := geoTree.GetSelectedGeoName()
 	if err != nil {
 		log.Printf("Error adding geometry: %s", err)
@@ -618,7 +629,6 @@ func addGeo(temp *templates.Template, geoTree *GeoTree, keyTree *KeyTree) {
 	}
 
 	geoTree.AddGeoRow(geoNum, 0, geoName, geoName)
-	keyTree.AddGeometry(geoName, geoNum)
 }
 
 func removeGeo(temp *templates.Template, geoTree *GeoTree, keyTree *KeyTree) {
@@ -678,5 +688,4 @@ func duplicateGeo(temp *templates.Template, geoTree *GeoTree, keyTree *KeyTree) 
 	}
 
 	geoTree.AddGeoRow(newGeoID, 0, newGeoName, geoType)
-	keyTree.AddGeometry(newGeoName, newGeoID)
 }
