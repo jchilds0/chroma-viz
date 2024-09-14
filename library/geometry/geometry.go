@@ -34,6 +34,10 @@ const (
 	ATTR_REL_Y        = "rel_y"
 	ATTR_WIDTH        = "width"
 	ATTR_HEIGHT       = "height"
+	ATTR_X_LOWER      = "x_lower"
+	ATTR_X_UPPER      = "x_upper"
+	ATTR_Y_LOWER      = "y_lower"
+	ATTR_Y_UPPER      = "y_upper"
 	ATTR_INNER_RADIUS = "inner_radius"
 	ATTR_OUTER_RADIUS = "outer_radius"
 	ATTR_START_ANGLE  = "start_angle"
@@ -53,6 +57,10 @@ var Attrs = map[string]string{
 	ATTR_REL_Y:        "Rel Y",
 	ATTR_WIDTH:        "Width",
 	ATTR_HEIGHT:       "Height",
+	ATTR_X_LOWER:      "X Lower",
+	ATTR_X_UPPER:      "X Upper",
+	ATTR_Y_LOWER:      "Y Lower",
+	ATTR_Y_UPPER:      "Y Upper",
 	ATTR_INNER_RADIUS: "Inner Radius",
 	ATTR_OUTER_RADIUS: "Outer Radius",
 	ATTR_START_ANGLE:  "Start Angle",
@@ -68,7 +76,10 @@ var Attrs = map[string]string{
 func UpdateAttrList(model *gtk.ListStore, geoType string) (err error) {
 	model.Clear()
 
-	attrs := []string{ATTR_REL_X, ATTR_REL_Y}
+	attrs := []string{
+		ATTR_REL_X, ATTR_REL_Y, ATTR_X_LOWER,
+		ATTR_X_UPPER, ATTR_Y_LOWER, ATTR_Y_UPPER,
+	}
 
 	switch geoType {
 	case GEO_RECT:
@@ -82,6 +93,8 @@ func UpdateAttrList(model *gtk.ListStore, geoType string) (err error) {
 		attrs = append(attrs, ATTR_END_ANGLE)
 
 	case GEO_TEXT:
+		attrs = append(attrs, ATTR_WIDTH)
+		attrs = append(attrs, ATTR_HEIGHT)
 	case GEO_IMAGE:
 	case GEO_POLY:
 	case GEO_LIST:

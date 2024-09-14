@@ -3,6 +3,7 @@ package templates
 import (
 	"chroma-viz/library/geometry"
 	"chroma-viz/library/util"
+	"fmt"
 	"log"
 	"math"
 
@@ -164,6 +165,7 @@ type BindFrameEditor struct {
 	Frame     *gtk.ComboBox
 	Geometry  *gtk.ComboBox
 	Attribute *gtk.ComboBox
+	attrModel *gtk.ListStore
 }
 
 func NewBindFrameEditor(frameModel *gtk.ListStore, geoModel *gtk.ListStore) (edit *BindFrameEditor, err error) {
@@ -248,14 +250,12 @@ func NewBindFrameEditor(frameModel *gtk.ListStore, geoModel *gtk.ListStore) (edi
 	}
 
 	{
-		var attrModel *gtk.ListStore
-
 		edit.Attribute, err = gtk.ComboBoxNew()
 		if err != nil {
 			return
 		}
 
-		attrModel, err = gtk.ListStoreNew(glib.TYPE_STRING, glib.TYPE_STRING)
+		edit.attrModel, err = gtk.ListStoreNew(glib.TYPE_STRING, glib.TYPE_STRING)
 		if err != nil {
 			return
 		}
@@ -264,7 +264,7 @@ func NewBindFrameEditor(frameModel *gtk.ListStore, geoModel *gtk.ListStore) (edi
 		edit.Attribute.PackStart(geoCell, true)
 		edit.Attribute.CellLayout.AddAttribute(geoCell, "text", 1)
 		edit.Attribute.SetActive(1)
-		edit.Attribute.SetModel(attrModel)
+		edit.Attribute.SetModel(edit.attrModel)
 
 		edit.Geometry.Connect("changed", func() {
 			iter, err := edit.Geometry.GetActiveIter()
@@ -279,7 +279,7 @@ func NewBindFrameEditor(frameModel *gtk.ListStore, geoModel *gtk.ListStore) (edi
 				return
 			}
 
-			geometry.UpdateAttrList(attrModel, geoType)
+			geometry.UpdateAttrList(edit.attrModel, geoType)
 		})
 
 		label, err = gtk.LabelNew("Attribute")
@@ -306,27 +306,19 @@ func NewBindFrameEditor(frameModel *gtk.ListStore, geoModel *gtk.ListStore) (edi
 }
 
 func (edit *BindFrameEditor) UpdateKeyframe(frame BindFrame) (BindFrame, error) {
-	frameNum, err := comboBoxSelection[int](edit.Frame, 0)
+	var err error
+	frame.Bind.FrameNum, err = comboBoxSelection[int](edit.Frame, 0)
 	if err != nil {
 		return frame, err
 	}
 
-	frame.Bind.FrameNum = frameNum
-
-	geoID, err := comboBoxSelection[int](edit.Geometry, 0)
+	frame.Bind.GeoID, err = comboBoxSelection[int](edit.Geometry, 2)
 	if err != nil {
 		return frame, err
 	}
 
-	frame.Bind.GeoID = geoID
-
-	attr, err := comboBoxSelection[string](edit.Attribute, 0)
-	if err != nil {
-		return frame, err
-	}
-
-	frame.Bind.GeoAttr = attr
-	return frame, nil
+	frame.Bind.GeoAttr, err = comboBoxSelection[string](edit.Attribute, 0)
+	return frame, err
 }
 
 func comboBoxSelection[T any](combo *gtk.ComboBox, col int) (t T, err error) {
@@ -343,6 +335,60 @@ func comboBoxSelection[T any](combo *gtk.ComboBox, col int) (t T, err error) {
 	return util.ModelGetValue[T](model.ToTreeModel(), iter, col)
 }
 
-func (edit *BindFrameEditor) UpdateEditor(frame BindFrame) {
+func (edit *BindFrameEditor) UpdateEditor(frame BindFrame) (err error) {
+	_, err = setComboSelection(edit.Frame, frame.Bind.FrameNum, 0)
+	if err != nil {
+		return
+	}
 
+	iter, err := setComboSelection(edit.Geometry, frame.Bind.GeoID, 2)
+	if err != nil {
+		return
+	}
+
+	geoModel, err := edit.Geometry.GetModel()
+	if err != nil {
+		return
+	}
+
+	geoType, err := util.ModelGetValue[string](geoModel.ToTreeModel(), iter, 0)
+	if err != nil {
+		return
+	}
+
+	geometry.UpdateAttrList(edit.attrModel, geoType)
+	_, err = setComboSelection(edit.Attribute, frame.Bind.GeoAttr, 0)
+	return
+}
+
+func setComboSelection[T comparable](combo *gtk.ComboBox, value T, col int) (iter *gtk.TreeIter, err error) {
+	imodel, err := combo.GetModel()
+	if err != nil {
+		return
+	}
+
+	model := imodel.ToTreeModel()
+	iter, ok := model.GetIterFirst()
+
+	var row T
+	for {
+		if !ok {
+			err = fmt.Errorf("Selection %s not found", value)
+			return
+		}
+
+		row, err = util.ModelGetValue[T](model, iter, col)
+		if err != nil {
+			return
+		}
+
+		if row == value {
+			break
+		}
+
+		ok = model.IterNext(iter)
+	}
+
+	combo.SetActiveIter(iter)
+	return
 }

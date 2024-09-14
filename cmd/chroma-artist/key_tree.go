@@ -59,6 +59,8 @@ func NewKeyframeTree(editor *templates.Editor, keyType *gtk.ComboBoxText,
 		keyAttrSelect: keyAttr,
 		keyFrameStack: sideBar,
 		editor:        editor,
+		keyFrameList:  frameModel,
+		keyGeoList:    geoModel,
 	}
 
 	keyTree.userFrame = make(map[int]templates.UserFrame, 20)
@@ -75,7 +77,6 @@ func NewKeyframeTree(editor *templates.Editor, keyType *gtk.ComboBoxText,
 
 	{
 
-		keyTree.keyGeoList = geoModel
 		keyTree.keyGeoSelect.PackStart(geoCell, true)
 		keyTree.keyGeoSelect.CellLayout.AddAttribute(geoCell, "text", GEO_NAME)
 		keyTree.keyGeoSelect.SetActive(GEO_NAME)
@@ -210,6 +211,7 @@ func (keyTree *KeyTree) AddFrame() (err error) {
 			}
 
 			keyTree.editor.CurrentKeyID = frameID
+			keyTree.editor.ClearFrame()
 			switch frameType {
 			case templates.SET_FRAME:
 				frame, ok := keyTree.setFrame[keyTree.editor.CurrentKeyID]
@@ -308,6 +310,10 @@ func (keyTree *KeyTree) AddFrame() (err error) {
 	stack := keyTree.keyFrameStack.GetStack()
 	name := fmt.Sprintf("   Frame %d   ", frameNum)
 	stack.AddTitled(keyTree.keyframeView[frameNum], strconv.Itoa(frameNum), name)
+
+	iter := keyTree.keyFrameList.Append()
+	keyTree.keyFrameList.SetValue(iter, 0, frameNum)
+	keyTree.keyFrameList.SetValue(iter, 1, fmt.Sprintf("Frame %d", frameNum))
 
 	return
 }
@@ -515,8 +521,8 @@ func (keyTree *KeyTree) UpdateGeometryName(geoID int, name string) {
 }
 
 func (keyTree *KeyTree) Clear() {
-	keyTree.keyGeoList.Clear()
 	keyTree.keyAttrList.Clear()
+	keyTree.keyFrameList.Clear()
 
 	for k, model := range keyTree.keyframeModel {
 		model.Clear()

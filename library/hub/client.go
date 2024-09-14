@@ -55,3 +55,13 @@ func (c Client) PutJSON(dir string, v any) (err error) {
 	defer res.Body.Close()
 	return
 }
+
+func (c Client) Clean() (err error) {
+	res, err := c.Client.Post(c.URL()+"/clean", "", nil)
+	if err != nil {
+		return
+	}
+
+	res.Body.Close()
+	return
+}

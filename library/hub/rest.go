@@ -26,6 +26,8 @@ func (hub *DataBase) StartRestAPI(port int) {
 	router.GET("/asset/:id", hub.assetGET)
 	router.POST("/asset", hub.assetPOST)
 
+	router.POST("/clean", hub.cleanPOST)
+
 	router.Run("localhost:" + strconv.Itoa(port))
 }
 
@@ -182,5 +184,10 @@ func (hub *DataBase) assetPOST(c *gin.Context) {
 	}
 
 	hub.Assets[asset.ImageID] = asset
+	c.Status(http.StatusOK)
+}
+
+func (hub *DataBase) cleanPOST(c *gin.Context) {
+	hub.CleanDB()
 	c.Status(http.StatusOK)
 }

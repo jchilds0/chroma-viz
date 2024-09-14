@@ -80,11 +80,17 @@ func ArtistGui(app *gtk.Application) {
 	importTemplateJSON := glib.SimpleActionNew("import_template_json", nil)
 	app.AddAction(importTemplateJSON)
 
+	exportTemplate := glib.SimpleActionNew("export_template", nil)
+	app.AddAction(exportTemplate)
+
 	importTemplateHub := glib.SimpleActionNew("import_template_hub", nil)
 	app.AddAction(importTemplateHub)
 
-	exportTemplate := glib.SimpleActionNew("export_template", nil)
-	app.AddAction(exportTemplate)
+	generateHub := glib.SimpleActionNew("gen", nil)
+	app.AddAction(generateHub)
+
+	cleanHub := glib.SimpleActionNew("clean", nil)
+	app.AddAction(cleanHub)
 
 	app.SetMenubar(menu.(*glib.MenuModel))
 
@@ -236,7 +242,10 @@ func ArtistGui(app *gtk.Application) {
 		log.Fatal(err)
 	}
 
-	frameModel, err := gtk.ListStoreNew(glib.TYPE_STRING)
+	frameModel, err := gtk.ListStoreNew(
+		glib.TYPE_INT,    // Frame Num
+		glib.TYPE_STRING, // Frame Text
+	)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -284,6 +293,25 @@ func ArtistGui(app *gtk.Application) {
 		}
 
 		editView.UpdateGeometry(template)
+
+		if frame, ok := keyTree.bindFrame[editView.CurrentKeyID]; ok {
+			newFrame, err := editView.BindFrameEdit.UpdateKeyframe(frame)
+			if err != nil {
+				log.Printf("Error updating template keyframe: %s", err)
+				return
+			}
+
+			keyTree.bindFrame[editView.CurrentKeyID] = newFrame
+		} else if frame, ok := keyTree.setFrame[editView.CurrentKeyID]; ok {
+			newFrame := editView.SetFrameEdit.UpdateKeyframe(frame)
+			keyTree.setFrame[editView.CurrentKeyID] = newFrame
+		}
+
+		err = keyTree.ExportKeyframes(template)
+		if err != nil {
+			log.Printf("Error updating template keyframe: %s", err)
+			return
+		}
 
 		err = conf.ChromaHub.PutJSON("/template", template)
 		if err != nil {
@@ -335,6 +363,33 @@ func ArtistGui(app *gtk.Application) {
 		}
 	})
 
+	exportTemplate.Connect("activate", func() {
+		dialog, err := gtk.FileChooserDialogNewWith2Buttons(
+			"Save Template", win, gtk.FILE_CHOOSER_ACTION_SAVE,
+			"_Cancel", gtk.RESPONSE_CANCEL, "_Save", gtk.RESPONSE_ACCEPT)
+		if err != nil {
+			log.Print(err)
+			return
+		}
+		defer dialog.Destroy()
+
+		dialog.SetCurrentName(template.Title + ".json")
+		res := dialog.Run()
+		if res == gtk.RESPONSE_ACCEPT {
+			filename := dialog.GetFilename()
+
+			err := updateTemplateFromUI(template, geoTree, keyTree, titleEntry, tempIDEntry, layerEntry)
+			if err != nil {
+				log.Printf("Error exporting template (%s)", err)
+			}
+
+			err = template.ExportTemplate(filename)
+			if err != nil {
+				log.Printf("Error exporting template (%s)", err)
+			}
+		}
+	})
+
 	importTemplateHub.Connect("activate", func() {
 		dialog := NewTemplateChooserDialog(&win.Window)
 		defer dialog.Destroy()
@@ -377,30 +432,14 @@ func ArtistGui(app *gtk.Application) {
 		}
 	})
 
-	exportTemplate.Connect("activate", func() {
-		dialog, err := gtk.FileChooserDialogNewWith2Buttons(
-			"Save Template", win, gtk.FILE_CHOOSER_ACTION_SAVE,
-			"_Cancel", gtk.RESPONSE_CANCEL, "_Save", gtk.RESPONSE_ACCEPT)
+	generateHub.Connect("activate", func() {
+
+	})
+
+	cleanHub.Connect("activate", func() {
+		err := conf.ChromaHub.Clean()
 		if err != nil {
-			log.Print(err)
-			return
-		}
-		defer dialog.Destroy()
-
-		dialog.SetCurrentName(template.Title + ".json")
-		res := dialog.Run()
-		if res == gtk.RESPONSE_ACCEPT {
-			filename := dialog.GetFilename()
-
-			err := updateTemplateFromUI(template, geoTree, keyTree, titleEntry, tempIDEntry, layerEntry)
-			if err != nil {
-				log.Printf("Error exporting template (%s)", err)
-			}
-
-			err = template.ExportTemplate(filename)
-			if err != nil {
-				log.Printf("Error exporting template (%s)", err)
-			}
+			log.Print("Error cleaning chroma hub: %s", err)
 		}
 	})
 

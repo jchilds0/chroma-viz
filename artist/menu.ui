@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <interface>
   <menu id="menubar">
+
     <submenu id="submenu">
       <attribute name="label">File</attribute>
       <section>
@@ -8,23 +9,19 @@
           <attribute name="label">New Template</attribute>
           <attribute name="action">app.new_template</attribute>
         </item>
-        <submenu>
-          <attribute name="label">Import Template</attribute>
-          <item>
-            <attribute name ="label">From JSON</attribute>
-            <attribute name="action">app.import_template_json</attribute>
-          </item>
-          <item>
-            <attribute name ="label">From Chroma Hub</attribute>
-            <attribute name="action">app.import_template_hub</attribute>
-          </item>
-        </submenu>
+
+        <item>
+          <attribute name ="label">Import Template</attribute>
+          <attribute name="action">app.import_template_json</attribute>
+        </item>
+
         <item>
           <attribute name ="label">Export Template</attribute>
           <attribute name="action">app.export_template</attribute>
         </item>
       </section>
     </submenu>
+
     <submenu id="submenu">
       <attribute name="label">Edit</attribute>
       <section>
@@ -38,9 +35,38 @@
         </item>
       </section>
     </submenu>
+
     <submenu id="submenu">
-      <attribute name="label">Template</attribute>
+      <attribute name="label">Chroma Hub</attribute>
+
+      <section>
+        <item>
+          <attribute name="label">Import Template</attribute>
+          <attribute name="action">app.import_template_hub</attribute>
+        </item>
+
+        <item>
+          <attribute name="label">Import Asset</attribute>
+          <attribute name="action">app.import_asset</attribute>
+        </item>
+
+        <item>
+          <attribute name="label">Export Asset</attribute>
+          <attribute name="action">app.export_asset</attribute>
+        </item>
+
+        <item>
+          <attribute name="label">Generate</attribute>
+          <attribute name="action">app.gen</attribute>
+        </item>
+
+        <item>
+          <attribute name="label">Clean</attribute>
+          <attribute name="action">app.clean</attribute>
+        </item>
+      </section>
     </submenu>
+
     <submenu id="submenu">
       <attribute name="label">Help</attribute>
       <section>

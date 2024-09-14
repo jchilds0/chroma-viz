@@ -303,6 +303,13 @@ func (hub *DataBase) GetTexts(temp *templates.Template) (err error) {
 		}
 
 		t := geometry.NewText(geo)
+		t.Scale.Value = scale
+		t.String.Value = text
+		t.Color.FromString(color)
+		if err != nil {
+			return
+		}
+
 		temp.Text = append(temp.Text, t)
 	}
 

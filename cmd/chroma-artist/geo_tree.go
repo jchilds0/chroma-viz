@@ -286,6 +286,7 @@ func (geoTree *GeoTree) AddGeoRow(geoID, parentID int, geoName, geoType string) 
 
 func (geoTree *GeoTree) Clear() {
 	geoTree.geoModel.Clear()
+	geoTree.geoList.Clear()
 
 	geoTree.geoIter = make(map[int]*gtk.TreeIter)
 }

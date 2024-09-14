@@ -235,19 +235,27 @@ func updateEditor[T geometry.Editor[S], S geometry.Geometer[T]](edit *Editor, ed
 		editor.UpdateEditor(geo)
 		edit.geometryTab.PackStart(editor.GetBox(), true, true, 0)
 		//edit.tabs.AppendPage(editor.GetVisibleBox(), visibleLabel)
+
+		edit.tabs.SetCurrentPage(0)
 	}
 }
 
-func (edit *Editor) SetFrame(frame SetFrame) {
+func (edit *Editor) ClearFrame() {
 	clearBox(edit.keyframeTab)
+}
 
+func (edit *Editor) SetFrame(frame SetFrame) {
 	edit.SetFrameEdit.UpdateEditor(frame)
 	edit.keyframeTab.PackStart(edit.SetFrameEdit.Scroll, true, true, 0)
+	edit.tabs.SetCurrentPage(2)
 }
 
 func (edit *Editor) BindFrame(frame BindFrame) {
-	clearBox(edit.keyframeTab)
+	err := edit.BindFrameEdit.UpdateEditor(frame)
+	if err != nil {
+		log.Printf("Error updating bind frame: %s", err)
+	}
 
-	edit.BindFrameEdit.UpdateEditor(frame)
 	edit.keyframeTab.PackStart(edit.BindFrameEdit.Scroll, true, true, 0)
+	edit.tabs.SetCurrentPage(2)
 }
