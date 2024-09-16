@@ -40,14 +40,14 @@ Chroma Viz communicates with [Chroma Engine][chroma-engine] over tcp to render g
 - Each page has its own set of properties, editable through the editor
 - [Chroma Engine][chroma-engine] combines the template and the data set in the editor to render the graphic.
 
-https://github.com/jchilds0/chroma-viz/blob/f329a47635e9123c15470585cdba6ca4bb614377/data/demo.mp4
+https://github.com/user-attachments/assets/2203a13e-ccde-4edd-8170-44f922fc1997
 
 Chroma Artist can be used to design templates, which can be imported to [Chroma Hub][chroma-hub].
 
 - Tree View for creating the heirachy of geometry elements
 - Keyframes for creating animations, by setting a geometry attribute to a value, the value given by the user, or a value of another attribute.
-
-https://github.com/jchilds0/chroma-viz/blob/f329a47635e9123c15470585cdba6ca4bb614377/data/artist_demo.mp4
+- 
+https://github.com/user-attachments/assets/6b88397d-30d7-447f-b158-35ad6523b273
 
 ## Disclaimer
 
