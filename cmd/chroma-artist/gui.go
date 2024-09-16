@@ -12,14 +12,9 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/gotk3/gotk3/gdk"
 	"github.com/gotk3/gotk3/glib"
 	"github.com/gotk3/gotk3/gtk"
 )
-
-const iconSize = 24
-const addFrameIcon = "artist/add-file-icon.svg"
-const removeFrameIcon = "artist/remove-file-icon.svg"
 
 var conn map[string]*library.Connection
 var conf *library.Config
@@ -147,47 +142,7 @@ func ArtistGui(app *gtk.Application) {
 		log.Fatal(err)
 	}
 
-	frameSideBar, err := util.BuilderGetObject[*gtk.StackSidebar](builder, "frame-sidebar")
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	frameStack, err := util.BuilderGetObject[*gtk.Stack](builder, "frame-stack")
-	if err != nil {
-		log.Fatal(err)
-	}
-
 	keyGeo, err := util.BuilderGetObject[*gtk.ComboBox](builder, "key-geo")
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	keyAttr, err := util.BuilderGetObject[*gtk.ComboBox](builder, "key-attr")
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	keyType, err := util.BuilderGetObject[*gtk.ComboBoxText](builder, "key-type")
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	addFrameButton, err := util.BuilderGetObject[*gtk.Button](builder, "add-frame")
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	removeFrameButton, err := util.BuilderGetObject[*gtk.Button](builder, "remove-frame")
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	addKeyframeButton, err := util.BuilderGetObject[*gtk.Button](builder, "add-key")
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	removeKeyframeButton, err := util.BuilderGetObject[*gtk.Button](builder, "remove-key")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -273,7 +228,10 @@ func ArtistGui(app *gtk.Application) {
 		}
 	}
 
-	keyTree := NewKeyframeTree(editView, keyType, geoModel, frameModel, keyGeo, keyAttr, frameSideBar)
+	keyTree, err := NewFrames(editView, geoModel, frameModel)
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	geoTree, err := NewGeoTree(geoSelector, geoModel, geometryToEditor, keyTree.UpdateGeometryName)
 	if err != nil {
@@ -293,19 +251,9 @@ func ArtistGui(app *gtk.Application) {
 		}
 
 		editView.UpdateGeometry(template)
-
-		if frame, ok := keyTree.bindFrame[editView.CurrentKeyID]; ok {
-			newFrame, err := editView.BindFrameEdit.UpdateKeyframe(frame)
-			if err != nil {
-				log.Printf("Error updating template keyframe: %s", err)
-				return
-			}
-
-			keyTree.bindFrame[editView.CurrentKeyID] = newFrame
-		} else if frame, ok := keyTree.setFrame[editView.CurrentKeyID]; ok {
-			newFrame := editView.SetFrameEdit.UpdateKeyframe(frame)
-			keyTree.setFrame[editView.CurrentKeyID] = newFrame
-		}
+		frame := keyTree.keyFrames[editView.CurrentFrameID]
+		frame.UpdateBindFrame(editView.BindFrameEdit, editView.CurrentKeyID)
+		frame.UpdateSetFrame(editView.SetFrameEdit, editView.CurrentKeyID)
 
 		err = keyTree.ExportKeyframes(template)
 		if err != nil {
@@ -491,96 +439,7 @@ func ArtistGui(app *gtk.Application) {
 
 	geoScroll.Add(geoTree.geoView)
 
-	keyGeo.Connect("changed", func() {
-		geoID, _, err := keyTree.SelectedGeometry()
-		if err != nil {
-			return
-		}
-
-		geo := template.Geos[geoID]
-		if geo == nil {
-			log.Printf("Missing geometry %d", geoID)
-			return
-		}
-
-		geometry.UpdateAttrList(keyTree.keyAttrList, geo.GeoType)
-	})
-
-	frameSideBar.SetStack(frameStack)
-
-	{
-		buf, err := gdk.PixbufNewFromFileAtSize(addFrameIcon, iconSize, iconSize)
-		if err != nil {
-			log.Fatal(err)
-		}
-
-		img, err := gtk.ImageNewFromPixbuf(buf)
-		if err != nil {
-			log.Print(err)
-		}
-		addFrameButton.SetImage(img)
-
-		addFrameButton.Connect("clicked", func() {
-			err := keyTree.AddFrame()
-			if err != nil {
-				log.Printf("Error adding frame: %s", err)
-			}
-		})
-	}
-
-	{
-		buf, err := gdk.PixbufNewFromFileAtSize(removeFrameIcon, iconSize, iconSize)
-		if err != nil {
-			log.Fatal(err)
-		}
-
-		img, err := gtk.ImageNewFromPixbuf(buf)
-		if err != nil {
-			log.Print(err)
-		}
-
-		removeFrameButton.SetImage(img)
-
-		removeFrameButton.Connect("clicked", func() {
-			err := keyTree.RemoveFrame()
-			if err != nil {
-				log.Printf("Error removing frame: %s", err)
-			}
-		})
-	}
-
-	{
-		img, err := gtk.ImageNewFromIconName("list-add", 3)
-		if err != nil {
-			log.Print(err)
-		}
-		addKeyframeButton.SetImage(img)
-
-		addKeyframeButton.Connect("clicked", func() {
-			err := keyTree.AddKeyframe()
-			if err != nil {
-				log.Printf("Error adding keyframe: %s", err)
-			}
-		})
-	}
-
-	{
-		img, err := gtk.ImageNewFromIconName("list-remove", 3)
-		if err != nil {
-			log.Print(err)
-		}
-		removeKeyframeButton.SetImage(img)
-
-		removeKeyframeButton.Connect("clicked", func() {
-			err := keyTree.RemoveKeyframe()
-			if err != nil {
-				log.Printf("Error removing keyframe: %s", err)
-			}
-		})
-	}
-
 	editBox.PackStart(editView.Box, true, true, 0)
-
 	prevBox.PackStart(preview, true, true, 0)
 
 	/* Lower Bar layout */
@@ -608,7 +467,7 @@ func ArtistGui(app *gtk.Application) {
 	win.ShowAll()
 }
 
-func updateUIFromTemplate(temp *templates.Template, geoTree *GeoTree, keyTree *KeyTree,
+func updateUIFromTemplate(temp *templates.Template, geoTree *GeoTree, keyTree *Frames,
 	titleEntry, tempIDEntry, layerEntry *gtk.Entry) (page *pages.Page) {
 	titleEntry.SetText(temp.Title)
 	tempIDEntry.SetText(strconv.FormatInt(temp.TempID, 10))
@@ -623,7 +482,7 @@ func updateUIFromTemplate(temp *templates.Template, geoTree *GeoTree, keyTree *K
 	return page
 }
 
-func updateTemplateFromUI(temp *templates.Template, geoTree *GeoTree, keyTree *KeyTree,
+func updateTemplateFromUI(temp *templates.Template, geoTree *GeoTree, keyTree *Frames,
 	titleEntry, tempIDEntry, layerEntry *gtk.Entry) (err error) {
 	temp.Title, err = titleEntry.GetText()
 	if err != nil {
@@ -670,7 +529,7 @@ func addGeo(temp *templates.Template, geoTree *GeoTree) {
 	geoTree.AddGeoRow(geoNum, 0, geoName, geoName)
 }
 
-func removeGeo(temp *templates.Template, geoTree *GeoTree, keyTree *KeyTree) {
+func removeGeo(temp *templates.Template, geoTree *GeoTree, keyTree *Frames) {
 	iter, err := geoTree.GetSelectedGeometry()
 	if err != nil {
 		log.Printf("Error removing geometry: %s", err)
@@ -688,7 +547,7 @@ func removeGeo(temp *templates.Template, geoTree *GeoTree, keyTree *KeyTree) {
 	keyTree.RemoveGeo(geoID)
 }
 
-func duplicateGeo(temp *templates.Template, geoTree *GeoTree, keyTree *KeyTree) {
+func duplicateGeo(temp *templates.Template, geoTree *GeoTree, keyTree *Frames) {
 	iter, err := geoTree.GetSelectedGeometry()
 	if err != nil {
 		log.Printf("Error duplicating geometry: %s", err)

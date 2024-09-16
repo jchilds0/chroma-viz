@@ -12,11 +12,12 @@ type Editor struct {
 	tabs    *gtk.Notebook
 	actions *gtk.Box
 
-	CurrentGeoID int
-	CurrentKeyID int
-	geometryTab  *gtk.Box
-	visibleTab   *gtk.Box
-	keyframeTab  *gtk.Box
+	CurrentFrameID int
+	CurrentGeoID   int
+	CurrentKeyID   int
+	geometryTab    *gtk.Box
+	visibleTab     *gtk.Box
+	keyframeTab    *gtk.Box
 
 	SetFrameEdit  *SetFrameEditor
 	BindFrameEdit *BindFrameEditor
