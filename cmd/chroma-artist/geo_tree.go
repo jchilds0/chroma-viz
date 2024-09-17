@@ -27,7 +27,8 @@ type GeoTree struct {
 	geoList  *gtk.ListStore
 
 	geoView     *gtk.TreeView
-	geoIter     map[int]*gtk.TreeIter
+	geoTreeIter map[int]*gtk.TreeIter
+	geoListIter map[int]*gtk.TreeIter
 	geoSelector *gtk.ComboBox
 }
 
@@ -37,7 +38,9 @@ func NewGeoTree(geoSelector *gtk.ComboBox, geoList *gtk.ListStore, geoToEditor f
 		geoList:     geoList,
 	}
 
-	geoTree.geoIter = make(map[int]*gtk.TreeIter)
+	geoTree.geoTreeIter = make(map[int]*gtk.TreeIter)
+	geoTree.geoListIter = make(map[int]*gtk.TreeIter)
+
 	geoTree.geoView, err = gtk.TreeViewNew()
 	if err != nil {
 		return
@@ -197,9 +200,22 @@ func (geoTree *GeoTree) GetSelectedGeometry() (iter *gtk.TreeIter, err error) {
 	return
 }
 
-func (geoTree *GeoTree) RemoveGeo(iter *gtk.TreeIter, geoID int) {
+func (geoTree *GeoTree) RemoveGeo(geoID int) {
+	iter, ok := geoTree.geoTreeIter[geoID]
+	if !ok {
+		return
+	}
+
+	delete(geoTree.geoTreeIter, geoID)
 	geoTree.geoModel.Remove(iter)
-	delete(geoTree.geoIter, geoID)
+
+	iter, ok = geoTree.geoListIter[geoID]
+	if !ok {
+		return
+	}
+
+	geoTree.geoList.Remove(iter)
+	delete(geoTree.geoListIter, geoID)
 }
 
 func geometryToTreeView(temp *templates.Template, geoTree *GeoTree, parentID int) {
@@ -269,16 +285,17 @@ func (geoTree *GeoTree) ExportGeometry(temp *templates.Template) {
 }
 
 func (geoTree *GeoTree) AddGeoRow(geoID, parentID int, geoName, geoType string) {
-	parentIter := geoTree.geoIter[parentID]
+	parentIter := geoTree.geoTreeIter[parentID]
 	iter := geoTree.geoModel.Append(parentIter)
 
-	geoTree.geoIter[geoID] = iter
+	geoTree.geoTreeIter[geoID] = iter
 	geoTree.geoModel.SetValue(iter, GEO_TYPE, geoType)
 	geoTree.geoModel.SetValue(iter, GEO_NAME, geoName)
 	geoTree.geoModel.SetValue(iter, GEO_NUM, geoID)
 
 	iter = geoTree.geoList.Append()
 
+	geoTree.geoListIter[geoID] = iter
 	geoTree.geoList.SetValue(iter, GEO_TYPE, geoType)
 	geoTree.geoList.SetValue(iter, GEO_NAME, geoName)
 	geoTree.geoList.SetValue(iter, GEO_NUM, geoID)
@@ -288,5 +305,5 @@ func (geoTree *GeoTree) Clear() {
 	geoTree.geoModel.Clear()
 	geoTree.geoList.Clear()
 
-	geoTree.geoIter = make(map[int]*gtk.TreeIter)
+	geoTree.geoTreeIter = make(map[int]*gtk.TreeIter)
 }

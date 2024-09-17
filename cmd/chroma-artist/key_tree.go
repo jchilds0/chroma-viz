@@ -245,6 +245,27 @@ func (keyTree *KeyTree) RemoveKeyframe() (err error) {
 	return
 }
 
+func (keyTree *KeyTree) RemoveGeo(geoID int) {
+	iter, ok := keyTree.model.GetIterFirst()
+	model := keyTree.model.ToTreeModel()
+
+	for ok {
+		currentID, err := util.ModelGetValue[int](model, iter, FRAME_GEOMETRY_ID)
+		if err != nil {
+			log.Printf("Error getting geometry (%s)", err)
+			ok = keyTree.model.IterNext(iter)
+			continue
+		}
+
+		if currentID == geoID {
+			keyTree.model.Remove(iter)
+			iter, ok = keyTree.model.GetIterFirst()
+		} else {
+			ok = keyTree.model.IterNext(iter)
+		}
+	}
+}
+
 func (keyTree *KeyTree) UpdateBindFrame(edit *templates.BindFrameEditor, frameID int) {
 	frame, ok := keyTree.bindFrame[frameID]
 	if !ok {

@@ -269,7 +269,6 @@ func NewBindFrameEditor(frameModel *gtk.ListStore, geoModel *gtk.ListStore) (edi
 		edit.Geometry.Connect("changed", func() {
 			iter, err := edit.Geometry.GetActiveIter()
 			if err != nil {
-				log.Printf("Error selecting geometry: %s", err)
 				return
 			}
 

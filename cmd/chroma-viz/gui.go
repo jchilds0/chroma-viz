@@ -2,7 +2,6 @@ package main
 
 import (
 	"chroma-viz/library"
-	"chroma-viz/library/attribute"
 	"chroma-viz/library/hub"
 	"chroma-viz/library/pages"
 	"chroma-viz/library/templates"
@@ -85,16 +84,6 @@ func VizGui(app *gtk.Application) {
 
 	win.Add(box)
 
-	start := time.Now()
-	err = attribute.ImportAssets()
-	if err != nil {
-		log.Print(err)
-	}
-
-	end := time.Now()
-	elapsed := end.Sub(start)
-	log.Printf("Imported Assets in %s", elapsed)
-
 	edit, err := pages.NewEditor()
 	if err != nil {
 		log.Fatal(err)
@@ -167,17 +156,17 @@ func VizGui(app *gtk.Application) {
 		log.Fatalf("Error setting up preview window: %s", err)
 	}
 
-	start = time.Now()
+	start := time.Now()
 	tempTree.ImportTemplates(conf.ChromaHub)
-	end = time.Now()
-	elapsed = end.Sub(start)
+	end := time.Now()
+	elapsed := end.Sub(start)
 	log.Printf("Imported Graphics Hub in %s", elapsed)
 
 	go importHook(conf.ChromaHub, tempTree, showTree)
 
 	/* Menu layout */
 	builder, err := gtk.BuilderNew()
-	if err := builder.AddFromFile("viz/menu.ui"); err != nil {
+	if err := builder.AddFromFile("cmd/chroma-viz/menu.ui"); err != nil {
 		log.Fatal(err)
 	}
 
@@ -241,7 +230,7 @@ func VizGui(app *gtk.Application) {
 
 	/* Body layout */
 	builder, err = gtk.BuilderNew()
-	if err := builder.AddFromFile("viz/gui.ui"); err != nil {
+	if err := builder.AddFromFile("cmd/chroma-viz/gui.ui"); err != nil {
 		log.Fatal(err)
 	}
 

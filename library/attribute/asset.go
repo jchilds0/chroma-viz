@@ -2,7 +2,6 @@ package attribute
 
 import (
 	"chroma-viz/library/util"
-	"log"
 	"strings"
 
 	"github.com/gotk3/gotk3/glib"
@@ -53,21 +52,6 @@ func InsertAsset(path, name string, id int) {
 	currentNode.assetNames = append(currentNode.assetNames, name)
 }
 
-func ImportAssets() (err error) {
-	/*
-		var asset map[int]struct {
-			Directory string
-			Name      string
-		}
-
-		for id, a := range asset {
-			InsertAsset(a.Directory, a.Name, id)
-		}
-	*/
-
-	return
-}
-
 type AssetAttribute struct {
 	Name  string
 	Value int
@@ -83,23 +67,31 @@ func NewAssetAttribute(name string) *AssetAttribute {
 	return asset
 }
 
-func (asset *AssetAttribute) Directory() string {
+func (assetAttr *AssetAttribute) Directory() string {
 	return ""
 }
 
 func (asset *AssetAttribute) UpdateAttribute(assetEdit *AssetEditor) (err error) {
 	selection, err := assetEdit.dirs.GetSelection()
 	if err == nil {
-		_, iter, _ := selection.GetSelected()
-		asset.dir, _ = assetEdit.dirsStore.GetPath(iter)
+		_, iter, ok := selection.GetSelected()
+
+		if ok {
+			asset.dir, _ = assetEdit.dirsStore.GetPath(iter)
+		}
 	}
 
 	selection, err = assetEdit.assets.GetSelection()
-	_, selected, _ := selection.GetSelected()
+	if err != nil {
+		return
+	}
+	_, selected, ok := selection.GetSelected()
+	if !ok {
+		return
+	}
 
 	asset.Value, err = util.ModelGetValue[int](assetEdit.assetsStore.ToTreeModel(), selected, IMAGE_ID)
-	log.Print(asset.Value)
-	return err
+	return
 }
 
 type AssetEditor struct {
@@ -206,18 +198,26 @@ func (asset *AssetEditor) GetAssets(iter *gtk.TreeIter) *assetNode {
 }
 
 func (asset *AssetEditor) UpdateEditor(assetAttr *AssetAttribute) error {
-	dirSelection, err := asset.dirs.GetSelection()
-	if err == nil && assetAttr.dir != nil {
-		dirSelection.SelectPath(assetAttr.dir)
-		_, iter, _ := dirSelection.GetSelected()
-		assets := asset.GetAssets(iter)
-		asset.assetsStore.Clear()
+	asset.RefreshDirs()
 
-		for i, name := range assets.assetNames {
-			row := asset.assetsStore.Append()
-			asset.assetsStore.SetValue(row, NAME, name)
-			asset.assetsStore.SetValue(row, IMAGE_ID, assets.assetIDs[i])
-		}
+	dirSelection, err := asset.dirs.GetSelection()
+	if err != nil {
+		return nil
+	}
+
+	if assetAttr.dir == nil {
+		return nil
+	}
+
+	dirSelection.SelectPath(assetAttr.dir)
+	_, iter, _ := dirSelection.GetSelected()
+	assets := asset.GetAssets(iter)
+	asset.assetsStore.Clear()
+
+	for i, name := range assets.assetNames {
+		row := asset.assetsStore.Append()
+		asset.assetsStore.SetValue(row, NAME, name)
+		asset.assetsStore.SetValue(row, IMAGE_ID, assets.assetIDs[i])
 	}
 
 	return nil

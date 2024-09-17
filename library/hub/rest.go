@@ -164,7 +164,15 @@ func (hub *DataBase) assetGET(c *gin.Context) {
 		return
 	}
 
-	c.IndentedJSON(http.StatusOK, hub.Assets[assetID])
+	asset, ok := hub.Assets[assetID]
+	if !ok {
+		Logger("Error get asset: asset %d does not exist", assetID)
+		c.Status(http.StatusInternalServerError)
+		return
+	}
+
+	c.Status(http.StatusOK)
+	c.File(asset.Filename)
 }
 
 func (hub *DataBase) assetPOST(c *gin.Context) {

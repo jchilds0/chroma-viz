@@ -2,12 +2,15 @@ package main
 
 import (
 	"chroma-viz/library"
+	"chroma-viz/library/attribute"
 	"chroma-viz/library/hub"
 	"chroma-viz/library/pages"
 	"chroma-viz/library/templates"
 	"chroma-viz/library/util"
+	"encoding/json"
 	"fmt"
 	"log"
+	"os"
 	"strconv"
 	"time"
 
@@ -59,7 +62,7 @@ func ArtistGui(app *gtk.Application) {
 
 	/* Menu layout */
 	builder, err := gtk.BuilderNew()
-	if err := builder.AddFromFile("artist/menu.ui"); err != nil {
+	if err := builder.AddFromFile("cmd/chroma-artist/menu.ui"); err != nil {
 		log.Fatalf("Error starting artist gui (%s)", err)
 	}
 
@@ -80,6 +83,15 @@ func ArtistGui(app *gtk.Application) {
 	importTemplateHub := glib.SimpleActionNew("import_template_hub", nil)
 	app.AddAction(importTemplateHub)
 
+	importAsset := glib.SimpleActionNew("import_asset", nil)
+	app.AddAction(importAsset)
+
+	exportAsset := glib.SimpleActionNew("export_asset", nil)
+	app.AddAction(exportAsset)
+
+	fetchAssets := glib.SimpleActionNew("fetch_assets", nil)
+	app.AddAction(fetchAssets)
+
 	generateHub := glib.SimpleActionNew("gen", nil)
 	app.AddAction(generateHub)
 
@@ -90,7 +102,7 @@ func ArtistGui(app *gtk.Application) {
 
 	/* Body layout */
 	builder, err = gtk.BuilderNew()
-	if err := builder.AddFromFile("./artist/gui.ui"); err != nil {
+	if err := builder.AddFromFile("cmd/chroma-artist/gui.ui"); err != nil {
 		log.Fatal(err)
 	}
 
@@ -157,31 +169,6 @@ func ArtistGui(app *gtk.Application) {
 	}
 
 	/* create objects */
-	chromaHub, err := hub.NewDataBase(10, "", "")
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	err = chromaHub.SelectDatabase("chroma_hub", "", "")
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	/*
-		hubConn := library.NewConnection("Hub", conf.HubAddr, conf.HubPort)
-		hubConn.Connect()
-
-		start := time.Now()
-		err = attribute.ImportAssets(hubConn.Conn)
-		if err != nil {
-			log.Print(err)
-		}
-
-		end := time.Now()
-		elapsed := end.Sub(start)
-		log.Printf("Imported Assets in %s", elapsed)
-	*/
-
 	conn = make(map[string]*library.Connection)
 	for _, c := range conf.Connections {
 		conn[c.Name] = library.NewConnection(c.Name, c.Address, c.Port)
@@ -253,9 +240,11 @@ func ArtistGui(app *gtk.Application) {
 		}
 
 		editView.UpdateGeometry(template)
-		frame := keyTree.keyFrames[editView.CurrentFrameID]
-		frame.UpdateBindFrame(editView.BindFrameEdit, editView.CurrentKeyID)
-		frame.UpdateSetFrame(editView.SetFrameEdit, editView.CurrentKeyID)
+		frame, ok := keyTree.keyFrames[editView.CurrentFrameID]
+		if ok && frame != nil {
+			frame.UpdateBindFrame(editView.BindFrameEdit, editView.CurrentKeyID)
+			frame.UpdateSetFrame(editView.SetFrameEdit, editView.CurrentKeyID)
+		}
 
 		err = keyTree.ExportKeyframes(template)
 		if err != nil {
@@ -380,6 +369,62 @@ func ArtistGui(app *gtk.Application) {
 
 			editView.Clear()
 		}
+	})
+
+	importAsset.Connect("activate", func() {
+		dialog, err := gtk.FileChooserDialogNewWith2Buttons(
+			"Import Assets", win, gtk.FILE_CHOOSER_ACTION_OPEN,
+			"_Cancel", gtk.RESPONSE_CANCEL, "_Open", gtk.RESPONSE_ACCEPT)
+		if err != nil {
+			return
+		}
+		defer dialog.Destroy()
+
+		res := dialog.Run()
+		if res == gtk.RESPONSE_ACCEPT {
+			filename := dialog.GetFilename()
+
+			var assets hub.Assets
+			dataJSON, err := os.ReadFile(filename)
+			if err != nil {
+				log.Printf("Error importing assets: %s", err)
+				return
+			}
+
+			err = json.Unmarshal(dataJSON, &assets)
+			if err != nil {
+				log.Printf("Error importing assets: %s", err)
+				return
+			}
+
+			err = conf.ChromaHub.PutJSON("/assets", assets)
+			if err != nil {
+				log.Printf("Error importing assets: %s", err)
+				return
+			}
+		}
+	})
+
+	exportAsset.Connect("activate", func() {
+
+	})
+
+	fetchAssets.Connect("activate", func() {
+		start := time.Now()
+		var assets hub.Assets
+		err = conf.ChromaHub.GetJSON("/assets", &assets)
+		if err != nil {
+			log.Printf("Error importing assets: %s", err)
+			return
+		}
+
+		for _, a := range assets {
+			attribute.InsertAsset(a.Directory, a.Name, a.ImageID)
+		}
+
+		end := time.Now()
+		elapsed := end.Sub(start)
+		log.Printf("Imported Assets in %s", elapsed)
 	})
 
 	generateHub.Connect("activate", func() {
@@ -545,7 +590,7 @@ func removeGeo(temp *templates.Template, geoTree *GeoTree, keyTree *Frames) {
 	}
 
 	temp.RemoveGeometry(geoID)
-	geoTree.RemoveGeo(iter, geoID)
+	geoTree.RemoveGeo(geoID)
 	keyTree.RemoveGeo(geoID)
 }
 

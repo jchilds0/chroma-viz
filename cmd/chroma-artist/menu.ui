@@ -56,6 +56,11 @@
         </item>
 
         <item>
+          <attribute name="label">Fetch Assets</attribute>
+          <attribute name="action">app.fetch_assets</attribute>
+        </item>
+
+        <item>
           <attribute name="label">Generate</attribute>
           <attribute name="action">app.gen</attribute>
         </item>

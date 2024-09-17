@@ -14,8 +14,8 @@ import (
 )
 
 const iconSize = 24
-const addFrameIcon = "artist/add-file-icon.svg"
-const removeFrameIcon = "artist/remove-file-icon.svg"
+const addFrameIcon = "cmd/chroma-artist/add-file-icon.svg"
+const removeFrameIcon = "cmd/chroma-artist/remove-file-icon.svg"
 
 const (
 	ATTR_SELECT_TYPE = iota
@@ -139,23 +139,8 @@ func (frames *Frames) SelectedAttribute() (attrType string, err error) {
 }
 
 func (frames *Frames) RemoveGeo(geoID int) {
-	iter, ok := frames.keyGeoList.GetIterFirst()
-	model := frames.keyGeoList.ToTreeModel()
-
-	for ok {
-		currentID, err := util.ModelGetValue[int](model, iter, GEO_NUM)
-		if err != nil {
-			log.Printf("Error getting geometry (%s)", err)
-			ok = frames.keyGeoList.IterNext(iter)
-			continue
-		}
-
-		if currentID == geoID {
-			frames.keyGeoList.Remove(iter)
-			iter, ok = frames.keyGeoList.GetIterFirst()
-		} else {
-			ok = frames.keyGeoList.IterNext(iter)
-		}
+	for _, keyframe := range frames.keyFrames {
+		keyframe.RemoveGeo(geoID)
 	}
 }
 
@@ -288,16 +273,28 @@ func (frames *Frames) ImportKeyframes(temp *templates.Template) (err error) {
 
 	for _, frame := range temp.UserFrame {
 		geo := temp.Geos[frame.GeoID]
+		if geo == nil {
+			continue
+		}
+
 		frames.keyFrames[frame.FrameNum].ImportUserFrame(*geo, frame)
 	}
 
 	for _, frame := range temp.BindFrame {
 		geo := temp.Geos[frame.GeoID]
+		if geo == nil {
+			continue
+		}
+
 		frames.keyFrames[frame.FrameNum].ImportBindFrame(*geo, frame)
 	}
 
 	for _, frame := range temp.SetFrame {
 		geo := temp.Geos[frame.GeoID]
+		if geo == nil {
+			continue
+		}
+
 		frames.keyFrames[frame.FrameNum].ImportSetFrame(*geo, frame)
 	}
 
