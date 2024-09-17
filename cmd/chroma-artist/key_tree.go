@@ -27,8 +27,9 @@ type KeyTree struct {
 	bindFrame map[int]templates.BindFrame
 	setFrame  map[int]templates.SetFrame
 
-	model *gtk.ListStore
-	view  *gtk.TreeView
+	model  *gtk.ListStore
+	view   *gtk.TreeView
+	window *gtk.ScrolledWindow
 }
 
 func NewKeyframeTree(sendEditor func(frameID int, keyType string)) (keyTree *KeyTree, err error) {
@@ -37,6 +38,14 @@ func NewKeyframeTree(sendEditor func(frameID int, keyType string)) (keyTree *Key
 	keyTree.userFrame = make(map[int]templates.UserFrame, 20)
 	keyTree.setFrame = make(map[int]templates.SetFrame, 20)
 	keyTree.bindFrame = make(map[int]templates.BindFrame, 20)
+
+	keyTree.window, err = gtk.ScrolledWindowNew(nil, nil)
+	if err != nil {
+		return
+	}
+
+	keyTree.window.SetVExpand(true)
+	keyTree.window.SetVisible(true)
 
 	keyTree.model, err = gtk.ListStoreNew(
 		glib.TYPE_STRING,  // Keyframe Type
@@ -55,6 +64,8 @@ func NewKeyframeTree(sendEditor func(frameID int, keyType string)) (keyTree *Key
 	if err != nil {
 		return
 	}
+
+	keyTree.window.Add(keyTree.view)
 
 	keyTree.view.SetReorderable(true)
 	keyTree.view.SetVisible(true)

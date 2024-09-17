@@ -100,7 +100,7 @@ func (frames *Frames) SelectedFrame() (frameNum int, err error) {
 	return
 }
 
-func (frames *Frames) SelectedGeometry() (geoID int, geoName string, err error) {
+func (frames *Frames) SelectedGeometry() (geoID int, geoName, geoType string, err error) {
 	iter, err := frames.keyGeoSelect.GetActiveIter()
 	if err != nil {
 		return
@@ -112,6 +112,11 @@ func (frames *Frames) SelectedGeometry() (geoID int, geoName string, err error) 
 	}
 
 	geoName, err = util.ModelGetValue[string](frames.keyGeoList.ToTreeModel(), iter, GEO_NAME)
+	if err != nil {
+		return
+	}
+
+	geoType, err = util.ModelGetValue[string](frames.keyGeoList.ToTreeModel(), iter, GEO_TYPE)
 	if err != nil {
 		return
 	}
@@ -210,7 +215,7 @@ func (frames *Frames) AddFrame() (err error) {
 
 	stack := frames.keyFrameStack.GetStack()
 	name := fmt.Sprintf("   Frame %d   ", frameNum)
-	stack.AddTitled(frames.keyFrames[frameNum].view, strconv.Itoa(frameNum), name)
+	stack.AddTitled(frames.keyFrames[frameNum].window, strconv.Itoa(frameNum), name)
 
 	iter := frames.keyFrameList.Append()
 	frames.keyFrameList.SetValue(iter, 0, frameNum)
@@ -226,14 +231,14 @@ func (frames *Frames) RemoveFrame() (err error) {
 	}
 
 	stack := frames.keyFrameStack.GetStack()
-	stack.Remove(frames.keyFrames[frameNum].view)
+	stack.Remove(frames.keyFrames[frameNum].window)
 	delete(frames.keyFrames, frameNum)
 
 	return
 }
 
 func (frames *Frames) AddKeyframe() (err error) {
-	geoID, geoName, err := frames.SelectedGeometry()
+	geoID, geoName, _, err := frames.SelectedGeometry()
 	if err != nil {
 		err = fmt.Errorf("Error getting geo id: %s", err)
 		return
@@ -323,7 +328,7 @@ func (frames *Frames) Clear() {
 
 	stack := frames.keyFrameStack.GetStack()
 	for k, frame := range frames.keyFrames {
-		stack.Remove(frame.view)
+		stack.Remove(frame.window)
 		delete(frames.keyFrames, k)
 	}
 }
@@ -424,18 +429,12 @@ func (frames *Frames) InitActions() (err error) {
 		}
 
 		frames.keyGeoSelect.Connect("changed", func() {
-			geoID, _, err := frames.SelectedGeometry()
+			_, _, geoType, err := frames.SelectedGeometry()
 			if err != nil {
 				return
 			}
 
-			geo := template.Geos[geoID]
-			if geo == nil {
-				log.Printf("Missing geometry %d", geoID)
-				return
-			}
-
-			geometry.UpdateAttrList(frames.keyAttrList, geo.GeoType)
+			geometry.UpdateAttrList(frames.keyAttrList, geoType)
 		})
 
 		frames.keyGeoSelect.PackStart(geoCell, true)

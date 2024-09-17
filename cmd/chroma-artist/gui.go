@@ -141,6 +141,11 @@ func ArtistGui(app *gtk.Application) {
 		log.Fatal(err)
 	}
 
+	keyframes, err := util.BuilderGetObject[*gtk.Box](builder, "keyframes")
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	editBox, err := util.BuilderGetObject[*gtk.Box](builder, "edit")
 	if err != nil {
 		log.Fatal(err)
@@ -226,6 +231,9 @@ func ArtistGui(app *gtk.Application) {
 	if err != nil {
 		log.Fatal(err)
 	}
+
+	keyframes.PackStart(keyTree.actions, false, false, 10)
+	keyframes.PackStart(keyTree.keyframes, true, true, 0)
 
 	geoTree, err := NewGeoTree(geoSelector, geoModel, geometryToEditor, keyTree.UpdateGeometryName)
 	if err != nil {
