@@ -65,3 +65,13 @@ func (c Client) Clean() (err error) {
 	res.Body.Close()
 	return
 }
+
+func (c Client) Generate() (err error) {
+	res, err := c.Client.Post(c.URL()+"/generate", "", nil)
+	if err != nil {
+		return
+	}
+
+	res.Body.Close()
+	return
+}

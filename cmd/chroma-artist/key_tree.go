@@ -113,6 +113,18 @@ func NewKeyframeTree(sendEditor func(frameID int, keyType string)) (keyTree *Key
 	}
 
 	{
+		// Geometry ID
+		column, err = gtk.TreeViewColumnNewWithAttribute("Geometry ID", geoCell, "text", FRAME_GEOMETRY_ID)
+		if err != nil {
+			return
+		}
+
+		column.SetResizable(true)
+		keyTree.view.AppendColumn(column)
+
+	}
+
+	{
 		// Attribute Name
 		column, err = gtk.TreeViewColumnNewWithAttribute("Attribute", geoCell, "text", FRAME_ATTR_NAME)
 		if err != nil {
@@ -216,6 +228,7 @@ func (keyTree *KeyTree) addGeometryRow(geoName string, frame templates.Keyframe)
 	keyTree.model.SetValue(iter, FRAME_ATTR_NAME, geometry.Attrs[frame.GeoAttr])
 	keyTree.model.SetValue(iter, FRAME_KEY_TYPE, frame.Type)
 	keyTree.model.SetValue(iter, FRAME_KEY_ID, keyTree.frameID)
+	keyTree.model.SetValue(iter, FRAME_EXPAND, frame.Expand)
 
 	keyTree.frameID++
 	return

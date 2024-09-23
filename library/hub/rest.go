@@ -27,6 +27,7 @@ func (hub *DataBase) StartRestAPI(port int) {
 	router.POST("/asset", hub.assetPOST)
 
 	router.POST("/clean", hub.cleanPOST)
+	router.POST("/generate", hub.generatePOST)
 
 	router.Run("localhost:" + strconv.Itoa(port))
 }
@@ -197,5 +198,19 @@ func (hub *DataBase) assetPOST(c *gin.Context) {
 
 func (hub *DataBase) cleanPOST(c *gin.Context) {
 	hub.CleanDB()
+	c.Status(http.StatusOK)
+}
+
+func (hub *DataBase) generatePOST(c *gin.Context) {
+	hub.CleanDB()
+
+	numTemp, numGeo := 100, 100
+	for i := 1; i < numTemp; i++ {
+		err := hub.randomTemplate(int64(i), numGeo)
+		if err != nil {
+			Logger("Error generating hub: %s", err)
+		}
+	}
+
 	c.Status(http.StatusOK)
 }

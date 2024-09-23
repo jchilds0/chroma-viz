@@ -59,7 +59,7 @@ func NewGeoTree(geoSelector *gtk.ComboBox, geoList *gtk.ListStore, geoToEditor f
 	}
 	geoTree.geoView.AppendColumn(column)
 
-	column, err = gtk.TreeViewColumnNewWithAttribute("Geo ID", typeCell, "text", GEO_NUM)
+	column, err = gtk.TreeViewColumnNewWithAttribute("Geometry ID", typeCell, "text", GEO_NUM)
 	if err != nil {
 		return
 	}
