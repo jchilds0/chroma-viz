@@ -7,3 +7,5 @@ perf/*.prof
 */*.log
 *.bak
 */*.bak
+*/conf.json
+*/*.toml
