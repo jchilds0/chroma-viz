@@ -158,7 +158,7 @@ func (hub *DataBase) randomTemplate(tempID int64, numGeo int) (err error) {
 			rect := geometry.NewRectangle(geo)
 			rect.Width.Value = rand.Int() % 1000
 			rect.Height.Value = rand.Int() % 1000
-			rect.Rounding.Value = rand.Int() % 10
+			rect.Rounding.Value = rand.Int() % 300
 			rect.Color.FromString(color)
 			err = hub.AddRectangle(tempID, *rect)
 

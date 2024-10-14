@@ -204,7 +204,7 @@ func (hub *DataBase) cleanPOST(c *gin.Context) {
 func (hub *DataBase) generatePOST(c *gin.Context) {
 	hub.CleanDB()
 
-	numTemp, numGeo := 100, 100
+	numTemp, numGeo := 20, 1000
 	for i := 1; i < numTemp; i++ {
 		err := hub.randomTemplate(int64(i), numGeo)
 		if err != nil {
