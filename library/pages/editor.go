@@ -134,22 +134,22 @@ func (edit *Editor) SetPage(page *Page) (err error) {
 
 	edit.CurrentPage = page
 
-	updateEditor(edit, edit.Rect, edit.CurrentPage.Rect, geometry.NewRectangleEditor)
-	updateEditor(edit, edit.Circle, edit.CurrentPage.Circle, geometry.NewCircleEditor)
-	updateEditor(edit, edit.Clock, edit.CurrentPage.Clock, geometry.NewClockEditor)
-	updateEditor(edit, edit.Image, edit.CurrentPage.Image, geometry.NewImageEditor)
-	updateEditor(edit, edit.Poly, edit.CurrentPage.Poly, geometry.NewPolygonEditor)
-	updateEditor(edit, edit.Text, edit.CurrentPage.Text, geometry.NewTextEditor)
-	updateEditor(edit, edit.List, edit.CurrentPage.List, geometry.NewListEditor)
+	edit.Rect = updateEditor(edit, edit.Rect, edit.CurrentPage.Rect, geometry.NewRectangleEditor)
+	edit.Circle = updateEditor(edit, edit.Circle, edit.CurrentPage.Circle, geometry.NewCircleEditor)
+	edit.Clock = updateEditor(edit, edit.Clock, edit.CurrentPage.Clock, geometry.NewClockEditor)
+	edit.Image = updateEditor(edit, edit.Image, edit.CurrentPage.Image, geometry.NewImageEditor)
+	edit.Poly = updateEditor(edit, edit.Poly, edit.CurrentPage.Poly, geometry.NewPolygonEditor)
+	edit.Text = updateEditor(edit, edit.Text, edit.CurrentPage.Text, geometry.NewTextEditor)
+	edit.List = updateEditor(edit, edit.List, edit.CurrentPage.List, geometry.NewListEditor)
 
 	return
 }
 
 func updateEditor[T geometry.Editor[S], S geometry.Geometer[T]](
-	edit *Editor, editors []T, geos []S, init func() (T, error)) {
+	edit *Editor, editors []T, geos []S, init func() (T, error)) []T {
 	diff := len(geos) - len(editors)
 	if diff > 0 {
-		for _ = range diff {
+		for range diff {
 			edit, err := init()
 			if err != nil {
 				log.Print(err)
@@ -168,16 +168,18 @@ func updateEditor[T geometry.Editor[S], S geometry.Geometer[T]](
 
 		err := editors[i].UpdateEditor(geos[i])
 		if err != nil {
-			log.Print(err)
+			log.Println("Updating editor:", err)
 		}
 
 		label, err = gtk.LabelNew(geos[i].GetName())
 		if err != nil {
-			return
+			log.Println("Updating editor:", err)
 		}
 
 		edit.tabs.AppendPage(editors[i].GetBox(), label)
 	}
+
+	return editors
 }
 
 func (edit *Editor) UpdateTemplate(newTemp *templates.Template) {
