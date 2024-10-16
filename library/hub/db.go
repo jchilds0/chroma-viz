@@ -151,15 +151,16 @@ func (hub *DataBase) randomTemplate(tempID int64, numGeo int) (err error) {
 		geo.RelX.Value = rand.Int() % 2000
 		geo.RelY.Value = rand.Int() % 2000
 
-		color := fmt.Sprintf("%f %f %f %f", rand.Float64(), rand.Float64(), rand.Float64(), rand.Float64())
-
 		switch geos[geoIndex] {
 		case geometry.GEO_RECT:
 			rect := geometry.NewRectangle(geo)
 			rect.Width.Value = rand.Int() % 1000
 			rect.Height.Value = rand.Int() % 1000
 			rect.Rounding.Value = rand.Int() % 300
-			rect.Color.FromString(color)
+			rect.Color.Red = rand.Float64()
+			rect.Color.Green = rand.Float64()
+			rect.Color.Blue = rand.Float64()
+			rect.Color.Alpha = rand.Float64()
 			err = hub.AddRectangle(tempID, *rect)
 
 		case geometry.GEO_CIRCLE:
@@ -168,14 +169,20 @@ func (hub *DataBase) randomTemplate(tempID int64, numGeo int) (err error) {
 			circle.OuterRadius.Value = rand.Int() % 200
 			circle.StartAngle.Value = rand.Int() % 10
 			circle.EndAngle.Value = rand.Int() % 200
-			circle.Color.FromString(color)
+			circle.Color.Red = rand.Float64()
+			circle.Color.Green = rand.Float64()
+			circle.Color.Blue = rand.Float64()
+			circle.Color.Alpha = rand.Float64()
 			err = hub.AddCircle(tempID, *circle)
 
 		case geometry.GEO_TEXT:
 			text := geometry.NewText(geo)
 			text.String.Value = "some text"
 			text.Scale.Value = 1.0
-			text.Color.FromString(color)
+			text.Color.Red = rand.Float64()
+			text.Color.Green = rand.Float64()
+			text.Color.Blue = rand.Float64()
+			text.Color.Alpha = rand.Float64()
 			err = hub.AddText(tempID, *text)
 
 		}
@@ -188,7 +195,7 @@ func (hub *DataBase) randomTemplate(tempID int64, numGeo int) (err error) {
 				tempFrame = templates.NewKeyFrame(1, j, "rel_y", false)
 			}
 
-			startFrame := templates.NewSetFrame(*tempFrame, rand.Int()%2000)
+			startFrame := templates.NewSetFrame(*tempFrame, rand.Float64()*2000)
 			hub.AddSetFrame(tempID, *startFrame)
 
 			tempFrame.FrameNum = 2

@@ -25,7 +25,7 @@ func NewCircle(geo Geometry) *Circle {
 	circle.OuterRadius.Name = ATTR_OUTER_RADIUS
 	circle.StartAngle.Name = ATTR_START_ANGLE
 	circle.EndAngle.Name = ATTR_END_ANGLE
-	circle.Color.Name = ATTR_COLOR
+	circle.Color.Name = "Color"
 	circle.Color.Alpha = 1.0
 
 	return circle
@@ -68,7 +68,10 @@ func (c *Circle) Encode(b *strings.Builder) {
 	util.EngineAddKeyValue(b, c.OuterRadius.Name, c.OuterRadius.Value)
 	util.EngineAddKeyValue(b, c.StartAngle.Name, c.StartAngle.Value)
 	util.EngineAddKeyValue(b, c.EndAngle.Name, c.EndAngle.Value)
-	util.EngineAddKeyValue(b, c.Color.Name, c.Color.ToString())
+	util.EngineAddKeyValue(b, ATTR_COLOR_R, c.Color.Red)
+	util.EngineAddKeyValue(b, ATTR_COLOR_G, c.Color.Green)
+	util.EngineAddKeyValue(b, ATTR_COLOR_B, c.Color.Blue)
+	util.EngineAddKeyValue(b, ATTR_COLOR_A, c.Color.Alpha)
 }
 
 type CircleEditor struct {
@@ -111,7 +114,7 @@ func NewCircleEditor() (cEdit *CircleEditor, err error) {
 		return
 	}
 
-	cEdit.Color, err = attribute.NewColorEditor(Attrs[ATTR_COLOR])
+	cEdit.Color, err = attribute.NewColorEditor("Color")
 	if err != nil {
 		return
 	}

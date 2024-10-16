@@ -56,10 +56,10 @@ func NewBindFrame(frame, bind Keyframe) *BindFrame {
 
 type SetFrame struct {
 	Keyframe
-	Value int
+	Value float64
 }
 
-func NewSetFrame(frame Keyframe, value int) *SetFrame {
+func NewSetFrame(frame Keyframe, value float64) *SetFrame {
 	frame.Type = SET_FRAME
 
 	return &SetFrame{
@@ -151,7 +151,7 @@ func NewSetFrameEditor() (edit *SetFrameEditor, err error) {
 }
 
 func (edit *SetFrameEditor) UpdateKeyframe(frame SetFrame) SetFrame {
-	frame.Value = int(edit.Value.GetValue())
+	frame.Value = edit.Value.GetValue()
 	return frame
 }
 

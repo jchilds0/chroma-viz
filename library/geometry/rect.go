@@ -60,7 +60,10 @@ func (r *Rectangle) Encode(b *strings.Builder) {
 	util.EngineAddKeyValue(b, r.Width.Name, r.Width.Value)
 	util.EngineAddKeyValue(b, r.Height.Name, r.Height.Value)
 	util.EngineAddKeyValue(b, r.Rounding.Name, r.Rounding.Value)
-	util.EngineAddKeyValue(b, r.Color.Name, r.Color.ToString())
+	util.EngineAddKeyValue(b, ATTR_COLOR_R, r.Color.Red)
+	util.EngineAddKeyValue(b, ATTR_COLOR_G, r.Color.Green)
+	util.EngineAddKeyValue(b, ATTR_COLOR_B, r.Color.Blue)
+	util.EngineAddKeyValue(b, ATTR_COLOR_A, r.Color.Alpha)
 }
 
 type RectangleEditor struct {

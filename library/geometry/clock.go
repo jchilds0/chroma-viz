@@ -51,7 +51,10 @@ func (c *Clock) Encode(b *strings.Builder) {
 	c.Geometry.Encode(b)
 
 	util.EngineAddKeyValue(b, c.Clock.Name, c.Clock.CurrentTime)
-	util.EngineAddKeyValue(b, c.Color.Name, c.Color.ToString())
+	util.EngineAddKeyValue(b, ATTR_COLOR_R, c.Color.Red)
+	util.EngineAddKeyValue(b, ATTR_COLOR_G, c.Color.Green)
+	util.EngineAddKeyValue(b, ATTR_COLOR_B, c.Color.Blue)
+	util.EngineAddKeyValue(b, ATTR_COLOR_A, c.Color.Alpha)
 	util.EngineAddKeyValue(b, c.Scale.Name, c.Scale.Value)
 }
 

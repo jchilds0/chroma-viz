@@ -1,10 +1,6 @@
 package attribute
 
 import (
-	"fmt"
-	"strconv"
-	"strings"
-
 	"github.com/gotk3/gotk3/gdk"
 	"github.com/gotk3/gotk3/gtk"
 )
@@ -15,35 +11,6 @@ type ColorAttribute struct {
 	Green float64
 	Blue  float64
 	Alpha float64
-}
-
-func (colorAttr *ColorAttribute) ToString() string {
-	return fmt.Sprintf("%f %f %f %f", colorAttr.Red, colorAttr.Green, colorAttr.Blue, colorAttr.Alpha)
-}
-
-func (colorAttr *ColorAttribute) FromString(s string) (err error) {
-	nums := strings.Split(s, " ")
-	if len(nums) != 4 {
-		return fmt.Errorf("Incorrect color format: %s", s)
-	}
-
-	colorAttr.Red, err = strconv.ParseFloat(nums[0], 64)
-	if err != nil {
-		return
-	}
-
-	colorAttr.Green, err = strconv.ParseFloat(nums[1], 64)
-	if err != nil {
-		return
-	}
-
-	colorAttr.Blue, err = strconv.ParseFloat(nums[2], 64)
-	if err != nil {
-		return
-	}
-
-	colorAttr.Alpha, err = strconv.ParseFloat(nums[3], 64)
-	return
 }
 
 func (colorAttr *ColorAttribute) UpdateAttribute(colorEdit *ColorEditor) (err error) {

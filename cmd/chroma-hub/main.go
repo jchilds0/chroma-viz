@@ -4,9 +4,6 @@ import (
 	"chroma-viz/library/hub"
 	"flag"
 	"fmt"
-	"strconv"
-	"strings"
-	"time"
 )
 
 var usage = `Usage:
@@ -31,7 +28,6 @@ var port = flag.Int("port", 9000, "chroma hub port")
 var username = flag.String("u", "", "SQL Database username")
 var password = flag.String("p", "", "SQL Database password")
 var schema = flag.Bool("c", false, "create database")
-var gen = flag.String("g", "", "generate templates")
 
 func main() {
 	flag.Parse()
@@ -56,11 +52,6 @@ func main() {
 		return
 	}
 
-	if *gen != "" {
-		input := strings.Split(*gen, ",")
-		generate(db, input)
-	}
-
 	db.StartRestAPI(*port)
 }
 
@@ -78,34 +69,4 @@ func createSchema(db *hub.DataBase) (err error) {
 
 	err = fmt.Errorf("Schema not imported, exiting.")
 	return
-}
-
-func generate(db *hub.DataBase, inputs []string) {
-	if len(inputs) != 2 {
-		return
-	}
-
-	db.CleanDB()
-	numTemp, err := strconv.Atoi(inputs[0])
-	if err != nil {
-		fmt.Println(usage)
-		return
-	}
-
-	numGeo, err := strconv.Atoi(inputs[1])
-	if err != nil {
-		fmt.Println(usage)
-		return
-	}
-
-	start := time.Now()
-
-	var i int64
-	for i = 1; i <= int64(numTemp); i++ {
-		randomTemplate(db, i, numGeo)
-	}
-
-	end := time.Now()
-	elapsed := end.Sub(start)
-	hub.Logger("Generated Random Hub in %s\n", elapsed)
 }

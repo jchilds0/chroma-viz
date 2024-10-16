@@ -45,7 +45,10 @@ func (p *Polygon) UpdateGeometry(pEdit *PolygonEditor) (err error) {
 func (p *Polygon) Encode(b *strings.Builder) {
 	p.Geometry.Encode(b)
 
-	util.EngineAddKeyValue(b, p.Color.Name, p.Color.ToString())
+	util.EngineAddKeyValue(b, ATTR_COLOR_R, p.Color.Red)
+	util.EngineAddKeyValue(b, ATTR_COLOR_G, p.Color.Green)
+	util.EngineAddKeyValue(b, ATTR_COLOR_B, p.Color.Blue)
+	util.EngineAddKeyValue(b, ATTR_COLOR_A, p.Color.Alpha)
 	p.Polygon.Encode(b)
 }
 

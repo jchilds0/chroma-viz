@@ -52,7 +52,10 @@ func (t *Text) Encode(b *strings.Builder) {
 
 	util.EngineAddKeyValue(b, t.String.Name, t.String.Value)
 	util.EngineAddKeyValue(b, t.Scale.Name, t.Scale.Value)
-	util.EngineAddKeyValue(b, t.Color.Name, t.Color.ToString())
+	util.EngineAddKeyValue(b, ATTR_COLOR_R, t.Color.Red)
+	util.EngineAddKeyValue(b, ATTR_COLOR_G, t.Color.Green)
+	util.EngineAddKeyValue(b, ATTR_COLOR_B, t.Color.Blue)
+	util.EngineAddKeyValue(b, ATTR_COLOR_A, t.Color.Alpha)
 }
 
 type TextEditor struct {

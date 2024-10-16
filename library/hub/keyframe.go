@@ -126,9 +126,11 @@ func (hub *DataBase) GetSetFrame(temp *templates.Template) (err error) {
 		return
 	}
 
-	var frameID int64
-	var value int
-	var frame templates.Keyframe
+	var (
+		frame   templates.Keyframe
+		frameID int64
+		value   float64
+	)
 	for rows.Next() {
 		err = rows.Scan(&frameID, &value)
 		if err != nil {

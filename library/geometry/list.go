@@ -60,7 +60,10 @@ func (l *List) Encode(b *strings.Builder) {
 
 	l.String.Encode(b)
 	util.EngineAddKeyValue(b, l.Scale.Name, l.Scale.Value)
-	util.EngineAddKeyValue(b, l.Color.Name, l.Color.ToString())
+	util.EngineAddKeyValue(b, ATTR_COLOR_R, l.Color.Red)
+	util.EngineAddKeyValue(b, ATTR_COLOR_G, l.Color.Green)
+	util.EngineAddKeyValue(b, ATTR_COLOR_B, l.Color.Blue)
+	util.EngineAddKeyValue(b, ATTR_COLOR_A, l.Color.Alpha)
 }
 
 type ListEditor struct {

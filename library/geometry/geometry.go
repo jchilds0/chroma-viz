@@ -45,6 +45,10 @@ const (
 	ATTR_MASK         = "mask"
 	ATTR_ROUND        = "rounding"
 	ATTR_COLOR        = "color"
+	ATTR_COLOR_R      = "red"
+	ATTR_COLOR_G      = "green"
+	ATTR_COLOR_B      = "blue"
+	ATTR_COLOR_A      = "alpha"
 	ATTR_PARENT       = "parent"
 	ATTR_STRING       = "string"
 	ATTR_SCALE        = "scale"
@@ -68,6 +72,10 @@ var Attrs = map[string]string{
 	ATTR_MASK:         "Mask",
 	ATTR_ROUND:        "Rounding",
 	ATTR_COLOR:        "Color",
+	ATTR_COLOR_R:      "Red",
+	ATTR_COLOR_G:      "Green",
+	ATTR_COLOR_B:      "Blue",
+	ATTR_COLOR_A:      "Alpha",
 	ATTR_PARENT:       "Parent",
 	ATTR_STRING:       "String",
 	ATTR_SCALE:        "Scale",
@@ -83,20 +91,24 @@ func UpdateAttrList(model *gtk.ListStore, geoType string) (err error) {
 
 	switch geoType {
 	case GEO_RECT:
-		attrs = append(attrs, ATTR_WIDTH)
-		attrs = append(attrs, ATTR_HEIGHT)
+		attrs = append(attrs, ATTR_WIDTH, ATTR_HEIGHT)
+		attrs = append(attrs, ATTR_COLOR_R, ATTR_COLOR_G, ATTR_COLOR_B, ATTR_COLOR_A)
 
 	case GEO_CIRCLE:
-		attrs = append(attrs, ATTR_INNER_RADIUS)
-		attrs = append(attrs, ATTR_OUTER_RADIUS)
-		attrs = append(attrs, ATTR_START_ANGLE)
-		attrs = append(attrs, ATTR_END_ANGLE)
+		attrs = append(attrs, ATTR_INNER_RADIUS, ATTR_OUTER_RADIUS)
+		attrs = append(attrs, ATTR_START_ANGLE, ATTR_END_ANGLE)
+		attrs = append(attrs, ATTR_COLOR_R, ATTR_COLOR_G, ATTR_COLOR_B, ATTR_COLOR_A)
 
 	case GEO_TEXT:
-		attrs = append(attrs, ATTR_WIDTH)
-		attrs = append(attrs, ATTR_HEIGHT)
+		attrs = append(attrs, ATTR_WIDTH, ATTR_HEIGHT)
+		attrs = append(attrs, ATTR_SCALE)
+		attrs = append(attrs, ATTR_COLOR_R, ATTR_COLOR_G, ATTR_COLOR_B, ATTR_COLOR_A)
+
 	case GEO_IMAGE:
+		attrs = append(attrs, ATTR_SCALE)
 	case GEO_POLY:
+		attrs = append(attrs, ATTR_COLOR_R, ATTR_COLOR_G, ATTR_COLOR_B, ATTR_COLOR_A)
+
 	case GEO_LIST:
 	case GEO_CLOCK:
 

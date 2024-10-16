@@ -25,7 +25,7 @@ func (hub *DataBase) addGeometry(tempID int64, geo geometry.Geometry) (geoID int
 
 func (hub *DataBase) AddRectangle(tempID int64, rect geometry.Rectangle) (err error) {
 	q := `
-        INSERT INTO rectangle VALUES (?, ?, ?, ?, ?);
+        INSERT INTO rectangle VALUES (?, ?, ?, ?, ?, ?, ?, ?);
     `
 
 	geoID, err := hub.addGeometry(tempID, rect.Geometry)
@@ -33,14 +33,15 @@ func (hub *DataBase) AddRectangle(tempID int64, rect geometry.Rectangle) (err er
 		return
 	}
 
-	_, err = hub.db.Exec(q, geoID, rect.Width.Value, rect.Height.Value,
-		rect.Rounding.Value, rect.Color.ToString())
+	_, err = hub.db.Exec(q, geoID,
+		rect.Width.Value, rect.Height.Value, rect.Rounding.Value,
+		rect.Color.Red, rect.Color.Green, rect.Color.Blue, rect.Color.Alpha)
 	return
 }
 
 func (hub *DataBase) AddText(tempID int64, text geometry.Text) (err error) {
 	q := `
-        INSERT INTO text VALUES (?, ?, ?, ?, ?);
+        INSERT INTO text VALUES (?, ?, ?, ?, ?, ?, ?, ?);
     `
 
 	geoID, err := hub.addGeometry(tempID, text.Geometry)
@@ -49,13 +50,15 @@ func (hub *DataBase) AddText(tempID int64, text geometry.Text) (err error) {
 	}
 
 	fontFace := ""
-	_, err = hub.db.Exec(q, geoID, text.String.Value, text.Scale.Value, fontFace, text.Color.ToString())
+	_, err = hub.db.Exec(q, geoID,
+		text.String.Value, text.Scale.Value, fontFace,
+		text.Color.Red, text.Color.Blue, text.Color.Green, text.Color.Alpha)
 	return
 }
 
 func (hub *DataBase) AddCircle(tempID int64, circle geometry.Circle) (err error) {
 	q := `
-        INSERT INTO circle VALUES (?, ?, ?, ?, ?, ?);
+        INSERT INTO circle VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);
     `
 
 	geoID, err := hub.addGeometry(tempID, circle.Geometry)
@@ -64,7 +67,8 @@ func (hub *DataBase) AddCircle(tempID int64, circle geometry.Circle) (err error)
 	}
 
 	_, err = hub.db.Exec(q, geoID, circle.InnerRadius.Value, circle.OuterRadius.Value,
-		circle.StartAngle.Value, circle.EndAngle.Value, circle.Color.ToString())
+		circle.StartAngle.Value, circle.EndAngle.Value,
+		circle.Color.Red, circle.Color.Green, circle.Color.Blue, circle.Color.Alpha)
 	return
 }
 
@@ -84,7 +88,7 @@ func (hub *DataBase) AddAsset(tempID int64, a geometry.Image) (err error) {
 
 func (hub *DataBase) AddClock(tempID int64, c *geometry.Clock) (err error) {
 	q := `
-        INSERT INTO clock VALUES (?, ?, ?);
+        INSERT INTO clock VALUES (?, ?, ?, ?, ?, ?);
     `
 
 	geoID, err := hub.addGeometry(tempID, c.Geometry)
@@ -92,13 +96,14 @@ func (hub *DataBase) AddClock(tempID int64, c *geometry.Clock) (err error) {
 		return
 	}
 
-	_, err = hub.db.Exec(q, geoID, c.Scale.Value, c.Color.ToString())
+	_, err = hub.db.Exec(q, geoID, c.Scale.Value,
+		c.Color.Red, c.Color.Green, c.Color.Blue, c.Color.Alpha)
 	return
 }
 
 func (hub *DataBase) AddPolygon(tempID int64, p geometry.Polygon) (err error) {
 	qPoly := `
-	       INSERT INTO polygon VALUES (?, ?);
+	       INSERT INTO polygon VALUES (?, ?, ?, ?, ?);
 	   `
 
 	qPoint := `
@@ -110,7 +115,7 @@ func (hub *DataBase) AddPolygon(tempID int64, p geometry.Polygon) (err error) {
 		return
 	}
 
-	_, err = hub.db.Exec(qPoly, geoID, p.Color.ToString())
+	_, err = hub.db.Exec(qPoly, geoID, p.Color.Red, p.Color.Green, p.Color.Blue, p.Color.Alpha)
 	if err != nil {
 		return
 	}
@@ -130,7 +135,7 @@ func (hub *DataBase) AddPolygon(tempID int64, p geometry.Polygon) (err error) {
 
 func (hub *DataBase) AddList(tempID int64, l geometry.List) (err error) {
 	qList := `
-        INSERT INTO list VALUES (?, ?, ?, ?);
+        INSERT INTO list VALUES (?, ?, ?, ?, ?, ?, ?);
     `
 
 	qRows := `
@@ -142,7 +147,9 @@ func (hub *DataBase) AddList(tempID int64, l geometry.List) (err error) {
 		return
 	}
 
-	_, err = hub.db.Exec(qList, geoID, l.Color.ToString(), l.String.Selected, l.Scale.Value)
+	_, err = hub.db.Exec(qList, geoID,
+		l.Color.Red, l.Color.Green, l.Color.Blue, l.Color.Alpha,
+		l.String.Selected, l.Scale.Value)
 	if err != nil {
 		return
 	}
@@ -185,7 +192,7 @@ func (hub *DataBase) GetGeometry(geoID int64) (geo geometry.Geometry, err error)
 
 func (hub *DataBase) GetRectangles(temp *templates.Template) (err error) {
 	q := `
-        SELECT r.geometryID, r.width, r.height, r.rounding, r.color
+        SELECT r.geometryID, r.width, r.height, r.rounding, r.red, r.green, r.blue, r.alpha
         FROM rectangle r 
         INNER JOIN geometry g
         ON r.geometryID = g.geometryID
@@ -197,13 +204,15 @@ func (hub *DataBase) GetRectangles(temp *templates.Template) (err error) {
 		return
 	}
 
-	var geo geometry.Geometry
-	var geoID int64
-	var width, height, rounding int
-	var color string
+	var (
+		geo                     geometry.Geometry
+		geoID                   int64
+		width, height, rounding int
+		red, green, blue, alpha float64
+	)
 
 	for rows.Next() {
-		err = rows.Scan(&geoID, &width, &height, &rounding, &color)
+		err = rows.Scan(&geoID, &width, &height, &rounding, &red, &green, &blue, &alpha)
 		if err != nil {
 			return
 		}
@@ -217,11 +226,10 @@ func (hub *DataBase) GetRectangles(temp *templates.Template) (err error) {
 		rect.Width.Value = width
 		rect.Height.Value = height
 		rect.Rounding.Value = rounding
-
-		err = rect.Color.FromString(color)
-		if err != nil {
-			return
-		}
+		rect.Color.Red = red
+		rect.Color.Green = green
+		rect.Color.Blue = blue
+		rect.Color.Alpha = alpha
 
 		temp.Rectangle = append(temp.Rectangle, rect)
 	}
@@ -231,7 +239,7 @@ func (hub *DataBase) GetRectangles(temp *templates.Template) (err error) {
 
 func (hub *DataBase) GetCircles(temp *templates.Template) (err error) {
 	q := `
-        SELECT c.geometryID, c.inner_radius, c.outer_radius, c.start_angle, c.end_angle, c.color
+        SELECT c.geometryID, c.inner_radius, c.outer_radius, c.start_angle, c.end_angle, c.red, c.green, c.blue, c.alpha
         FROM circle c
         INNER JOIN geometry g
         ON c.geometryID = g.geometryID
@@ -240,13 +248,15 @@ func (hub *DataBase) GetCircles(temp *templates.Template) (err error) {
 
 	rows, err := hub.db.Query(q, temp.TempID)
 
-	var geo geometry.Geometry
-	var inner, outer, start, end int
-	var color string
-	var geoID int64
+	var (
+		geo                      geometry.Geometry
+		geoID                    int64
+		inner, outer, start, end int
+		red, green, blue, alpha  float64
+	)
 
 	for rows.Next() {
-		err = rows.Scan(&geoID, &inner, &outer, &start, &end, &color)
+		err = rows.Scan(&geoID, &inner, &outer, &start, &end, &red, &green, &blue, &alpha)
 		if err != nil {
 			return
 		}
@@ -261,10 +271,10 @@ func (hub *DataBase) GetCircles(temp *templates.Template) (err error) {
 		c.OuterRadius.Value = outer
 		c.StartAngle.Value = start
 		c.EndAngle.Value = end
-		err = c.Color.FromString(color)
-		if err != nil {
-			return
-		}
+		c.Color.Red = red
+		c.Color.Green = green
+		c.Color.Blue = blue
+		c.Color.Alpha = alpha
 
 		temp.Circle = append(temp.Circle, c)
 	}
@@ -274,7 +284,7 @@ func (hub *DataBase) GetCircles(temp *templates.Template) (err error) {
 
 func (hub *DataBase) GetTexts(temp *templates.Template) (err error) {
 	q := `
-        SELECT t.geometryID, t.text, t.fontSize, t.color
+        SELECT t.geometryID, t.text, t.fontSize, t.red, t.green, t.blue, t.alpha
         FROM text t
         INNER JOIN geometry g
         ON g.geometryID = t.geometryID
@@ -286,13 +296,16 @@ func (hub *DataBase) GetTexts(temp *templates.Template) (err error) {
 		return
 	}
 
-	var geo geometry.Geometry
-	var text, color string
-	var geoID int64
-	var scale float64
+	var (
+		geo                     geometry.Geometry
+		geoID                   int64
+		text                    string
+		scale                   float64
+		red, green, blue, alpha float64
+	)
 
 	for rows.Next() {
-		err = rows.Scan(&geoID, &text, &scale, &color)
+		err = rows.Scan(&geoID, &text, &scale, &red, &green, &blue, &alpha)
 		if err != nil {
 			return
 		}
@@ -305,10 +318,10 @@ func (hub *DataBase) GetTexts(temp *templates.Template) (err error) {
 		t := geometry.NewText(geo)
 		t.Scale.Value = scale
 		t.String.Value = text
-		t.Color.FromString(color)
-		if err != nil {
-			return
-		}
+		t.Color.Red = red
+		t.Color.Green = green
+		t.Color.Blue = blue
+		t.Color.Alpha = alpha
 
 		temp.Text = append(temp.Text, t)
 	}
@@ -360,7 +373,7 @@ func (hub *DataBase) GetAssets(temp *templates.Template) (err error) {
 
 func (hub *DataBase) GetPolygons(temp *templates.Template) (err error) {
 	q := `
-        SELECT p.geometryID, p.color
+        SELECT p.geometryID, p.red, p.green, p.blue, p.alpha
         FROM polygon p
         INNER JOIN geometry g 
         ON p.geometryID = g.geometryID 
@@ -373,13 +386,13 @@ func (hub *DataBase) GetPolygons(temp *templates.Template) (err error) {
 	}
 
 	var (
-		geo   geometry.Geometry
-		geoID int64
-		color string
+		geo                     geometry.Geometry
+		geoID                   int64
+		red, green, blue, alpha float64
 	)
 
 	for rows.Next() {
-		err = rows.Scan(&geoID, &color)
+		err = rows.Scan(&geoID, &red, &green, &blue, &alpha)
 		if err != nil {
 			return
 		}
@@ -390,7 +403,11 @@ func (hub *DataBase) GetPolygons(temp *templates.Template) (err error) {
 		}
 
 		poly := geometry.NewPolygon(geo)
-		poly.Color.FromString(color)
+		poly.Color.Red = red
+		poly.Color.Green = green
+		poly.Color.Blue = blue
+		poly.Color.Alpha = alpha
+
 		temp.Polygon = append(temp.Polygon, poly)
 	}
 
@@ -436,7 +453,7 @@ func (hub *DataBase) GetPolyPoints(temp *templates.Template) (err error) {
 
 func (hub *DataBase) GetClocks(temp *templates.Template) (err error) {
 	q := `
-        SELECT c.geometryID, c.scale, c.color
+        SELECT c.geometryID, c.scale, c.red, c.green, c.blue, c.alpha
         FROM clock c
         INNER JOIN geometry g
         ON g.geometryID = c.geometryID
@@ -448,13 +465,15 @@ func (hub *DataBase) GetClocks(temp *templates.Template) (err error) {
 		return
 	}
 
-	var geo geometry.Geometry
-	var color string
-	var geoID int64
-	var scale float64
+	var (
+		geo                     geometry.Geometry
+		geoID                   int64
+		scale                   float64
+		red, green, blue, alpha float64
+	)
 
 	for rows.Next() {
-		err = rows.Scan(&geoID, &scale, &color)
+		err = rows.Scan(&geoID, &scale, &red, &green, &blue, &alpha)
 		if err != nil {
 			return
 		}
@@ -465,6 +484,11 @@ func (hub *DataBase) GetClocks(temp *templates.Template) (err error) {
 		}
 
 		c := geometry.NewClock(geo)
+		c.Scale.Value = scale
+		c.Color.Red = red
+		c.Color.Green = green
+		c.Color.Blue = blue
+		c.Color.Alpha = alpha
 		temp.Clock = append(temp.Clock, c)
 	}
 
@@ -473,7 +497,7 @@ func (hub *DataBase) GetClocks(temp *templates.Template) (err error) {
 
 func (hub *DataBase) GetLists(temp *templates.Template) (err error) {
 	q := `
-        SELECT l.geometryID, l.color, l.single_row, l.scale
+        SELECT l.geometryID, l.red, l.green, l.blue, l.alpha, l.single_row, l.scale
         FROM list l
         INNER JOIN geometry g
         ON g.geometryID = l.geometryID
@@ -485,14 +509,16 @@ func (hub *DataBase) GetLists(temp *templates.Template) (err error) {
 		return
 	}
 
-	var geoID int64
-	var color string
-	var singleRow bool
-	var scale float64
-	var geo geometry.Geometry
+	var (
+		geo                     geometry.Geometry
+		geoID                   int64
+		singleRow               bool
+		scale                   float64
+		red, green, blue, alpha float64
+	)
 
 	for rows.Next() {
-		err = rows.Scan(&geoID, &color, &singleRow, &scale)
+		err = rows.Scan(&geoID, &red, &green, &blue, &alpha, &singleRow, &scale)
 		if err != nil {
 			return
 		}
@@ -503,7 +529,10 @@ func (hub *DataBase) GetLists(temp *templates.Template) (err error) {
 		}
 
 		l := geometry.NewList(geo)
-		l.Color.FromString(color)
+		l.Color.Red = red
+		l.Color.Green = green
+		l.Color.Blue = blue
+		l.Color.Alpha = alpha
 		l.String.Selected = singleRow
 		l.Scale.Value = scale
 
