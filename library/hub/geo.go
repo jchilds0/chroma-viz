@@ -9,11 +9,7 @@ import (
 )
 
 func (hub *DataBase) addGeometry(tempID int64, geo geometry.Geometry) (geoID int64, err error) {
-	q := `
-        INSERT INTO geometry VALUES (NULL, ?, ?, ?, ?, ?, ?, ?, ?);
-    `
-
-	result, err := hub.db.Exec(q, tempID, geo.GeometryID, geo.Name, geo.GeoType,
+	result, err := hub.stmt[GEOMETRY_INSERT].Exec(tempID, geo.GeometryID, geo.Name, geo.GeoType,
 		geo.RelX.Value, geo.RelY.Value, geo.Parent.Value, geo.Mask.Value)
 	if err != nil {
 		return
@@ -24,98 +20,70 @@ func (hub *DataBase) addGeometry(tempID int64, geo geometry.Geometry) (geoID int
 }
 
 func (hub *DataBase) AddRectangle(tempID int64, rect geometry.Rectangle) (err error) {
-	q := `
-        INSERT INTO rectangle VALUES (?, ?, ?, ?, ?, ?, ?, ?);
-    `
-
 	geoID, err := hub.addGeometry(tempID, rect.Geometry)
 	if err != nil {
 		return
 	}
 
-	_, err = hub.db.Exec(q, geoID,
+	_, err = hub.stmt[RECTANGLE_INSERT].Exec(geoID,
 		rect.Width.Value, rect.Height.Value, rect.Rounding.Value,
 		rect.Color.Red, rect.Color.Green, rect.Color.Blue, rect.Color.Alpha)
 	return
 }
 
 func (hub *DataBase) AddText(tempID int64, text geometry.Text) (err error) {
-	q := `
-        INSERT INTO text VALUES (?, ?, ?, ?, ?, ?, ?, ?);
-    `
-
 	geoID, err := hub.addGeometry(tempID, text.Geometry)
 	if err != nil {
 		return
 	}
 
 	fontFace := ""
-	_, err = hub.db.Exec(q, geoID,
+	_, err = hub.stmt[TEXT_INSERT].Exec(geoID,
 		text.String.Value, text.Scale.Value, fontFace,
 		text.Color.Red, text.Color.Blue, text.Color.Green, text.Color.Alpha)
 	return
 }
 
 func (hub *DataBase) AddCircle(tempID int64, circle geometry.Circle) (err error) {
-	q := `
-        INSERT INTO circle VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);
-    `
-
 	geoID, err := hub.addGeometry(tempID, circle.Geometry)
 	if err != nil {
 		return
 	}
 
-	_, err = hub.db.Exec(q, geoID, circle.InnerRadius.Value, circle.OuterRadius.Value,
+	_, err = hub.stmt[CIRCLE_INSERT].Exec(geoID, circle.InnerRadius.Value, circle.OuterRadius.Value,
 		circle.StartAngle.Value, circle.EndAngle.Value,
 		circle.Color.Red, circle.Color.Green, circle.Color.Blue, circle.Color.Alpha)
 	return
 }
 
 func (hub *DataBase) AddAsset(tempID int64, a geometry.Image) (err error) {
-	q := `
-        INSERT INTO asset VALUES (?, ?, ?, ?, ?);
-    `
-
 	geoID, err := hub.addGeometry(tempID, a.Geometry)
 	if err != nil {
 		return
 	}
 
-	_, err = hub.db.Exec(q, geoID, a.Image.Directory(), a.Image.Name, a.Image.Value, a.Scale.Value)
+	_, err = hub.stmt[ASSET_INSERT].Exec(geoID, a.Image.Directory(), a.Image.Name, a.Image.Value, a.Scale.Value)
 	return
 }
 
 func (hub *DataBase) AddClock(tempID int64, c *geometry.Clock) (err error) {
-	q := `
-        INSERT INTO clock VALUES (?, ?, ?, ?, ?, ?);
-    `
-
 	geoID, err := hub.addGeometry(tempID, c.Geometry)
 	if err != nil {
 		return
 	}
 
-	_, err = hub.db.Exec(q, geoID, c.Scale.Value,
+	_, err = hub.stmt[CLOCK_INSERT].Exec(geoID, c.Scale.Value,
 		c.Color.Red, c.Color.Green, c.Color.Blue, c.Color.Alpha)
 	return
 }
 
 func (hub *DataBase) AddPolygon(tempID int64, p geometry.Polygon) (err error) {
-	qPoly := `
-	       INSERT INTO polygon VALUES (?, ?, ?, ?, ?);
-	   `
-
-	qPoint := `
-	       INSERT INTO point VALUES (?, ?, ?, ?);
-	   `
-
 	geoID, err := hub.addGeometry(tempID, p.Geometry)
 	if err != nil {
 		return
 	}
 
-	_, err = hub.db.Exec(qPoly, geoID, p.Color.Red, p.Color.Green, p.Color.Blue, p.Color.Alpha)
+	_, err = hub.stmt[POLYGON_INSERT].Exec(geoID, p.Color.Red, p.Color.Green, p.Color.Blue, p.Color.Alpha)
 	if err != nil {
 		return
 	}
@@ -124,7 +92,7 @@ func (hub *DataBase) AddPolygon(tempID int64, p geometry.Polygon) (err error) {
 		posX := p.Polygon.PosX[i]
 		posY := p.Polygon.PosY[i]
 
-		_, err = hub.db.Exec(qPoint, geoID, i, posX, posY)
+		_, err = hub.stmt[POINT_INSERT].Exec(geoID, i, posX, posY)
 		if err != nil {
 			return
 		}
@@ -134,20 +102,12 @@ func (hub *DataBase) AddPolygon(tempID int64, p geometry.Polygon) (err error) {
 }
 
 func (hub *DataBase) AddList(tempID int64, l geometry.List) (err error) {
-	qList := `
-        INSERT INTO list VALUES (?, ?, ?, ?, ?, ?, ?);
-    `
-
-	qRows := `
-        INSERT INTO row VALUES (?, ?, ?);
-    `
-
 	geoID, err := hub.addGeometry(tempID, l.Geometry)
 	if err != nil {
 		return
 	}
 
-	_, err = hub.db.Exec(qList, geoID,
+	_, err = hub.stmt[LIST_INSERT].Exec(geoID,
 		l.Color.Red, l.Color.Green, l.Color.Blue, l.Color.Alpha,
 		l.String.Selected, l.Scale.Value)
 	if err != nil {
@@ -155,7 +115,7 @@ func (hub *DataBase) AddList(tempID int64, l geometry.List) (err error) {
 	}
 
 	for index, row := range l.String.Rows {
-		_, err = hub.db.Exec(qRows, geoID, index, row.ToString())
+		_, err = hub.stmt[ROW_INSERT].Exec(geoID, index, row.ToString())
 		if err != nil {
 			return
 		}
@@ -164,48 +124,44 @@ func (hub *DataBase) AddList(tempID int64, l geometry.List) (err error) {
 	return
 }
 
-func (hub *DataBase) GetGeometry(geoID int64) (geo geometry.Geometry, err error) {
-	q := `
-        SELECT g.geoNum, g.name, g.geoType, g.rel_x, g.rel_y, g.parent, g.mask
-        FROM geometry g 
-        WHERE g.geometryID = ?;
-    `
-
-	row := hub.db.QueryRow(q, geoID)
-
-	var geoNum int
-	var name, geoType string
-	var relX, relY, parent, mask int
-	err = row.Scan(&geoNum, &name, &geoType, &relX, &relY, &parent, &mask)
-	if err != nil {
-		return
-	}
-
-	geo = geometry.NewGeometry(geoNum, name, geoType)
-	geo.RelX.Value = relX
-	geo.RelY.Value = relY
-	geo.Parent.Value = parent
-	geo.Mask.Value = mask
-
-	return
-}
-
-func (hub *DataBase) GetRectangles(temp *templates.Template) (err error) {
-	q := `
-        SELECT r.geometryID, r.width, r.height, r.rounding, r.red, r.green, r.blue, r.alpha
-        FROM rectangle r 
-        INNER JOIN geometry g
-        ON r.geometryID = g.geometryID
-        WHERE g.templateID = ?;
-    `
-
-	rows, err := hub.db.Query(q, temp.TempID)
+func (hub *DataBase) GetGeometry(tempID int64) (geos map[int64]geometry.Geometry, err error) {
+	geos = make(map[int64]geometry.Geometry, 128)
+	rows, err := hub.stmt[GEOMETRY_SELECT].Query(tempID)
 	if err != nil {
 		return
 	}
 
 	var (
-		geo                     geometry.Geometry
+		geoID                    int64
+		geoNum                   int
+		name, geoType            string
+		relX, relY, parent, mask int
+	)
+	for rows.Next() {
+		err = rows.Scan(&geoID, &geoNum, &name, &geoType, &relX, &relY, &parent, &mask)
+		if err != nil {
+			return
+		}
+
+		geo := geometry.NewGeometry(geoNum, name, geoType)
+		geo.RelX.Value = relX
+		geo.RelY.Value = relY
+		geo.Parent.Value = parent
+		geo.Mask.Value = mask
+
+		geos[geoID] = geo
+	}
+
+	return
+}
+
+func (hub *DataBase) GetRectangles(temp *templates.Template, geos map[int64]geometry.Geometry) (err error) {
+	rows, err := hub.stmt[RECTANGLE_SELECT].Query(temp.TempID)
+	if err != nil {
+		return
+	}
+
+	var (
 		geoID                   int64
 		width, height, rounding int
 		red, green, blue, alpha float64
@@ -217,9 +173,9 @@ func (hub *DataBase) GetRectangles(temp *templates.Template) (err error) {
 			return
 		}
 
-		geo, err = hub.GetGeometry(geoID)
-		if err != nil {
-			return
+		geo, ok := geos[geoID]
+		if !ok {
+			return fmt.Errorf("Missing geometry %d", geoID)
 		}
 
 		rect := geometry.NewRectangle(geo)
@@ -237,19 +193,13 @@ func (hub *DataBase) GetRectangles(temp *templates.Template) (err error) {
 	return
 }
 
-func (hub *DataBase) GetCircles(temp *templates.Template) (err error) {
-	q := `
-        SELECT c.geometryID, c.inner_radius, c.outer_radius, c.start_angle, c.end_angle, c.red, c.green, c.blue, c.alpha
-        FROM circle c
-        INNER JOIN geometry g
-        ON c.geometryID = g.geometryID
-        WHERE g.templateID = ?;
-    `
-
-	rows, err := hub.db.Query(q, temp.TempID)
+func (hub *DataBase) GetCircles(temp *templates.Template, geos map[int64]geometry.Geometry) (err error) {
+	rows, err := hub.stmt[CIRCLE_SELECT].Query(temp.TempID)
+	if err != nil {
+		return
+	}
 
 	var (
-		geo                      geometry.Geometry
 		geoID                    int64
 		inner, outer, start, end int
 		red, green, blue, alpha  float64
@@ -261,9 +211,9 @@ func (hub *DataBase) GetCircles(temp *templates.Template) (err error) {
 			return
 		}
 
-		geo, err = hub.GetGeometry(geoID)
-		if err != nil {
-			return
+		geo, ok := geos[geoID]
+		if !ok {
+			return fmt.Errorf("Missing geometry %d", geoID)
 		}
 
 		c := geometry.NewCircle(geo)
@@ -282,22 +232,13 @@ func (hub *DataBase) GetCircles(temp *templates.Template) (err error) {
 	return
 }
 
-func (hub *DataBase) GetTexts(temp *templates.Template) (err error) {
-	q := `
-        SELECT t.geometryID, t.text, t.fontSize, t.red, t.green, t.blue, t.alpha
-        FROM text t
-        INNER JOIN geometry g
-        ON g.geometryID = t.geometryID
-        WHERE g.templateID = ?;
-    `
-
-	rows, err := hub.db.Query(q, temp.TempID)
+func (hub *DataBase) GetTexts(temp *templates.Template, geos map[int64]geometry.Geometry) (err error) {
+	rows, err := hub.stmt[TEXT_SELECT].Query(temp.TempID)
 	if err != nil {
 		return
 	}
 
 	var (
-		geo                     geometry.Geometry
 		geoID                   int64
 		text                    string
 		scale                   float64
@@ -310,9 +251,9 @@ func (hub *DataBase) GetTexts(temp *templates.Template) (err error) {
 			return
 		}
 
-		geo, err = hub.GetGeometry(geoID)
-		if err != nil {
-			return
+		geo, ok := geos[geoID]
+		if !ok {
+			return fmt.Errorf("Missing geometry %d", geoID)
 		}
 
 		t := geometry.NewText(geo)
@@ -329,22 +270,13 @@ func (hub *DataBase) GetTexts(temp *templates.Template) (err error) {
 	return
 }
 
-func (hub *DataBase) GetAssets(temp *templates.Template) (err error) {
-	q := `
-        SELECT a.geometryID, a.directory, a.name, a.assetID, a.scale
-        FROM asset a 
-        INNER JOIN geometry g 
-        ON a.geometryID = g.geometryID 
-        WHERE g.templateID = ?;
-    `
-
-	rows, err := hub.db.Query(q, temp.TempID)
+func (hub *DataBase) GetAssets(temp *templates.Template, geos map[int64]geometry.Geometry) (err error) {
+	rows, err := hub.stmt[ASSET_SELECT].Query(temp.TempID)
 	if err != nil {
 		return
 	}
 
 	var (
-		geo            geometry.Geometry
 		geoID, assetID int64
 		dir, name      string
 		scale          float64
@@ -356,9 +288,9 @@ func (hub *DataBase) GetAssets(temp *templates.Template) (err error) {
 			return
 		}
 
-		geo, err = hub.GetGeometry(geoID)
-		if err != nil {
-			return
+		geo, ok := geos[geoID]
+		if !ok {
+			return fmt.Errorf("Missing geometry %d", geoID)
 		}
 
 		a := geometry.NewImage(geo)
@@ -371,22 +303,13 @@ func (hub *DataBase) GetAssets(temp *templates.Template) (err error) {
 	return
 }
 
-func (hub *DataBase) GetPolygons(temp *templates.Template) (err error) {
-	q := `
-        SELECT p.geometryID, p.red, p.green, p.blue, p.alpha
-        FROM polygon p
-        INNER JOIN geometry g 
-        ON p.geometryID = g.geometryID 
-        WHERE g.templateID = ?;
-    `
-
-	rows, err := hub.db.Query(q, temp.TempID)
+func (hub *DataBase) GetPolygons(temp *templates.Template, geos map[int64]geometry.Geometry) (err error) {
+	rows, err := hub.stmt[POLYGON_SELECT].Query(temp.TempID)
 	if err != nil {
 		return
 	}
 
 	var (
-		geo                     geometry.Geometry
 		geoID                   int64
 		red, green, blue, alpha float64
 	)
@@ -397,9 +320,9 @@ func (hub *DataBase) GetPolygons(temp *templates.Template) (err error) {
 			return
 		}
 
-		geo, err = hub.GetGeometry(geoID)
-		if err != nil {
-			return
+		geo, ok := geos[geoID]
+		if !ok {
+			return fmt.Errorf("Missing geometry %d", geoID)
 		}
 
 		poly := geometry.NewPolygon(geo)
@@ -416,24 +339,13 @@ func (hub *DataBase) GetPolygons(temp *templates.Template) (err error) {
 }
 
 func (hub *DataBase) GetPolyPoints(temp *templates.Template) (err error) {
-	q := `
-        SELECT point.pointID, point.pos_x, point.pos_y
-        FROM point
-        INNER JOIN polygon
-        INNER JOIN geometry g
-        ON point.geometryID = polygon.geometryID
-        AND polygon.geometryID = g.geometryID
-        WHERE g.geoNum = ?
-        AND g.templateID = ?;
-    `
-
 	var (
 		rows       *sql.Rows
 		pointIndex int
 		posX, posY int
 	)
 	for _, poly := range temp.Polygon {
-		rows, err = hub.db.Query(q, poly.GeometryID, temp.TempID)
+		rows, err = hub.stmt[POINT_SELECT].Query(poly.GeometryID, temp.TempID)
 		if err != nil {
 			return
 		}
@@ -451,22 +363,13 @@ func (hub *DataBase) GetPolyPoints(temp *templates.Template) (err error) {
 	return
 }
 
-func (hub *DataBase) GetClocks(temp *templates.Template) (err error) {
-	q := `
-        SELECT c.geometryID, c.scale, c.red, c.green, c.blue, c.alpha
-        FROM clock c
-        INNER JOIN geometry g
-        ON g.geometryID = c.geometryID
-        WHERE g.templateID = ?;
-    `
-
-	rows, err := hub.db.Query(q, temp.TempID)
+func (hub *DataBase) GetClocks(temp *templates.Template, geos map[int64]geometry.Geometry) (err error) {
+	rows, err := hub.stmt[CLOCK_SELECT].Query(temp.TempID)
 	if err != nil {
 		return
 	}
 
 	var (
-		geo                     geometry.Geometry
 		geoID                   int64
 		scale                   float64
 		red, green, blue, alpha float64
@@ -478,9 +381,9 @@ func (hub *DataBase) GetClocks(temp *templates.Template) (err error) {
 			return
 		}
 
-		geo, err = hub.GetGeometry(geoID)
-		if err != nil {
-			return
+		geo, ok := geos[geoID]
+		if !ok {
+			return fmt.Errorf("Missing geometry %d", geoID)
 		}
 
 		c := geometry.NewClock(geo)
@@ -495,22 +398,13 @@ func (hub *DataBase) GetClocks(temp *templates.Template) (err error) {
 	return
 }
 
-func (hub *DataBase) GetLists(temp *templates.Template) (err error) {
-	q := `
-        SELECT l.geometryID, l.red, l.green, l.blue, l.alpha, l.single_row, l.scale
-        FROM list l
-        INNER JOIN geometry g
-        ON g.geometryID = l.geometryID
-        WHERE g.templateID = ?;
-    `
-
-	rows, err := hub.db.Query(q, temp.TempID)
+func (hub *DataBase) GetLists(temp *templates.Template, geos map[int64]geometry.Geometry) (err error) {
+	rows, err := hub.stmt[LIST_SELECT].Query(temp.TempID)
 	if err != nil {
 		return
 	}
 
 	var (
-		geo                     geometry.Geometry
 		geoID                   int64
 		singleRow               bool
 		scale                   float64
@@ -523,9 +417,9 @@ func (hub *DataBase) GetLists(temp *templates.Template) (err error) {
 			return
 		}
 
-		geo, err = hub.GetGeometry(geoID)
-		if err != nil {
-			return
+		geo, ok := geos[geoID]
+		if !ok {
+			return fmt.Errorf("Missing geometry %d", geoID)
 		}
 
 		l := geometry.NewList(geo)
@@ -544,17 +438,6 @@ func (hub *DataBase) GetLists(temp *templates.Template) (err error) {
 }
 
 func (hub *DataBase) GetListRows(temp *templates.Template) (err error) {
-	q := `
-        SELECT r.rowID, r.row
-        FROM row r
-        INNER JOIN list l 
-        INNER JOIN geometry g
-        ON r.geometryID = l.geometryID
-        AND l.geometryID = g.geometryID
-        WHERE g.geoNum = ?
-        AND g.templateID = ?;
-    `
-
 	var (
 		rows  *sql.Rows
 		row   string
@@ -562,7 +445,7 @@ func (hub *DataBase) GetListRows(temp *templates.Template) (err error) {
 	)
 
 	for _, list := range temp.List {
-		rows, err = hub.db.Query(q, list.GeometryID, temp.TempID)
+		rows, err = hub.stmt[ROW_SELECT].Query(list.GeometryID, temp.TempID)
 		if err != nil {
 			fmt.Println(err)
 			return

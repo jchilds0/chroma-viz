@@ -62,7 +62,10 @@ func (hub *DataBase) ImportTemplate(temp templates.Template) (err error) {
 		return
 	}
 
-	hub.Templates[int(temp.TempID)] = &temp
+	hub.lock.Lock()
+	hub.templates[int(temp.TempID)] = &temp
+	hub.lock.Unlock()
+
 	return
 }
 
@@ -95,85 +98,80 @@ func importStruct[T any](tempID int64, keys []T, f func(tempID int64, geo T) err
 }
 
 func (hub *DataBase) AddTemplate(tempID int64, name string, layer int) (err error) {
-	// TODO: run as a transaction
-	deleteTemp := `
-        DELETE FROM template WHERE templateID = ?;
-    `
-	_, err = hub.db.Exec(deleteTemp, tempID)
+	_, err = hub.stmt[TEMPLATE_DELETE].Exec(tempID)
 	if err != nil {
 		Logger(err.Error())
 	}
 
-	addTemp := `
-        INSERT INTO template VALUES (?, ?, ?);
-    `
-
-	_, err = hub.db.Exec(addTemp, tempID, name, layer)
+	_, err = hub.stmt[TEMPLATE_INSERT].Exec(tempID, name, layer)
 	return
 }
 
 func (hub *DataBase) GetTemplate(tempID int64) (temp *templates.Template, err error) {
-	temp, ok := hub.Templates[int(tempID)]
+	hub.lock.Lock()
+	temp, ok := hub.templates[int(tempID)]
+	hub.lock.Unlock()
 	if ok {
 		return
 	}
 
-	tempQuery := `
-        SELECT t.Name, t.Layer, COUNT(*)
-        FROM template t
-        INNER JOIN geometry g 
-        ON g.templateID = t.templateID
-        WHERE t.templateID = ?;
-    `
 	var (
 		name    string
 		layer   int
 		num_geo int
 	)
 
-	row := hub.db.QueryRow(tempQuery, tempID)
+	row := hub.stmt[TEMPLATE_SELECT].QueryRow(tempID)
 	if err = row.Scan(&name, &layer, &num_geo); err != nil {
+		err = fmt.Errorf("Template %d: %s", tempID, err)
 		return
 	}
 
 	temp = templates.NewTemplate(name, tempID, layer, num_geo, 0)
-	err = hub.GetRectangles(temp)
+
+	geos, err := hub.GetGeometry(temp.TempID)
+	if err != nil {
+		err = fmt.Errorf("Geometry: %s", err)
+		return
+	}
+
+	err = hub.GetRectangles(temp, geos)
 	if err != nil {
 		err = fmt.Errorf("Rectangle: %s", err)
 		return
 	}
 
-	err = hub.GetCircles(temp)
+	err = hub.GetCircles(temp, geos)
 	if err != nil {
 		err = fmt.Errorf("Circle: %s", err)
 		return
 	}
 
-	err = hub.GetTexts(temp)
+	err = hub.GetTexts(temp, geos)
 	if err != nil {
 		err = fmt.Errorf("Text: %s", err)
 		return
 	}
 
-	err = hub.GetAssets(temp)
+	err = hub.GetAssets(temp, geos)
 	if err != nil {
 		err = fmt.Errorf("Assets: %s", err)
 		return
 	}
 
-	err = hub.GetPolygons(temp)
+	err = hub.GetPolygons(temp, geos)
 	if err != nil {
 		err = fmt.Errorf("Polygons: %s", err)
 		return
 	}
 
-	err = hub.GetClocks(temp)
+	err = hub.GetClocks(temp, geos)
 	if err != nil {
 		err = fmt.Errorf("Clock: %s", err)
 		return
 	}
 
-	err = hub.GetLists(temp)
+	err = hub.GetLists(temp, geos)
 	if err != nil {
 		err = fmt.Errorf("Lists: %s", err)
 		return
@@ -197,6 +195,9 @@ func (hub *DataBase) GetTemplate(tempID int64) (temp *templates.Template, err er
 		return
 	}
 
-	hub.Templates[int(tempID)] = temp
+	hub.lock.Lock()
+	hub.templates[int(tempID)] = temp
+	hub.lock.Unlock()
+
 	return
 }

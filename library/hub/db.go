@@ -8,14 +8,17 @@ import (
 	"math/rand"
 	"os"
 	"strconv"
+	"sync"
 
 	_ "github.com/go-sql-driver/mysql"
 )
 
 type DataBase struct {
 	db        *sql.DB
-	Templates map[int]*templates.Template
-	Assets    map[int]Asset
+	templates map[int]*templates.Template
+	assets    map[int]Asset
+	stmt      map[string]*sql.Stmt
+	lock      sync.Mutex
 }
 
 type Templates struct {
@@ -25,8 +28,8 @@ type Templates struct {
 
 func NewDataBase(numTemp int, username, password string) (hub *DataBase, err error) {
 	hub = &DataBase{}
-	hub.Assets = make(map[int]Asset, 128)
-	hub.Templates = make(map[int]*templates.Template, 128)
+	hub.assets = make(map[int]Asset, 128)
+	hub.templates = make(map[int]*templates.Template, 128)
 
 	hub.db, err = sql.Open("mysql", fmt.Sprintf("%s:%s@/?multiStatements=true", username, password))
 	if err != nil {
@@ -40,6 +43,7 @@ func NewDataBase(numTemp int, username, password string) (hub *DataBase, err err
 		return
 	}
 
+	hub.stmt = make(map[string]*sql.Stmt, 20)
 	return
 }
 
@@ -57,6 +61,14 @@ func (hub *DataBase) ImportSchema(filename string) (err error) {
 
 func (hub *DataBase) SelectDatabase(name, username, password string) (err error) {
 	hub.db, err = sql.Open("mysql", fmt.Sprintf("%s:%s@/%s", username, password, name))
+
+	for geo, s := range stmts {
+		hub.stmt[geo], err = hub.db.Prepare(s)
+		if err != nil {
+			return
+		}
+	}
+
 	return
 }
 
@@ -134,6 +146,7 @@ func (hub *DataBase) TempIDs() (ids map[int]string, err error) {
 func (hub *DataBase) randomTemplate(tempID int64, numGeo int) (err error) {
 	err = hub.AddTemplate(tempID, "Template "+strconv.FormatInt(tempID, 10), 0)
 	if err != nil {
+		err = fmt.Errorf("Adding template %d: %s", tempID, err)
 		return
 	}
 
@@ -157,10 +170,10 @@ func (hub *DataBase) randomTemplate(tempID int64, numGeo int) (err error) {
 			rect.Width.Value = rand.Int() % 1000
 			rect.Height.Value = rand.Int() % 1000
 			rect.Rounding.Value = rand.Int() % 300
-			rect.Color.Red = rand.Float64()
-			rect.Color.Green = rand.Float64()
-			rect.Color.Blue = rand.Float64()
-			rect.Color.Alpha = rand.Float64()
+			rect.Color.Red = float64(rand.Int()%255) / 255
+			rect.Color.Green = float64(rand.Int()%255) / 255
+			rect.Color.Blue = float64(rand.Int()%255) / 255
+			rect.Color.Alpha = float64(rand.Int()%255) / 255
 			err = hub.AddRectangle(tempID, *rect)
 
 		case geometry.GEO_CIRCLE:
@@ -169,20 +182,20 @@ func (hub *DataBase) randomTemplate(tempID int64, numGeo int) (err error) {
 			circle.OuterRadius.Value = rand.Int() % 200
 			circle.StartAngle.Value = rand.Int() % 10
 			circle.EndAngle.Value = rand.Int() % 200
-			circle.Color.Red = rand.Float64()
-			circle.Color.Green = rand.Float64()
-			circle.Color.Blue = rand.Float64()
-			circle.Color.Alpha = rand.Float64()
+			circle.Color.Red = float64(rand.Int()%255) / 255
+			circle.Color.Green = float64(rand.Int()%255) / 255
+			circle.Color.Blue = float64(rand.Int()%255) / 255
+			circle.Color.Alpha = float64(rand.Int()%255) / 255
 			err = hub.AddCircle(tempID, *circle)
 
 		case geometry.GEO_TEXT:
 			text := geometry.NewText(geo)
 			text.String.Value = "some text"
 			text.Scale.Value = 1.0
-			text.Color.Red = rand.Float64()
-			text.Color.Green = rand.Float64()
-			text.Color.Blue = rand.Float64()
-			text.Color.Alpha = rand.Float64()
+			text.Color.Red = float64(rand.Int()%255) / 255
+			text.Color.Green = float64(rand.Int()%255) / 255
+			text.Color.Blue = float64(rand.Int()%255) / 255
+			text.Color.Alpha = float64(rand.Int()%255) / 255
 			err = hub.AddText(tempID, *text)
 
 		}

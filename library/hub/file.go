@@ -86,7 +86,7 @@ func (hub *DataBase) ImportAssets(fileName string) (err error) {
 			continue
 		}
 
-		hub.Assets[a.ImageID] = a
+		hub.assets[a.ImageID] = a
 	}
 
 	return
@@ -99,7 +99,7 @@ func (hub *DataBase) ExportAssets(fileName string) {
 	}
 	defer file.Close()
 
-	buf, err := json.Marshal(hub.Assets)
+	buf, err := json.Marshal(hub.assets)
 	if err != nil {
 		Logger("Error encoding assets: %s", err)
 	}

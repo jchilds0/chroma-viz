@@ -132,7 +132,7 @@ func (hub *DataBase) tempidsGET(c *gin.Context) {
 }
 
 func (hub *DataBase) assetsGET(c *gin.Context) {
-	c.IndentedJSON(http.StatusOK, hub.Assets)
+	c.IndentedJSON(http.StatusOK, hub.assets)
 }
 
 func (hub *DataBase) assetsPOST(c *gin.Context) {
@@ -152,7 +152,7 @@ func (hub *DataBase) assetsPOST(c *gin.Context) {
 	}
 
 	for id, a := range assets {
-		hub.Assets[id] = a
+		hub.assets[id] = a
 	}
 	c.Status(http.StatusOK)
 }
@@ -165,7 +165,7 @@ func (hub *DataBase) assetGET(c *gin.Context) {
 		return
 	}
 
-	asset, ok := hub.Assets[assetID]
+	asset, ok := hub.assets[assetID]
 	if !ok {
 		Logger("Error get asset: asset %d does not exist", assetID)
 		c.Status(http.StatusInternalServerError)
@@ -192,7 +192,7 @@ func (hub *DataBase) assetPOST(c *gin.Context) {
 		return
 	}
 
-	hub.Assets[asset.ImageID] = asset
+	hub.assets[asset.ImageID] = asset
 	c.Status(http.StatusOK)
 }
 
@@ -202,10 +202,8 @@ func (hub *DataBase) cleanPOST(c *gin.Context) {
 }
 
 func (hub *DataBase) generatePOST(c *gin.Context) {
-	hub.CleanDB()
-
-	numTemp, numGeo := 20, 1000
-	for i := 1; i < numTemp; i++ {
+	numTemp, numGeo := 100, 1000
+	for i := 1; i <= numTemp; i++ {
 		err := hub.randomTemplate(int64(i), numGeo)
 		if err != nil {
 			Logger("Error generating hub: %s", err)

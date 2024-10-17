@@ -1,0 +1,10 @@
+- 100 templates
+- 1000 geometries
+- 1000 pages
+
+
+Baseline: 300-350ms per template. Import in 32s
+Prepared Stmt: 200-250ms per template. Import in 25s
+Single geo select: 100-150ms per template. Import in 15s
+Cache temp run 1: Import in 8s.
+Cache temp run 2: Import in 2s.
