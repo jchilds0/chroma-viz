@@ -177,19 +177,25 @@ func (hub *DataBase) GetTemplate(tempID int64) (temp *templates.Template, err er
 		return
 	}
 
-	err = hub.GetSetFrame(temp)
+	frames, err := hub.GetKeyframes(temp.TempID)
+	if err != nil {
+		err = fmt.Errorf("Keyframes: %s", err)
+		return
+	}
+
+	err = hub.GetSetFrame(temp, frames)
 	if err != nil {
 		err = fmt.Errorf("Set Frame: %s", err)
 		return
 	}
 
-	err = hub.GetBindFrames(temp)
+	err = hub.GetBindFrames(temp, frames)
 	if err != nil {
 		err = fmt.Errorf("Bind Frame: %s", err)
 		return
 	}
 
-	err = hub.GetUserFrames(temp)
+	err = hub.GetUserFrames(temp, frames)
 	if err != nil {
 		err = fmt.Errorf("User Frame: %s", err)
 		return

@@ -2,14 +2,11 @@ package hub
 
 import (
 	"chroma-viz/library/templates"
+	"fmt"
 )
 
 func (hub *DataBase) addKeyframe(tempID int64, frame templates.Keyframe) (frameID int64, err error) {
-	q := `
-        INSERT INTO keyframe VALUES (NULL, ?, ?, ?, ?, ?, ?);
-    `
-
-	result, err := hub.db.Exec(q, tempID, frame.FrameNum, frame.GeoID, frame.GeoAttr, frame.Type, frame.Expand)
+	result, err := hub.stmt[KEYFRAME_INSERT].Exec(tempID, frame.FrameNum, frame.GeoID, frame.GeoAttr, frame.Type, frame.Expand)
 	if err != nil {
 		return
 	}
@@ -19,10 +16,6 @@ func (hub *DataBase) addKeyframe(tempID int64, frame templates.Keyframe) (frameI
 }
 
 func (hub *DataBase) AddBindFrame(tempID int64, frame templates.BindFrame) (err error) {
-	q := `
-        INSERT INTO bindFrame VALUES (?, ?);
-    `
-
 	frameID, err := hub.addKeyframe(tempID, frame.Keyframe)
 	if err != nil {
 		return
@@ -33,76 +26,71 @@ func (hub *DataBase) AddBindFrame(tempID int64, frame templates.BindFrame) (err 
 		return
 	}
 
-	_, err = hub.db.Exec(q, frameID, bindFrameID)
+	_, err = hub.stmt[BIND_INSERT].Exec(frameID, bindFrameID)
 	return
 }
 
 func (hub *DataBase) AddUserFrame(tempID int64, frame templates.UserFrame) (err error) {
-	q := `
-        INSERT INTO userFrame VALUES (?);
-    `
-
 	frameID, err := hub.addKeyframe(tempID, frame.Keyframe)
 	if err != nil {
 		return
 	}
 
-	_, err = hub.db.Exec(q, frameID)
+	_, err = hub.stmt[USER_INSERT].Exec(frameID)
 	return
 }
 
 func (hub *DataBase) AddSetFrame(tempID int64, frame templates.SetFrame) (err error) {
-	q := `
-        INSERT INTO setFrame VALUES (?, ?);
-    `
 
 	frameID, err := hub.addKeyframe(tempID, frame.Keyframe)
 	if err != nil {
 		return
 	}
 
-	_, err = hub.db.Exec(q, frameID, frame.Value)
+	_, err = hub.stmt[SET_INSERT].Exec(frameID, frame.Value)
 	return
 }
 
-func (hub *DataBase) GetKeyframe(frameID int64) (frame templates.Keyframe, err error) {
-	q := `
-        SELECT k.frameNum, k.geoNum, k.attr, k.type, k.expand 
-        FROM keyframe k 
-        WHERE k.frameID = ?;
-    `
+func (hub *DataBase) GetKeyframes(tempID int64) (frames map[int64]templates.Keyframe, err error) {
+	rows, err := hub.stmt[KEYFRAME_SELECT].Query(tempID)
+	if err != nil {
+		return
+	}
 
-	row := hub.db.QueryRow(q, frameID)
+	var (
+		frame   templates.Keyframe
+		frameID int64
+	)
 
-	err = row.Scan(&frame.FrameNum, &frame.GeoID, &frame.GeoAttr, &frame.Type, &frame.Expand)
+	frames = make(map[int64]templates.Keyframe, 128)
+	for rows.Next() {
+		err = rows.Scan(&frameID, &frame.FrameNum, &frame.GeoID, &frame.GeoAttr, &frame.Type, &frame.Expand)
+		if err != nil {
+			return
+		}
+
+		frames[frameID] = frame
+	}
+
 	return
 }
 
-func (hub *DataBase) GetUserFrames(temp *templates.Template) (err error) {
-	q := `
-        SELECT u.frameID 
-        FROM userFrame u 
-        INNER JOIN keyframe k 
-        ON k.frameID = u.frameID 
-        WHERE k.templateID = ?;
-    `
-
-	rows, err := hub.db.Query(q, temp.TempID)
+func (hub *DataBase) GetUserFrames(temp *templates.Template, frames map[int64]templates.Keyframe) (err error) {
+	rows, err := hub.stmt[USER_SELECT].Query(temp.TempID)
 	if err != nil {
 		return
 	}
 
 	var frameID int64
-	var frame templates.Keyframe
 	for rows.Next() {
 		err = rows.Scan(&frameID)
 		if err != nil {
 			return
 		}
 
-		frame, err = hub.GetKeyframe(frameID)
-		if err != nil {
-			return
+		frame, ok := frames[frameID]
+		if !ok {
+			return fmt.Errorf("Missing Keyframe %d for user frame", frameID)
 		}
 
 		userFrame := templates.NewUserFrame(frame)
@@ -112,22 +100,13 @@ func (hub *DataBase) GetUserFrames(temp *templates.Template) (err error) {
 	return
 }
 
-func (hub *DataBase) GetSetFrame(temp *templates.Template) (err error) {
-	q := `
-        SELECT s.frameID, s.value
-        FROM setFrame s 
-        INNER JOIN keyframe k 
-        ON k.frameID = s.frameID 
-        WHERE k.templateID = ?;
-    `
-
-	rows, err := hub.db.Query(q, temp.TempID)
+func (hub *DataBase) GetSetFrame(temp *templates.Template, frames map[int64]templates.Keyframe) (err error) {
+	rows, err := hub.stmt[SET_SELECT].Query(temp.TempID)
 	if err != nil {
 		return
 	}
 
 	var (
-		frame   templates.Keyframe
 		frameID int64
 		value   float64
 	)
@@ -137,9 +116,9 @@ func (hub *DataBase) GetSetFrame(temp *templates.Template) (err error) {
 			return
 		}
 
-		frame, err = hub.GetKeyframe(frameID)
-		if err != nil {
-			return
+		frame, ok := frames[frameID]
+		if !ok {
+			return fmt.Errorf("Missing Keyframe %d for user frame", frameID)
 		}
 
 		setFrame := templates.NewSetFrame(frame, value)
@@ -148,36 +127,27 @@ func (hub *DataBase) GetSetFrame(temp *templates.Template) (err error) {
 
 	return
 }
-func (hub *DataBase) GetBindFrames(temp *templates.Template) (err error) {
-	q := `
-        SELECT b.frameID, b.bindFrameID
-        FROM bindFrame b
-        INNER JOIN keyframe k 
-        ON k.frameID = b.frameID 
-        WHERE k.templateID = ?;
-    `
-
-	rows, err := hub.db.Query(q, temp.TempID)
+func (hub *DataBase) GetBindFrames(temp *templates.Template, frames map[int64]templates.Keyframe) (err error) {
+	rows, err := hub.stmt[BIND_SELECT].Query(temp.TempID)
 	if err != nil {
 		return
 	}
 
 	var frameID, bindFrameID int64
-	var frame, bindFrame templates.Keyframe
 	for rows.Next() {
 		err = rows.Scan(&frameID, &bindFrameID)
 		if err != nil {
 			return
 		}
 
-		frame, err = hub.GetKeyframe(frameID)
-		if err != nil {
-			return
+		frame, ok := frames[frameID]
+		if !ok {
+			return fmt.Errorf("Missing Keyframe %d for bind frame", frameID)
 		}
 
-		bindFrame, err = hub.GetKeyframe(bindFrameID)
-		if err != nil {
-			return
+		bindFrame, ok := frames[bindFrameID]
+		if !ok {
+			return fmt.Errorf("Missing Bind Keyframe %d for bind frame", frameID)
 		}
 
 		bind := templates.NewBindFrame(frame, bindFrame)

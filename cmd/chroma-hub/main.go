@@ -4,6 +4,8 @@ import (
 	"chroma-viz/library/hub"
 	"flag"
 	"fmt"
+
+	"github.com/gin-contrib/pprof"
 )
 
 var usage = `Usage:
@@ -24,6 +26,7 @@ func printMessage(port int, s string) {
 	}
 }
 
+var profile = flag.String("profile", "none", "write profile to file")
 var port = flag.Int("port", 9000, "chroma hub port")
 var username = flag.String("u", "", "SQL Database username")
 var password = flag.String("p", "", "SQL Database password")
@@ -52,7 +55,13 @@ func main() {
 		return
 	}
 
-	db.StartRestAPI(*port)
+	r := db.Router()
+
+	if *profile == "" {
+		pprof.Register(r, "debug/pprof")
+	}
+
+	r.Run(fmt.Sprintf("localhost:%d", *port))
 }
 
 func createSchema(db *hub.DataBase) (err error) {

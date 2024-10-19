@@ -10,7 +10,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func (hub *DataBase) StartRestAPI(port int) {
+func (hub *DataBase) Router() *gin.Engine {
 	router := gin.Default()
 
 	router.GET("/templates", hub.templatesGET)
@@ -29,7 +29,7 @@ func (hub *DataBase) StartRestAPI(port int) {
 	router.POST("/clean", hub.cleanPOST)
 	router.POST("/generate", hub.generatePOST)
 
-	router.Run("localhost:" + strconv.Itoa(port))
+	return router
 }
 
 func (hub *DataBase) templatesGET(c *gin.Context) {
@@ -45,7 +45,7 @@ func (hub *DataBase) templatesGET(c *gin.Context) {
 		Templates:    temps,
 	}
 
-	c.IndentedJSON(http.StatusOK, archive)
+	c.JSON(http.StatusOK, archive)
 }
 
 func (hub *DataBase) templatesPOST(c *gin.Context) {
@@ -93,7 +93,7 @@ func (hub *DataBase) templateGET(c *gin.Context) {
 		return
 	}
 
-	c.IndentedJSON(http.StatusOK, temp)
+	c.JSON(http.StatusOK, temp)
 }
 
 func (hub *DataBase) templatePOST(c *gin.Context) {
@@ -128,11 +128,11 @@ func (hub *DataBase) tempidsGET(c *gin.Context) {
 		return
 	}
 
-	c.IndentedJSON(http.StatusOK, ids)
+	c.JSON(http.StatusOK, ids)
 }
 
 func (hub *DataBase) assetsGET(c *gin.Context) {
-	c.IndentedJSON(http.StatusOK, hub.assets)
+	c.JSON(http.StatusOK, hub.assets)
 }
 
 func (hub *DataBase) assetsPOST(c *gin.Context) {

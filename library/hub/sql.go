@@ -26,6 +26,15 @@ const (
 	POINT_SELECT     = "point-select"
 	LIST_SELECT      = "list-select"
 	ROW_SELECT       = "row-select"
+
+	KEYFRAME_INSERT = "keyframe-insert"
+	BIND_INSERT     = "bindframe-insert"
+	USER_INSERT     = "userframe-insert"
+	SET_INSERT      = "setframe-insert"
+	KEYFRAME_SELECT = "keyframe-select"
+	BIND_SELECT     = "bindframe-select"
+	USER_SELECT     = "userframe-select"
+	SET_SELECT      = "setframe-select"
 )
 
 var stmts = map[string]string{
@@ -42,6 +51,10 @@ var stmts = map[string]string{
 	TEMPLATE_DELETE: `
         DELETE FROM template WHERE templateID = ?;
     `,
+
+	/*
+	 * Geometries
+	 */
 
 	GEOMETRY_INSERT: `
         INSERT INTO geometry VALUES (NULL, ?, ?, ?, ?, ?, ?, ?, ?);
@@ -147,5 +160,49 @@ var stmts = map[string]string{
         AND l.geometryID = g.geometryID
         WHERE g.geoNum = ?
         AND g.templateID = ?;
+    `,
+
+	/*
+	 * Keyframes
+	 */
+
+	KEYFRAME_INSERT: `
+        INSERT INTO keyframe VALUES (NULL, ?, ?, ?, ?, ?, ?);
+    `,
+	BIND_INSERT: `
+        INSERT INTO bindFrame VALUES (?, ?);
+    `,
+	USER_INSERT: `
+        INSERT INTO userFrame VALUES (?);
+    `,
+	SET_INSERT: `
+        INSERT INTO setFrame VALUES (?, ?);
+    `,
+
+	KEYFRAME_SELECT: `
+        SELECT k.frameID, k.frameNum, k.geoNum, k.attr, k.type, k.expand 
+        FROM keyframe k 
+        WHERE k.templateID = ?;
+    `,
+	BIND_SELECT: `
+        SELECT b.frameID, b.bindFrameID
+        FROM bindFrame b
+        INNER JOIN keyframe k 
+        ON k.frameID = b.frameID 
+        WHERE k.templateID = ?;
+    `,
+	USER_SELECT: `
+        SELECT u.frameID 
+        FROM userFrame u 
+        INNER JOIN keyframe k 
+        ON k.frameID = u.frameID 
+        WHERE k.templateID = ?;
+    `,
+	SET_SELECT: `
+        SELECT s.frameID, s.value
+        FROM setFrame s 
+        INNER JOIN keyframe k 
+        ON k.frameID = s.frameID 
+        WHERE k.templateID = ?;
     `,
 }

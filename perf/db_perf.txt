@@ -8,3 +8,5 @@ Prepared Stmt: 200-250ms per template. Import in 25s
 Single geo select: 100-150ms per template. Import in 15s
 Cache temp run 1: Import in 8s.
 Cache temp run 2: Import in 2s.
+Prepared stmt keyframes: 50-100ms per template. Cached import 5s
+single keyframe select: 20ms per template. Cached import 2s
