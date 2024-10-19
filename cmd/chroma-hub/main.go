@@ -4,29 +4,12 @@ import (
 	"chroma-viz/library/hub"
 	"flag"
 	"fmt"
+	"log"
 
 	"github.com/gin-contrib/pprof"
 )
 
-var usage = `Usage:
-    - import [archive|template|assets] <filename>
-    - export [archive|assets] <filename>
-    - export [template] <id> <filename>
-    - generate <num. templates> <num. geometries>
-    - clean 
-`
-
-func printMessage(port int, s string) {
-	fmt.Printf("[Chroma Hub - %d]", port)
-
-	if s == "" {
-		fmt.Printf(": ")
-	} else {
-		fmt.Printf("  %s\n", s)
-	}
-}
-
-var profile = flag.String("profile", "none", "write profile to file")
+var profile = flag.String("profile", "", "write profile to file")
 var port = flag.Int("port", 9000, "chroma hub port")
 var username = flag.String("u", "", "SQL Database username")
 var password = flag.String("p", "", "SQL Database password")
@@ -37,27 +20,24 @@ func main() {
 
 	db, err := hub.NewDataBase(1_000, *username, *password)
 	if err != nil {
-		printMessage(*port, err.Error())
-		return
+		log.Fatal(err)
 	}
 
 	if *schema {
 		err = createSchema(db)
 		if err != nil {
-			printMessage(*port, err.Error())
-			return
+			log.Fatal()
 		}
 	}
 
 	err = db.SelectDatabase("chroma_hub", *username, *password)
 	if err != nil {
-		printMessage(*port, err.Error())
-		return
+		log.Fatal()
 	}
 
 	r := db.Router()
 
-	if *profile == "" {
+	if *profile != "" {
 		pprof.Register(r, "debug/pprof")
 	}
 

@@ -10,9 +10,9 @@ import (
 
 type Editor struct {
 	Box         *gtk.Box
-	tabs        *gtk.Notebook
-	actions     *gtk.Box
 	CurrentPage *Page
+	actions     *gtk.Box
+	notebook    *gtk.Notebook
 
 	Rect   []*geometry.RectangleEditor
 	Circle []*geometry.CircleEditor
@@ -38,25 +38,16 @@ func NewEditor() (editor *Editor, err error) {
 
 	editor.Box.PackStart(editor.actions, false, false, 10)
 
-	editor.tabs, err = gtk.NotebookNew()
+	editor.notebook, err = gtk.NotebookNew()
 	if err != nil {
 		return
 	}
 
-	editor.tabs.SetScrollable(true)
+	editor.notebook.SetScrollable(true)
+	editor.Box.PackStart(editor.notebook, true, true, 0)
 
-	tab, err := gtk.BoxNew(gtk.ORIENTATION_VERTICAL, 0)
-	if err != nil {
-		return
-	}
-
-	tabLabel, err := gtk.LabelNew("Select A Page")
-	if err != nil {
-		return
-	}
-
-	editor.tabs.AppendPage(tab, tabLabel)
-	editor.Box.PackStart(editor.tabs, true, true, 0)
+	tab, _ := gtk.FrameNew("")
+	editor.appendTab("Select A Page", tab)
 
 	numEditors := 10
 	editor.Rect = initEditors(numEditors, geometry.NewRectangleEditor)
@@ -125,12 +116,29 @@ func updateGeometry[T geometry.Geometer[S], S any](geos []T, editors []S) {
 	}
 }
 
+func (edit *Editor) appendTab(label string, widget gtk.IWidget) (err error) {
+	tabLabel, err := gtk.LabelNew(label)
+	if err != nil {
+		return err
+	}
+
+	edit.notebook.AppendPage(widget, tabLabel)
+	return
+}
+
 // Load page 'page' into the editor
 func (edit *Editor) SetPage(page *Page) (err error) {
-	num_pages := edit.tabs.GetNPages()
-	for i := 0; i < num_pages; i++ {
-		edit.tabs.RemovePage(0)
-	}
+	tabs := edit.notebook.GetChildren()
+
+	tabs.Foreach(func(node any) {
+		tab, ok := node.(*gtk.Widget)
+		if !ok {
+			log.Print("Editor tab is not a GtkWidget")
+			return
+		}
+
+		edit.notebook.Remove(tab)
+	})
 
 	edit.CurrentPage = page
 
@@ -160,7 +168,6 @@ func updateEditor[T geometry.Editor[S], S geometry.Geometer[T]](
 		}
 	}
 
-	var label *gtk.Label
 	for i := range geos {
 		if isNil(geos[i]) {
 			continue
@@ -169,14 +176,10 @@ func updateEditor[T geometry.Editor[S], S geometry.Geometer[T]](
 		err := editors[i].UpdateEditor(geos[i])
 		if err != nil {
 			log.Println("Updating editor:", err)
+			continue
 		}
 
-		label, err = gtk.LabelNew(geos[i].GetName())
-		if err != nil {
-			log.Println("Updating editor:", err)
-		}
-
-		edit.tabs.AppendPage(editors[i].GetBox(), label)
+		edit.appendTab(geos[i].GetName(), editors[i].GetBox())
 	}
 
 	return editors
