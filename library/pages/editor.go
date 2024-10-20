@@ -3,6 +3,7 @@ package pages
 import (
 	"chroma-viz/library/geometry"
 	"chroma-viz/library/templates"
+	"fmt"
 	"log"
 
 	"github.com/gotk3/gotk3/gtk"
@@ -12,6 +13,10 @@ type Editor struct {
 	Box         *gtk.Box
 	CurrentPage *Page
 	actions     *gtk.Box
+
+	tabCount    int
+	tab         []*gtk.Frame
+	tabContents map[int]gtk.IWidget
 	notebook    *gtk.Notebook
 
 	Rect   []*geometry.RectangleEditor
@@ -24,7 +29,10 @@ type Editor struct {
 }
 
 func NewEditor() (editor *Editor, err error) {
-	editor = &Editor{}
+	editor = &Editor{
+		tab:         make([]*gtk.Frame, 0, 128),
+		tabContents: make(map[int]gtk.IWidget, 128),
+	}
 
 	editor.Box, err = gtk.BoxNew(gtk.ORIENTATION_VERTICAL, 0)
 	if err != nil {
@@ -44,6 +52,8 @@ func NewEditor() (editor *Editor, err error) {
 	}
 
 	editor.notebook.SetScrollable(true)
+	editor.notebook.Connect("focus-tab", editor.activateTab)
+
 	editor.Box.PackStart(editor.notebook, true, true, 0)
 
 	tab, _ := gtk.FrameNew("")
@@ -116,30 +126,68 @@ func updateGeometry[T geometry.Geometer[S], S any](geos []T, editors []S) {
 	}
 }
 
-func (edit *Editor) appendTab(label string, widget gtk.IWidget) (err error) {
-	tabLabel, err := gtk.LabelNew(label)
-	if err != nil {
-		return err
+func (edit *Editor) activateTab() {
+	pos := edit.notebook.GetCurrentPage()
+	if pos >= len(edit.tab) || pos >= len(edit.tabContents) {
+		log.Println("Tab", pos, "out of range")
+		return
 	}
 
-	edit.notebook.AppendPage(widget, tabLabel)
+	tab := edit.tab[pos]
+	tab.SetVisible(true)
+
+	tabChild, err := tab.GetChild()
+	if err == nil {
+		tab.Remove(tabChild)
+	}
+
+	contents, ok := edit.tabContents[pos]
+	if !ok {
+		log.Println("Missing tab contents", pos)
+		return
+	}
+
+	tab.Add(contents)
+}
+
+func (edit *Editor) appendTab(label string, widget gtk.IWidget) (err error) {
+	index := edit.tabCount
+
+	if index < len(edit.tab) {
+		tab := edit.tab[index]
+		if tab == nil {
+			return fmt.Errorf("Missing tab %d", index)
+		}
+
+		edit.notebook.SetTabLabelText(tab, label)
+	} else {
+		tab, err := gtk.FrameNew("")
+		if err != nil {
+			return err
+		}
+
+		tab.Add(widget)
+		tab.SetVisible(true)
+
+		edit.tab = append(edit.tab, tab)
+
+		tabLabel, err := gtk.LabelNew(label)
+		if err != nil {
+			return err
+		}
+
+		edit.notebook.AppendPage(tab, tabLabel)
+	}
+
+	edit.tabContents[index] = widget
+	edit.tabCount++
 	return
 }
 
 // Load page 'page' into the editor
 func (edit *Editor) SetPage(page *Page) (err error) {
-	tabs := edit.notebook.GetChildren()
-
-	tabs.Foreach(func(node any) {
-		tab, ok := node.(*gtk.Widget)
-		if !ok {
-			log.Print("Editor tab is not a GtkWidget")
-			return
-		}
-
-		edit.notebook.Remove(tab)
-	})
-
+	clear(edit.tabContents)
+	edit.tabCount = 0
 	edit.CurrentPage = page
 
 	edit.Rect = updateEditor(edit, edit.Rect, edit.CurrentPage.Rect, geometry.NewRectangleEditor)
@@ -150,6 +198,8 @@ func (edit *Editor) SetPage(page *Page) (err error) {
 	edit.Text = updateEditor(edit, edit.Text, edit.CurrentPage.Text, geometry.NewTextEditor)
 	edit.List = updateEditor(edit, edit.List, edit.CurrentPage.List, geometry.NewListEditor)
 
+	edit.notebook.SetCurrentPage(0)
+	edit.activateTab()
 	return
 }
 
