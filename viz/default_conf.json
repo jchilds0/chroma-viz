@@ -3,6 +3,9 @@
         "Address": "127.0.0.1",
         "Port": 9000
     },
+    "MediaSequencer": false,
+    "MediaSequencerAddr": "127.0.0.1",
+    "MediaSequencerPort": 9009,
     "PreviewDirectory": "/home/josh/programming/chroma-engine/build/",
     "PreviewConfig": "viz/preview_conf.toml",
     "PreviewName": "chroma-engine",

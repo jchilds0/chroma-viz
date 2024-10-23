@@ -89,7 +89,18 @@ func VizGui(app *gtk.Application) {
 		log.Fatal(err)
 	}
 
-	showTree := NewShowTree(func(page *pages.Page) { edit.SetPage(page) })
+	var show show
+	if conf.MediaSequencer {
+		show = pages.NewLocalShow(conf.MediaSequencerPort)
+	} else {
+		show = &pages.ShowClient{
+			ShowAddr: conf.MediaSequencerIP,
+			ShowPort: conf.MediaSequencerPort,
+		}
+	}
+
+	showTree := NewShowTree(show, func(page *pages.Page) { edit.SetPage(page) })
+
 	tempTree := NewTempTree(func(tempid int) {
 		var template templates.Template
 		path := fmt.Sprintf("/template/%d", tempid)
@@ -339,7 +350,7 @@ func guiExportShow(win *gtk.ApplicationWindow, showTree *ShowTree) error {
 	res := dialog.Run()
 	if res == gtk.RESPONSE_ACCEPT {
 		filename := dialog.GetFilename()
-		showTree.show.ExportShow(filename)
+		showTree.ExportShow(filename)
 	}
 
 	return nil
@@ -408,8 +419,8 @@ func guiExportPage(win *gtk.ApplicationWindow, showTree *ShowTree) error {
 	if res == gtk.RESPONSE_ACCEPT {
 		filename := dialog.GetFilename()
 
-		page := showTree.show.Pages[pageNum]
-		if page == nil {
+		page, ok := showTree.show.GetPage(pageNum)
+		if !ok {
 			return fmt.Errorf("Page %d does not exist", pageNum)
 		}
 
@@ -440,6 +451,6 @@ func guiDeletePage(show *ShowTree) error {
 	}
 
 	show.treeList.Remove(iter)
-	show.show.Pages[pageNum] = nil
+	show.show.DeletePage(pageNum)
 	return nil
 }

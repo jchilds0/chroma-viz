@@ -2,6 +2,8 @@ package main
 
 import (
 	"chroma-viz/library/hub"
+	"chroma-viz/library/util"
+	"fmt"
 
 	"github.com/gotk3/gotk3/glib"
 	"github.com/gotk3/gotk3/gtk"
@@ -61,6 +63,9 @@ func NewTemplateChooserDialog(win *gtk.Window) (dialog *TemplateChooserDialog, e
 	}
 
 	scroll.Add(dialog.treeView)
+	dialog.treeView.Connect("row-activated", func() {
+		dialog.Dialog.Emit("response", glib.TYPE_INT, gtk.RESPONSE_ACCEPT)
+	})
 
 	// create tree columns
 	cell, err := gtk.CellRendererTextNew()
@@ -73,12 +78,16 @@ func NewTemplateChooserDialog(win *gtk.Window) (dialog *TemplateChooserDialog, e
 		return
 	}
 
+	column.SetExpand(true)
 	dialog.treeView.AppendColumn(column)
+
 	column, err = gtk.TreeViewColumnNewWithAttribute("Template ID", cell, "text", 1)
 	if err != nil {
 		return
 	}
 
+	column.SetSortIndicator(true)
+	column.SetSortColumnID(1)
 	dialog.treeView.AppendColumn(column)
 
 	dialog.treeList, err = gtk.ListStoreNew(glib.TYPE_STRING, glib.TYPE_INT)
@@ -115,5 +124,20 @@ func (dialog *TemplateChooserDialog) ImportTemplates(c hub.Client) (err error) {
 		}
 	}
 
+	return
+}
+
+func (dialog *TemplateChooserDialog) SelectedTemplateID() (id int, err error) {
+	selection, err := dialog.treeView.GetSelection()
+	if err != nil {
+		return
+	}
+
+	_, iter, ok := selection.GetSelected()
+	if !ok {
+		return 0, fmt.Errorf("No template selected")
+	}
+
+	id, err = util.ModelGetValue[int](dialog.treeList.ToTreeModel(), iter, 1)
 	return
 }

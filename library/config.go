@@ -15,11 +15,14 @@ type Conn struct {
 }
 
 type Config struct {
-	ChromaHub        hub.Client
-	PreviewDirectory string
-	PreviewConfig    string
-	PreviewName      string
-	Connections      []Conn
+	ChromaHub          hub.Client
+	MediaSequencer     bool
+	MediaSequencerIP   string
+	MediaSequencerPort int
+	PreviewDirectory   string
+	PreviewConfig      string
+	PreviewName        string
+	Connections        []Conn
 }
 
 func ImportConfig(file string) (*Config, error) {

@@ -4,8 +4,10 @@ import (
 	"chroma-viz/library"
 	"chroma-viz/library/pages"
 	"chroma-viz/library/util"
+	"encoding/json"
 	"fmt"
 	"log"
+	"os"
 
 	"github.com/gotk3/gotk3/glib"
 	"github.com/gotk3/gotk3/gtk"
@@ -26,25 +28,34 @@ var KEYTITLE = map[int]string{
 	TEMPLATE_NAME: "Template Name",
 }
 
+type show interface {
+	GetPages() (map[int]pages.PageData, error)
+	GetPage(pageNum int) (*pages.Page, bool)
+	AddPage(page *pages.Page) (err error)
+	DeletePage(pageNum int)
+	Clear()
+}
+
 type ShowTree struct {
 	treeView *gtk.TreeView
 	treeList *gtk.ListStore
-	show     *pages.Show
+	show     show
 	columns  map[int]bool
 }
 
-func NewShowTree(pageToEditor func(*pages.Page)) *ShowTree {
+func NewShowTree(show show, pageToEditor func(*pages.Page)) *ShowTree {
 	var err error
-	showTree := &ShowTree{}
+	showTree := &ShowTree{
+		show:    show,
+		columns: make(map[int]bool, NUM_COL),
+	}
 
 	showTree.treeView, err = gtk.TreeViewNew()
 	if err != nil {
 		log.Fatalf("Error creating show (%s)", err)
 	}
 
-	showTree.show = pages.NewShow()
 	showTree.treeView.SetReorderable(true)
-	showTree.columns = make(map[int]bool, NUM_COL)
 
 	showTree.columns[PAGENUM] = true
 	showTree.columns[TITLE] = true
@@ -81,12 +92,14 @@ func NewShowTree(pageToEditor func(*pages.Page)) *ShowTree {
 						return
 					}
 
-					if _, ok := showTree.show.Pages[pageNum]; !ok {
+					page, ok := showTree.show.GetPage(pageNum)
+					if !ok {
 						log.Print("Error getting page")
 						return
 					}
 
-					showTree.show.Pages[pageNum].Title = text
+					page.Title = text
+					showTree.show.AddPage(page)
 					showTree.treeList.SetValue(iter, TITLE, text)
 				})
 
@@ -137,8 +150,14 @@ func NewShowTree(pageToEditor func(*pages.Page)) *ShowTree {
 				return
 			}
 
-			pageToEditor(showTree.show.Pages[pageNum])
-			SendPreview(showTree.show.Pages[pageNum], library.ANIMATE_ON)
+			page, ok := showTree.show.GetPage(pageNum)
+			if !ok {
+				log.Println("Missing page", pageNum)
+				return
+			}
+
+			pageToEditor(page)
+			SendPreview(page, library.ANIMATE_ON)
 		})
 
 	return showTree
@@ -185,23 +204,52 @@ func (showTree *ShowTree) ImportPage(page *pages.Page) (err error) {
 	return
 }
 
-func (showTree *ShowTree) ImportShow(filename string) {
-	var show pages.Show
-	err := show.ImportShow(filename)
+func (showTree *ShowTree) ImportShow(filename string) (err error) {
+	buf, err := os.ReadFile(filename)
 	if err != nil {
-		log.Print(err)
+		return
 	}
 
-	for _, page := range show.Pages {
+	var pages map[int]*pages.Page
+	err = json.Unmarshal(buf, &pages)
+	if err != nil {
+		return err
+	}
+
+	for _, page := range pages {
 		err = showTree.ImportPage(page)
 		if err != nil {
 			log.Print(err)
 		}
 	}
+
+	return nil
 }
 
-func (ShowTree *ShowTree) Clean() {
-	ShowTree.treeList.Clear()
-	ShowTree.show.Pages = make(map[int]*pages.Page, 10)
-	ShowTree.show.NumPages = 1
+func (showTree *ShowTree) ExportShow(filename string) (err error) {
+	file, err := os.Create(filename)
+	if err != nil {
+		return
+	}
+	defer file.Close()
+
+	pageData, err := showTree.show.GetPages()
+	pages := make(map[int]*pages.Page)
+
+	for _, info := range pageData {
+		pages[info.PageNum], _ = showTree.show.GetPage(info.PageNum)
+	}
+
+	buf, err := json.Marshal(pages)
+	if err != nil {
+		return
+	}
+
+	_, err = file.Write(buf)
+	return
+}
+
+func (showTree *ShowTree) Clean() {
+	showTree.treeList.Clear()
+	showTree.show.Clear()
 }

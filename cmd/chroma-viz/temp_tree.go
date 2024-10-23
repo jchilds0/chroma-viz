@@ -48,6 +48,8 @@ func NewTempTree(templateToShow func(int)) *TempTree {
 		log.Fatalf("Error creating temp list (%s)", err)
 	}
 
+	column.SetSortIndicator(true)
+	column.SetSortColumnID(1)
 	temp.treeView.AppendColumn(column)
 
 	temp.treeList, err = gtk.ListStoreNew(glib.TYPE_STRING, glib.TYPE_INT)

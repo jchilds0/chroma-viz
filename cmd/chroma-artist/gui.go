@@ -344,19 +344,12 @@ func ArtistGui(app *gtk.Application) {
 
 		res := dialog.Run()
 		if res == gtk.RESPONSE_ACCEPT {
-			selection, err := dialog.treeView.GetSelection()
+			tempID, err := dialog.SelectedTemplateID()
 			if err != nil {
-				log.Print("No template selected")
+				log.Println("Error importing template", err)
 				return
 			}
 
-			_, iter, ok := selection.GetSelected()
-			if !ok {
-				log.Print("No template selected")
-				return
-			}
-
-			tempID, err := util.ModelGetValue[int](dialog.treeList.ToTreeModel(), iter, 1)
 			path := fmt.Sprintf("/template/%d", tempID)
 
 			err = conf.ChromaHub.GetJSON(path, template)
@@ -472,7 +465,7 @@ func ArtistGui(app *gtk.Application) {
 	cleanHub.Connect("activate", func() {
 		err := conf.ChromaHub.Clean()
 		if err != nil {
-			log.Print("Error cleaning chroma hub: %s", err)
+			log.Println("Error cleaning chroma hub:", err)
 		}
 	})
 

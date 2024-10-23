@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"strconv"
 )
 
 type Client struct {
@@ -16,7 +15,7 @@ type Client struct {
 }
 
 func (c Client) URL() string {
-	return "http://" + c.Address + ":" + strconv.Itoa(c.Port)
+	return fmt.Sprintf("http://%s:%d", c.Address, c.Port)
 }
 
 func (c Client) GetJSON(path string, v any) (err error) {

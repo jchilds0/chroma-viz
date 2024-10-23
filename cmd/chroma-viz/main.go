@@ -110,7 +110,6 @@ func importRandomPages(c hub.Client, tempTree *TempTree, showTree *ShowTree) {
 		}
 
 		page := pages.NewPageFromTemplate(&template)
-		page.PageNum = showTree.show.NumPages
 		showTree.ImportPage(page)
 	}
 
