@@ -79,7 +79,7 @@ func (c *ShowClient) GetPages() (map[int]PageData, error) {
 	defer res.Body.Close()
 
 	if res.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("No pages: %s", res.StatusCode)
+		return nil, fmt.Errorf("No pages: %s", res.Status)
 	}
 
 	jsonData, err := io.ReadAll(res.Body)

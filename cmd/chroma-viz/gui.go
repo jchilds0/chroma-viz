@@ -6,8 +6,10 @@ import (
 	"chroma-viz/library/pages"
 	"chroma-viz/library/templates"
 	"chroma-viz/library/util"
+	"encoding/json"
 	"fmt"
 	"log"
+	"os"
 	"time"
 
 	"github.com/gotk3/gotk3/glib"
@@ -66,7 +68,7 @@ A hook which is run after the viz TempTree and
 ShowTree are initialised. This allows a test to
 to call the import methods of these structs
 */
-var importHook = func(c hub.Client, temp *TempTree, show *ShowTree) {}
+var importHook = func(c hub.Client, temp *TempTree, show ShowTree) {}
 
 func VizGui(app *gtk.Application) {
 	win, err := gtk.ApplicationWindowNew(app)
@@ -89,17 +91,19 @@ func VizGui(app *gtk.Application) {
 		log.Fatal(err)
 	}
 
-	var show show
+	var showTree ShowTree
 	if conf.MediaSequencer {
-		show = pages.NewLocalShow(conf.MediaSequencerPort)
+		showTree = NewShowTree(
+			conf.MediaSequencerPort,
+			edit.SetPage,
+		)
 	} else {
-		show = &pages.ShowClient{
-			ShowAddr: conf.MediaSequencerIP,
-			ShowPort: conf.MediaSequencerPort,
-		}
+		showTree = NewExternalShow(
+			conf.MediaSequencerIP,
+			conf.MediaSequencerPort,
+			edit.SetPage,
+		)
 	}
-
-	showTree := NewShowTree(show, func(page *pages.Page) { edit.SetPage(page) })
 
 	tempTree := NewTempTree(func(tempid int) {
 		var template templates.Template
@@ -118,7 +122,7 @@ func VizGui(app *gtk.Application) {
 		}
 
 		page := pages.NewPageFromTemplate(&template)
-		err = showTree.ImportPage(page)
+		err = showTree.AddPage(*page)
 		if err != nil {
 			log.Printf("Error importing page: %s", err)
 		}
@@ -190,7 +194,7 @@ func VizGui(app *gtk.Application) {
 
 	newShow := glib.SimpleActionNew("new_show", nil)
 	newShow.Connect("activate", func() {
-		showTree.Clean()
+		showTree.Clear()
 	})
 	app.AddAction(newShow)
 
@@ -264,7 +268,7 @@ func VizGui(app *gtk.Application) {
 		log.Fatal(err)
 	}
 
-	showScroll.Add(showTree.treeView)
+	showScroll.Add(showTree.TreeView())
 
 	editBox, err := util.BuilderGetObject[*gtk.Box](builder, "edit")
 	if err != nil {
@@ -319,7 +323,7 @@ func VizGui(app *gtk.Application) {
 
 }
 
-func guiImportShow(win *gtk.ApplicationWindow, show *ShowTree) error {
+func guiImportShow(win *gtk.ApplicationWindow, show ShowTree) error {
 	dialog, err := gtk.FileChooserDialogNewWith2Buttons(
 		"Import Show", win, gtk.FILE_CHOOSER_ACTION_OPEN,
 		"_Cancel", gtk.RESPONSE_CANCEL, "_Open", gtk.RESPONSE_ACCEPT)
@@ -330,14 +334,26 @@ func guiImportShow(win *gtk.ApplicationWindow, show *ShowTree) error {
 
 	res := dialog.Run()
 	if res == gtk.RESPONSE_ACCEPT {
-		filename := dialog.GetFilename()
-		show.ImportShow(filename)
+		buf, err := os.ReadFile(dialog.GetFilename())
+		if err != nil {
+			return err
+		}
+
+		var pages map[int]pages.Page
+		err = json.Unmarshal(buf, &pages)
+		if err != nil {
+			return err
+		}
+
+		for _, page := range pages {
+			show.AddPage(page)
+		}
 	}
 
 	return nil
 }
 
-func guiExportShow(win *gtk.ApplicationWindow, showTree *ShowTree) error {
+func guiExportShow(win *gtk.ApplicationWindow, showTree ShowTree) error {
 	dialog, err := gtk.FileChooserDialogNewWith2Buttons(
 		"Save Show", win, gtk.FILE_CHOOSER_ACTION_SAVE,
 		"_Cancel", gtk.RESPONSE_CANCEL, "_Save", gtk.RESPONSE_ACCEPT)
@@ -349,14 +365,26 @@ func guiExportShow(win *gtk.ApplicationWindow, showTree *ShowTree) error {
 	dialog.SetCurrentName(".show")
 	res := dialog.Run()
 	if res == gtk.RESPONSE_ACCEPT {
-		filename := dialog.GetFilename()
-		showTree.ExportShow(filename)
+		file, err := os.Create(dialog.GetFilename())
+		if err != nil {
+			return err
+		}
+		defer file.Close()
+
+		pages := showTree.GetPages()
+
+		buf, err := json.Marshal(pages)
+		if err != nil {
+			return err
+		}
+
+		_, err = file.Write(buf)
 	}
 
 	return nil
 }
 
-func guiImportPage(win *gtk.ApplicationWindow, showTree *ShowTree) error {
+func guiImportPage(win *gtk.ApplicationWindow, showTree ShowTree) error {
 	dialog, err := gtk.FileChooserDialogNewWith2Buttons(
 		"Import Page", win, gtk.FILE_CHOOSER_ACTION_OPEN,
 		"_Cancel", gtk.RESPONSE_CANCEL, "_Open", gtk.RESPONSE_ACCEPT)
@@ -369,41 +397,27 @@ func guiImportPage(win *gtk.ApplicationWindow, showTree *ShowTree) error {
 	if res == gtk.RESPONSE_ACCEPT {
 		filename := dialog.GetFilename()
 
-		page := &pages.Page{}
+		var page pages.Page
 		err := page.ImportPage(filename)
 		if err != nil {
 			return err
 		}
 
-		err = showTree.ImportPage(page)
-		if err != nil {
-			log.Print(err)
-		}
+		showTree.AddPage(page)
 	}
 
 	return nil
 }
 
-func guiExportPage(win *gtk.ApplicationWindow, showTree *ShowTree) error {
-	selection, err := showTree.treeView.GetSelection()
+func guiExportPage(win *gtk.ApplicationWindow, showTree ShowTree) error {
+	pageNum, err := showTree.SelectedPage()
 	if err != nil {
 		return err
 	}
 
-	_, iter, ok := selection.GetSelected()
+	page, ok := showTree.GetPage(pageNum)
 	if !ok {
-		return fmt.Errorf("Error getting selected iter")
-	}
-
-	model := &showTree.treeList.TreeModel
-	title, err := util.ModelGetValue[string](model, iter, TITLE)
-	if err != nil {
-		return err
-	}
-
-	pageNum, err := util.ModelGetValue[int](model, iter, PAGENUM)
-	if err != nil {
-		return err
+		return fmt.Errorf("Page %d does not exist", pageNum)
 	}
 
 	dialog, err := gtk.FileChooserDialogNewWith2Buttons(
@@ -414,15 +428,11 @@ func guiExportPage(win *gtk.ApplicationWindow, showTree *ShowTree) error {
 	}
 	defer dialog.Destroy()
 
-	dialog.SetCurrentName(title + ".json")
+	dialog.SetCurrentName(page.Title + ".json")
 	res := dialog.Run()
+
 	if res == gtk.RESPONSE_ACCEPT {
 		filename := dialog.GetFilename()
-
-		page, ok := showTree.show.GetPage(pageNum)
-		if !ok {
-			return fmt.Errorf("Page %d does not exist", pageNum)
-		}
 
 		err := pages.ExportPage(page, filename)
 		if err != nil {
@@ -433,24 +443,12 @@ func guiExportPage(win *gtk.ApplicationWindow, showTree *ShowTree) error {
 	return nil
 }
 
-func guiDeletePage(show *ShowTree) error {
-	selection, err := show.treeView.GetSelection()
+func guiDeletePage(show ShowTree) error {
+	pageNum, err := show.SelectedPage()
 	if err != nil {
 		return err
 	}
 
-	_, iter, ok := selection.GetSelected()
-	if !ok {
-		return fmt.Errorf("Error getting selection iter")
-	}
-
-	model := &show.treeList.TreeModel
-	pageNum, err := util.ModelGetValue[int](model, iter, PAGENUM)
-	if err != nil {
-		return err
-	}
-
-	show.treeList.Remove(iter)
-	show.show.DeletePage(pageNum)
+	show.DeletePage(pageNum)
 	return nil
 }

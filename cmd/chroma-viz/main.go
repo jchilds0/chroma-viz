@@ -88,9 +88,11 @@ func closeViz() {
 	}
 }
 
-func importRandomPages(c hub.Client, tempTree *TempTree, showTree *ShowTree) {
+func importRandomPages(c hub.Client, tempTree *TempTree, showTree ShowTree) {
 	start := time.Now()
-	showTree.treeView.SetModel(nil)
+
+	show := showTree.(*MediaSequencer)
+	show.treeView.SetModel(nil)
 
 	for i := 0; i < *importRandom; i++ {
 		index := (rand.Int() % numTemplates) + 1
@@ -110,12 +112,12 @@ func importRandomPages(c hub.Client, tempTree *TempTree, showTree *ShowTree) {
 		}
 
 		page := pages.NewPageFromTemplate(&template)
-		showTree.ImportPage(page)
+		showTree.AddPage(*page)
 	}
 
 	end := time.Now()
 	elapsed := end.Sub(start)
 	log.Printf("Built Show in %s\n", elapsed)
 
-	showTree.treeView.SetModel(showTree.treeList)
+	show.treeView.SetModel(show.treeList)
 }

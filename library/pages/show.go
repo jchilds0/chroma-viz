@@ -30,30 +30,12 @@ func NewLocalShow(mediaPort int) *LocalShow {
 	return show
 }
 
-func (show *LocalShow) AddPage(page *Page) error {
-	page.PageNum = show.NumPages
-	show.Pages[page.PageNum] = page
-	show.NumPages++
-	return nil
-}
-
 func (show *LocalShow) GetPage(pageNum int) (*Page, bool) {
 	page, ok := show.Pages[pageNum]
 	return page, ok
 }
 
 func (show *LocalShow) GetPages() (map[int]PageData, error) {
-	pages := make(map[int]PageData, len(show.Pages))
-	for id, p := range show.Pages {
-		pages[id] = PageData{
-			PageNum: p.PageNum,
-			Title:   p.Title,
-			TempID:  p.TemplateID,
-			Layer:   p.Layer,
-		}
-	}
-
-	return pages, nil
 }
 
 func (show *LocalShow) DeletePage(pageNum int) {
