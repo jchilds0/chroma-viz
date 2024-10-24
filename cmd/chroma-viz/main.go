@@ -55,7 +55,7 @@ func main() {
 		}
 	}
 
-	app, err := gtk.ApplicationNew("app.chroma.viz", glib.APPLICATION_FLAGS_NONE)
+	app, err := gtk.ApplicationNew(conf.Name+".chroma.viz", glib.APPLICATION_FLAGS_NONE)
 	if err != nil {
 		log.Print(err)
 	}

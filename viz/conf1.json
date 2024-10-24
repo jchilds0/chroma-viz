@@ -1,0 +1,27 @@
+{
+    "Name": "ENG1",
+    "ChromaHub": {
+        "Address": "localhost",
+        "Port": 9000
+    },
+    "MediaSequencer": true,
+    "MediaSequencerIP": "localhost",
+    "MediaSequencerPort": 9009,
+    "PreviewDirectory": "/home/josh/programming/chroma-engine/build/",
+    "PreviewConfig": "viz/preview_conf.toml",
+    "PreviewName": "chroma-engine",
+    "Connections": [
+        {
+            "Name": "Engine",
+            "Address": "127.0.0.1",
+            "Port": 6800,
+            "Type": "engine"
+        },
+        {
+            "Name": "Preview",
+            "Address": "127.0.0.1",
+            "Port": 6100,
+            "Type": "preview"
+        }
+    ]
+}

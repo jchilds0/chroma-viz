@@ -15,6 +15,7 @@ type Conn struct {
 }
 
 type Config struct {
+	Name               string
 	ChromaHub          hub.Client
 	MediaSequencer     bool
 	MediaSequencerIP   string

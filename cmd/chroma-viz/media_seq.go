@@ -6,6 +6,8 @@ import (
 	"chroma-viz/library/util"
 	"fmt"
 	"log"
+	"net"
+	"strconv"
 
 	"github.com/gotk3/gotk3/glib"
 	"github.com/gotk3/gotk3/gtk"
@@ -15,14 +17,18 @@ type MediaSequencer struct {
 	treeView *gtk.TreeView
 	treeList *gtk.ListStore
 
-	port     int
 	numPages int
+	conn     net.Listener
 	pages    map[int]pages.Page
+	clients  map[string]net.Conn
 }
 
-func NewShowTree(port int, pageToEditor func(*pages.Page) error) *MediaSequencer {
+func NewMediaSequencer(port int, pageToEditor func(*pages.Page) error) *MediaSequencer {
 	var err error
-	show := &MediaSequencer{}
+	show := &MediaSequencer{
+		pages:   make(map[int]pages.Page, 1024),
+		clients: make(map[string]net.Conn, 64),
+	}
 
 	show.treeView, err = gtk.TreeViewNew()
 	if err != nil {
@@ -40,6 +46,8 @@ func NewShowTree(port int, pageToEditor func(*pages.Page) error) *MediaSequencer
 	if err != nil {
 		log.Fatalln("Error creating show:", err)
 	}
+
+	show.treeView.SetModel(show.treeList)
 
 	cell, err := gtk.CellRendererTextNew()
 	if err != nil {
@@ -130,7 +138,86 @@ func NewShowTree(port int, pageToEditor func(*pages.Page) error) *MediaSequencer
 			SendPreview(page, library.ANIMATE_ON)
 		})
 
+	show.conn, err = net.Listen("tcp", ":"+strconv.Itoa(port))
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	go show.listen()
+
 	return show
+}
+
+func (show *MediaSequencer) listen() {
+	log.Println("Media Sequencer listening on:", show.conn.Addr())
+
+	for {
+		client, err := show.conn.Accept()
+		if err != nil {
+			log.Print(err)
+		}
+
+		log.Println("Connected to client", client.RemoteAddr())
+		go show.handleConn(client)
+	}
+
+}
+
+func (show *MediaSequencer) handleConn(client net.Conn) {
+	defer client.Close()
+
+	for {
+		req, err := recvMessage(client)
+		if err != nil {
+			log.Println(client.RemoteAddr(), err)
+			break
+		}
+
+		if req.Type == NO_MESSAGE {
+			continue
+		}
+
+		log.Println(client.RemoteAddr(), "Message:", req)
+
+		switch req.Type {
+		case CREATE_PAGE:
+		case READ_PAGE:
+			res := Message{
+				Type: READ_PAGE,
+			}
+
+			page, ok := show.GetPage(req.PageInfo.PageNum)
+			if ok {
+				res.Page = *page
+
+			}
+
+			err = sendMessage(client, res)
+			if err != nil {
+				log.Println(err)
+				continue
+			}
+
+		case UPDATE_PAGE:
+		case DELETE_PAGE:
+		case GET_PAGES:
+			res := Message{
+				Type:     GET_PAGES,
+				PageData: show.GetPages(),
+			}
+
+			err = sendMessage(client, res)
+			if err != nil {
+				log.Println(err)
+				continue
+			}
+
+		case RECIEVE_UPDATES:
+			show.clients[client.RemoteAddr().String()] = client
+		}
+	}
+
+	log.Print("Closing connection to", client.RemoteAddr().String())
 }
 
 func (show *MediaSequencer) TreeView() *gtk.TreeView {
@@ -190,8 +277,19 @@ func (show *MediaSequencer) AddPage(page pages.Page) (err error) {
 	return
 }
 
-func (show *MediaSequencer) GetPages() map[int]pages.Page {
-	return show.pages
+func (show *MediaSequencer) GetPages() map[int]PageData {
+	pageData := make(map[int]PageData, len(show.pages))
+
+	for _, page := range show.pages {
+		pageData[page.PageNum] = PageData{
+			PageNum: page.PageNum,
+			TempID:  page.TemplateID,
+			Title:   page.Title,
+			Layer:   page.Layer,
+		}
+	}
+
+	return pageData
 }
 
 func (show *MediaSequencer) GetPage(pageNum int) (*pages.Page, bool) {

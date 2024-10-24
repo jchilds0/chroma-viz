@@ -93,7 +93,7 @@ func VizGui(app *gtk.Application) {
 
 	var showTree ShowTree
 	if conf.MediaSequencer {
-		showTree = NewShowTree(
+		showTree = NewMediaSequencer(
 			conf.MediaSequencerPort,
 			edit.SetPage,
 		)
@@ -122,6 +122,10 @@ func VizGui(app *gtk.Application) {
 		}
 
 		page := pages.NewPageFromTemplate(&template)
+		for _, p := range showTree.GetPages() {
+			page.PageNum = max(p.PageNum+1, page.PageNum)
+		}
+
 		err = showTree.AddPage(*page)
 		if err != nil {
 			log.Printf("Error importing page: %s", err)

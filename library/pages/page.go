@@ -64,7 +64,7 @@ func NewPage(pageNum, tempID, layer, numGeo int, title string) *Page {
 }
 
 func NewPageFromTemplate(temp *templates.Template) *Page {
-	page := NewPage(0, int(temp.TempID), temp.Layer, temp.NumGeometry(), temp.Title)
+	page := NewPage(1, int(temp.TempID), temp.Layer, temp.NumGeometry(), temp.Title)
 
 	page.Rect = temp.Rectangle
 	page.Circle = temp.Circle

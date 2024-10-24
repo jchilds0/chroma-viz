@@ -4,7 +4,10 @@ import (
 	"chroma-viz/library"
 	"chroma-viz/library/pages"
 	"chroma-viz/library/util"
+	"fmt"
 	"log"
+	"net"
+	"strconv"
 
 	"github.com/gotk3/gotk3/glib"
 	"github.com/gotk3/gotk3/gtk"
@@ -14,14 +17,33 @@ type ExternalShow struct {
 	treeView *gtk.TreeView
 	treeList *gtk.ListStore
 
-	addr  string
-	port  int
-	pages map[int]pages.Page
+	server net.Conn // listen for page updates
+	conn   net.Conn // send and recieve pages
+	pages  map[int]pages.Page
 }
 
 func NewExternalShow(addr string, port int, pageToEditor func(*pages.Page) error) *ExternalShow {
 	var err error
 	show := &ExternalShow{}
+
+	show.server, err = net.Dial("tcp", addr+":"+strconv.Itoa(port))
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	m := Message{
+		Type: RECIEVE_UPDATES,
+	}
+
+	err = sendMessage(show.server, m)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	show.conn, err = net.Dial("tcp", addr+":"+strconv.Itoa(port))
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	show.treeView, err = gtk.TreeViewNew()
 	if err != nil {
@@ -39,6 +61,8 @@ func NewExternalShow(addr string, port int, pageToEditor func(*pages.Page) error
 	if err != nil {
 		log.Fatalln("Error creating show:", err)
 	}
+
+	show.treeView.SetModel(show.treeList)
 
 	cell, err := gtk.CellRendererTextNew()
 	if err != nil {
@@ -129,37 +153,140 @@ func NewExternalShow(addr string, port int, pageToEditor func(*pages.Page) error
 			SendPreview(page, library.ANIMATE_ON)
 		})
 
+	pages := show.GetPages()
+	for _, page := range pages {
+		show.addRow(page)
+	}
+
 	return show
 }
 
-func (show *ExternalShow) UpdatePageTitle(pageNum int, title string) {
+func (show *ExternalShow) addRow(page PageData) {
+	iter := show.treeList.Append()
+	err := show.treeList.SetValue(iter, PAGENUM, page.PageNum)
+	if err != nil {
+		return
+	}
 
+	err = show.treeList.SetValue(iter, TITLE, page.Title)
+	if err != nil {
+		return
+	}
+
+	err = show.treeList.SetValue(iter, TEMPLATE_ID, page.TempID)
+	if err != nil {
+		return
+	}
+
+	err = show.treeList.SetValue(iter, TEMPLATE_NAME, page.Title)
+	return
+}
+
+func (show *ExternalShow) UpdatePageTitle(pageNum int, title string) {
+	m := Message{
+		Type: UPDATE_PAGE,
+		PageInfo: PageData{
+			PageNum: pageNum,
+			Title:   title,
+		},
+	}
+
+	err := sendMessage(show.conn, m)
+	if err != nil {
+		log.Println("Update Page Title", err)
+	}
 }
 
 func (show *ExternalShow) TreeView() *gtk.TreeView {
-
+	return show.treeView
 }
 
-func (show *ExternalShow) SelectedPage() (int, error) {
+func (show *ExternalShow) SelectedPage() (pageNum int, err error) {
+	selection, err := show.treeView.GetSelection()
+	if err != nil {
+		return
+	}
 
+	_, iter, ok := selection.GetSelected()
+	if !ok {
+		err = fmt.Errorf("Error getting selection iter")
+		return
+	}
+
+	model := show.treeList.ToTreeModel()
+	pageNum, err = util.ModelGetValue[int](model, iter, PAGENUM)
+	return
 }
 
 func (show *ExternalShow) AddPage(page pages.Page) (err error) {
+	req := Message{
+		Type: CREATE_PAGE,
+		Page: page,
+	}
 
+	err = sendMessage(show.conn, req)
+	return
 }
 
 func (show *ExternalShow) GetPage(pageNum int) (*pages.Page, bool) {
+	req := Message{
+		Type: READ_PAGE,
+		PageInfo: PageData{
+			PageNum: pageNum,
+		},
+	}
 
+	err := sendMessage(show.conn, req)
+	if err != nil {
+		log.Println("Error getting page", pageNum, err)
+		return nil, false
+	}
+
+	res, err := recvMessage(show.conn)
+	if err != nil {
+		log.Println("Error getting page", pageNum, err)
+		return nil, false
+	}
+
+	return &res.Page, true
 }
 
-func (show *ExternalShow) GetPages() map[int]pages.Page {
-	return show.pages
+func (show *ExternalShow) GetPages() (pages map[int]PageData) {
+	pages = make(map[int]PageData)
+
+	req := Message{
+		Type: GET_PAGES,
+	}
+
+	err := sendMessage(show.conn, req)
+	if err != nil {
+		log.Println("Error getting pages:", err)
+		return
+	}
+
+	res, err := recvMessage(show.conn)
+	if err != nil {
+		log.Println("Error getting pages:", err)
+		return
+	}
+
+	return res.PageData
 }
 
 func (show *ExternalShow) DeletePage(pageNum int) {
+	m := Message{
+		Type: DELETE_PAGE,
+		PageInfo: PageData{
+			PageNum: pageNum,
+		},
+	}
 
+	err := sendMessage(show.conn, m)
+	if err != nil {
+		log.Printf("Error deleting page %d: %s", pageNum, err)
+		return
+	}
 }
 
 func (show *ExternalShow) Clear() {
-
 }
