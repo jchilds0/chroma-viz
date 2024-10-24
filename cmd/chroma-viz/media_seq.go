@@ -14,6 +14,7 @@ import (
 )
 
 type MediaSequencer struct {
+	rows     map[int]*gtk.TreeIter
 	treeView *gtk.TreeView
 	treeList *gtk.ListStore
 
@@ -26,6 +27,7 @@ type MediaSequencer struct {
 func NewMediaSequencer(port int, pageToEditor func(*pages.Page) error) *MediaSequencer {
 	var err error
 	show := &MediaSequencer{
+		rows:    make(map[int]*gtk.TreeIter, 1024),
 		pages:   make(map[int]pages.Page, 1024),
 		clients: make(map[string]net.Conn, 64),
 	}
@@ -83,8 +85,7 @@ func NewMediaSequencer(port int, pageToEditor func(*pages.Page) error) *MediaSeq
 				return
 			}
 
-			show.UpdatePageTitle(pageNum, text)
-			show.treeList.SetValue(iter, TITLE, text)
+			show.UpdatePageInfo(PageData{PageNum: pageNum, Title: text})
 		})
 
 	column, err = gtk.TreeViewColumnNewWithAttribute(KEYTITLE[TITLE], title, "text", TITLE)
@@ -128,7 +129,7 @@ func NewMediaSequencer(port int, pageToEditor func(*pages.Page) error) *MediaSeq
 				return
 			}
 
-			page, ok := show.GetPage(pageNum)
+			page, ok := show.ReadPage(pageNum)
 			if !ok {
 				log.Println("Missing page", pageNum)
 				return
@@ -160,7 +161,6 @@ func (show *MediaSequencer) listen() {
 		log.Println("Connected to client", client.RemoteAddr())
 		go show.handleConn(client)
 	}
-
 }
 
 func (show *MediaSequencer) handleConn(client net.Conn) {
@@ -177,16 +177,18 @@ func (show *MediaSequencer) handleConn(client net.Conn) {
 			continue
 		}
 
-		log.Println(client.RemoteAddr(), "Message:", req)
+		log.Println(client.RemoteAddr(), "Request Type:", req.Type)
 
 		switch req.Type {
-		case CREATE_PAGE:
+		case WRITE_PAGE:
+			show.WritePage(req.Page)
+
 		case READ_PAGE:
 			res := Message{
 				Type: READ_PAGE,
 			}
 
-			page, ok := show.GetPage(req.PageInfo.PageNum)
+			page, ok := show.ReadPage(req.PageInfo.PageNum)
 			if ok {
 				res.Page = *page
 
@@ -198,8 +200,12 @@ func (show *MediaSequencer) handleConn(client net.Conn) {
 				continue
 			}
 
-		case UPDATE_PAGE:
+		case UPDATE_PAGE_INFO:
+			show.UpdatePageInfo(req.PageInfo)
+
 		case DELETE_PAGE:
+			show.DeletePage(req.PageInfo.PageNum)
+
 		case GET_PAGES:
 			res := Message{
 				Type:     GET_PAGES,
@@ -241,8 +247,22 @@ func (show *MediaSequencer) SelectedPage() (pageNum int, err error) {
 	return
 }
 
-func (show *MediaSequencer) AddPage(page pages.Page) (err error) {
+func (show *MediaSequencer) WritePage(page pages.Page) (err error) {
+	_, ok := show.pages[page.PageNum]
+
 	show.pages[page.PageNum] = page
+
+	pageData := PageData{
+		PageNum: page.PageNum,
+		Title:   page.Title,
+		TempID:  page.TemplateID,
+		Layer:   page.Layer,
+	}
+	show.UpdatePageInfo(pageData)
+
+	if ok {
+		return
+	}
 
 	for _, geo := range page.Clock {
 		if geo == nil {
@@ -257,23 +277,6 @@ func (show *MediaSequencer) AddPage(page pages.Page) (err error) {
 		geo.Clock.SetClock(func() { SendEngine(&page, library.CONTINUE) })
 	}
 
-	iter := show.treeList.Append()
-	err = show.treeList.SetValue(iter, PAGENUM, page.PageNum)
-	if err != nil {
-		return
-	}
-
-	err = show.treeList.SetValue(iter, TITLE, page.Title)
-	if err != nil {
-		return
-	}
-
-	err = show.treeList.SetValue(iter, TEMPLATE_ID, page.TemplateID)
-	if err != nil {
-		return
-	}
-
-	err = show.treeList.SetValue(iter, TEMPLATE_NAME, page.Title)
 	return
 }
 
@@ -292,19 +295,49 @@ func (show *MediaSequencer) GetPages() map[int]PageData {
 	return pageData
 }
 
-func (show *MediaSequencer) GetPage(pageNum int) (*pages.Page, bool) {
+func (show *MediaSequencer) ReadPage(pageNum int) (*pages.Page, bool) {
 	page, ok := show.pages[pageNum]
 	return &page, ok
 }
 
-func (show *MediaSequencer) UpdatePageTitle(pageNum int, title string) {
-	page, ok := show.pages[pageNum]
+func (show *MediaSequencer) UpdatePageInfo(pageData PageData) {
+	page, ok := show.pages[pageData.PageNum]
 	if !ok {
 		return
 	}
 
-	page.Title = title
-	show.pages[pageNum] = page
+	_, ok = show.rows[pageData.PageNum]
+	if !ok {
+		show.rows[pageData.PageNum] = show.treeList.Append()
+	}
+
+	page.Title = pageData.Title
+	show.pages[pageData.PageNum] = page
+
+	iter := show.rows[pageData.PageNum]
+
+	show.treeList.SetValue(iter, TITLE, pageData.Title)
+	show.treeList.SetValue(iter, PAGENUM, pageData.PageNum)
+
+	if pageData.TempID != 0 {
+		show.treeList.SetValue(iter, TEMPLATE_ID, pageData.TempID)
+	}
+
+	if pageData.TempName != "" {
+		show.treeList.SetValue(iter, TEMPLATE_NAME, pageData.TempName)
+	}
+
+	m := Message{
+		Type:     UPDATE_PAGE_INFO,
+		PageInfo: pageData,
+	}
+
+	for _, client := range show.clients {
+		err := sendMessage(client, m)
+		if err != nil {
+			log.Println("Error updating title", err)
+		}
+	}
 }
 
 func (show *MediaSequencer) DeletePage(pageNum int) {

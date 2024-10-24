@@ -112,7 +112,7 @@ func importRandomPages(c hub.Client, tempTree *TempTree, showTree ShowTree) {
 		}
 
 		page := pages.NewPageFromTemplate(&template)
-		showTree.AddPage(*page)
+		showTree.WritePage(*page)
 	}
 
 	end := time.Now()

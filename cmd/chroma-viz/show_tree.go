@@ -27,25 +27,26 @@ var KEYTITLE = map[int]string{
 type ShowTree interface {
 	TreeView() *gtk.TreeView
 	SelectedPage() (int, error)
-	AddPage(page pages.Page) (err error)
-	GetPage(pageNum int) (*pages.Page, bool)
+	WritePage(page pages.Page) (err error)
+	ReadPage(pageNum int) (*pages.Page, bool)
 	GetPages() map[int]PageData
 	DeletePage(pageNum int)
 	Clear()
 }
 
 type PageData struct {
-	PageNum int
-	Title   string
-	TempID  int
-	Layer   int
+	PageNum  int
+	Title    string
+	TempID   int
+	TempName string
+	Layer    int
 }
 
 const (
 	NO_MESSAGE = iota
-	CREATE_PAGE
+	WRITE_PAGE
 	READ_PAGE
-	UPDATE_PAGE
+	UPDATE_PAGE_INFO
 	DELETE_PAGE
 	GET_PAGES
 	RECIEVE_UPDATES

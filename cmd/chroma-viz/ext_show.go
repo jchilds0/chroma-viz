@@ -14,17 +14,19 @@ import (
 )
 
 type ExternalShow struct {
+	rows     map[int]*gtk.TreeIter
 	treeView *gtk.TreeView
 	treeList *gtk.ListStore
 
 	server net.Conn // listen for page updates
 	conn   net.Conn // send and recieve pages
-	pages  map[int]pages.Page
 }
 
 func NewExternalShow(addr string, port int, pageToEditor func(*pages.Page) error) *ExternalShow {
 	var err error
-	show := &ExternalShow{}
+	show := &ExternalShow{
+		rows: make(map[int]*gtk.TreeIter),
+	}
 
 	show.server, err = net.Dial("tcp", addr+":"+strconv.Itoa(port))
 	if err != nil {
@@ -143,7 +145,7 @@ func NewExternalShow(addr string, port int, pageToEditor func(*pages.Page) error
 				return
 			}
 
-			page, ok := show.GetPage(pageNum)
+			page, ok := show.ReadPage(pageNum)
 			if !ok {
 				log.Println("Missing page", pageNum)
 				return
@@ -158,11 +160,29 @@ func NewExternalShow(addr string, port int, pageToEditor func(*pages.Page) error
 		show.addRow(page)
 	}
 
+	go show.pageUpdates()
+
 	return show
 }
 
+func (show *ExternalShow) pageUpdates() {
+	for {
+		m, err := recvMessage(show.server)
+		if err != nil {
+			log.Println("Error receiving page update", err)
+			break
+		}
+
+		show.addRow(m.PageInfo)
+	}
+}
+
 func (show *ExternalShow) addRow(page PageData) {
-	iter := show.treeList.Append()
+	if _, ok := show.rows[page.PageNum]; !ok {
+		show.rows[page.PageNum] = show.treeList.Append()
+	}
+
+	iter := show.rows[page.PageNum]
 	err := show.treeList.SetValue(iter, PAGENUM, page.PageNum)
 	if err != nil {
 		return
@@ -184,7 +204,7 @@ func (show *ExternalShow) addRow(page PageData) {
 
 func (show *ExternalShow) UpdatePageTitle(pageNum int, title string) {
 	m := Message{
-		Type: UPDATE_PAGE,
+		Type: UPDATE_PAGE_INFO,
 		PageInfo: PageData{
 			PageNum: pageNum,
 			Title:   title,
@@ -218,9 +238,9 @@ func (show *ExternalShow) SelectedPage() (pageNum int, err error) {
 	return
 }
 
-func (show *ExternalShow) AddPage(page pages.Page) (err error) {
+func (show *ExternalShow) WritePage(page pages.Page) (err error) {
 	req := Message{
-		Type: CREATE_PAGE,
+		Type: WRITE_PAGE,
 		Page: page,
 	}
 
@@ -228,7 +248,7 @@ func (show *ExternalShow) AddPage(page pages.Page) (err error) {
 	return
 }
 
-func (show *ExternalShow) GetPage(pageNum int) (*pages.Page, bool) {
+func (show *ExternalShow) ReadPage(pageNum int) (*pages.Page, bool) {
 	req := Message{
 		Type: READ_PAGE,
 		PageInfo: PageData{
