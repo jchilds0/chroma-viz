@@ -48,10 +48,17 @@ func NewEngineWidget(conn *Connection) *EngineWidget {
 	box.PackStart(area, true, true, 0)
 
 	eng.Button.Connect("clicked", func() {
-		if !eng.conn.IsConnected() {
-			eng.conn.Connect()
-			go eng.conn.Watcher(func() { area.QueueDraw() })
+		if eng.conn.Conn != nil {
+			return
 		}
+
+		err := eng.conn.Connect()
+		if err != nil {
+			log.Println("Error connecting to engine:", err)
+			return
+		}
+
+		go eng.conn.Watcher(func() { area.QueueDraw() })
 	})
 
 	area.Connect("draw",
@@ -59,7 +66,7 @@ func NewEngineWidget(conn *Connection) *EngineWidget {
 			height := da.GetAllocatedHeight()
 			da.SetSizeRequest(height, height)
 
-			if eng.conn.IsConnected() {
+			if eng.conn.Conn != nil {
 				cr.SetSourceRGB(0, 255, 0)
 			} else {
 				cr.SetSourceRGB(255, 0, 0)

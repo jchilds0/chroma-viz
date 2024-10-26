@@ -13,7 +13,7 @@ import (
 	"github.com/gotk3/gotk3/gtk"
 )
 
-type ExternalShow struct {
+type SequencerClient struct {
 	rows     map[int]*gtk.TreeIter
 	treeView *gtk.TreeView
 	treeList *gtk.ListStore
@@ -22,9 +22,9 @@ type ExternalShow struct {
 	conn   net.Conn // send and recieve pages
 }
 
-func NewExternalShow(addr string, port int, pageToEditor func(*pages.Page) error) *ExternalShow {
+func NewSequencerClient(addr string, port int, pageToEditor func(*pages.Page) error) *SequencerClient {
 	var err error
-	show := &ExternalShow{
+	show := &SequencerClient{
 		rows: make(map[int]*gtk.TreeIter),
 	}
 
@@ -165,7 +165,7 @@ func NewExternalShow(addr string, port int, pageToEditor func(*pages.Page) error
 	return show
 }
 
-func (show *ExternalShow) pageUpdates() {
+func (show *SequencerClient) pageUpdates() {
 	for {
 		m, err := recvMessage(show.server)
 		if err != nil {
@@ -177,7 +177,7 @@ func (show *ExternalShow) pageUpdates() {
 	}
 }
 
-func (show *ExternalShow) addRow(page PageData) {
+func (show *SequencerClient) addRow(page PageData) {
 	if _, ok := show.rows[page.PageNum]; !ok {
 		show.rows[page.PageNum] = show.treeList.Append()
 	}
@@ -193,16 +193,24 @@ func (show *ExternalShow) addRow(page PageData) {
 		return
 	}
 
-	err = show.treeList.SetValue(iter, TEMPLATE_ID, page.TempID)
-	if err != nil {
-		return
+	if page.TempID != 0 {
+		err = show.treeList.SetValue(iter, TEMPLATE_ID, page.TempID)
+		if err != nil {
+			return
+		}
 	}
 
-	err = show.treeList.SetValue(iter, TEMPLATE_NAME, page.Title)
+	if page.TempName != "" {
+		err = show.treeList.SetValue(iter, TEMPLATE_NAME, "")
+		if err != nil {
+			return
+		}
+	}
+
 	return
 }
 
-func (show *ExternalShow) UpdatePageTitle(pageNum int, title string) {
+func (show *SequencerClient) UpdatePageTitle(pageNum int, title string) {
 	m := Message{
 		Type: UPDATE_PAGE_INFO,
 		PageInfo: PageData{
@@ -217,11 +225,11 @@ func (show *ExternalShow) UpdatePageTitle(pageNum int, title string) {
 	}
 }
 
-func (show *ExternalShow) TreeView() *gtk.TreeView {
+func (show *SequencerClient) TreeView() *gtk.TreeView {
 	return show.treeView
 }
 
-func (show *ExternalShow) SelectedPage() (pageNum int, err error) {
+func (show *SequencerClient) SelectedPage() (pageNum int, err error) {
 	selection, err := show.treeView.GetSelection()
 	if err != nil {
 		return
@@ -238,7 +246,7 @@ func (show *ExternalShow) SelectedPage() (pageNum int, err error) {
 	return
 }
 
-func (show *ExternalShow) WritePage(page pages.Page) (err error) {
+func (show *SequencerClient) WritePage(page *pages.Page) (err error) {
 	req := Message{
 		Type: WRITE_PAGE,
 		Page: page,
@@ -248,7 +256,7 @@ func (show *ExternalShow) WritePage(page pages.Page) (err error) {
 	return
 }
 
-func (show *ExternalShow) ReadPage(pageNum int) (*pages.Page, bool) {
+func (show *SequencerClient) ReadPage(pageNum int) (*pages.Page, bool) {
 	req := Message{
 		Type: READ_PAGE,
 		PageInfo: PageData{
@@ -268,10 +276,10 @@ func (show *ExternalShow) ReadPage(pageNum int) (*pages.Page, bool) {
 		return nil, false
 	}
 
-	return &res.Page, true
+	return res.Page, true
 }
 
-func (show *ExternalShow) GetPages() (pages map[int]PageData) {
+func (show *SequencerClient) GetPages() (pages map[int]PageData) {
 	pages = make(map[int]PageData)
 
 	req := Message{
@@ -293,7 +301,7 @@ func (show *ExternalShow) GetPages() (pages map[int]PageData) {
 	return res.PageData
 }
 
-func (show *ExternalShow) DeletePage(pageNum int) {
+func (show *SequencerClient) DeletePage(pageNum int) {
 	m := Message{
 		Type: DELETE_PAGE,
 		PageInfo: PageData{
@@ -308,5 +316,5 @@ func (show *ExternalShow) DeletePage(pageNum int) {
 	}
 }
 
-func (show *ExternalShow) Clear() {
+func (show *SequencerClient) Clear() {
 }

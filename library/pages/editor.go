@@ -108,6 +108,9 @@ func initEditors[T any](numEditors int, init func() (T, error)) []T {
 
 // Store the editor values in the properties
 func (edit *Editor) UpdateProps() {
+	edit.CurrentPage.lock.Lock()
+	defer edit.CurrentPage.lock.Unlock()
+
 	updateGeometry(edit.CurrentPage.Rect, edit.Rect)
 	updateGeometry(edit.CurrentPage.Circle, edit.Circle)
 	updateGeometry(edit.CurrentPage.Clock, edit.Clock)

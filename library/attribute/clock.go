@@ -1,9 +1,7 @@
 package attribute
 
 import (
-	"encoding/json"
 	"log"
-	"sync"
 	"time"
 
 	"github.com/gotk3/gotk3/gtk"
@@ -22,42 +20,22 @@ type ClockAttribute struct {
 	CurrentTime string
 	TimeFormat  string
 
-	c chan int
-	m sync.Mutex
+	cont   func()
+	c      chan int
+	active bool
 }
 
 func NewClockAttribute(name string) *ClockAttribute {
 	clockAttr := &ClockAttribute{
 		Name:       name,
 		TimeFormat: "04:05",
-		c:          make(chan int),
 	}
 
 	return clockAttr
 }
 
-func (clockAttr *ClockAttribute) UnmarshalJSON(b []byte) error {
-	var clockAttrJSON struct {
-		Name        string
-		CurrentTime string
-		TimeFormat  string
-	}
-
-	err := json.Unmarshal(b, &clockAttrJSON)
-	if err != nil {
-		return err
-	}
-
-	clockAttr.Name = clockAttrJSON.Name
-	clockAttr.TimeFormat = clockAttrJSON.TimeFormat
-	clockAttr.CurrentTime = clockAttrJSON.CurrentTime
-
-	clockAttr.c = make(chan int)
-	return nil
-}
-
 func (clockAttr *ClockAttribute) SetClock(cont func()) {
-	go clockAttr.RunClock(cont)
+	clockAttr.cont = cont
 }
 
 func (clockAttr *ClockAttribute) UpdateAttribute(clockEdit *ClockEditor) error {
@@ -66,59 +44,62 @@ func (clockAttr *ClockAttribute) UpdateAttribute(clockEdit *ClockEditor) error {
 	return err
 }
 
-func (clock *ClockAttribute) RunClock(cont func()) {
+func (clock *ClockAttribute) InitClock() {
+	clock.c = make(chan int, 1)
+	clock.active = true
 	state := PAUSE
 	tick := time.NewTicker(time.Second)
 	run := false
+	startTime := clock.CurrentTime
+	currentTime := clock.CurrentTime
 
-	for {
-		if run {
-			select {
-			case state = <-clock.c:
-			case <-tick.C:
-				if run {
-					cont()
-					clock.tickTime()
+	go func() {
+		for {
+			var ok bool
+			if run {
+				select {
+				case state, ok = <-clock.c:
+				case <-tick.C:
+					if run {
+						clock.cont()
+						currentTime = clock.tickTime(currentTime)
+					}
+
+					continue
 				}
-
-				continue
+			} else {
+				state, ok = <-clock.c
 			}
-		} else {
-			state = <-clock.c
+
+			if !ok {
+				return
+			}
+
+			switch state {
+			case START:
+				run = true
+				tick.Reset(time.Second)
+			case PAUSE:
+				run = false
+			case STOP:
+				run = false
+				currentTime = startTime
+			default:
+				log.Printf("Clock recieved unknown value through channel %d\n", state)
+			}
 		}
-
-		switch state {
-		case START:
-			tick.Reset(time.Second)
-			run = true
-		case PAUSE:
-			run = false
-		case STOP:
-			run = false
-
-			clock.m.Lock()
-			clock.CurrentTime = "00:00"
-			clock.m.Unlock()
-
-			cont()
-		default:
-			log.Printf("Clock recieved unknown value through channel %d\n", state)
-		}
-	}
+	}()
 }
 
-func (clock *ClockAttribute) tickTime() {
-	clock.m.Lock()
-	defer clock.m.Unlock()
-
-	currentTime, err := time.Parse(clock.TimeFormat, clock.CurrentTime)
+func (clock *ClockAttribute) tickTime(currentTime string) string {
+	t, err := time.Parse(clock.TimeFormat, currentTime)
 	if err != nil {
 		log.Println(err)
-		return
+		return currentTime
 	}
 
-	currentTime = currentTime.Add(time.Second)
-	clock.CurrentTime = currentTime.Format(clock.TimeFormat)
+	tick := t.Add(time.Second)
+	return tick.Format(clock.TimeFormat)
 }
 
 type ClockEditor struct {
@@ -176,7 +157,7 @@ func NewClockEditor(name string) (clockEdit *ClockEditor, err error) {
 	actions.PackStart(stopButton, false, false, padding)
 	stopButton.SetVisible(true)
 	stopButton.Connect("clicked", func() {
-		clockEdit.c <- STOP
+		close(clockEdit.c)
 	})
 
 	timeBox, err := gtk.BoxNew(gtk.ORIENTATION_HORIZONTAL, 0)
@@ -217,6 +198,10 @@ func (clockEdit *ClockEditor) Name() string {
 }
 
 func (clockEdit *ClockEditor) UpdateEditor(clockAttr *ClockAttribute) error {
+	if !clockAttr.active {
+		clockAttr.InitClock()
+	}
+
 	clockEdit.c = clockAttr.c
 	clockEdit.entry.SetText(clockAttr.CurrentTime)
 	return nil

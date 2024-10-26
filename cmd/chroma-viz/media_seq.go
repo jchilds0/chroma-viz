@@ -20,7 +20,7 @@ type MediaSequencer struct {
 
 	numPages int
 	conn     net.Listener
-	pages    map[int]pages.Page
+	pages    map[int]*pages.Page
 	clients  map[string]net.Conn
 }
 
@@ -28,7 +28,7 @@ func NewMediaSequencer(port int, pageToEditor func(*pages.Page) error) *MediaSeq
 	var err error
 	show := &MediaSequencer{
 		rows:    make(map[int]*gtk.TreeIter, 1024),
-		pages:   make(map[int]pages.Page, 1024),
+		pages:   make(map[int]*pages.Page, 1024),
 		clients: make(map[string]net.Conn, 64),
 	}
 
@@ -190,7 +190,7 @@ func (show *MediaSequencer) handleConn(client net.Conn) {
 
 			page, ok := show.ReadPage(req.PageInfo.PageNum)
 			if ok {
-				res.Page = *page
+				res.Page = page
 
 			}
 
@@ -247,9 +247,8 @@ func (show *MediaSequencer) SelectedPage() (pageNum int, err error) {
 	return
 }
 
-func (show *MediaSequencer) WritePage(page pages.Page) (err error) {
+func (show *MediaSequencer) WritePage(page *pages.Page) (err error) {
 	_, ok := show.pages[page.PageNum]
-
 	show.pages[page.PageNum] = page
 
 	pageData := PageData{
@@ -274,7 +273,7 @@ func (show *MediaSequencer) WritePage(page pages.Page) (err error) {
 		   to animate the clock. We manually add this
 		   after parsing the page.
 		*/
-		geo.Clock.SetClock(func() { SendEngine(&page, library.CONTINUE) })
+		geo.Clock.SetClock(func() { SendEngine(page, library.CONTINUE) })
 	}
 
 	return
@@ -297,7 +296,7 @@ func (show *MediaSequencer) GetPages() map[int]PageData {
 
 func (show *MediaSequencer) ReadPage(pageNum int) (*pages.Page, bool) {
 	page, ok := show.pages[pageNum]
-	return &page, ok
+	return page, ok
 }
 
 func (show *MediaSequencer) UpdatePageInfo(pageData PageData) {

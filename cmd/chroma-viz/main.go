@@ -70,10 +70,8 @@ func closeViz() {
 			continue
 		}
 
-		if c.IsConnected() {
-			c.CloseConn()
-			log.Printf("Closed %s\n", c.Name)
-		}
+		c.CloseConn()
+		log.Printf("Closed %s\n", c.Name)
 	}
 
 	for _, c := range conn.prev {
@@ -81,10 +79,8 @@ func closeViz() {
 			continue
 		}
 
-		if c.IsConnected() {
-			c.CloseConn()
-			log.Printf("Closed %s\n", c.Name)
-		}
+		c.CloseConn()
+		log.Printf("Closed %s\n", c.Name)
 	}
 }
 
@@ -112,7 +108,7 @@ func importRandomPages(c hub.Client, tempTree *TempTree, showTree ShowTree) {
 		}
 
 		page := pages.NewPageFromTemplate(&template)
-		showTree.WritePage(*page)
+		showTree.WritePage(page)
 	}
 
 	end := time.Now()

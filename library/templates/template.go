@@ -10,6 +10,7 @@ import (
 	"reflect"
 	"slices"
 	"strings"
+	"sync"
 )
 
 /*
@@ -28,6 +29,7 @@ type Template struct {
 	SetFrame  []SetFrame
 	BindFrame []BindFrame
 	Geos      map[int]*geometry.Geometry
+	lock      sync.Mutex
 
 	Rectangle []*geometry.Rectangle
 	Circle    []*geometry.Circle

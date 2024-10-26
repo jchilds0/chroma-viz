@@ -27,7 +27,6 @@ type Connection struct {
 	Name      string
 	addr      string
 	port      int
-	connected bool
 	Conn      net.Conn
 	SetPage   chan Animator
 	SetAction chan int
@@ -44,12 +43,6 @@ func NewConnection(name, addr string, port int) *Connection {
 
 func (conn *Connection) Connect() (err error) {
 	conn.Conn, err = net.Dial("tcp", conn.addr+":"+strconv.Itoa(conn.port))
-	if err != nil {
-		conn.connected = false
-		return
-	}
-
-	conn.connected = true
 	return
 }
 
@@ -71,12 +64,7 @@ func (conn *Connection) SendPage() {
 		default:
 		}
 
-		if page == nil {
-			continue
-		}
-
-		if conn.IsConnected() == false {
-			log.Printf("%s:%d is not connected", conn.addr, conn.port)
+		if page == nil || conn.Conn == nil {
 			continue
 		}
 
@@ -89,19 +77,26 @@ func (conn *Connection) SendPage() {
 		page.Encode(&b)
 		b.WriteByte(END_OF_MESSAGE)
 
-		conn.Conn.Write([]byte(b.String()))
+		_, err := conn.Conn.Write([]byte(b.String()))
+		if err != nil {
+			log.Println("Error sending page:", err)
+		}
 	}
 }
 
-func (conn *Connection) CloseConn() {
-	if conn.Conn != nil {
-		conn.Conn.Write([]byte(string(END_OF_CONN)))
-		conn.Conn.Close()
+func (conn *Connection) CloseConn() error {
+	if conn.Conn == nil {
+		return nil
 	}
-}
 
-func (conn *Connection) IsConnected() bool {
-	return conn.connected
+	_, err := conn.Conn.Write([]byte(string(END_OF_CONN)))
+	if err != nil {
+		return err
+	}
+
+	err = conn.Conn.Close()
+	conn.Conn = nil
+	return err
 }
 
 func (conn *Connection) Read() (string, error) {
@@ -122,24 +117,20 @@ func (conn *Connection) Watcher(emit func()) {
 		time.Sleep(500 * time.Millisecond)
 		if conn.Conn == nil {
 			emit()
-			conn.connected = false
 			return
 		}
 
 		string, err := conn.Read()
 		if neterr, ok := err.(net.Error); ok && neterr.Timeout() {
-			conn.connected = true
 			continue
 		}
 
 		if err != nil {
 			log.Print(err)
-			conn.connected = false
 			emit()
 			return
 		}
 
 		log.Printf("(%s : %d): %s\n", conn.addr, conn.port, string)
-		conn.connected = true
 	}
 }

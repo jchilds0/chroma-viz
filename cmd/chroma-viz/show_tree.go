@@ -27,7 +27,7 @@ var KEYTITLE = map[int]string{
 type ShowTree interface {
 	TreeView() *gtk.TreeView
 	SelectedPage() (int, error)
-	WritePage(page pages.Page) (err error)
+	WritePage(page *pages.Page) (err error)
 	ReadPage(pageNum int) (*pages.Page, bool)
 	GetPages() map[int]PageData
 	DeletePage(pageNum int)
@@ -56,7 +56,7 @@ type Message struct {
 	Type     int
 	PageInfo PageData
 	PageData map[int]PageData
-	Page     pages.Page
+	Page     *pages.Page
 }
 
 func sendMessage(conn net.Conn, m Message) (err error) {

@@ -32,10 +32,6 @@ func SendPreview(page library.Animator, action int) {
 			continue
 		}
 
-		if !c.IsConnected() {
-			continue
-		}
-
 		c.SetPage <- page
 		c.SetAction <- action
 	}

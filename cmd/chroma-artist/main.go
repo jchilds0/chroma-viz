@@ -43,9 +43,7 @@ func main() {
 
 func closeConn() {
 	for name, c := range conn {
-		if c.IsConnected() {
-			c.CloseConn()
-			log.Printf("Closed %s\n", name)
-		}
+		c.CloseConn()
+		log.Printf("Closed %s\n", name)
 	}
 }

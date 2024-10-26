@@ -98,7 +98,7 @@ func VizGui(app *gtk.Application) {
 			edit.SetPage,
 		)
 	} else {
-		showTree = NewExternalShow(
+		showTree = NewSequencerClient(
 			conf.MediaSequencerIP,
 			conf.MediaSequencerPort,
 			edit.SetPage,
@@ -126,7 +126,7 @@ func VizGui(app *gtk.Application) {
 			page.PageNum = max(p.PageNum+1, page.PageNum)
 		}
 
-		err = showTree.WritePage(*page)
+		err = showTree.WritePage(page)
 		if err != nil {
 			log.Printf("Error importing page: %s", err)
 		}
@@ -343,7 +343,7 @@ func guiImportShow(win *gtk.ApplicationWindow, show ShowTree) error {
 			return err
 		}
 
-		var pages map[int]pages.Page
+		var pages map[int]*pages.Page
 		err = json.Unmarshal(buf, &pages)
 		if err != nil {
 			return err
@@ -407,7 +407,7 @@ func guiImportPage(win *gtk.ApplicationWindow, showTree ShowTree) error {
 			return err
 		}
 
-		showTree.WritePage(page)
+		showTree.WritePage(&page)
 	}
 
 	return nil
