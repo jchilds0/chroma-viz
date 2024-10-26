@@ -127,6 +127,7 @@ func (conn *Connection) Watcher(emit func()) {
 
 		if err != nil {
 			log.Print(err)
+			conn.CloseConn()
 			emit()
 			return
 		}
