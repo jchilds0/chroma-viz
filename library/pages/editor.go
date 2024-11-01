@@ -14,10 +14,8 @@ type Editor struct {
 	CurrentPage *Page
 	actions     *gtk.Box
 
-	tabCount    int
-	tab         []*gtk.Frame
-	tabContents map[int]gtk.IWidget
-	notebook    *gtk.Notebook
+	tab      map[int]*gtk.Frame
+	notebook *gtk.Notebook
 
 	Rect   []*geometry.RectangleEditor
 	Circle []*geometry.CircleEditor
@@ -30,8 +28,7 @@ type Editor struct {
 
 func NewEditor() (editor *Editor, err error) {
 	editor = &Editor{
-		tab:         make([]*gtk.Frame, 0, 128),
-		tabContents: make(map[int]gtk.IWidget, 128),
+		tab: make(map[int]*gtk.Frame, 128),
 	}
 
 	editor.Box, err = gtk.BoxNew(gtk.ORIENTATION_VERTICAL, 0)
@@ -52,8 +49,6 @@ func NewEditor() (editor *Editor, err error) {
 	}
 
 	editor.notebook.SetScrollable(true)
-	editor.notebook.Connect("focus-tab", editor.activateTab)
-
 	editor.Box.PackStart(editor.notebook, true, true, 0)
 
 	tab, _ := gtk.FrameNew("")
@@ -129,69 +124,65 @@ func updateGeometry[T geometry.Geometer[S], S any](geos []T, editors []S) {
 	}
 }
 
-func (edit *Editor) activateTab() {
-	pos := edit.notebook.GetCurrentPage()
-	if pos >= len(edit.tab) || pos >= len(edit.tabContents) {
-		log.Println("Tab", pos, "out of range")
-		return
-	}
-
-	tab := edit.tab[pos]
-	tab.SetVisible(true)
-
-	tabChild, err := tab.GetChild()
-	if err == nil {
-		tab.Remove(tabChild)
-	}
-
-	contents, ok := edit.tabContents[pos]
-	if !ok {
-		log.Println("Missing tab contents", pos)
-		return
-	}
-
-	tab.Add(contents)
-}
-
 func (edit *Editor) appendTab(label string, widget gtk.IWidget) (err error) {
-	index := edit.tabCount
-
-	if index < len(edit.tab) {
-		tab := edit.tab[index]
-		if tab == nil {
-			return fmt.Errorf("Missing tab %d", index)
+	p, err := widget.ToWidget().GetParent()
+	if p != nil {
+		// widget is already contained in a tab
+		frame, ok := p.(*gtk.Frame)
+		if !ok {
+			return fmt.Errorf("Tab %s editor is in a widget which is not a gtk frame", label)
 		}
 
-		edit.notebook.SetTabLabelText(tab, label)
-	} else {
-		tab, err := gtk.FrameNew("")
-		if err != nil {
-			return err
-		}
-
-		tab.Add(widget)
-		tab.SetVisible(true)
-
-		edit.tab = append(edit.tab, tab)
-
-		tabLabel, err := gtk.LabelNew(label)
-		if err != nil {
-			return err
-		}
-
-		edit.notebook.AppendPage(tab, tabLabel)
+		frame.SetVisible(true)
+		edit.notebook.SetTabLabelText(frame, label)
+		return nil
 	}
 
-	edit.tabContents[index] = widget
-	edit.tabCount++
+	for _, tab := range edit.tab {
+		if tab.IsVisible() {
+			continue
+		}
+
+		// unused tab in edit.tab collection
+		tabChild, err := tab.GetChild()
+		if err == nil && tabChild != nil {
+			tab.Remove(tabChild)
+		}
+
+		tab.SetVisible(true)
+		tab.Add(widget)
+		edit.notebook.SetTabLabelText(tab, label)
+		return nil
+	}
+
+	// create a new tab
+	tab, err := gtk.FrameNew("")
+	if err != nil {
+		return err
+	}
+
+	tab.SetVisible(true)
+	tab.Add(widget)
+
+	tabLabel, err := gtk.LabelNew(label)
+	if err != nil {
+		return err
+	}
+
+	edit.notebook.AppendPage(tab, tabLabel)
+	pos := edit.notebook.GetNPages() - 1
+	edit.tab[pos] = tab
+
 	return
 }
 
 // Load page 'page' into the editor
 func (edit *Editor) SetPage(page *Page) (err error) {
-	clear(edit.tabContents)
-	edit.tabCount = 0
 	edit.CurrentPage = page
+
+	for _, tab := range edit.tab {
+		tab.SetVisible(false)
+	}
 
 	edit.Rect = updateEditor(edit, edit.Rect, edit.CurrentPage.Rect, geometry.NewRectangleEditor)
 	edit.Circle = updateEditor(edit, edit.Circle, edit.CurrentPage.Circle, geometry.NewCircleEditor)
@@ -202,7 +193,8 @@ func (edit *Editor) SetPage(page *Page) (err error) {
 	edit.List = updateEditor(edit, edit.List, edit.CurrentPage.List, geometry.NewListEditor)
 
 	edit.notebook.SetCurrentPage(0)
-	edit.activateTab()
+	//edit.activateTab()
+
 	return
 }
 
@@ -232,7 +224,10 @@ func updateEditor[T geometry.Editor[S], S geometry.Geometer[T]](
 			continue
 		}
 
-		edit.appendTab(geos[i].GetName(), editors[i].GetBox())
+		err = edit.appendTab(geos[i].GetName(), editors[i].GetBox())
+		if err != nil {
+			log.Println("Updating editor:", err)
+		}
 	}
 
 	return editors
