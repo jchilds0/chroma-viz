@@ -6,7 +6,7 @@ import (
 	"reflect"
 )
 
-func (hub *DataBase) ImportTemplate(temp templates.Template) (err error) {
+func (hub *DataBase) ImportTemplate(temp *templates.Template) (err error) {
 	err = hub.AddTemplate(temp.TempID, temp.Title, temp.Layer)
 	if err != nil {
 		return
@@ -63,7 +63,7 @@ func (hub *DataBase) ImportTemplate(temp templates.Template) (err error) {
 	}
 
 	hub.lock.Lock()
-	hub.templates[int(temp.TempID)] = &temp
+	hub.templates[int(temp.TempID)] = temp
 	hub.lock.Unlock()
 
 	return

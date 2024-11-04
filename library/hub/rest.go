@@ -69,7 +69,7 @@ func (hub *DataBase) templatesPOST(c *gin.Context) {
 			continue
 		}
 
-		err = hub.ImportTemplate(*temp)
+		err = hub.ImportTemplate(temp)
 		if err != nil {
 			Logger("Error put templates: %s", err)
 		}
@@ -112,7 +112,7 @@ func (hub *DataBase) templatePOST(c *gin.Context) {
 		return
 	}
 
-	err = hub.ImportTemplate(temp)
+	err = hub.ImportTemplate(&temp)
 	if err != nil {
 		Logger("Error put template: %s", err)
 	}

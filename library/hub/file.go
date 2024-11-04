@@ -9,7 +9,7 @@ import (
 )
 
 func Logger(message string, args ...any) {
-	file, err := os.OpenFile("./chroma_hub.log", os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0600)
+	file, err := os.OpenFile("./log/chroma_hub.log", os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0600)
 	if err != nil {
 		log.Printf("Error opening log file (%s)", err)
 	}
@@ -32,7 +32,7 @@ func (hub *DataBase) ImportTemplates(fileName string) error {
 	}
 
 	for _, temp := range temp.Templates {
-		hub.ImportTemplate(*temp)
+		hub.ImportTemplate(temp)
 		log.Printf("Loaded Template %d (%s)", temp.TempID, temp.Title)
 	}
 

@@ -1,9 +1,9 @@
 package library
 
 // #cgo pkg-config: gtk+-3.0 glew freetype2
-// #cgo CFLAGS: -I/home/josh/programming/chroma-engine/src
-// #cgo LDFLAGS: -L/home/josh/programming/chroma-engine/build -lchroma -lm -lpng
-// #include "chroma-typedefs.h"
+// #cgo CFLAGS: -I${SRCDIR}/../chroma-engine/
+// #cgo LDFLAGS: -L${SRCDIR}/../chroma-engine/ -lchroma -lm -lpng
+// #include "chroma-engine.h"
 // #include <stdlib.h>
 import "C"
 
@@ -101,7 +101,10 @@ func startPreview(conf Config) (prev *gtk.GLArea, err error) {
 	confStr := C.CString(conf.PreviewConfig)
 	defer C.free(unsafe.Pointer(confStr))
 
-	status := C.chroma_init_renderer(confStr)
+	logStr := C.CString("./log")
+	defer C.free(unsafe.Pointer(logStr))
+
+	status := C.chroma_init_renderer(confStr, logStr)
 	if status < 0 {
 		err = errors.New("Error initializing preview renderer")
 		return

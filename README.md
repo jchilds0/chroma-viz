@@ -3,9 +3,22 @@ Real time broadcast graphics application built in [Golang][go] using [GTK][gotk]
 
 ## Installation
 
-- Build [Chroma Engine][chroma-engine].
 - Copy `default_conf.json` in `artist/` and `viz/` and rename to `conf.json`.
-- Update the compiler flags in `library/preview.go` to the location of `libchroma` library (built by [Chroma Engine][chroma-engine]).
+- Download and build [Chroma Engine][chroma-engine].
+The preview window uses `cgo` to create a GtkGLRender window using [Chroma Engine][chroma-engine].
+The expected file structure is shown below, either copy or symlink files from [Chroma Engine][chroma-engine].
+For an alternative structure, modify the compiler flags in `library/preview.go`.
+
+```
+chroma-viz
+├───library
+│   └───preview.go
+├───chroma-engine
+│   ├───libchroma.a
+│   └───chroma-engine.h
+...
+```
+
 - Setup a sql database (e.g. `mariadb`)
 
 ### Chroma Hub 

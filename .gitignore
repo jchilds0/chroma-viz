@@ -2,6 +2,7 @@
 bin/
 log/
 perf/*.prof
+chroma-engine
 
 *.log
 */*.log
