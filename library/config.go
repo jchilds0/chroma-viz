@@ -20,9 +20,7 @@ type Config struct {
 	MediaSequencer     bool
 	MediaSequencerIP   string
 	MediaSequencerPort int
-	PreviewDirectory   string
 	PreviewConfig      string
-	PreviewName        string
 	Connections        []Conn
 }
 
