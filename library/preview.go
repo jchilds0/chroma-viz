@@ -1,10 +1,18 @@
 package library
 
-import (
-	"log"
-	"os/exec"
-	"strconv"
+// #cgo pkg-config: gtk+-3.0 glew freetype2
+// #cgo CFLAGS: -I/home/josh/programming/chroma-engine/src
+// #cgo LDFLAGS: -L/home/josh/programming/chroma-engine/build -lchroma -lm -lpng
+// #include "chroma-typedefs.h"
+// #include <stdlib.h>
+import "C"
 
+import (
+	"errors"
+	"log"
+	"unsafe"
+
+	"github.com/gotk3/gotk3/glib"
 	"github.com/gotk3/gotk3/gtk"
 )
 
@@ -66,52 +74,53 @@ func SetupPreviewWindow(conf Config, takeOn, cont, takeOff func()) (box *gtk.Box
 	})
 
 	window.SetVisible(true)
-	soc, err := startPreview(conf)
+	glArea, err := startPreview(conf)
 	if err != nil {
 		return
 	}
 
-	window.Add(soc)
+	window.Add(glArea)
 
 	restart.Connect("clicked", func() {
-		soc.Destroy()
+		log.Println("Restart Preview not implemented")
+		return
 
-		soc, err = startPreview(conf)
+		glArea, err = startPreview(conf)
 		if err != nil {
 			log.Print(err)
 			return
 		}
 
-		window.Add(soc)
+		window.Add(glArea)
 	})
 
 	return
 }
 
-func startPreview(conf Config) (soc *gtk.Socket, err error) {
-	soc, err = gtk.SocketNew()
-	if err != nil {
+func startPreview(conf Config) (prev *gtk.GLArea, err error) {
+	confStr := C.CString(conf.PreviewConfig)
+	defer C.free(unsafe.Pointer(confStr))
+
+	status := C.chroma_init_renderer(confStr)
+	if status < 0 {
+		err = errors.New("Error initializing preview renderer")
 		return
 	}
 
-	soc.SetVisible(true)
-	soc.Connect("realize", func(soc *gtk.Socket) {
-		xid := soc.GetId()
+	c := C.chroma_new_renderer()
+	if c == nil {
+		err = errors.New("cgo returned unexpected nil pointer")
+		return
+	}
 
-		chromaEnginePath := conf.PreviewDirectory + conf.PreviewName
-		prev := exec.Command(
-			chromaEnginePath,
-			"-w", strconv.Itoa(int(xid)),
-			"-c", conf.PreviewConfig,
-		)
+	obj := glib.Take(unsafe.Pointer(c))
+	prev = &gtk.GLArea{
+		Widget: gtk.Widget{
+			InitiallyUnowned: glib.InitiallyUnowned{
+				Object: obj,
+			},
+		},
+	}
 
-		log.Print(prev.String())
-
-		if err := prev.Start(); err != nil {
-			log.Print(err)
-		}
-	})
-
-	soc.Connect("plug-added", func() { log.Printf("Preview window connected") })
 	return
 }

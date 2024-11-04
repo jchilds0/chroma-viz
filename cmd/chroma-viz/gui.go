@@ -172,7 +172,7 @@ func VizGui(app *gtk.Application) {
 		func() { SendPreview(edit.CurrentPage, library.ANIMATE_OFF) },
 	)
 	if err != nil {
-		log.Fatalf("Error setting up preview window: %s", err)
+		log.Println("Error setting up preview window:", err)
 	}
 
 	start := time.Now()

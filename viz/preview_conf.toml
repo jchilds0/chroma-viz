@@ -1,3 +1,6 @@
+[ChromaHub]
+Addr = "127.0.0.1"
+Port = 9000
+
 [Engine]
-ChromaHubAddr = "127.0.0.1"
-ChromaHubPort = 9000
+Port = 6100
