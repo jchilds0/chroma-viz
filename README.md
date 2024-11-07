@@ -68,6 +68,11 @@ https://github.com/user-attachments/assets/6b88397d-30d7-447f-b158-35ad6523b273
 
 This is a personal project, not an application intended for production.
 
+## Credits
+
+Icons from [UXWing][uxwing]
+
+[uxwing]: https://uxwing.com
 [go]: https://github.com/golang/go
 [gotk]: https://github.com/gotk3/gotk3
 [chroma-engine]: https://github.com/jchilds0/chroma-engine

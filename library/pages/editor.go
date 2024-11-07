@@ -193,8 +193,6 @@ func (edit *Editor) SetPage(page *Page) (err error) {
 	edit.List = updateEditor(edit, edit.List, edit.CurrentPage.List, geometry.NewListEditor)
 
 	edit.notebook.SetCurrentPage(0)
-	//edit.activateTab()
-
 	return
 }
 

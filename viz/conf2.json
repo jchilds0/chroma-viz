@@ -7,7 +7,7 @@
     "MediaSequencer": false,
     "MediaSequencerIP": "localhost",
     "MediaSequencerPort": 9009,
-    "PreviewConfig": "viz/preview_conf.toml",
+    "PreviewConfig": "viz/preview_conf2.toml",
     "Connections": [
         {
             "Name": "Engine",

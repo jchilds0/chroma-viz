@@ -151,8 +151,8 @@ func NewSequencerClient(addr string, port int, pageToEditor func(*pages.Page) er
 				return
 			}
 
-			pageToEditor(page)
 			SendPreview(page, library.ANIMATE_ON)
+			pageToEditor(page)
 		})
 
 	pages := show.GetPages()

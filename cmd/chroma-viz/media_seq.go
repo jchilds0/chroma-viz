@@ -135,8 +135,8 @@ func NewMediaSequencer(port int, pageToEditor func(*pages.Page) error) *MediaSeq
 				return
 			}
 
-			pageToEditor(page)
 			SendPreview(page, library.ANIMATE_ON)
+			pageToEditor(page)
 		})
 
 	show.conn, err = net.Listen("tcp", ":"+strconv.Itoa(port))
