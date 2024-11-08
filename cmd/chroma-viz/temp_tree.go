@@ -10,10 +10,9 @@ import (
 )
 
 const (
-	PREVIEW = iota
-	TOP_LEFT
-	LOWER_FRAME
-	TICKER
+	TEMP_NAME = iota
+	TEMP_ID
+	TEMP_LAYER
 )
 
 type TempTree struct {
@@ -22,39 +21,38 @@ type TempTree struct {
 	sendTemplate func(int)
 }
 
-func NewTempTree(templateToShow func(int)) *TempTree {
+func NewTempTree(templateToShow func(int)) (*TempTree, error) {
 	var err error
 	temp := &TempTree{sendTemplate: templateToShow}
 
 	temp.treeView, err = gtk.TreeViewNew()
 	if err != nil {
-		log.Fatalf("Error creating temp list (%s)", err)
+		return nil, err
 	}
 
-	// create tree columns
-	cell, err := gtk.CellRendererTextNew()
-	if err != nil {
-		log.Fatalf("Error creating temp list (%s)", err)
+	titles := []string{"Name", "Template ID", "Layer"}
+	for i, name := range titles {
+		cell, err := gtk.CellRendererTextNew()
+		if err != nil {
+			return nil, err
+		}
+
+		column, err := gtk.TreeViewColumnNewWithAttribute(name, cell, "text", i)
+		if err != nil {
+			return nil, err
+		}
+
+		temp.treeView.AppendColumn(column)
+
+		if i == TEMP_ID {
+			column.SetSortIndicator(true)
+			column.SetSortColumnID(1)
+		}
 	}
 
-	column, err := gtk.TreeViewColumnNewWithAttribute("Name", cell, "text", 0)
+	temp.treeList, err = gtk.ListStoreNew(glib.TYPE_STRING, glib.TYPE_INT, glib.TYPE_INT)
 	if err != nil {
-		log.Fatalf("Error creating temp list (%s)", err)
-	}
-
-	temp.treeView.AppendColumn(column)
-	column, err = gtk.TreeViewColumnNewWithAttribute("Template ID", cell, "text", 1)
-	if err != nil {
-		log.Fatalf("Error creating temp list (%s)", err)
-	}
-
-	column.SetSortIndicator(true)
-	column.SetSortColumnID(1)
-	temp.treeView.AppendColumn(column)
-
-	temp.treeList, err = gtk.ListStoreNew(glib.TYPE_STRING, glib.TYPE_INT)
-	if err != nil {
-		log.Fatalf("Error creating temp list (%s)", err)
+		return nil, err
 	}
 
 	temp.treeView.SetModel(temp.treeList)
@@ -64,42 +62,48 @@ func NewTempTree(templateToShow func(int)) *TempTree {
 		func(tree *gtk.TreeView, path *gtk.TreePath, column *gtk.TreeViewColumn) {
 			iter, err := temp.treeList.GetIter(path)
 			if err != nil {
-				log.Fatalf("Error sending template to show (%s)", err)
+				log.Println("Error sending template to show:", err)
 			}
 
 			model := &temp.treeList.TreeModel
 			tempID, err := util.ModelGetValue[int](model, iter, 1)
 			if err != nil {
-				log.Fatalf("Error sending template to show (%s)", err)
+				log.Println("Error sending template to show:", err)
 			}
 
 			temp.sendTemplate(tempID)
 		})
 
-	return temp
+	return temp, nil
 }
 
 func (temp *TempTree) ImportTemplates(c hub.Client) {
-	var tempids map[int]string
+	var temps []hub.TemplateHeader
 
-	err := c.GetJSON("/template/list", &tempids)
+	err := c.GetJSON("/template/list", &temps)
 	if err != nil {
 		log.Printf("Error importing templates: %s", err)
 		return
 	}
 
-	for id, title := range tempids {
+	for _, header := range temps {
 		iter := temp.treeList.Append()
-		err := temp.treeList.SetValue(iter, 0, title)
+		err := temp.treeList.SetValue(iter, TEMP_NAME, header.Title)
 		if err != nil {
 			log.Printf("Error importing templates: %s", err)
-			return
+			continue
 		}
 
-		err = temp.treeList.SetValue(iter, 1, id)
+		err = temp.treeList.SetValue(iter, TEMP_ID, header.TemplateID)
 		if err != nil {
 			log.Printf("Error importing templates: %s", err)
-			return
+			continue
+		}
+
+		err = temp.treeList.SetValue(iter, TEMP_LAYER, header.Layer)
+		if err != nil {
+			log.Printf("Error importing templates: %s", err)
+			continue
 		}
 	}
 }

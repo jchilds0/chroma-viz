@@ -3,7 +3,9 @@ package main
 import (
 	"bufio"
 	"chroma-viz/library/pages"
+	"chroma-viz/library/util"
 	"encoding/json"
+	"log"
 	"net"
 
 	"github.com/gotk3/gotk3/gtk"
@@ -14,14 +16,102 @@ const (
 	TITLE
 	TEMPLATE_ID
 	TEMPLATE_NAME
+	TEMPLATE_LAYER
 	NUM_COL
 )
 
 var KEYTITLE = map[int]string{
-	PAGENUM:       "Page Num",
-	TITLE:         "Title",
-	TEMPLATE_ID:   "Template ID",
-	TEMPLATE_NAME: "Template Name",
+	PAGENUM:        "Page Num",
+	TITLE:          "Title",
+	TEMPLATE_ID:    "Template ID",
+	TEMPLATE_NAME:  "Template Name",
+	TEMPLATE_LAYER: "Template Layer",
+}
+
+func createShowTreeModel(updateTitle func(title string, pageNum int)) (*gtk.TreeView, error) {
+	treeView, err := gtk.TreeViewNew()
+	if err != nil {
+		return nil, err
+	}
+
+	treeView.SetReorderable(true)
+
+	cell, err := gtk.CellRendererTextNew()
+	if err != nil {
+		return nil, err
+	}
+
+	column, err := gtk.TreeViewColumnNewWithAttribute(KEYTITLE[PAGENUM], cell, "text", PAGENUM)
+	if err != nil {
+		return nil, err
+	}
+
+	column.SetResizable(true)
+	treeView.AppendColumn(column)
+
+	title, err := gtk.CellRendererTextNew()
+	if err != nil {
+		return nil, err
+	}
+
+	title.SetProperty("editable", true)
+	title.Connect("edited",
+		func(cell *gtk.CellRendererText, path string, text string) {
+			list, err := treeView.GetModel()
+			if err != nil {
+				log.Println("Error editing page:", err)
+				return
+			}
+
+			model := list.ToTreeModel()
+			iter, err := model.GetIterFromString(path)
+			if err != nil {
+				log.Println("Error editing page:", err)
+				return
+			}
+
+			pageNum, err := util.ModelGetValue[int](model, iter, PAGENUM)
+			if err != nil {
+				log.Println("Error editing page:", err)
+				return
+			}
+
+			updateTitle(text, pageNum)
+		})
+
+	column, err = gtk.TreeViewColumnNewWithAttribute(KEYTITLE[TITLE], title, "text", TITLE)
+	if err != nil {
+		return nil, err
+	}
+
+	column.SetExpand(true)
+	column.SetResizable(true)
+	treeView.AppendColumn(column)
+
+	column, err = gtk.TreeViewColumnNewWithAttribute(KEYTITLE[TEMPLATE_ID], cell, "text", TEMPLATE_ID)
+	if err != nil {
+		return nil, err
+	}
+
+	column.SetResizable(true)
+	treeView.AppendColumn(column)
+
+	column, err = gtk.TreeViewColumnNewWithAttribute(KEYTITLE[TEMPLATE_NAME], cell, "text", TEMPLATE_NAME)
+	if err != nil {
+		return nil, err
+	}
+
+	column.SetResizable(true)
+	treeView.AppendColumn(column)
+
+	column, err = gtk.TreeViewColumnNewWithAttribute(KEYTITLE[TEMPLATE_LAYER], cell, "text", TEMPLATE_LAYER)
+	if err != nil {
+		return nil, err
+	}
+
+	column.SetResizable(true)
+	treeView.AppendColumn(column)
+	return treeView, nil
 }
 
 type ShowTree interface {

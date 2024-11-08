@@ -22,7 +22,7 @@ type SequencerClient struct {
 	conn   net.Conn // send and recieve pages
 }
 
-func NewSequencerClient(addr string, port int, pageToEditor func(*pages.Page) error) *SequencerClient {
+func NewSequencerClient(addr string, port int, pageToEditor func(*pages.Page) error) (*SequencerClient, error) {
 	var err error
 	show := &SequencerClient{
 		rows: make(map[int]*gtk.TreeIter),
@@ -30,7 +30,7 @@ func NewSequencerClient(addr string, port int, pageToEditor func(*pages.Page) er
 
 	show.server, err = net.Dial("tcp", addr+":"+strconv.Itoa(port))
 	if err != nil {
-		log.Fatal(err)
+		return nil, err
 	}
 
 	m := Message{
@@ -39,95 +39,40 @@ func NewSequencerClient(addr string, port int, pageToEditor func(*pages.Page) er
 
 	err = sendMessage(show.server, m)
 	if err != nil {
-		log.Fatal(err)
+		return nil, err
 	}
 
 	show.conn, err = net.Dial("tcp", addr+":"+strconv.Itoa(port))
 	if err != nil {
-		log.Fatal(err)
+		return nil, err
 	}
-
-	show.treeView, err = gtk.TreeViewNew()
-	if err != nil {
-		log.Fatalln("Error creating show:", err)
-	}
-
-	show.treeView.SetReorderable(true)
 
 	show.treeList, err = gtk.ListStoreNew(
 		glib.TYPE_INT,
 		glib.TYPE_STRING,
 		glib.TYPE_INT,
 		glib.TYPE_STRING,
+		glib.TYPE_STRING,
 	)
 	if err != nil {
-		log.Fatalln("Error creating show:", err)
+		return nil, err
+	}
+
+	show.treeView, err = createShowTreeModel(func(text string, pageNum int) {
+		row, ok := show.rows[pageNum]
+		if !ok {
+			log.Printf("Missing iter for page %d", pageNum)
+			return
+		}
+
+		show.UpdatePageTitle(pageNum, text)
+		show.treeList.SetValue(row, TITLE, text)
+	})
+	if err != nil {
+		return nil, err
 	}
 
 	show.treeView.SetModel(show.treeList)
-
-	cell, err := gtk.CellRendererTextNew()
-	if err != nil {
-		log.Fatalln("Error creating show:", err)
-	}
-
-	column, err := gtk.TreeViewColumnNewWithAttribute(KEYTITLE[PAGENUM], cell, "text", PAGENUM)
-	if err != nil {
-		log.Fatalln("Error creating show:", err)
-	}
-
-	column.SetResizable(true)
-	show.treeView.AppendColumn(column)
-
-	title, err := gtk.CellRendererTextNew()
-	if err != nil {
-		log.Fatalln("Error creating show:", err)
-	}
-
-	title.SetProperty("editable", true)
-	title.Connect("edited",
-		func(cell *gtk.CellRendererText, path string, text string) {
-			iter, err := show.treeList.GetIterFromString(path)
-			if err != nil {
-				log.Println("Error editing page:", err)
-				return
-			}
-
-			model := show.treeList.ToTreeModel()
-			pageNum, err := util.ModelGetValue[int](model, iter, PAGENUM)
-			if err != nil {
-				log.Println("Error editing page:", err)
-				return
-			}
-
-			show.UpdatePageTitle(pageNum, text)
-			show.treeList.SetValue(iter, TITLE, text)
-		})
-
-	column, err = gtk.TreeViewColumnNewWithAttribute(KEYTITLE[TITLE], title, "text", TITLE)
-	if err != nil {
-		log.Fatalln("Error creating show:", err)
-	}
-
-	column.SetExpand(true)
-	column.SetResizable(true)
-	show.treeView.AppendColumn(column)
-
-	column, err = gtk.TreeViewColumnNewWithAttribute(KEYTITLE[TEMPLATE_ID], cell, "text", TEMPLATE_ID)
-	if err != nil {
-		log.Fatalln("Error creating show:", err)
-	}
-
-	column.SetResizable(true)
-	show.treeView.AppendColumn(column)
-
-	column, err = gtk.TreeViewColumnNewWithAttribute(KEYTITLE[TEMPLATE_NAME], cell, "text", TEMPLATE_NAME)
-	if err != nil {
-		log.Fatalln("Error creating show:", err)
-	}
-
-	column.SetResizable(true)
-	show.treeView.AppendColumn(column)
 
 	// send page to editor on double click
 	show.treeView.Connect("row-activated",
@@ -162,7 +107,7 @@ func NewSequencerClient(addr string, port int, pageToEditor func(*pages.Page) er
 
 	go show.pageUpdates()
 
-	return show
+	return show, nil
 }
 
 func (show *SequencerClient) pageUpdates() {

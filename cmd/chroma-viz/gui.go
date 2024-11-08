@@ -88,24 +88,28 @@ func VizGui(app *gtk.Application) {
 
 	edit, err := pages.NewEditor()
 	if err != nil {
-		log.Fatal(err)
+		log.Fatalln("Error creating editor:", err)
 	}
 
 	var showTree ShowTree
 	if conf.MediaSequencer {
-		showTree = NewMediaSequencer(
+		showTree, err = NewMediaSequencer(
 			conf.MediaSequencerPort,
 			edit.SetPage,
 		)
 	} else {
-		showTree = NewSequencerClient(
+		showTree, err = NewSequencerClient(
 			conf.MediaSequencerIP,
 			conf.MediaSequencerPort,
 			edit.SetPage,
 		)
 	}
 
-	tempTree := NewTempTree(func(tempid int) {
+	if err != nil {
+		log.Fatalln("Error creating show tree:", err)
+	}
+
+	tempTree, err := NewTempTree(func(tempid int) {
 		var template templates.Template
 		path := fmt.Sprintf("/template/%d", tempid)
 
@@ -131,6 +135,9 @@ func VizGui(app *gtk.Application) {
 			log.Printf("Error importing page: %s", err)
 		}
 	})
+	if err != nil {
+		log.Fatalln("Error creating temp tree:", err)
+	}
 
 	edit.AddAction("Take On", true, func() { SendEngine(edit.CurrentPage, library.ANIMATE_ON) })
 	edit.AddAction("Continue", true, func() { SendEngine(edit.CurrentPage, library.CONTINUE) })
@@ -432,7 +439,7 @@ func guiExportPage(win *gtk.ApplicationWindow, showTree ShowTree) error {
 	}
 	defer dialog.Destroy()
 
-	dialog.SetCurrentName(page.Title + ".json")
+	dialog.SetCurrentName(page.Name + ".json")
 	res := dialog.Run()
 
 	if res == gtk.RESPONSE_ACCEPT {

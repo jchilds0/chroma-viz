@@ -114,9 +114,15 @@ func (hub *DataBase) CleanDB() {
 	return
 }
 
-func (hub *DataBase) TempIDs() (ids map[int]string, err error) {
+type TemplateHeader struct {
+	TemplateID int
+	Title      string
+	Layer      int
+}
+
+func (hub *DataBase) TempIDs() (temps []TemplateHeader, err error) {
 	q := `
-        SELECT t.templateID, t.Name
+        SELECT t.templateID, t.Name, t.Layer
         FROM template t;
     `
 
@@ -125,19 +131,20 @@ func (hub *DataBase) TempIDs() (ids map[int]string, err error) {
 		return
 	}
 
-	ids = make(map[int]string)
+	temps = make([]TemplateHeader, 0, 1024)
 
 	var (
 		tempID int
 		title  string
+		layer  int
 	)
 	for rows.Next() {
-		err = rows.Scan(&tempID, &title)
+		err = rows.Scan(&tempID, &title, &layer)
 		if err != nil {
 			return
 		}
 
-		ids[tempID] = title
+		temps = append(temps, TemplateHeader{TemplateID: tempID, Title: title, Layer: layer})
 	}
 
 	return

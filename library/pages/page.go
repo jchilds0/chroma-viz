@@ -30,14 +30,14 @@ import (
 type Page struct {
 	templates.Template
 	PageNum int
-	Title   string
+	Name    string
 	lock    sync.Mutex
 }
 
 func NewPage(temp *templates.Template) *Page {
 	page := &Page{
 		Template: *temp,
-		Title:    temp.Title,
+		Name:     temp.Title,
 		PageNum:  1,
 	}
 
@@ -61,7 +61,7 @@ func (page *Page) PageToListRow() (row *gtk.ListBoxRow, err error) {
 
 	row.Add(pageText)
 
-	titleText, err := TextToBuffer(page.Title)
+	titleText, err := TextToBuffer(page.Name)
 	if err != nil {
 		return
 	}

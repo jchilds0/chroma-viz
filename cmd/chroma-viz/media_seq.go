@@ -24,7 +24,7 @@ type MediaSequencer struct {
 	clients  map[string]net.Conn
 }
 
-func NewMediaSequencer(port int, pageToEditor func(*pages.Page) error) *MediaSequencer {
+func NewMediaSequencer(port int, pageToEditor func(*pages.Page) error) (*MediaSequencer, error) {
 	var err error
 	show := &MediaSequencer{
 		rows:    make(map[int]*gtk.TreeIter, 1024),
@@ -32,86 +32,25 @@ func NewMediaSequencer(port int, pageToEditor func(*pages.Page) error) *MediaSeq
 		clients: make(map[string]net.Conn, 64),
 	}
 
-	show.treeView, err = gtk.TreeViewNew()
-	if err != nil {
-		log.Fatalln("Error creating show:", err)
-	}
-
-	show.treeView.SetReorderable(true)
-
 	show.treeList, err = gtk.ListStoreNew(
 		glib.TYPE_INT,
 		glib.TYPE_STRING,
 		glib.TYPE_INT,
 		glib.TYPE_STRING,
+		glib.TYPE_INT,
 	)
 	if err != nil {
-		log.Fatalln("Error creating show:", err)
+		return nil, err
+	}
+
+	show.treeView, err = createShowTreeModel(func(text string, pageNum int) {
+		show.UpdatePageInfo(PageData{PageNum: pageNum, Title: text})
+	})
+	if err != nil {
+		return nil, err
 	}
 
 	show.treeView.SetModel(show.treeList)
-
-	cell, err := gtk.CellRendererTextNew()
-	if err != nil {
-		log.Fatalln("Error creating show:", err)
-	}
-
-	column, err := gtk.TreeViewColumnNewWithAttribute(KEYTITLE[PAGENUM], cell, "text", PAGENUM)
-	if err != nil {
-		log.Fatalln("Error creating show:", err)
-	}
-
-	column.SetResizable(true)
-	show.treeView.AppendColumn(column)
-
-	title, err := gtk.CellRendererTextNew()
-	if err != nil {
-		log.Fatalln("Error creating show:", err)
-	}
-
-	title.SetProperty("editable", true)
-	title.Connect("edited",
-		func(cell *gtk.CellRendererText, path string, text string) {
-			iter, err := show.treeList.GetIterFromString(path)
-			if err != nil {
-				log.Println("Error editing page:", err)
-				return
-			}
-
-			model := show.treeList.ToTreeModel()
-			pageNum, err := util.ModelGetValue[int](model, iter, PAGENUM)
-			if err != nil {
-				log.Println("Error editing page:", err)
-				return
-			}
-
-			show.UpdatePageInfo(PageData{PageNum: pageNum, Title: text})
-		})
-
-	column, err = gtk.TreeViewColumnNewWithAttribute(KEYTITLE[TITLE], title, "text", TITLE)
-	if err != nil {
-		log.Fatalln("Error creating show:", err)
-	}
-
-	column.SetExpand(true)
-	column.SetResizable(true)
-	show.treeView.AppendColumn(column)
-
-	column, err = gtk.TreeViewColumnNewWithAttribute(KEYTITLE[TEMPLATE_ID], cell, "text", TEMPLATE_ID)
-	if err != nil {
-		log.Fatalln("Error creating show:", err)
-	}
-
-	column.SetResizable(true)
-	show.treeView.AppendColumn(column)
-
-	column, err = gtk.TreeViewColumnNewWithAttribute(KEYTITLE[TEMPLATE_NAME], cell, "text", TEMPLATE_NAME)
-	if err != nil {
-		log.Fatalln("Error creating show:", err)
-	}
-
-	column.SetResizable(true)
-	show.treeView.AppendColumn(column)
 
 	// send page to editor on double click
 	show.treeView.Connect("row-activated",
@@ -141,12 +80,11 @@ func NewMediaSequencer(port int, pageToEditor func(*pages.Page) error) *MediaSeq
 
 	show.conn, err = net.Listen("tcp", ":"+strconv.Itoa(port))
 	if err != nil {
-		log.Fatal(err)
+		return nil, err
 	}
 
 	go show.listen()
-
-	return show
+	return show, nil
 }
 
 func (show *MediaSequencer) listen() {
@@ -252,10 +190,11 @@ func (show *MediaSequencer) WritePage(page *pages.Page) (err error) {
 	show.pages[page.PageNum] = page
 
 	pageData := PageData{
-		PageNum: page.PageNum,
-		Title:   page.Title,
-		TempID:  int(page.TempID),
-		Layer:   page.Layer,
+		PageNum:  page.PageNum,
+		Title:    page.Name,
+		TempID:   int(page.TempID),
+		TempName: page.Title,
+		Layer:    page.Layer,
 	}
 	show.UpdatePageInfo(pageData)
 
@@ -286,7 +225,7 @@ func (show *MediaSequencer) GetPages() map[int]PageData {
 		pageData[page.PageNum] = PageData{
 			PageNum: page.PageNum,
 			TempID:  int(page.TempID),
-			Title:   page.Title,
+			Title:   page.Name,
 			Layer:   page.Layer,
 		}
 	}
@@ -310,7 +249,7 @@ func (show *MediaSequencer) UpdatePageInfo(pageData PageData) {
 		show.rows[pageData.PageNum] = show.treeList.Append()
 	}
 
-	page.Title = pageData.Title
+	page.Name = pageData.Title
 	show.pages[pageData.PageNum] = page
 
 	iter := show.rows[pageData.PageNum]
@@ -324,6 +263,10 @@ func (show *MediaSequencer) UpdatePageInfo(pageData PageData) {
 
 	if pageData.TempName != "" {
 		show.treeList.SetValue(iter, TEMPLATE_NAME, pageData.TempName)
+	}
+
+	if pageData.Layer != 0 {
+		show.treeList.SetValue(iter, TEMPLATE_LAYER, pageData.Layer)
 	}
 
 	m := Message{
