@@ -340,7 +340,15 @@ func (show *MediaSequencer) UpdatePageInfo(pageData PageData) {
 }
 
 func (show *MediaSequencer) DeletePage(pageNum int) {
-	log.Fatal("Not implemented")
+	row, ok := show.rows[pageNum]
+	if !ok {
+		log.Println("Deleting page %d, page does not exist", pageNum)
+		return
+	}
+
+	show.treeList.Remove(row)
+	delete(show.rows, pageNum)
+	delete(show.pages, pageNum)
 }
 
 func (show *MediaSequencer) Clear() {
