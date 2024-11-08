@@ -121,7 +121,7 @@ func VizGui(app *gtk.Application) {
 			return
 		}
 
-		page := pages.NewPageFromTemplate(&template)
+		page := pages.NewPage(&template)
 		for _, p := range showTree.GetPages() {
 			page.PageNum = max(p.PageNum+1, page.PageNum)
 		}
@@ -148,7 +148,7 @@ func VizGui(app *gtk.Application) {
 
 		SendPreview(edit.CurrentPage, library.UPDATE)
 		var template templates.Template
-		path := fmt.Sprintf("/template/%d", edit.CurrentPage.TemplateID)
+		path := fmt.Sprintf("/template/%d", edit.CurrentPage.TempID)
 
 		err := conf.ChromaHub.GetJSON(path, &template)
 		if err != nil {

@@ -28,59 +28,24 @@ import (
 */
 
 type Page struct {
-	PageNum    int
-	Title      string
-	TemplateID int
-	Layer      int
-	lock       sync.Mutex
-	geo        map[int]*geometry.Geometry
-
-	Rect   []*geometry.Rectangle
-	Circle []*geometry.Circle
-	Clock  []*geometry.Clock
-	Image  []*geometry.Image
-	Poly   []*geometry.Polygon
-	Text   []*geometry.Text
-	List   []*geometry.List
+	templates.Template
+	PageNum int
+	Title   string
+	lock    sync.Mutex
 }
 
-func NewPage(pageNum, tempID, layer, numGeo int, title string) *Page {
+func NewPage(temp *templates.Template) *Page {
 	page := &Page{
-		PageNum:    pageNum,
-		Title:      title,
-		TemplateID: tempID,
-		Layer:      layer,
+		Template: *temp,
+		Title:    temp.Title,
+		PageNum:  1,
 	}
-
-	page.geo = make(map[int]*geometry.Geometry, numGeo)
-
-	page.Rect = make([]*geometry.Rectangle, 0, numGeo)
-	page.Circle = make([]*geometry.Circle, 0, numGeo)
-	page.Clock = make([]*geometry.Clock, 0, numGeo)
-	page.Image = make([]*geometry.Image, 0, numGeo)
-	page.Poly = make([]*geometry.Polygon, 0, numGeo)
-	page.Text = make([]*geometry.Text, 0, numGeo)
-	page.List = make([]*geometry.List, 0, numGeo)
-
-	return page
-}
-
-func NewPageFromTemplate(temp *templates.Template) *Page {
-	page := NewPage(1, int(temp.TempID), temp.Layer, temp.NumGeometry(), temp.Title)
-
-	page.Rect = temp.Rectangle
-	page.Circle = temp.Circle
-	page.Clock = temp.Clock
-	page.Image = temp.Image
-	page.Poly = temp.Polygon
-	page.Text = temp.Text
-	page.List = temp.List
 
 	return page
 }
 
 func (page *Page) GetGeometry(geoID int) *geometry.Geometry {
-	return page.geo[geoID]
+	return page.Geos[geoID]
 }
 
 func (page *Page) PageToListRow() (row *gtk.ListBoxRow, err error) {
@@ -164,14 +129,14 @@ func (page *Page) Encode(b *strings.Builder) {
 	page.lock.Lock()
 	defer page.lock.Unlock()
 
-	util.EngineAddKeyValue(b, "temp", page.TemplateID)
+	util.EngineAddKeyValue(b, "temp", page.TempID)
 	util.EngineAddKeyValue(b, "layer", page.Layer)
 
-	encodeGeometry(b, page.Rect)
+	encodeGeometry(b, page.Rectangle)
 	encodeGeometry(b, page.Circle)
 	encodeGeometry(b, page.Clock)
 	encodeGeometry(b, page.Image)
-	encodeGeometry(b, page.Poly)
+	encodeGeometry(b, page.Polygon)
 	encodeGeometry(b, page.Text)
 	encodeGeometry(b, page.List)
 }

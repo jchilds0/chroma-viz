@@ -254,7 +254,7 @@ func (show *MediaSequencer) WritePage(page *pages.Page) (err error) {
 	pageData := PageData{
 		PageNum: page.PageNum,
 		Title:   page.Title,
-		TempID:  page.TemplateID,
+		TempID:  int(page.TempID),
 		Layer:   page.Layer,
 	}
 	show.UpdatePageInfo(pageData)
@@ -285,7 +285,7 @@ func (show *MediaSequencer) GetPages() map[int]PageData {
 	for _, page := range show.pages {
 		pageData[page.PageNum] = PageData{
 			PageNum: page.PageNum,
-			TempID:  page.TemplateID,
+			TempID:  int(page.TempID),
 			Title:   page.Title,
 			Layer:   page.Layer,
 		}
@@ -342,7 +342,7 @@ func (show *MediaSequencer) UpdatePageInfo(pageData PageData) {
 func (show *MediaSequencer) DeletePage(pageNum int) {
 	row, ok := show.rows[pageNum]
 	if !ok {
-		log.Println("Deleting page %d, page does not exist", pageNum)
+		log.Printf("Deleting page %d, page does not exist", pageNum)
 		return
 	}
 

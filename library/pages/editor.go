@@ -17,13 +17,13 @@ type Editor struct {
 	tab      map[int]*gtk.Frame
 	notebook *gtk.Notebook
 
-	Rect   []*geometry.RectangleEditor
-	Circle []*geometry.CircleEditor
-	Clock  []*geometry.ClockEditor
-	Image  []*geometry.ImageEditor
-	Poly   []*geometry.PolygonEditor
-	Text   []*geometry.TextEditor
-	List   []*geometry.ListEditor
+	Rectangle []*geometry.RectangleEditor
+	Circle    []*geometry.CircleEditor
+	Clock     []*geometry.ClockEditor
+	Image     []*geometry.ImageEditor
+	Polygon   []*geometry.PolygonEditor
+	Text      []*geometry.TextEditor
+	List      []*geometry.ListEditor
 }
 
 func NewEditor() (editor *Editor, err error) {
@@ -55,11 +55,11 @@ func NewEditor() (editor *Editor, err error) {
 	editor.appendTab("Select A Page", tab)
 
 	numEditors := 10
-	editor.Rect = initEditors(numEditors, geometry.NewRectangleEditor)
+	editor.Rectangle = initEditors(numEditors, geometry.NewRectangleEditor)
 	editor.Circle = initEditors(numEditors, geometry.NewCircleEditor)
 	editor.Clock = initEditors(numEditors, geometry.NewClockEditor)
 	editor.Image = initEditors(numEditors, geometry.NewImageEditor)
-	editor.Poly = initEditors(numEditors, geometry.NewPolygonEditor)
+	editor.Polygon = initEditors(numEditors, geometry.NewPolygonEditor)
 	editor.Text = initEditors(numEditors, geometry.NewTextEditor)
 	editor.List = initEditors(numEditors, geometry.NewListEditor)
 
@@ -106,11 +106,11 @@ func (edit *Editor) UpdateProps() {
 	edit.CurrentPage.lock.Lock()
 	defer edit.CurrentPage.lock.Unlock()
 
-	updateGeometry(edit.CurrentPage.Rect, edit.Rect)
+	updateGeometry(edit.CurrentPage.Rectangle, edit.Rectangle)
 	updateGeometry(edit.CurrentPage.Circle, edit.Circle)
 	updateGeometry(edit.CurrentPage.Clock, edit.Clock)
 	updateGeometry(edit.CurrentPage.Image, edit.Image)
-	updateGeometry(edit.CurrentPage.Poly, edit.Poly)
+	updateGeometry(edit.CurrentPage.Polygon, edit.Polygon)
 	updateGeometry(edit.CurrentPage.Text, edit.Text)
 	updateGeometry(edit.CurrentPage.List, edit.List)
 }
@@ -184,11 +184,11 @@ func (edit *Editor) SetPage(page *Page) (err error) {
 		tab.SetVisible(false)
 	}
 
-	edit.Rect = updateEditor(edit, edit.Rect, edit.CurrentPage.Rect, geometry.NewRectangleEditor)
+	edit.Rectangle = updateEditor(edit, edit.Rectangle, edit.CurrentPage.Rectangle, geometry.NewRectangleEditor)
 	edit.Circle = updateEditor(edit, edit.Circle, edit.CurrentPage.Circle, geometry.NewCircleEditor)
 	edit.Clock = updateEditor(edit, edit.Clock, edit.CurrentPage.Clock, geometry.NewClockEditor)
 	edit.Image = updateEditor(edit, edit.Image, edit.CurrentPage.Image, geometry.NewImageEditor)
-	edit.Poly = updateEditor(edit, edit.Poly, edit.CurrentPage.Poly, geometry.NewPolygonEditor)
+	edit.Polygon = updateEditor(edit, edit.Polygon, edit.CurrentPage.Polygon, geometry.NewPolygonEditor)
 	edit.Text = updateEditor(edit, edit.Text, edit.CurrentPage.Text, geometry.NewTextEditor)
 	edit.List = updateEditor(edit, edit.List, edit.CurrentPage.List, geometry.NewListEditor)
 
@@ -232,7 +232,7 @@ func updateEditor[T geometry.Editor[S], S geometry.Geometer[T]](
 }
 
 func (edit *Editor) UpdateTemplate(newTemp *templates.Template) {
-	edit.CurrentPage = NewPageFromTemplate(newTemp)
+	edit.CurrentPage = NewPage(newTemp)
 	edit.UpdateProps()
 	edit.SetPage(edit.CurrentPage)
 }

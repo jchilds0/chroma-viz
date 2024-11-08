@@ -54,7 +54,7 @@ func (listAttr *ListAttribute) stringRow(b *strings.Builder, rowIndex int) {
 		return
 	}
 
-	for _, elem := range row[1:len(row)] {
+	for _, elem := range row[1:] {
 		b.WriteRune(' ')
 		b.WriteString(elem)
 	}

@@ -372,7 +372,7 @@ func setComboSelection[T comparable](combo *gtk.ComboBox, value T, col int) (ite
 	var row T
 	for {
 		if !ok {
-			err = fmt.Errorf("Selection %s not found", value)
+			err = fmt.Errorf("Selection %v not found", value)
 			return
 		}
 
