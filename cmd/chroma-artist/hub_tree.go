@@ -104,21 +104,21 @@ func NewTemplateChooserDialog(win *gtk.Window) (dialog *TemplateChooserDialog, e
 func (dialog *TemplateChooserDialog) ImportTemplates(c hub.Client) (err error) {
 	dialog.treeList.Clear()
 
-	var tempids map[int]string
+	var tempids []hub.TemplateHeader
 
 	err = c.GetJSON("/template/list", &tempids)
 	if err != nil {
 		return
 	}
 
-	for id, title := range tempids {
+	for _, header := range tempids {
 		iter := dialog.treeList.Append()
-		err = dialog.treeList.SetValue(iter, 0, title)
+		err = dialog.treeList.SetValue(iter, 0, header.Title)
 		if err != nil {
 			return
 		}
 
-		err = dialog.treeList.SetValue(iter, 1, id)
+		err = dialog.treeList.SetValue(iter, 1, header.TemplateID)
 		if err != nil {
 			return
 		}

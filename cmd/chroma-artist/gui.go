@@ -284,6 +284,7 @@ func ArtistGui(app *gtk.Application) {
 		if res == gtk.RESPONSE_ACCEPT {
 			filename := dialog.GetFilename()
 
+			template.Clean()
 			*template, err = templates.NewTemplateFromFile(filename)
 			if err != nil {
 				log.Print(err)
@@ -348,6 +349,7 @@ func ArtistGui(app *gtk.Application) {
 
 			path := fmt.Sprintf("/template/%d", tempID)
 
+			template.Clean()
 			err = conf.ChromaHub.GetJSON(path, template)
 			if err != nil {
 				log.Printf("Error importing template: %s", err)
