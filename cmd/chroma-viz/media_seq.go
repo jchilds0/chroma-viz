@@ -154,6 +154,8 @@ func (show *MediaSequencer) handleConn(client net.Conn) {
 				log.Println(err)
 				continue
 			}
+		case CLEAR_SHOW:
+			show.Clear()
 
 		case RECIEVE_UPDATES:
 			show.clients[client.RemoteAddr().String()] = client
@@ -296,9 +298,35 @@ func (show *MediaSequencer) DeletePage(pageNum int) {
 	show.treeList.Remove(row)
 	delete(show.rows, pageNum)
 	delete(show.pages, pageNum)
+
+	m := Message{
+		Type: DELETE_PAGE,
+		PageInfo: PageData{
+			PageNum: pageNum,
+		},
+	}
+
+	for _, client := range show.clients {
+		err := sendMessage(client, m)
+		if err != nil {
+			log.Println("Error deleting page", err)
+		}
+	}
 }
 
 func (show *MediaSequencer) Clear() {
 	show.treeList.Clear()
 	clear(show.pages)
+	clear(show.rows)
+
+	m := Message{
+		Type: CLEAR_SHOW,
+	}
+
+	for _, client := range show.clients {
+		err := sendMessage(client, m)
+		if err != nil {
+			log.Println("Error clearing show", err)
+		}
+	}
 }

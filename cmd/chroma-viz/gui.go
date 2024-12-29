@@ -113,8 +113,6 @@ func VizGui(app *gtk.Application) {
 		page := pages.NewPage(&template)
 		page.PageNum = NextPageNum(showTree)
 
-		fmt.Println("Page title", page.Name, page.Title)
-
 		err = showTree.WritePage(*page)
 		if err != nil {
 			log.Printf("Error importing page: %s", err)

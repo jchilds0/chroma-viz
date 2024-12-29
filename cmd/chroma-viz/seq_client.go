@@ -105,12 +105,12 @@ func NewSequencerClient(addr string, port int, pageToEditor func(*pages.Page) er
 		show.addRow(page)
 	}
 
-	go show.pageUpdates()
+	go show.handleConn()
 
 	return show, nil
 }
 
-func (show *SequencerClient) pageUpdates() {
+func (show *SequencerClient) handleConn() {
 	for {
 		m, err := recvMessage(show.server)
 		if err != nil {
@@ -118,7 +118,23 @@ func (show *SequencerClient) pageUpdates() {
 			break
 		}
 
-		show.addRow(m.PageInfo)
+		switch m.Type {
+		case UPDATE_PAGE_INFO:
+			show.addRow(m.PageInfo)
+
+		case DELETE_PAGE:
+			iter, ok := show.rows[m.PageInfo.PageNum]
+			if !ok {
+				continue
+			}
+
+			show.treeList.Remove(iter)
+			delete(show.rows, m.PageInfo.PageNum)
+
+		case CLEAR_SHOW:
+			show.treeList.Clear()
+			clear(show.rows)
+		}
 	}
 }
 
@@ -253,4 +269,13 @@ func (show *SequencerClient) DeletePage(pageNum int) {
 }
 
 func (show *SequencerClient) Clear() {
+	m := Message{
+		Type: CLEAR_SHOW,
+	}
+
+	err := sendMessage(show.conn, m)
+	if err != nil {
+		log.Println("Error clearing show:", err)
+		return
+	}
 }
