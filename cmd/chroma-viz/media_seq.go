@@ -128,8 +128,7 @@ func (show *MediaSequencer) handleConn(client net.Conn) {
 
 			page, ok := show.ReadPage(req.PageInfo.PageNum)
 			if ok {
-				res.Page = page
-
+				res.Page = *page
 			}
 
 			err = sendMessage(client, res)
@@ -185,9 +184,13 @@ func (show *MediaSequencer) SelectedPage() (pageNum int, err error) {
 	return
 }
 
-func (show *MediaSequencer) WritePage(page *pages.Page) (err error) {
+func (show *MediaSequencer) WritePage(page pages.Page) (err error) {
+	if page.PageNum == 0 {
+		page.PageNum = NextPageNum(show)
+	}
+
 	_, ok := show.pages[page.PageNum]
-	show.pages[page.PageNum] = page
+	show.pages[page.PageNum] = &page
 
 	pageData := PageData{
 		PageNum:  page.PageNum,
@@ -212,7 +215,7 @@ func (show *MediaSequencer) WritePage(page *pages.Page) (err error) {
 		   to animate the clock. We manually add this
 		   after parsing the page.
 		*/
-		geo.Clock.SetClock(func() { SendEngine(page, library.CONTINUE) })
+		geo.Clock.SetClock(func() { SendEngine(&page, library.CONTINUE) })
 	}
 
 	return
@@ -223,10 +226,11 @@ func (show *MediaSequencer) GetPages() map[int]PageData {
 
 	for _, page := range show.pages {
 		pageData[page.PageNum] = PageData{
-			PageNum: page.PageNum,
-			TempID:  int(page.TempID),
-			Title:   page.Name,
-			Layer:   page.Layer,
+			PageNum:  page.PageNum,
+			TempID:   int(page.TempID),
+			Title:    page.Name,
+			Layer:    page.Layer,
+			TempName: page.Title,
 		}
 	}
 

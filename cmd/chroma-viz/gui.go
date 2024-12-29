@@ -111,11 +111,11 @@ func VizGui(app *gtk.Application) {
 		}
 
 		page := pages.NewPage(&template)
-		for _, p := range showTree.GetPages() {
-			page.PageNum = max(p.PageNum+1, page.PageNum)
-		}
+		page.PageNum = NextPageNum(showTree)
 
-		err = showTree.WritePage(page)
+		fmt.Println("Page title", page.Name, page.Title)
+
+		err = showTree.WritePage(*page)
 		if err != nil {
 			log.Printf("Error importing page: %s", err)
 		}
@@ -342,7 +342,7 @@ func guiImportShow(win *gtk.ApplicationWindow, show ShowTree) error {
 		}
 
 		for _, page := range pages {
-			show.WritePage(page)
+			show.WritePage(*page)
 		}
 	}
 
@@ -399,7 +399,7 @@ func guiImportPage(win *gtk.ApplicationWindow, showTree ShowTree) error {
 			return err
 		}
 
-		showTree.WritePage(&page)
+		showTree.WritePage(page)
 	}
 
 	return nil

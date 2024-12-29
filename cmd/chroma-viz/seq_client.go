@@ -128,28 +128,19 @@ func (show *SequencerClient) addRow(page PageData) {
 	}
 
 	iter := show.rows[page.PageNum]
-	err := show.treeList.SetValue(iter, PAGENUM, page.PageNum)
-	if err != nil {
-		return
-	}
-
-	err = show.treeList.SetValue(iter, TITLE, page.Title)
-	if err != nil {
-		return
-	}
+	show.treeList.SetValue(iter, TITLE, page.Title)
+	show.treeList.SetValue(iter, PAGENUM, page.PageNum)
 
 	if page.TempID != 0 {
-		err = show.treeList.SetValue(iter, TEMPLATE_ID, page.TempID)
-		if err != nil {
-			return
-		}
+		show.treeList.SetValue(iter, TEMPLATE_ID, page.TempID)
 	}
 
 	if page.TempName != "" {
-		err = show.treeList.SetValue(iter, TEMPLATE_NAME, "")
-		if err != nil {
-			return
-		}
+		show.treeList.SetValue(iter, TEMPLATE_NAME, page.TempName)
+	}
+
+	if page.Layer != 0 {
+		show.treeList.SetValue(iter, TEMPLATE_LAYER, page.Layer)
 	}
 
 	return
@@ -191,7 +182,7 @@ func (show *SequencerClient) SelectedPage() (pageNum int, err error) {
 	return
 }
 
-func (show *SequencerClient) WritePage(page *pages.Page) (err error) {
+func (show *SequencerClient) WritePage(page pages.Page) (err error) {
 	req := Message{
 		Type: WRITE_PAGE,
 		Page: page,
@@ -221,7 +212,7 @@ func (show *SequencerClient) ReadPage(pageNum int) (*pages.Page, bool) {
 		return nil, false
 	}
 
-	return res.Page, true
+	return &res.Page, true
 }
 
 func (show *SequencerClient) GetPages() (pages map[int]PageData) {

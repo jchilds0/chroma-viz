@@ -117,11 +117,21 @@ func createShowTreeModel(updateTitle func(title string, pageNum int)) (*gtk.Tree
 type ShowTree interface {
 	TreeView() *gtk.TreeView
 	SelectedPage() (int, error)
-	WritePage(page *pages.Page) (err error)
+	WritePage(page pages.Page) (err error)
 	ReadPage(pageNum int) (*pages.Page, bool)
 	GetPages() map[int]PageData
 	DeletePage(pageNum int)
 	Clear()
+}
+
+func NextPageNum(showTree ShowTree) (pageNum int) {
+	pageNum = 1
+
+	for _, p := range showTree.GetPages() {
+		pageNum = max(p.PageNum+1, pageNum)
+	}
+
+	return
 }
 
 type PageData struct {
@@ -146,7 +156,7 @@ type Message struct {
 	Type     int
 	PageInfo PageData
 	PageData map[int]PageData
-	Page     *pages.Page
+	Page     pages.Page
 }
 
 func sendMessage(conn net.Conn, m Message) (err error) {
