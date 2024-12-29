@@ -143,18 +143,18 @@ type PageData struct {
 }
 
 const (
-	NO_MESSAGE = iota
-	WRITE_PAGE
-	READ_PAGE
-	UPDATE_PAGE_INFO
-	DELETE_PAGE
-	GET_PAGES
-	CLEAR_SHOW
-	RECIEVE_UPDATES
+	NO_MESSAGE       = "no_msg"
+	WRITE_PAGE       = "write_page"
+	READ_PAGE        = "read_page"
+	UPDATE_PAGE_INFO = "update_page_info"
+	DELETE_PAGE      = "delete_page"
+	GET_PAGES        = "get_pages"
+	CLEAR_SHOW       = "clear_show"
+	RECIEVE_UPDATES  = "recieve_updates"
 )
 
 type Message struct {
-	Type     int
+	Type     string
 	PageInfo PageData
 	PageData map[int]PageData
 	Page     pages.Page
