@@ -31,35 +31,20 @@ func NewGuiConn() *GuiConn {
 	return gui
 }
 
-func SendPreview(page library.Animator, action int) {
-	if page == nil {
-		log.Println("SendPreview recieved nil page")
-		return
-	}
+func SendPreview(page *pages.Page, action int) {
+	layer := page.Layer
+	page.Layer = 0
 
 	for _, c := range conn.prev {
-		if c == nil {
-			continue
-		}
-
-		c.SetPage <- page
-		c.SetAction <- action
+		c.SendPage(action, page)
 	}
+
+	page.Layer = layer
 }
 
-func SendEngine(page library.Animator, action int) {
-	if page == nil {
-		log.Println("SendEngine recieved nil page")
-		return
-	}
-
+func SendEngine(page *pages.Page, action int) {
 	for _, c := range conn.eng {
-		if c == nil {
-			continue
-		}
-
-		c.SetPage <- page
-		c.SetAction <- action
+		c.SendPage(action, page)
 	}
 }
 

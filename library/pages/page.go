@@ -10,7 +10,6 @@ import (
 	"reflect"
 	"strconv"
 	"strings"
-	"sync"
 
 	"github.com/gotk3/gotk3/gtk"
 )
@@ -31,7 +30,6 @@ type Page struct {
 	templates.Template
 	PageNum int
 	Name    string
-	lock    sync.Mutex
 }
 
 func NewPage(temp *templates.Template) *Page {
@@ -87,9 +85,6 @@ func TextToBuffer(text string) (textView *gtk.TextView, err error) {
 }
 
 func (page *Page) ImportPage(filename string) error {
-	page.lock.Lock()
-	defer page.lock.Unlock()
-
 	buf, err := os.ReadFile(filename)
 	if err != nil {
 		return err
@@ -104,9 +99,6 @@ func (page *Page) ImportPage(filename string) error {
 }
 
 func ExportPage(page *Page, filename string) (err error) {
-	page.lock.Lock()
-	defer page.lock.Unlock()
-
 	file, err := os.Create(filename)
 	if err != nil {
 		return err
@@ -126,9 +118,6 @@ func ExportPage(page *Page, filename string) (err error) {
 }
 
 func (page *Page) Encode(b *strings.Builder) {
-	page.lock.Lock()
-	defer page.lock.Unlock()
-
 	util.EngineAddKeyValue(b, "temp", page.TempID)
 	util.EngineAddKeyValue(b, "layer", page.Layer)
 

@@ -21,19 +21,14 @@ import (
 var conn map[string]*library.Connection
 var conf *library.Config
 
-func SendPreview(page library.Animator, action int) {
+func SendPreview(page *templates.Template, action int) {
 	if page == nil {
 		log.Println("SendPreview recieved nil page")
 		return
 	}
 
 	for _, c := range conn {
-		if c == nil {
-			continue
-		}
-
-		c.SetPage <- page
-		c.SetAction <- action
+		c.SendPage(action, page)
 	}
 }
 

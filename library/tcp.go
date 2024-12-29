@@ -24,20 +24,14 @@ const (
 )
 
 type Connection struct {
-	Name      string
-	addr      string
-	port      int
-	Conn      net.Conn
-	SetPage   chan Animator
-	SetAction chan int
+	Name string
+	addr string
+	port int
+	Conn net.Conn
 }
 
 func NewConnection(name, addr string, port int) *Connection {
 	conn := &Connection{Name: name, addr: addr, port: port}
-	conn.SetPage = make(chan Animator, 1)
-	conn.SetAction = make(chan int, 1)
-
-	go conn.SendPage()
 	return conn
 }
 
@@ -53,34 +47,23 @@ S -> ver=%d#len=%d#action=%d#page=%d# G END_OF_MESSAGE
 G -> geo_num=%d# P G
 P -> attr=%s#val=%s# P
 */
-func (conn *Connection) SendPage() {
-	var page Animator
+func (conn *Connection) SendPage(action int, page Animator) {
+	if conn == nil || conn.Conn == nil {
+		return
+	}
 
-	for {
-		action := <-conn.SetAction
+	var b strings.Builder
+	version := "1,4"
 
-		select {
-		case page = <-conn.SetPage:
-		default:
-		}
+	util.EngineAddKeyValue(&b, "version", version)
+	util.EngineAddKeyValue(&b, "action", action)
 
-		if page == nil || conn.Conn == nil {
-			continue
-		}
+	page.Encode(&b)
+	b.WriteByte(END_OF_MESSAGE)
 
-		var b strings.Builder
-		version := "1,4"
-
-		util.EngineAddKeyValue(&b, "version", version)
-		util.EngineAddKeyValue(&b, "action", action)
-
-		page.Encode(&b)
-		b.WriteByte(END_OF_MESSAGE)
-
-		_, err := conn.Conn.Write([]byte(b.String()))
-		if err != nil {
-			log.Println("Error sending page:", err)
-		}
+	_, err := conn.Conn.Write([]byte(b.String()))
+	if err != nil {
+		log.Println("Error sending page:", err)
 	}
 }
 
