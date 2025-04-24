@@ -2,6 +2,7 @@ package main
 
 import (
 	"chroma-viz/library"
+	"chroma-viz/library/attribute"
 	"chroma-viz/library/hub"
 	"chroma-viz/library/pages"
 	"chroma-viz/library/templates"
@@ -170,6 +171,7 @@ func VizGui(app *gtk.Application) {
 	end := time.Now()
 	elapsed := end.Sub(start)
 	log.Printf("Imported Graphics Hub in %s", elapsed)
+	guiFetchAssets()
 
 	go importHook(conf.ChromaHub, tempTree, showTree)
 
@@ -236,6 +238,23 @@ func VizGui(app *gtk.Application) {
 		}
 	})
 	app.AddAction(deletePage)
+
+	fetchTemplates := glib.SimpleActionNew("fetch_templates", nil)
+	fetchTemplates.Connect("activate", func() {
+		err := guiFetchTemplates(showTree)
+		if err != nil {
+			log.Printf("Error fetching templates: %s", err)
+		}
+	})
+	app.AddAction(fetchTemplates)
+
+	fetchAssets := glib.SimpleActionNew("fetch_assets", nil)
+	fetchAssets.Connect("activate", func() {
+		err := guiFetchAssets()
+		if err != nil {
+			log.Printf("Error fetching templates: %s", err)
+		}
+	})
 
 	/* Body layout */
 	builder, err = gtk.BuilderNew()
@@ -445,4 +464,27 @@ func guiDeletePage(show ShowTree) error {
 
 	show.DeletePage(pageNum)
 	return nil
+}
+
+func guiFetchTemplates(show ShowTree) error {
+	return nil
+}
+
+func guiFetchAssets() (err error) {
+	start := time.Now()
+	assets := make([]hub.Asset, 0, 10)
+
+	err = conf.ChromaHub.GetJSON("/assets", &assets)
+	if err != nil {
+		return
+	}
+
+	for _, a := range assets {
+		attribute.InsertAsset(a.Directory, a.Name, int(a.AssetID))
+	}
+
+	end := time.Now()
+	elapsed := end.Sub(start)
+	log.Printf("Imported Assets in %s", elapsed)
+	return
 }

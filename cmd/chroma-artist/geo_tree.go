@@ -243,21 +243,21 @@ func updateParentGeometry(temp *templates.Template, model *gtk.TreeModel, iter *
 	for nextIterExists {
 		geoID, err := util.ModelGetValue[int](model, iter, GEO_NUM)
 		if err != nil {
-			log.Print("Error getting geometry id: %s", err.Error())
+			log.Printf("Error getting geometry id: %s", err.Error())
 			nextIterExists = model.IterNext(iter)
 			continue
 		}
 
 		name, err := util.ModelGetValue[string](model, iter, GEO_NAME)
 		if err != nil {
-			log.Print("Error getting geometry name: %s", err.Error())
+			log.Printf("Error getting geometry name: %s", err.Error())
 			nextIterExists = model.IterNext(iter)
 			continue
 		}
 
 		geo := temp.Geos[geoID]
 		if geo == nil {
-			log.Print("Error: geometry %d is nil", geoID)
+			log.Printf("Error: geometry %d is nil", geoID)
 			nextIterExists = model.IterNext(iter)
 			continue
 		}

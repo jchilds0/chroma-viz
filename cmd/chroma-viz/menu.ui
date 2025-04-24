@@ -32,6 +32,19 @@
       </section>
     </submenu>
     <submenu id="submenu">
+      <attribute name="label">Chroma Hub</attribute>
+      <section>
+        <item>
+          <attribute name="label">Fetch Templates</attribute>
+          <attribute name="action">app.fetch_templates</attribute>
+        </item>
+        <item>
+          <attribute name="label">Fetch Assets</attribute>
+          <attribute name="action">app.fetch_assets</attribute>
+        </item>
+      </section>
+    </submenu>
+    <submenu id="submenu">
       <attribute name="label">Page</attribute>
       <section>
         <item>

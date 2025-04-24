@@ -20,15 +20,13 @@ var defaultNodeSize = 10
 var rootNode = newAssetNode(defaultNodeSize)
 
 type assetNode struct {
-	assetIDs   []int
-	assetNames []string
+	assetNames map[int]string
 	childNodes map[string]*assetNode
 }
 
 func newAssetNode(numAssets int) *assetNode {
 	node := &assetNode{}
-	node.assetIDs = make([]int, 0, numAssets)
-	node.assetNames = make([]string, 0, numAssets)
+	node.assetNames = make(map[int]string, numAssets)
 	node.childNodes = make(map[string]*assetNode)
 
 	return node
@@ -48,8 +46,7 @@ func InsertAsset(path, name string, id int) {
 		currentNode = nextNode
 	}
 
-	currentNode.assetIDs = append(currentNode.assetIDs, id)
-	currentNode.assetNames = append(currentNode.assetNames, name)
+	currentNode.assetNames[id] = name
 }
 
 type AssetAttribute struct {
@@ -134,10 +131,10 @@ func NewAssetEditor(name string) *AssetEditor {
 
 			assetEdit.assetsStore.Clear()
 
-			for i, name := range assets.assetNames {
+			for id, name := range assets.assetNames {
 				row := assetEdit.assetsStore.Append()
 				assetEdit.assetsStore.SetValue(row, NAME, name)
-				assetEdit.assetsStore.SetValue(row, IMAGE_ID, assets.assetIDs[i])
+				assetEdit.assetsStore.SetValue(row, IMAGE_ID, id)
 			}
 		})
 
@@ -214,10 +211,10 @@ func (asset *AssetEditor) UpdateEditor(assetAttr *AssetAttribute) error {
 	assets := asset.GetAssets(iter)
 	asset.assetsStore.Clear()
 
-	for i, name := range assets.assetNames {
+	for id, name := range assets.assetNames {
 		row := asset.assetsStore.Append()
 		asset.assetsStore.SetValue(row, NAME, name)
-		asset.assetsStore.SetValue(row, IMAGE_ID, assets.assetIDs[i])
+		asset.assetsStore.SetValue(row, IMAGE_ID, id)
 	}
 
 	return nil

@@ -202,7 +202,7 @@ func (hub *DataBase) assetPOST(c *gin.Context) {
 		return
 	}
 
-	hub.ImportAsset(asset)
+	err = hub.ImportAsset(asset)
 	if err != nil {
 		Logger("Error post asset: %s", err)
 		c.Status(http.StatusInternalServerError)

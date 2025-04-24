@@ -361,6 +361,8 @@ func ArtistGui(app *gtk.Application) {
 
 			editView.Clear()
 		}
+
+		fetchAssetsHub()
 	})
 
 	importAsset.Connect("activate", func() {
@@ -418,22 +420,7 @@ func ArtistGui(app *gtk.Application) {
 	})
 
 	fetchAssets.Connect("activate", func() {
-		start := time.Now()
-		assets := make([]hub.Asset, 0, 10)
-
-		err = conf.ChromaHub.GetJSON("/assets", &assets)
-		if err != nil {
-			log.Printf("Error importing assets: %s", err)
-			return
-		}
-
-		for _, a := range assets {
-			attribute.InsertAsset(a.Directory, a.Name, int(a.AssetID))
-		}
-
-		end := time.Now()
-		elapsed := end.Sub(start)
-		log.Printf("Imported Assets in %s", elapsed)
+		fetchAssetsHub()
 	})
 
 	generateHub.Connect("activate", func() {
@@ -649,4 +636,23 @@ func duplicateGeo(temp *templates.Template, geoTree *GeoTree, keyTree *Frames) {
 	}
 
 	geoTree.AddGeoRow(newGeoID, 0, newGeoName, geoType)
+}
+
+func fetchAssetsHub() {
+	start := time.Now()
+	assets := make([]hub.Asset, 0, 10)
+
+	err := conf.ChromaHub.GetJSON("/assets", &assets)
+	if err != nil {
+		log.Printf("Error importing assets: %s", err)
+		return
+	}
+
+	for _, a := range assets {
+		attribute.InsertAsset(a.Directory, a.Name, int(a.AssetID))
+	}
+
+	end := time.Now()
+	elapsed := end.Sub(start)
+	log.Printf("Imported Assets in %s", elapsed)
 }
