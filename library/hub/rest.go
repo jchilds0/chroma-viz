@@ -132,7 +132,14 @@ func (hub *DataBase) tempidsGET(c *gin.Context) {
 }
 
 func (hub *DataBase) assetsGET(c *gin.Context) {
-	c.JSON(http.StatusOK, hub.assets)
+	assets, err := hub.GetAssets()
+	if err != nil {
+		Logger("Error get assets: %s", err)
+		c.Status(http.StatusInternalServerError)
+		return
+	}
+
+	c.JSON(http.StatusOK, assets)
 }
 
 func (hub *DataBase) assetsPOST(c *gin.Context) {
@@ -143,7 +150,7 @@ func (hub *DataBase) assetsPOST(c *gin.Context) {
 		return
 	}
 
-	var assets Assets
+	var assets []Asset
 	err = json.Unmarshal(dataJSON, &assets)
 	if err != nil {
 		Logger("Error post assets: %s", err)
@@ -151,29 +158,32 @@ func (hub *DataBase) assetsPOST(c *gin.Context) {
 		return
 	}
 
-	for id, a := range assets {
-		hub.assets[id] = a
+	for _, asset := range assets {
+		err := hub.ImportAsset(asset)
+		if err != nil {
+			Logger("Error post assets: %s", err)
+		}
 	}
+
 	c.Status(http.StatusOK)
 }
 
 func (hub *DataBase) assetGET(c *gin.Context) {
-	assetID, err := strconv.Atoi(c.Param("id"))
+	assetID, err := strconv.ParseInt(c.Param("id"), 10, 64)
 	if err != nil {
 		Logger("Error get asset: %s", err)
 		c.Status(http.StatusInternalServerError)
 		return
 	}
 
-	asset, ok := hub.assets[assetID]
-	if !ok {
-		Logger("Error get asset: asset %d does not exist", assetID)
+	asset, err := hub.GetAsset(assetID)
+	if err != nil {
+		Logger("Error get asset: %s", err)
 		c.Status(http.StatusInternalServerError)
 		return
 	}
 
-	c.Status(http.StatusOK)
-	c.File(asset.Filename)
+	c.Data(http.StatusOK, "image", asset.Image)
 }
 
 func (hub *DataBase) assetPOST(c *gin.Context) {
@@ -192,7 +202,13 @@ func (hub *DataBase) assetPOST(c *gin.Context) {
 		return
 	}
 
-	hub.assets[asset.ImageID] = asset
+	hub.ImportAsset(asset)
+	if err != nil {
+		Logger("Error post asset: %s", err)
+		c.Status(http.StatusInternalServerError)
+		return
+	}
+
 	c.Status(http.StatusOK)
 }
 

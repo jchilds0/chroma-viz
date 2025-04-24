@@ -56,13 +56,13 @@ func (hub *DataBase) AddCircle(tempID int64, circle geometry.Circle) (err error)
 	return
 }
 
-func (hub *DataBase) AddAsset(tempID int64, a geometry.Image) (err error) {
+func (hub *DataBase) AddAssetGeo(tempID int64, a geometry.Image) (err error) {
 	geoID, err := hub.addGeometry(tempID, a.Geometry)
 	if err != nil {
 		return
 	}
 
-	_, err = hub.stmt[ASSET_INSERT].Exec(geoID, a.Image.Directory(), a.Image.Name, a.Image.Value, a.Scale.Value)
+	_, err = hub.stmt[ASSET_GEO_INSERT].Exec(geoID, a.Image.Value, a.Scale.Value)
 	return
 }
 
@@ -270,20 +270,19 @@ func (hub *DataBase) GetTexts(temp *templates.Template, geos map[int64]geometry.
 	return
 }
 
-func (hub *DataBase) GetAssets(temp *templates.Template, geos map[int64]geometry.Geometry) (err error) {
-	rows, err := hub.stmt[ASSET_SELECT].Query(temp.TempID)
+func (hub *DataBase) GetAssetGeos(temp *templates.Template, geos map[int64]geometry.Geometry) (err error) {
+	rows, err := hub.stmt[ASSET_GEO_SELECT].Query(temp.TempID)
 	if err != nil {
 		return
 	}
 
 	var (
 		geoID, assetID int64
-		dir, name      string
 		scale          float64
 	)
 
 	for rows.Next() {
-		err = rows.Scan(&geoID, &dir, &name, &assetID, &scale)
+		err = rows.Scan(&geoID, &assetID, &scale)
 		if err != nil {
 			return
 		}

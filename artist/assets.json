@@ -1,8 +1,20 @@
-{
-    "1": {
+[
+    {
+        "AssetID": 1,
         "Filename": "data/logo.png",
         "Directory": "IMAGE/LOGOS",
-        "Name": "default_logo",
-        "ImageID": 1
+        "Name": "default_logo"
+    },
+    {
+        "AssetID": 2,
+        "Filename": "data/logo.png",
+        "Directory": "IMAGE/LOGOS",
+        "Name": "logo1"
+    },
+    {
+        "AssetID": 3,
+        "Filename": "data/logo.png",
+        "Directory": "IMAGE/LOGOS",
+        "Name": "logo2"
     }
-}
+]

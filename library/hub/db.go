@@ -15,8 +15,8 @@ import (
 
 type DataBase struct {
 	db        *sql.DB
-	templates map[int]*templates.Template
-	assets    map[int]Asset
+	templates map[int64]*templates.Template
+	assets    map[int64]Asset
 	stmt      map[string]*sql.Stmt
 	lock      sync.Mutex
 }
@@ -28,8 +28,8 @@ type Templates struct {
 
 func NewDataBase(numTemp int, username, password string) (hub *DataBase, err error) {
 	hub = &DataBase{}
-	hub.assets = make(map[int]Asset, 128)
-	hub.templates = make(map[int]*templates.Template, 128)
+	hub.assets = make(map[int64]Asset, 128)
+	hub.templates = make(map[int64]*templates.Template, 128)
 
 	hub.db, err = sql.Open("mysql", fmt.Sprintf("%s:%s@/?multiStatements=true", username, password))
 	if err != nil {
@@ -65,41 +65,9 @@ func (hub *DataBase) SelectDatabase(name, username, password string) (err error)
 	for geo, s := range stmts {
 		hub.stmt[geo], err = hub.db.Prepare(s)
 		if err != nil {
+			err = fmt.Errorf("geometry %s: %s", geo, err)
 			return
 		}
-	}
-
-	return
-}
-
-func (hub *DataBase) GetTemplates() (temps []*templates.Template, err error) {
-	rows, err := hub.db.Query("SELECT t.templateID FROM template t;")
-	if err != nil {
-		return
-	}
-
-	temps = make([]*templates.Template, 0, 10)
-
-	var (
-		maxTempID int64
-		tempID    int64
-		temp      *templates.Template
-	)
-	for rows.Next() {
-		err = rows.Scan(&tempID)
-		if err != nil {
-			err = fmt.Errorf("TempID: %s", err)
-			return
-		}
-
-		temp, err = hub.GetTemplate(tempID)
-		if err != nil {
-			err = fmt.Errorf("Retrieve Template: %s", err)
-			return
-		}
-
-		maxTempID = max(maxTempID, temp.TempID)
-		temps = append(temps, temp)
 	}
 
 	return

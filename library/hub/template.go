@@ -27,7 +27,7 @@ func (hub *DataBase) ImportTemplate(temp *templates.Template) (err error) {
 		return
 	}
 
-	err = importPointer(temp.TempID, temp.Image, hub.AddAsset)
+	err = importPointer(temp.TempID, temp.Image, hub.AddAssetGeo)
 	if err != nil {
 		return
 	}
@@ -63,7 +63,7 @@ func (hub *DataBase) ImportTemplate(temp *templates.Template) (err error) {
 	}
 
 	hub.lock.Lock()
-	hub.templates[int(temp.TempID)] = temp
+	hub.templates[temp.TempID] = temp
 	hub.lock.Unlock()
 
 	return
@@ -107,9 +107,40 @@ func (hub *DataBase) AddTemplate(tempID int64, name string, layer int) (err erro
 	return
 }
 
+func (hub *DataBase) GetTemplates() (temps []*templates.Template, err error) {
+	rows, err := hub.db.Query("SELECT t.templateID FROM template t;")
+	if err != nil {
+		return
+	}
+
+	temps = make([]*templates.Template, 0, 10)
+
+	var (
+		tempID int64
+		temp   *templates.Template
+	)
+	for rows.Next() {
+		err = rows.Scan(&tempID)
+		if err != nil {
+			err = fmt.Errorf("TempID: %s", err)
+			return
+		}
+
+		temp, err = hub.GetTemplate(tempID)
+		if err != nil {
+			err = fmt.Errorf("retrieve template: %s", err)
+			return
+		}
+
+		temps = append(temps, temp)
+	}
+
+	return
+}
+
 func (hub *DataBase) GetTemplate(tempID int64) (temp *templates.Template, err error) {
 	hub.lock.Lock()
-	temp, ok := hub.templates[int(tempID)]
+	temp, ok := hub.templates[tempID]
 	hub.lock.Unlock()
 	if ok {
 		return
@@ -153,7 +184,7 @@ func (hub *DataBase) GetTemplate(tempID int64) (temp *templates.Template, err er
 		return
 	}
 
-	err = hub.GetAssets(temp, geos)
+	err = hub.GetAssetGeos(temp, geos)
 	if err != nil {
 		err = fmt.Errorf("Assets: %s", err)
 		return
@@ -202,7 +233,7 @@ func (hub *DataBase) GetTemplate(tempID int64) (temp *templates.Template, err er
 	}
 
 	hub.lock.Lock()
-	hub.templates[int(tempID)] = temp
+	hub.templates[tempID] = temp
 	hub.lock.Unlock()
 
 	return

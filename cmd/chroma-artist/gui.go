@@ -7,10 +7,8 @@ import (
 	"chroma-viz/library/pages"
 	"chroma-viz/library/templates"
 	"chroma-viz/library/util"
-	"encoding/json"
 	"fmt"
 	"log"
-	"os"
 	"strconv"
 	"time"
 
@@ -378,14 +376,7 @@ func ArtistGui(app *gtk.Application) {
 		if res == gtk.RESPONSE_ACCEPT {
 			filename := dialog.GetFilename()
 
-			var assets hub.Assets
-			dataJSON, err := os.ReadFile(filename)
-			if err != nil {
-				log.Printf("Error importing assets: %s", err)
-				return
-			}
-
-			err = json.Unmarshal(dataJSON, &assets)
+			assets, err := hub.AssetsFromFile(filename)
 			if err != nil {
 				log.Printf("Error importing assets: %s", err)
 				return
@@ -428,7 +419,8 @@ func ArtistGui(app *gtk.Application) {
 
 	fetchAssets.Connect("activate", func() {
 		start := time.Now()
-		var assets hub.Assets
+		assets := make([]hub.Asset, 0, 10)
+
 		err = conf.ChromaHub.GetJSON("/assets", &assets)
 		if err != nil {
 			log.Printf("Error importing assets: %s", err)
@@ -436,7 +428,7 @@ func ArtistGui(app *gtk.Application) {
 		}
 
 		for _, a := range assets {
-			attribute.InsertAsset(a.Directory, a.Name, a.ImageID)
+			attribute.InsertAsset(a.Directory, a.Name, int(a.AssetID))
 		}
 
 		end := time.Now()

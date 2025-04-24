@@ -26,13 +26,13 @@ func main() {
 	if *schema {
 		err = createSchema(db)
 		if err != nil {
-			log.Fatal()
+			log.Fatal(err)
 		}
 	}
 
 	err = db.SelectDatabase("chroma_hub", *username, *password)
 	if err != nil {
-		log.Fatal()
+		log.Fatal("selecting database: ", err)
 	}
 
 	r := db.Router()

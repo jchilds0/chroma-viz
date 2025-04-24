@@ -4,12 +4,15 @@ const (
 	TEMPLATE_INSERT = "template-insert"
 	TEMPLATE_SELECT = "template-select"
 	TEMPLATE_DELETE = "template-delete"
+	ASSET_INSERT    = "asset-insert"
+	ASSET_SELECT    = "asset-select"
+	ASSET_DELETE    = "asset-delete"
 
 	GEOMETRY_INSERT  = "geometry-insert"
 	RECTANGLE_INSERT = "rectangle-insert"
 	TEXT_INSERT      = "text-insert"
 	CIRCLE_INSERT    = "circle-insert"
-	ASSET_INSERT     = "asset-insert"
+	ASSET_GEO_INSERT = "asset-geo-insert"
 	CLOCK_INSERT     = "clock-insert"
 	POLYGON_INSERT   = "polygon-insert"
 	POINT_INSERT     = "point-insert"
@@ -20,7 +23,7 @@ const (
 	RECTANGLE_SELECT = "rectangle-select"
 	CIRCLE_SELECT    = "circle-select"
 	TEXT_SELECT      = "text-select"
-	ASSET_SELECT     = "asset-select"
+	ASSET_GEO_SELECT = "asset-geo-select"
 	CLOCK_SELECT     = "clock-select"
 	POLYGON_SELECT   = "polygon-select"
 	POINT_SELECT     = "point-select"
@@ -51,6 +54,17 @@ var stmts = map[string]string{
 	TEMPLATE_DELETE: `
         DELETE FROM template WHERE templateID = ?;
     `,
+	ASSET_INSERT: `
+        INSERT INTO asset VALUES (?, ?, ?, ?);
+    `,
+	ASSET_SELECT: `
+        SELECT a.name, a.directory, a.data
+        FROM asset a 
+        WHERE a.assetID = ?;
+    `,
+	ASSET_DELETE: `
+        DELETE FROM asset WHERE assetID = ?;
+    `,
 
 	/*
 	 * Geometries
@@ -68,8 +82,8 @@ var stmts = map[string]string{
 	CIRCLE_INSERT: `
         INSERT INTO circle VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);
     `,
-	ASSET_INSERT: `
-        INSERT INTO asset VALUES (?, ?, ?, ?, ?);
+	ASSET_GEO_INSERT: `
+        INSERT INTO assetGeo VALUES (?, ?, ?);
     `,
 	CLOCK_INSERT: `
         INSERT INTO clock VALUES (?, ?, ?, ?, ?, ?);
@@ -113,9 +127,9 @@ var stmts = map[string]string{
         ON g.geometryID = t.geometryID
         WHERE g.templateID = ?;
     `,
-	ASSET_SELECT: `
-        SELECT a.geometryID, a.directory, a.name, a.assetID, a.scale
-        FROM asset a 
+	ASSET_GEO_SELECT: `
+        SELECT a.geometryID, a.assetID, a.scale
+        FROM assetGeo a 
         INNER JOIN geometry g 
         ON a.geometryID = g.geometryID 
         WHERE g.templateID = ?;
