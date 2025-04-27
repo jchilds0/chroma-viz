@@ -138,6 +138,7 @@ type Geometry struct {
 	GeometryID int
 	Name       string
 	GeoType    string
+	Visible    bool
 
 	RelX   attribute.IntAttribute
 	RelY   attribute.IntAttribute
@@ -145,11 +146,12 @@ type Geometry struct {
 	Mask   attribute.IntAttribute
 }
 
-func NewGeometry(geoNum int, name, geoType string) Geometry {
+func NewGeometry(geoNum int, name, geoType string, visible bool) Geometry {
 	geo := Geometry{
 		GeometryID: geoNum,
 		Name:       name,
 		GeoType:    geoType,
+		Visible:    visible,
 	}
 
 	// used by chroma engine for attribute identifier
@@ -189,10 +191,6 @@ func (g Geometry) GetName() string {
 
 func (g Geometry) GetGeometryID() int {
 	return g.GeometryID
-}
-
-func (g Geometry) GetGeometry() *Geometry {
-	return &g
 }
 
 type Editor[S any] interface {

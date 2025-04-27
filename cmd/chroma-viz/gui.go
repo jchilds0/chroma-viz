@@ -105,7 +105,7 @@ func VizGui(app *gtk.Application) {
 			return
 		}
 
-		err = template.Init()
+		err = template.Init(true)
 		if err != nil {
 			log.Print(err)
 			return
@@ -147,7 +147,7 @@ func VizGui(app *gtk.Application) {
 			return
 		}
 
-		err = template.Init()
+		err = template.Init(true)
 		if err != nil {
 			log.Printf("Error updating template: %s", err)
 			return

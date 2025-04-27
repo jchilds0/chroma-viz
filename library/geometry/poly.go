@@ -52,6 +52,10 @@ func (p *Polygon) Encode(b *strings.Builder) {
 	p.Polygon.Encode(b)
 }
 
+func (p *Polygon) GetGeometry() *Geometry {
+	return &p.Geometry
+}
+
 type PolygonEditor struct {
 	GeometryEditor
 

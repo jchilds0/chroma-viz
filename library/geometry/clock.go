@@ -47,6 +47,10 @@ func (c *Clock) UpdateGeometry(cEdit *ClockEditor) (err error) {
 	return
 }
 
+func (c *Clock) GetGeometry() *Geometry {
+	return &c.Geometry
+}
+
 func (c *Clock) Encode(b *strings.Builder) {
 	c.Geometry.Encode(b)
 

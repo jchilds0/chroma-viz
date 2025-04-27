@@ -66,6 +66,10 @@ func (l *List) Encode(b *strings.Builder) {
 	util.EngineAddKeyValue(b, ATTR_COLOR_A, l.Color.Alpha)
 }
 
+func (l *List) GetGeometry() *Geometry {
+	return &l.Geometry
+}
+
 type ListEditor struct {
 	GeometryEditor
 

@@ -71,7 +71,7 @@ var stmts = map[string]string{
 	 */
 
 	GEOMETRY_INSERT: `
-        INSERT INTO geometry VALUES (NULL, ?, ?, ?, ?, ?, ?, ?, ?);
+        INSERT INTO geometry VALUES (NULL, ?, ?, ?, ?, ?, ?, ?, ?, ?);
     `,
 	RECTANGLE_INSERT: `
         INSERT INTO rectangle VALUES (?, ?, ?, ?, ?, ?, ?, ?);
@@ -102,7 +102,7 @@ var stmts = map[string]string{
     `,
 
 	GEOMETRY_SELECT: `
-        SELECT g.geometryID, g.geoNum, g.name, g.geoType, g.rel_x, g.rel_y, g.parent, g.mask
+        SELECT g.geometryID, g.geoNum, g.name, g.geoType, g.rel_x, g.rel_y, g.parent, g.mask, g.visible
         FROM geometry g 
         WHERE g.templateID = ?;
     `,

@@ -66,6 +66,10 @@ func (r *Rectangle) Encode(b *strings.Builder) {
 	util.EngineAddKeyValue(b, ATTR_COLOR_A, r.Color.Alpha)
 }
 
+func (r *Rectangle) GetGeometry() *Geometry {
+	return &r.Geometry
+}
+
 type RectangleEditor struct {
 	GeometryEditor
 

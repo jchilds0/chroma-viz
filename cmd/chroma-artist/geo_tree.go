@@ -15,6 +15,7 @@ const (
 	GEO_TYPE = iota
 	GEO_NAME
 	GEO_NUM
+	GEO_VISIBLE
 	GEO_NUM_COLS
 )
 
@@ -115,10 +116,40 @@ func NewGeoTree(geoSelector *gtk.ComboBox, geoList *gtk.ListStore, geoToEditor f
 	}
 	geoTree.geoView.AppendColumn(column)
 
+	toggleCell, err := gtk.CellRendererToggleNew()
+	if err != nil {
+		return
+	}
+
+	toggleCell.SetProperty("activatable", true)
+	toggleCell.Connect("toggled",
+		func(cell *gtk.CellRendererToggle, path string) {
+			iter, err := geoTree.geoModel.GetIterFromString(path)
+			if err != nil {
+				log.Printf("Error toggling toggle (%s)", err)
+				return
+			}
+
+			state, err := util.ModelGetValue[bool](geoTree.geoModel.ToTreeModel(), iter, GEO_VISIBLE)
+			if err != nil {
+				log.Printf("Error toggling toggle: %s", err)
+				return
+			}
+
+			geoTree.geoModel.SetValue(iter, GEO_VISIBLE, !state)
+		})
+
+	column, err = gtk.TreeViewColumnNewWithAttribute("Visible", toggleCell, "active", GEO_VISIBLE)
+	if err != nil {
+		return
+	}
+	geoTree.geoView.AppendColumn(column)
+
 	geoTree.geoModel, err = gtk.TreeStoreNew(
-		glib.TYPE_STRING, // GEO TYPE
-		glib.TYPE_STRING, // GEO NAME
-		glib.TYPE_INT,    // GEO NUM
+		glib.TYPE_STRING,  // GEO TYPE
+		glib.TYPE_STRING,  // GEO NAME
+		glib.TYPE_INT,     // GEO NUM
+		glib.TYPE_BOOLEAN, // GEO VISIBILE
 	)
 	if err != nil {
 		return
@@ -224,7 +255,7 @@ func geometryToTreeView(temp *templates.Template, geoTree *GeoTree, parentID int
 			continue
 		}
 
-		geoTree.AddGeoRow(geoID, parentID, geo.Name, geo.GeoType)
+		geoTree.AddGeoRow(geoID, parentID, geo.Name, geo.GeoType, geo.Visible)
 		if geoID == parentID {
 			continue
 		}
@@ -238,7 +269,7 @@ func (geoTree *GeoTree) ImportGeometry(temp *templates.Template) (err error) {
 	return
 }
 
-func updateParentGeometry(temp *templates.Template, model *gtk.TreeModel, iter *gtk.TreeIter, parentID int) {
+func updateGeometry(temp *templates.Template, model *gtk.TreeModel, iter *gtk.TreeIter, parentID int) {
 	nextIterExists := true
 	for nextIterExists {
 		geoID, err := util.ModelGetValue[int](model, iter, GEO_NUM)
@@ -255,6 +286,13 @@ func updateParentGeometry(temp *templates.Template, model *gtk.TreeModel, iter *
 			continue
 		}
 
+		visible, err := util.ModelGetValue[bool](model, iter, GEO_VISIBLE)
+		if err != nil {
+			log.Printf("Error getting geometry name: %s", err.Error())
+			nextIterExists = model.IterNext(iter)
+			continue
+		}
+
 		geo := temp.Geos[geoID]
 		if geo == nil {
 			log.Printf("Error: geometry %d is nil", geoID)
@@ -264,10 +302,11 @@ func updateParentGeometry(temp *templates.Template, model *gtk.TreeModel, iter *
 
 		geo.Name = name
 		geo.Parent.Value = parentID
+		geo.Visible = visible
 
 		var childIter gtk.TreeIter
 		if ok := model.IterChildren(iter, &childIter); ok {
-			updateParentGeometry(temp, model, &childIter, geoID)
+			updateGeometry(temp, model, &childIter, geoID)
 		}
 
 		nextIterExists = model.IterNext(iter)
@@ -278,13 +317,13 @@ func (geoTree *GeoTree) ExportGeometry(temp *templates.Template) {
 	model := geoTree.geoModel.ToTreeModel()
 
 	if iter, ok := model.GetIterFirst(); ok {
-		updateParentGeometry(temp, model, iter, 0)
+		updateGeometry(temp, model, iter, 0)
 	}
 
 	return
 }
 
-func (geoTree *GeoTree) AddGeoRow(geoID, parentID int, geoName, geoType string) {
+func (geoTree *GeoTree) AddGeoRow(geoID, parentID int, geoName, geoType string, geoVisible bool) {
 	parentIter := geoTree.geoTreeIter[parentID]
 	iter := geoTree.geoModel.Append(parentIter)
 
@@ -292,6 +331,7 @@ func (geoTree *GeoTree) AddGeoRow(geoID, parentID int, geoName, geoType string) 
 	geoTree.geoModel.SetValue(iter, GEO_TYPE, geoType)
 	geoTree.geoModel.SetValue(iter, GEO_NAME, geoName)
 	geoTree.geoModel.SetValue(iter, GEO_NUM, geoID)
+	geoTree.geoModel.SetValue(iter, GEO_VISIBLE, geoVisible)
 
 	iter = geoTree.geoList.Append()
 
@@ -299,6 +339,7 @@ func (geoTree *GeoTree) AddGeoRow(geoID, parentID int, geoName, geoType string) 
 	geoTree.geoList.SetValue(iter, GEO_TYPE, geoType)
 	geoTree.geoList.SetValue(iter, GEO_NAME, geoName)
 	geoTree.geoList.SetValue(iter, GEO_NUM, geoID)
+	geoTree.geoList.SetValue(iter, GEO_VISIBLE, geoVisible)
 }
 
 func (geoTree *GeoTree) Clear() {

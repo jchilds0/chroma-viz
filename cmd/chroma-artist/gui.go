@@ -164,9 +164,10 @@ func ArtistGui(app *gtk.Application) {
 	}
 
 	geoModel, err := gtk.ListStoreNew(
-		glib.TYPE_STRING, // GEO TYPE
-		glib.TYPE_STRING, // GEO NAME
-		glib.TYPE_INT,    // GEO NUM
+		glib.TYPE_STRING,  // GEO TYPE
+		glib.TYPE_STRING,  // GEO NAME
+		glib.TYPE_INT,     // GEO NUM
+		glib.TYPE_BOOLEAN, // GEO VISIBLE
 	)
 	if err != nil {
 		log.Fatal(err)
@@ -235,12 +236,6 @@ func ArtistGui(app *gtk.Application) {
 			frame.UpdateSetFrame(editView.SetFrameEdit, editView.CurrentKeyID)
 		}
 
-		err = keyTree.ExportKeyframes(template)
-		if err != nil {
-			log.Printf("Error updating template keyframe: %s", err)
-			return
-		}
-
 		err = conf.ChromaHub.PutJSON("/template", template)
 		if err != nil {
 			log.Printf("Error sending template to chroma hub (%s)", err)
@@ -278,7 +273,7 @@ func ArtistGui(app *gtk.Application) {
 			filename := dialog.GetFilename()
 
 			template.Clean()
-			*template, err = templates.NewTemplateFromFile(filename)
+			*template, err = templates.NewTemplateFromFile(filename, false)
 			if err != nil {
 				log.Print(err)
 				return
@@ -349,7 +344,7 @@ func ArtistGui(app *gtk.Application) {
 				return
 			}
 
-			err = template.Init()
+			err = template.Init(false)
 			if err != nil {
 				log.Printf("Error importing template: %s", err)
 				return
@@ -576,7 +571,7 @@ func addGeo(temp *templates.Template, geoTree *GeoTree) {
 		return
 	}
 
-	geoTree.AddGeoRow(geoNum, 0, geoName, geoName)
+	geoTree.AddGeoRow(geoNum, 0, geoName, geoName, true)
 }
 
 func removeGeo(temp *templates.Template, geoTree *GeoTree, keyTree *Frames) {
@@ -622,6 +617,12 @@ func duplicateGeo(temp *templates.Template, geoTree *GeoTree, keyTree *Frames) {
 		return
 	}
 
+	geoVisible, err := util.ModelGetValue[bool](geoTree.geoModel.ToTreeModel(), iter, GEO_VISIBLE)
+	if err != nil {
+		log.Printf("Error duplicating geometry: %s", err)
+		return
+	}
+
 	newGeoName := geoName + " copy"
 	newGeoID, err := temp.AddGeometry(geoType, newGeoName)
 	if err != nil {
@@ -635,7 +636,7 @@ func duplicateGeo(temp *templates.Template, geoTree *GeoTree, keyTree *Frames) {
 		return
 	}
 
-	geoTree.AddGeoRow(newGeoID, 0, newGeoName, geoType)
+	geoTree.AddGeoRow(newGeoID, 0, newGeoName, geoType, geoVisible)
 }
 
 func fetchAssetsHub() {

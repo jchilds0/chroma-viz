@@ -74,6 +74,10 @@ func (c *Circle) Encode(b *strings.Builder) {
 	util.EngineAddKeyValue(b, ATTR_COLOR_A, c.Color.Alpha)
 }
 
+func (c *Circle) GetGeometry() *Geometry {
+	return &c.Geometry
+}
+
 type CircleEditor struct {
 	GeometryEditor
 

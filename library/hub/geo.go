@@ -10,7 +10,7 @@ import (
 
 func (hub *DataBase) addGeometry(tempID int64, geo geometry.Geometry) (geoID int64, err error) {
 	result, err := hub.stmt[GEOMETRY_INSERT].Exec(tempID, geo.GeometryID, geo.Name, geo.GeoType,
-		geo.RelX.Value, geo.RelY.Value, geo.Parent.Value, geo.Mask.Value)
+		geo.RelX.Value, geo.RelY.Value, geo.Parent.Value, geo.Mask.Value, geo.Visible)
 	if err != nil {
 		return
 	}
@@ -136,14 +136,15 @@ func (hub *DataBase) GetGeometry(tempID int64) (geos map[int64]geometry.Geometry
 		geoNum                   int
 		name, geoType            string
 		relX, relY, parent, mask int
+		visible                  bool
 	)
 	for rows.Next() {
-		err = rows.Scan(&geoID, &geoNum, &name, &geoType, &relX, &relY, &parent, &mask)
+		err = rows.Scan(&geoID, &geoNum, &name, &geoType, &relX, &relY, &parent, &mask, &visible)
 		if err != nil {
 			return
 		}
 
-		geo := geometry.NewGeometry(geoNum, name, geoType)
+		geo := geometry.NewGeometry(geoNum, name, geoType, visible)
 		geo.RelX.Value = relX
 		geo.RelY.Value = relY
 		geo.Parent.Value = parent

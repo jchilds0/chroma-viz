@@ -90,7 +90,7 @@ func importRandomPages(c hub.Client, tempTree *TempTree, showTree ShowTree) {
 	show := showTree.(*MediaSequencer)
 	show.treeView.SetModel(nil)
 
-	for i := 0; i < *importRandom; i++ {
+	for _ = range *importRandom {
 		index := (rand.Int() % numTemplates) + 1
 		path := fmt.Sprintf("/template/%d", index)
 
@@ -101,7 +101,7 @@ func importRandomPages(c hub.Client, tempTree *TempTree, showTree ShowTree) {
 			return
 		}
 
-		err = template.Init()
+		err = template.Init(true)
 		if err != nil {
 			log.Print(err)
 			return

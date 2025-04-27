@@ -58,6 +58,10 @@ func (t *Text) Encode(b *strings.Builder) {
 	util.EngineAddKeyValue(b, ATTR_COLOR_A, t.Color.Alpha)
 }
 
+func (t *Text) GetGeometry() *Geometry {
+	return &t.Geometry
+}
+
 type TextEditor struct {
 	GeometryEditor
 

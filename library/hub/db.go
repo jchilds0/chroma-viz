@@ -134,6 +134,7 @@ func (hub *DataBase) randomTemplate(tempID int64, numGeo int) (err error) {
 			GeometryID: j,
 			Name:       geos[geoIndex],
 			GeoType:    geos[geoIndex],
+			Visible:    j < 10,
 		}
 
 		geo.RelX.Value = rand.Int() % 2000

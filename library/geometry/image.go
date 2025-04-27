@@ -45,6 +45,10 @@ func (i *Image) Encode(b *strings.Builder) {
 	util.EngineAddKeyValue(b, i.Scale.Name, i.Scale.Value)
 }
 
+func (i *Image) GetGeometry() *Geometry {
+	return &i.Geometry
+}
+
 type ImageEditor struct {
 	GeometryEditor
 

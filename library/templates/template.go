@@ -62,7 +62,7 @@ func NewTemplate(title string, id int64, layer, numKey, numGeo int) *Template {
 	return temp
 }
 
-func NewTemplateFromFile(fileName string) (temp Template, err error) {
+func NewTemplateFromFile(fileName string, removeNonVisible bool) (temp Template, err error) {
 	buf, err := os.ReadFile(fileName)
 	if err != nil {
 		return
@@ -73,16 +73,7 @@ func NewTemplateFromFile(fileName string) (temp Template, err error) {
 		return
 	}
 
-	temp.Geos = make(map[int]*geometry.Geometry, 10)
-
-	updateGeometryEntry(&temp, temp.Rectangle)
-	updateGeometryEntry(&temp, temp.Circle)
-	updateGeometryEntry(&temp, temp.Clock)
-	updateGeometryEntry(&temp, temp.Image)
-	updateGeometryEntry(&temp, temp.Polygon)
-	updateGeometryEntry(&temp, temp.Text)
-	updateGeometryEntry(&temp, temp.List)
-
+	err = temp.Init(removeNonVisible)
 	return
 }
 
@@ -136,7 +127,7 @@ func (temp *Template) AddGeometry(geoType, geoName string) (id int, err error) {
 		}
 	}
 
-	geo := geometry.NewGeometry(id, geoName, geoType)
+	geo := geometry.NewGeometry(id, geoName, geoType, true)
 
 	switch geoType {
 	case geometry.GEO_RECT:
@@ -345,8 +336,23 @@ func (temp *Template) ExportTemplate(filename string) error {
 	return nil
 }
 
-func (temp *Template) Init() (err error) {
+func filterGeometry[T geometry.Geometer[S], S any](geo T) bool {
+	geom := geo.GetGeometry()
+	return geom.Visible
+}
+
+func (temp *Template) Init(removeNonVisible bool) (err error) {
 	temp.Geos = make(map[int]*geometry.Geometry, 10)
+
+	if removeNonVisible {
+		temp.Rectangle = util.Filter(temp.Rectangle, filterGeometry)
+		temp.Circle = util.Filter(temp.Circle, filterGeometry)
+		temp.Clock = util.Filter(temp.Clock, filterGeometry)
+		temp.Image = util.Filter(temp.Image, filterGeometry)
+		temp.Polygon = util.Filter(temp.Polygon, filterGeometry)
+		temp.Text = util.Filter(temp.Text, filterGeometry)
+		temp.List = util.Filter(temp.List, filterGeometry)
+	}
 
 	updateGeometryEntry(temp, temp.Rectangle)
 	updateGeometryEntry(temp, temp.Circle)
